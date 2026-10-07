@@ -31,7 +31,7 @@
         <customLabel>false</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Grid Edit Log</label>
+        <label>Grid Edit Log Retention</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
