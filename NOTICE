@@ -1,0 +1,8 @@
+Rowhouse
+Copyright 2026 Kugamon LLC
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Rowhouse contains no third-party code. Its markup follows the class names and
+structure of the Salesforce Lightning Design System, which Salesforce provides
+to the running page; no Lightning Design System files are included here.

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Layout__c</fullName>
+    <label>Layout</label>
+    <type>LongTextArea</type>
+    <length>32768</length>
+    <visibleLines>5</visibleLines>
+    <required>false</required>
+    <description>What the grid restores, as JSON: column widths, wrapping, sort, grouping and the rows whose related records are open.</description>
+    <inlineHelpText>What the grid restores for this user.</inlineHelpText>
+</CustomField>

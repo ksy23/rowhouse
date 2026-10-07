@@ -1,0 +1,13 @@
+/* The gear's dialog. rh- classes and global styling hooks only (HR-15). */
+
+.rh-settings-mark {
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+}
+
+/* The editor's own footer stays at the bottom of the scrolling body. */
+.rh-settings-body {
+    max-height: 75vh;
+    overflow-y: auto;
+}

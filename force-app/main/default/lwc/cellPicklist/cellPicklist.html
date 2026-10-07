@@ -1,0 +1,22 @@
+<template>
+    <template lwc:if={showSelect}>
+        <div class={formElementClass} onkeydown={handleKeyDown}>
+            <label class="slds-form-element__label slds-assistive-text" for="picklist">{label}</label>
+            <div class="slds-form-element__control">
+                <div class="slds-select_container">
+                    <select class="slds-select" id="picklist" disabled={isUnavailable} required={required} aria-invalid={ariaInvalid} aria-describedby="picklist-error" onchange={handleChange}>
+                        <template for:each={optionList} for:item="option">
+                            <option key={option.value} value={option.value} selected={option.selected}>{option.label}</option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+            <template lwc:if={error}>
+                <p class="slds-form-element__help rh-editor-error" id="picklist-error" role="alert">{error}</p>
+            </template>
+        </div>
+    </template>
+    <template lwc:else>
+        <span class="slds-truncate" title={text}>{text}</span>
+    </template>
+</template>

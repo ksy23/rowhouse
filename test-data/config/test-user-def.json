@@ -1,0 +1,13 @@
+{
+  "Email": "rowhouse.limited@example.com",
+  "Username": "rowhouse.limited@example.com.rowhousetest",
+  "LastName": "Limited",
+  "FirstName": "Rowhouse",
+  "Alias": "rhltd",
+  "TimeZoneSidKey": "America/New_York",
+  "LocaleSidKey": "en_US",
+  "EmailEncodingKey": "UTF-8",
+  "LanguageLocaleKey": "en_US",
+  "profileName": "Standard User",
+  "generatePassword": true
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Success_Count__c</fullName>
+    <description>The number of records saved in this batch.</description>
+    <inlineHelpText>Set by Rowhouse. Records saved in this batch.</inlineHelpText>
+    <label>Success Count</label>
+    <type>Number</type>
+    <precision>6</precision>
+    <scale>0</scale>
+    <required>false</required>
+</CustomField>

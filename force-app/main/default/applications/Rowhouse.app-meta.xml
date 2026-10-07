@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The Rowhouse app: where everyone reads the Grid Guide, and the people who
+    build grids work. Its image is the light app icon
+    (brand/logo/rowhouse-app-icon-light.svg drawn at 256 pixels, the
+    RowhouseAppIconLight content asset); its color is the brand's pine. It
+    leaves the org's own theme alone (shouldOverrideOrgTheme false), so the
+    logo shows in the App Launcher, not in place of the customer's own logo.
+    Rowhouse Grid User shows it with only the Grid Guide; Rowhouse Grid Admin
+    adds Grid Admin and Grid Edit Logs: a tab a user may not see is left
+    out of the navigation bar. It opens on the Grid Guide, its first tab.
+-->
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0F5C45</headerColor>
+        <logo>RowhouseAppIconLight</logo>
+        <logoVersion>1</logoVersion>
+        <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
+    </brand>
+    <defaultLandingTab>Rowhouse_Guide</defaultLandingTab>
+    <description>Learn Rowhouse by Kugamon on the Grid Guide tab. Grid admins also build and change grids on the Grid Admin tab and read the audit trail on Grid Edit Logs.</description>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <label>Rowhouse</label>
+    <navType>Standard</navType>
+    <setupExperience>all</setupExperience>
+    <tabs>Rowhouse_Guide</tabs>
+    <tabs>Rowhouse_Admin</tabs>
+    <tabs>Grid_Edit_Log__c</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

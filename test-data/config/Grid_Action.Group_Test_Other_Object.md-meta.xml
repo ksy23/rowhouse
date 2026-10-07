@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Cannot work, on purpose: a quick action of Account on a grid of Group Test records. Must come back as a warning. -->
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Group Test: another object's action</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Group_Test</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">QuickAction</value></values>
+    <values><field>Action_Name__c</field><value xsi:type="xsd:string">Account.NewCase</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">2</value></values>
+</CustomMetadata>

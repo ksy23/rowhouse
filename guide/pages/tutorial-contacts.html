@@ -1,0 +1,176 @@
+<!--meta {"title": "Tutorial: contacts on an account page", "desc": "Build a Rowhouse grid of contacts that sits on the Account page and shows only that account's people, with a formula column, a filter, an icon rule, and a layout each user keeps.", "section": "tutorials", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Contacts on an account page</div>
+    <span class="aud both">Account management · about 20 minutes</span>
+    <h1 style="margin-top:14px">Contacts on an account page</h1>
+    <p class="dek">Sam keeps every account's contact list tidy: titles change, people move, numbers go stale. The Contacts related list shows names but edits one record at a time. Here, the account page gets a grid of that account's people, editable in place, with the senior ones marked.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Build it · admin</span>
+    <a href="#goal">What you will build</a>
+    <a href="#grid">1. The grid</a>
+    <a href="#more">2. A formula, a rule and a filter</a>
+    <a href="#page">3. The account page</a>
+    <span class="s-k">Use it · Sam</span>
+    <a href="#open">4. Open an account</a>
+    <a href="#filter">5. Narrow it down</a>
+    <a href="#layout">6. Make it yours</a>
+    <a href="#learned">What you learned</a>
+  </aside>
+
+  <main class="content">
+
+<section id="goal">
+  <div class="persona"><span class="avatar b">SP</span><div><b>Sam Pelletier, Account Coordinator</b><span>Keeps contact details right for a book of accounts. Wants each account's people on its own page, the decision makers easy to spot, and the columns the way Sam likes them every time.</span></div></div>
+  <div class="sec-head"><span class="sec-num">The goal</span><h2>What you will build</h2>
+  <p class="sec-sub">One grid of contacts, built on the Grid Admin tab. Its <b>record page field</b> is the contact's Account, so on an account's page it shows only that account's contacts. A formula column shows how long each contact has been on file, an icon marks vice-presidents, and a filter leaves out contacts without an email.</p></div>
+  <div class="frame rv">
+    <svg class="dia" viewBox="0 0 900 170" role="img" aria-labelledby="ctT"><title id="ctT">The Account page hands its record to the Account People grid, which shows the contacts whose AccountId is that account</title>
+      <path class="wire" d="M300,85 H460"/>
+      <g class="node a pop"><rect x="40" y="40" width="260" height="90" rx="12"/><text class="k" x="58" y="66">Account page</text><text class="b" x="58" y="90" style="font-size:16px">United Oil &amp; Gas Corp.</text><text class="s" x="58" y="112">gives the grid its record</text></g>
+      <g class="node s"><rect x="460" y="40" width="400" height="90" rx="12"/><text class="k" x="478" y="66">Grid Configuration</text><text class="b" x="478" y="90" style="font-size:16px">Account People</text><text class="s" x="478" y="112">Contact · record page field: AccountId</text></g>
+      <circle r="4.5" class="dot"><animateMotion dur="2s" repeatCount="indefinite" path="M300,85 H460"/></circle>
+    </svg>
+  </div>
+  <figure class="rv" style="margin-top:20px">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/r/Account/001…/view</span></div><div class="stage"><div class="card-m">
+      <div class="m-head"><div class="m-ico cont"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Account People</div><div class="m-meta">5 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-chips">Filtered by <span class="m-chip lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Email is not blank</span></div>
+      <table class="mt"><colgroup><col style="width:4%"><col style="width:16%"><col style="width:18%"><col style="width:22%"><col style="width:15%"><col style="width:15%"><col style="width:10%"></colgroup>
+        <thead><tr><th class="cb"><span class="mcb"></span></th><th class="dd">Full Name</th><th class="dd">Title</th><th class="dd">Email</th><th class="dd">Business Phone</th><th class="dd">Account</th><th class="r">Days on file</th></tr></thead>
+        <tbody>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Lauren Boyle</td><td><span class="m-ii">i</span>SVP, Technology</td><td class="lnk">lboyle@uog.com</td><td class="lnk">(212) 842-5500</td><td class="lnk">United Oil &amp; Gas Corp.</td><td class="r">4</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Molly Fitzgerald</td><td><span class="m-ii">i</span>VP, Sales</td><td class="lnk">molly.fitzgerald@uog.example</td><td class="lnk">(713) 555-0118</td><td class="lnk">United Oil &amp; Gas Corp.</td><td class="r">1</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Avi Green</td><td>CFO</td><td class="lnk">agreen@uog.com</td><td class="lnk">(212) 842-5500</td><td class="lnk">United Oil &amp; Gas Corp.</td><td class="r">4</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Stella Pavlova</td><td><span class="m-ii">i</span>SVP, Production</td><td class="lnk">spavlova@uog.com</td><td class="lnk">(212) 842-5500</td><td class="lnk">United Oil &amp; Gas Corp.</td><td class="r">4</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Arthur Song</td><td>CEO</td><td class="lnk">asong@uog.com</td><td class="lnk">(212) 842-5500</td><td class="lnk">United Oil &amp; Gas Corp.</td><td class="r">4</td></tr>
+        </tbody></table>
+    </div></div></div>
+    <figcaption>On United Oil &amp; Gas Corp.'s page: its five contacts with an email, an info icon on the three vice-presidents, and Days on file worked out by the grid.</figcaption>
+  </figure>
+</section>
+
+<section id="grid">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>1. The grid</h2>
+  <p class="sec-sub">You need the Rowhouse Grid Admin permission set, and Customize Application to save (see <a href="start.html#access">Give people access</a>).</p></div>
+  <ol class="tut">
+    <li><b>Open the Grid Admin tab.</b> Click the App Launcher, type <span class="v plain">Rowhouse</span>, and click the <span class="ui">Rowhouse</span> app. It opens on the <span class="ui">Grid Guide</span>; click the <span class="ui">Grid Admin</span> tab, then <span class="ui">New grid</span>.</li>
+    <li><b>Fill in the Grid tab:</b>
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Grid Title</td><td><span class="v">Account People</span><button class="copy" data-copy="Account People">Copy</button></td></tr>
+        <tr><td>API name</td><td><span class="v">Account_People</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object</td><td><span class="v">Contact (Contact)</span></td></tr>
+        <tr><td>Sort by</td><td><span class="v">Last Name (LastName)</span></td></tr>
+        <tr><td>On a record page, show the records whose</td><td><span class="v">Account ID (AccountId), on Account pages</span></td></tr>
+      </tbody></table>
+      <div class="check why">The last one is what ties the grid to the page it sits on: on an account's page it shows only the contacts whose Account is that account. The list offers each lookup of Contact to one object, with the pages it works on.</div></li>
+    <li><b>Add the columns.</b> Click <span class="ui">Columns (1)</span>. <span class="ui">Full Name (Name)</span> is already there. For each row below, click <span class="ui">Add column</span>, choose the field, and tick <span class="ui">Edit</span> where the table says so:
+      <div class="tbox" style="margin-top:10px"><table class="ref">
+        <thead><tr><th>Field</th><th>Edit</th></tr></thead>
+        <tbody>
+          <tr><td class="d">Title (Title)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Email (Email)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Business Phone (Phone)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Account ID (AccountId)</td><td>—</td></tr>
+        </tbody></table></div>
+      <div class="check">The Account column's Header box suggests <b>Account</b>, in grey: a lookup is headed by what it points to, so there is no need to type one.</div></li>
+    <li><b>Keep the name on screen.</b> On the <span class="ui">Full Name (Name)</span> row, tick <span class="ui">Always shown</span>.
+      <div class="check why">Users can hide and move the grid's columns for themselves (step 6). This one they can move, but not hide.</div></li>
+  </ol>
+</section>
+
+<section id="more">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. A formula, a rule and a filter</h2></div>
+  <ol class="tut">
+    <li><b>Add a formula column.</b> Click <span class="ui">Add formula column</span>. In the new row:
+      <table class="fields"><tbody>
+        <tr><td>Field column: the box that says <i>Such as Amount__c * 0.2</i></td><td><span class="v">TODAY() - DATEVALUE(CreatedDate)</span><button class="copy" data-copy="TODAY() - DATEVALUE(CreatedDate)">Copy</button></td></tr>
+        <tr><td>The list under it (what the formula returns)</td><td><span class="v">Number</span> <span class="note">already chosen</span></td></tr>
+        <tr><td>The box beside the list, <i>2 places</i> (decimal places)</td><td><span class="v">0</span></td></tr>
+        <tr><td>Header column, the box that says <i>Required</i></td><td><span class="v">Days on file</span><button class="copy" data-copy="Days on file">Copy</button></td></tr>
+      </tbody></table>
+      <div class="check">Until the formula and the header are filled in, the editor lists them under <i>Fix these before saving</i>. A formula with a mistake shows Salesforce's own message there. The line under the buttons says <i>1 of 10 formulas used</i>.</div></li>
+    <li><b>Mark the vice-presidents.</b> Click <span class="ui">Display rules (0)</span>, then <span class="ui">Add display rule</span>, and fill in the row:
+      <table class="fields"><tbody>
+        <tr><td>Meaning</td><td><span class="v">Executive</span><button class="copy" data-copy="Executive">Copy</button></td></tr>
+        <tr><td>Field</td><td><span class="v">Title (Title)</span></td></tr>
+        <tr><td>Condition</td><td><span class="v">Contains</span></td></tr>
+        <tr><td>Value</td><td><span class="v">VP</span></td></tr>
+        <tr><td>Look</td><td><span class="v">Info icon</span></td></tr>
+        <tr><td>Applies to</td><td><span class="v">The cell</span> <span class="note">already chosen</span></td></tr>
+      </tbody></table></li>
+    <li><b>Leave out contacts without an email.</b> Click <span class="ui">Filters (0)</span>, then <span class="ui">Add filter</span>:
+      <table class="fields"><tbody>
+        <tr><td>Name</td><td><span class="v">Has email</span><button class="copy" data-copy="Has email">Copy</button></td></tr>
+        <tr><td>Field</td><td><span class="v">Email (Email)</span></td></tr>
+        <tr><td>Condition</td><td><span class="v">Is not blank</span></td></tr>
+      </tbody></table></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>. After a few seconds the editor reads the grid back: <span class="ui">Columns (6)</span>, <span class="ui">Display rules (1)</span>, <span class="ui">Filters (1)</span>.</li>
+  </ol>
+</section>
+
+<section id="page">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>3. The account page</h2></div>
+  <ol class="tut">
+    <li><b>Open an account</b>, for example <span class="v">United Oil &amp; Gas Corp.</span></li>
+    <li><b>Edit its page.</b> Click the gear at the top right, then <span class="ui">Edit Page</span>. Lightning App Builder opens with the account's page.</li>
+    <li><b>Add the grid.</b> In the components list on the left, type <span class="v plain">Rowhouse</span> in the search box, and drag <span class="ui">Rowhouse Grid</span> (under <span class="ui">Custom</span>) onto the page, above the Related and Details tabs. On the right, enter <span class="v">Account_People</span><button class="copy" data-copy="Account_People">Copy</button> in <span class="ui">Grid Configuration</span>.
+      <div class="check">The grid shows this account's contacts straight away, in the editor. There is nothing to set for the record: Lightning gives the grid the record of the page it is on.</div></li>
+    <li><b>Save and activate.</b> Click <span class="ui">Save</span>. If Salesforce asks, click <span class="ui">Activate</span>; otherwise click <span class="ui">Activation…</span>. Choose <span class="ui">Assign as Org Default</span>, then <span class="ui">Desktop and phone</span>, click <span class="ui">Next</span>, then <span class="ui">Save</span>. Click the back arrow at the top left to return to the account.</li>
+  </ol>
+</section>
+
+<section id="open">
+  <div class="persona"><span class="avatar b">SP</span><div><b>Now as Sam</b><span>Sam has the Rowhouse Grid User permission set.</span></div></div>
+  <div class="sec-head"><span class="sec-num">Use it · Sam</span><h2>4. Open an account</h2></div>
+  <ol class="tut">
+    <li><b>Open United Oil &amp; Gas Corp.</b> The grid <b>Account People</b> is on its page.</li>
+  </ol>
+  <div class="check">Five contacts: Lauren Boyle, Molly Fitzgerald, Avi Green, Stella Pavlova and Arthur Song. Under the title: <i>5 items • Filtered • Sorted by LastName</i>, and a locked chip <i>Email is not blank</i>: the admin's filter. An <b>i</b> icon marks the three titles with VP in them (SVP, Technology; VP, Sales; SVP, Production). The Account column is headed <b>Account</b>. Hover over a <b>Days on file</b> cell and it shows a lock: the grid works it out.</div>
+  <p class="note">Title, Email and Business Phone are edited in place, as in any grid: double-click, type, <kbd>Enter</kbd>, then <b>Save</b> in the bar at the bottom.</p>
+</section>
+
+<section id="filter">
+  <div class="sec-head"><span class="sec-num">Use it · Sam</span><h2>5. Narrow it down</h2></div>
+  <ol class="tut">
+    <li><b>Filter by title.</b> Click the ▾ on the <span class="ui">Title</span> header, then <span class="ui">Filter…</span>. <span class="ui">Contains</span> is chosen; type <span class="v">VP</span> in <span class="ui">Value</span> and press <kbd>Enter</kbd>.
+      <div class="check">Three contacts. A chip <i>Title contains "VP"</i> joins the admin's, with an ✕, and the Title header shows a filter icon.</div></li>
+    <li><b>Take it off.</b> Click <span class="ui">Clear filters</span>. The five contacts are back; the admin's chip stays.</li>
+  </ol>
+</section>
+
+<section id="layout">
+  <div class="sec-head"><span class="sec-num">Use it · Sam</span><h2>6. Make it yours</h2></div>
+  <ol class="tut">
+    <li><b>Sort by title.</b> Click the <span class="ui">Title</span> header.</li>
+    <li><b>Hide a column.</b> Open the ▾ menu on the <span class="ui">Business Phone</span> header and choose <span class="ui">Hide column</span>.
+      <div class="check">The column goes. The ▾ menu on <b>Full Name</b> has no Hide column: the admin keeps it on screen.</div></li>
+    <li><b>Move one.</b> Drag the <span class="ui">Email</span> header by its name onto the left half of the <span class="ui">Title</span> header, and let go.
+      <div class="check">A blue bar shows on Title's left edge while you drag; Email then sits before Title.</div></li>
+    <li><b>Reload the page</b> (<kbd>⌘</kbd>+<kbd>R</kbd>, or <kbd>Ctrl</kbd>+<kbd>R</kbd>).
+      <div class="check">The grid opens as Sam left it: sorted by Title, Email before Title, no Business Phone. A ↶ button, <b>Reset layout</b>, is beside Refresh. The filter from step 5 is gone: filters are for the visit.</div></li>
+    <li><b>Bring a column back.</b> Click <span class="ui">Choose columns</span>, the button with three bars beside Refresh. Click <span class="ui">Business Phone</span> under <span class="ui">Available</span>, click ▸ to move it to <span class="ui">Visible</span>, and click <span class="ui">Save</span>.
+      <div class="check">Business Phone is back, last. In the dialog, Full Name had a lock beside it: it cannot leave Visible.</div></li>
+    <li><b>Put it back.</b> Click <span class="ui">Reset layout</span>. The grid is sorted by last name again, its columns are as the admin set them, and the button goes.</li>
+  </ol>
+</section>
+
+<section id="learned">
+  <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
+  <div class="tiles rv-stagger">
+    <div class="tile sky"><div class="ic">{{ic:page}}</div><h4>Record pages</h4><p>A record page field makes a grid a related list you can edit in place.</p></div>
+    <div class="tile"><div class="ic">{{ic:grid}}</div><h4>Formulas and icons</h4><p>Columns the grid works out, and icons that say what a value means.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:users}}</div><h4>Filters and layouts</h4><p>The admin's filters stay; each user's own last the visit; each user's layout is kept.</p></div>
+  </div>
+  <div class="next">
+    <a href="tutorial-cleanup.html"><small>Previous tutorial</small><b>← The contact clean-up</b></a>
+    <a class="fwd" href="tutorials.html"><small>All tutorials</small><b>Tutorials →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

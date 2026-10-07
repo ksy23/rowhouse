@@ -1,0 +1,16 @@
+/* The box is the cell's width; the matches keep room for a record's
+   name even in a narrow column. */
+.rh-lookup-list {
+    min-width: 20rem;
+}
+
+/* New Account and the like: after the matches, set apart by a rule. */
+.rh-lookup-new {
+    border-top: 1px solid var(--slds-g-color-border-1, #e5e5e5);
+}
+
+/* Salesforce's own lookup fills the cell, as the grid's own box does. */
+.rh-lookup-form {
+    display: block;
+    min-width: 12rem;
+}

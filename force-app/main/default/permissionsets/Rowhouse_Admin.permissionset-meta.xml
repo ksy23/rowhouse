@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    For the people who build grids. Assigned together with Rowhouse Grid
+    User, which every grid user needs. It opens the Grid Admin tab and the
+    gear on each grid, adds the Grid Admin and Grid Edit Logs tabs to the
+    Rowhouse app (Rowhouse Grid User shows the app with only its Grid Guide),
+    and includes Rowhouse Grid Diagnostics' troubleshooting
+    information. It cannot grant Customize Application, which saving a grid
+    configuration needs: a packaged permission set grants no system permissions
+    of that kind, so only the org's real admins can save.
+-->
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Rowhouse Grid Admin</label>
+    <description>For admins who build grids: adds the Grid Admin and Grid Edit Logs tabs to the Rowhouse app and the gear to each grid, and shows troubleshooting information. Saving also needs Customize Application. Assign together with Rowhouse Grid User.</description>
+    <applicationVisibilities>
+        <application>Rowhouse</application>
+        <visible>true</visible>
+    </applicationVisibilities>
+    <customMetadataTypeAccesses>
+        <enabled>true</enabled>
+        <name>Rowhouse_Setting__mdt</name>
+    </customMetadataTypeAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <classAccesses>
+        <apexClass>GridAdminController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>Rowhouse_Admin</name>
+    </customPermissions>
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>Rowhouse_Diagnostics</name>
+    </customPermissions>
+    <tabSettings>
+        <tab>Grid_Edit_Log__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>Rowhouse_Admin</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>Rowhouse_Guide</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+</PermissionSet>

@@ -1,0 +1,122 @@
+<template>
+    <section class="rh-help" aria-labelledby="rh-help-title">
+        <div class="rh-help-top">
+            <span class="rh-secnum">Grid Guide</span>
+            <span class="rh-help-links">
+                <a class="rh-more rh-help-open" href={openUrl} title="This part of the Configuration reference (opens in a new tab)" onclick={handleOpen}>Open ↗</a>
+                <lightning-button class="rh-help-hide" variant="base" label="Hide help" onclick={handleHide}></lightning-button>
+            </span>
+        </div>
+
+        <h2 class="rh-help-title" id="rh-help-title">{title}</h2>
+
+        <!-- Each tab's part of the Configuration reference, in a few lines (guide/pages/configure.html). -->
+        <template lwc:if={isGrid}>
+            <p>One per grid. Its title is what users see above the grid; its API name is what you enter in the Rowhouse Grid component.</p>
+            <dl class="rh-help-list">
+                <dt>Rows per page</dt>
+                <dd>Blank loads the first 200 rows, then 2,000 at a time up to 10,000, then more as users scroll, up to 100,000.</dd>
+                <dt>On a record page</dt>
+                <dd>Shows only the records whose lookup points to the page's record, like a related list. None shows the whole list.</dd>
+                <dt>Height in pixels</dt>
+                <dd>Blank fills the window. Under 160 counts as 160.</dd>
+                <dt>What users can do</dt>
+                <dd>Editing and export start ticked. Import, deleting selected rows and logging start unticked, because each can change many records at once.</dd>
+            </dl>
+            <div class="rh-call">
+                <span class="rh-call-k">Tip</span>
+                <p>Once saved, a grid's API name and object can't change. For another object, build another grid.</p>
+            </div>
+        </template>
+
+        <template lwc:elseif={isColumns}>
+            <p>One per column, left to right. Leave the header blank to use the field's label. A column a user can't read is left out for that user.</p>
+            <dl class="rh-help-list">
+                <dt>Edit</dt>
+                <dd>Users can change the cell when this is ticked, Edit cells in the grid is ticked, and they may edit the field. Formulas, roll-ups and auto-numbers never can be.</dd>
+                <dt>Wrap</dt>
+                <dd>Up to three lines; otherwise the text is cut off.</dd>
+                <dt>Always shown</dt>
+                <dd>Users can't hide the column with Choose columns.</dd>
+                <dt>Group, Subtotal</dt>
+                <dd>Group opens the grid grouped by this column, 1 being the outermost grouping. Users can group offers grouping in the column's menu. Subtotal is what each group and the Total row show for it.</dd>
+                <dt>Formula column</dt>
+                <dd>Worked out from other fields, in the syntax of a formula field. Read-only. At most 10 formulas a grid, columns and display rules together.</dd>
+            </dl>
+            <div class="rh-call">
+                <span class="rh-call-k">Tip</span>
+                <p>A saved column can't be deleted. Switch it off; it stays in Setup.</p>
+            </div>
+        </template>
+
+        <template lwc:elseif={isRules}>
+            <p>One per highlight: a fill, a text color, bold, an icon or a data bar, when a field meets a condition or a formula is true.</p>
+            <dl class="rh-help-list">
+                <dt>Meaning</dt>
+                <dd>What the highlight means, as the Display Key shows it to users.</dd>
+                <dt>Condition</dt>
+                <dd>Equals, greater than, Between and the rest; a field compared with another field of the record; or Formula is true.</dd>
+                <dt>Look, Applies to</dt>
+                <dd>The highlight, on the cell or on the whole row.</dd>
+                <dt>When two rules meet</dt>
+                <dd>Rules apply top to bottom. For each of the fill, text color, bold, icon and data bar, the first matching rule wins.</dd>
+            </dl>
+            <div class="rh-call">
+                <span class="rh-call-k">Tip</span>
+                <p>Rules follow an edit before it's saved. A formula rule is worked out on the server, so it changes after a save.</p>
+            </div>
+        </template>
+
+        <template lwc:elseif={isFilters}>
+            <p>One per condition every row must meet. Users see the filters as locked chips above the grid and can't remove them.</p>
+            <dl class="rh-help-list">
+                <dt>Condition, Value</dt>
+                <dd>A picklist value by label or API name, a date as 2026-12-31 or TODAY-30, a lookup as a record Id or $User for "my records".</dd>
+                <dt>A filter that can't work</dt>
+                <dd>Stops the grid with a message naming it. It is never skipped.</dd>
+                <dt>Not security</dt>
+                <dd>Who can see a record is still decided by sharing and field-level security.</dd>
+            </dl>
+            <div class="rh-call">
+                <span class="rh-call-k">Tip</span>
+                <p>Users add their own filters from each column's menu, for as long as they stay on the page.</p>
+            </div>
+        </template>
+
+        <template lwc:elseif={isActions}>
+            <p>One per action users can run on a row, or on the rows they select. Its label is what the menu item says.</p>
+            <dl class="rh-help-list">
+                <dt>Type: a screen flow</dt>
+                <dd>Opens on a page of its own, as the user, then comes back to the grid. It gets the row's Id in recordId, or the selected rows' Ids in ids.</dd>
+                <dt>Type: anything else</dt>
+                <dd>An autolaunched flow, an invocable Apex action or a quick action runs on the server, 50 records per call.</dd>
+                <dt>Offered in</dt>
+                <dd>Each row's menu, the selection bar, or both.</dd>
+                <dt>Permission</dt>
+                <dd>A custom permission's API name. Only users who hold it see and run the action.</dd>
+            </dl>
+            <div class="rh-call rh-call_warn">
+                <span class="rh-call-k">Access</span>
+                <p>Rowhouse doesn't check access to the flow or class itself, and an autolaunched flow runs in system context by default. Use a Required Permission to limit who runs it.</p>
+            </div>
+        </template>
+
+        <template lwc:elseif={isChildren}>
+            <p>One per tab under each row: a full grid of its own configuration, showing the records whose lookup points to that row.</p>
+            <dl class="rh-help-list">
+                <dt>Grid</dt>
+                <dd>The child grid: build it first, for the child object, like any other grid. It need not be on any page.</dd>
+                <dt>Linked by</dt>
+                <dd>The child object's lookup to this grid's object.</dd>
+                <dt>Height</dt>
+                <dd>The most the tab's panel grows to, at least 160 pixels. Standard fits the records.</dd>
+                <dt>Three levels at most</dt>
+                <dd>A grid, its child tables, and theirs.</dd>
+            </dl>
+            <div class="rh-call">
+                <span class="rh-call-k">Tip</span>
+                <p>Everything the child grid allows works in the tab. An import there fills in the parent on every new record.</p>
+            </div>
+        </template>
+    </section>
+</template>

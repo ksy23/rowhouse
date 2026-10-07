@@ -1,0 +1,172 @@
+<!--meta {"title": "Reference", "desc": "Rowhouse limits, measured performance, frequently asked questions and a glossary.", "section": "reference", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / Reference</div>
+    <span class="aud both">Both</span>
+    <h1 style="margin-top:14px">Reference</h1>
+    <p class="dek">The numbers: how much a grid holds, how fast it is, what it does not do yet, and what the words mean.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Reference</span>
+    <a href="#limits">Limits</a>
+    <a href="#perf">Performance</a>
+    <a href="#notyet">Not yet</a>
+    <a href="#faq">Questions</a>
+    <a href="#glossary">Glossary</a>
+    <span class="s-k">Elsewhere</span>
+    <a href="using.html#keys">Every key</a>
+    <a href="configure.html">Every setting</a>
+  </aside>
+
+  <main class="content">
+
+<section id="limits">
+  <div class="sec-head"><span class="sec-num">Numbers</span><h2>Limits</h2>
+  <p class="sec-sub">Each limit is there for a reason you can see: how much a browser draws smoothly, or how much Salesforce lets one transaction do.</p></div>
+  <div class="lims rv-stagger">
+    <div class="lim"><span class="t">Rows loaded when the grid opens</span><span class="n" data-count="10000">10,000</span><div class="meter"><i style="--w:100%"></i></div></div>
+    <div class="lim sky"><span class="t">Rows reachable by scrolling, 2,000 at a time</span><span class="n" data-count="100000">100,000</span><div class="meter"><i style="--w:100%"></i></div></div>
+    <div class="lim plum"><span class="t">Records in one save, in batches of 200</span><span class="n" data-count="10000">10,000</span><div class="meter"><i style="--w:100%"></i></div></div>
+    <div class="lim gold"><span class="t">Cells in one paste</span><span class="n" data-count="10000">10,000</span><div class="meter"><i style="--w:100%"></i></div></div>
+    <div class="lim rose"><span class="t">Undo steps (unsaved edits)</span><span class="n" data-count="100">100</span><div class="meter"><i style="--w:100%"></i></div></div>
+    <div class="lim teal"><span class="t">Rows in one selection</span><span class="n" data-count="10000">10,000</span><div class="meter"><i style="--w:100%"></i></div></div>
+    <div class="lim"><span class="t">Import file: rows, and size</span><span class="n">10,000 · 20 MB</span><div class="meter"><i style="--w:100%"></i></div></div>
+    <div class="lim sky"><span class="t">Grouping levels · groups</span><span class="n">3 · 5,000</span><div class="meter"><i style="--w:60%"></i></div></div>
+    <div class="lim plum"><span class="t">Child table levels (grid, child, grandchild)</span><span class="n">3</span><div class="meter"><i style="--w:60%"></i></div></div>
+    <div class="lim gold"><span class="t">Page Size setting (rows in the first page)</span><span class="n">1 – 2,000</span><div class="meter"><i style="--w:20%"></i></div></div>
+    <div class="lim rose"><span class="t">Records per action call</span><span class="n" data-count="50">50</span><div class="meter"><i style="--w:25%"></i></div></div>
+    <div class="lim teal"><span class="t">Width below which cards replace the table</span><span class="n">480 px</span><div class="meter"><i style="--w:48%"></i></div></div>
+    <div class="lim"><span class="t">Columns one user can filter by at once</span><span class="n" data-count="10">10</span><div class="meter"><i style="--w:10%"></i></div></div>
+    <div class="lim sky"><span class="t">Formulas in one grid, columns and rules together</span><span class="n" data-count="10">10</span><div class="meter"><i style="--w:10%"></i></div></div>
+    <div class="lim plum"><span class="t">Child total columns in one grid</span><span class="n" data-count="5">5</span><div class="meter"><i style="--w:5%"></i></div></div>
+    <div class="lim gold"><span class="t">Rows opened at once with the toggle column's button</span><span class="n" data-count="200">200</span><div class="meter"><i style="--w:20%"></i></div></div>
+    <div class="lim rose"><span class="t">Records one Delete of every match takes</span><span class="n" data-count="50000">50,000</span><div class="meter"><i style="--w:50%"></i></div></div>
+  </div>
+  <ul class="tick" style="margin-top:20px">
+    <li><b>Wrapped text</b> shows up to three lines. <b>Height (px)</b> is at least 160, on a grid and on a child table. A filled grid is at least 240 pixels tall.</li>
+    <li><b>Undo import</b> works until the import dialog closes. It deletes only records you created in the last day.</li>
+    <li><b>Subtotals</b> are exact over every matching record. Over 45,000 records they are worked out in slices that the browser adds up; sums beyond about 15 significant digits are rounded by Salesforce.</li>
+    <li><b>With Log Changes on</b>, one transaction writes at most 5,000 log entries, so saves and imports of very wide rows go in smaller batches.</li>
+  </ul>
+  <h3 style="margin-top:22px">Limits on settings</h3>
+  <div class="tbox"><table class="ref wrap1">
+    <thead><tr><th>Setting</th><th>Limit</th></tr></thead>
+    <tbody>
+      <tr><td>A grid's title, a display rule's meaning, a filter's name, an action's label</td><td>40 characters</td></tr>
+      <tr><td>A column's header (Column Label)</td><td>80 characters</td></tr>
+      <tr><td>A rule's or filter's Value and Value To</td><td>255 characters</td></tr>
+      <tr><td>A formula</td><td>3,900 characters</td></tr>
+      <tr><td>Rows per page (Page Size)</td><td>1 to 2,000</td></tr>
+      <tr><td>Frozen columns, on the Grid Admin tab</td><td>0 to 5</td></tr>
+      <tr><td>A column's width</td><td>40 to 1,000 pixels</td></tr>
+      <tr><td>A formula column's decimal places</td><td>0 to 9</td></tr>
+      <tr><td>Long text shown in a cell</td><td>The first 1,000 characters and "…"; the editor opens the whole text</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="perf">
+  <div class="sec-head"><span class="sec-num">Numbers</span><h2>Performance</h2>
+  <p class="sec-sub">Measured on 30 September 2026 in a Developer Edition org with Lightning Web Security on, Chrome on an Apple M3 Max, median of five runs. 50,000 means 10,000 rows loaded from a 50,000-record object. Your numbers depend on your org, your network and your machine; the method is published so you can measure your own.</p></div>
+  <div class="chart-legend"><span><i style="--c:var(--accent)"></i>5 columns</span><span><i style="--c:var(--sky)"></i>20 columns</span></div>
+  <div class="split">
+    <div class="frame rv">
+      <p class="chart-title">First row on screen</p><p class="chart-note" style="margin:0 0 14px">milliseconds from opening the grid; the first page is always 200 rows</p>
+      <div class="gb">
+        <div class="grp"><div class="lab"><b>1,000</b>rows</div><div class="bars2"><div class="bar" style="--w:43.8%"><span>876</span></div><div class="bar b" style="--w:71.9%;--dl:.1s"><span>1,438</span></div></div></div>
+        <div class="grp"><div class="lab"><b>5,000</b>rows</div><div class="bars2"><div class="bar" style="--w:46.6%;--dl:.15s"><span>931</span></div><div class="bar b" style="--w:74.8%;--dl:.25s"><span>1,495</span></div></div></div>
+        <div class="grp"><div class="lab"><b>10,000</b>rows</div><div class="bars2"><div class="bar" style="--w:49.4%;--dl:.3s"><span>988</span></div><div class="bar b" style="--w:85.1%;--dl:.4s"><span>1,701</span></div></div></div>
+        <div class="grp"><div class="lab"><b>50,000</b>rows</div><div class="bars2"><div class="bar" style="--w:48.3%;--dl:.45s"><span>965</span></div><div class="bar b" style="--w:73.9%;--dl:.55s"><span>1,478</span></div></div></div>
+      </div>
+    </div>
+    <div class="frame rv">
+      <p class="chart-title">Every row loaded</p><p class="chart-note" style="margin:0 0 14px">milliseconds; mostly Salesforce reading 2,000 rows at a time</p>
+      <div class="gb">
+        <div class="grp"><div class="lab"><b>1,000</b>rows</div><div class="bars2"><div class="bar" style="--w:13.4%"><span>1,208</span></div><div class="bar b" style="--w:19.4%;--dl:.1s"><span>1,742</span></div></div></div>
+        <div class="grp"><div class="lab"><b>5,000</b>rows</div><div class="bars2"><div class="bar" style="--w:30.4%;--dl:.15s"><span>2,737</span></div><div class="bar b" style="--w:52.1%;--dl:.25s"><span>4,693</span></div></div></div>
+        <div class="grp"><div class="lab"><b>10,000</b>rows</div><div class="bars2"><div class="bar" style="--w:49.7%;--dl:.3s"><span>4,473</span></div><div class="bar b" style="--w:81%;--dl:.4s"><span>8,224</span></div></div></div>
+        <div class="grp"><div class="lab"><b>50,000</b>rows</div><div class="bars2"><div class="bar" style="--w:50.1%;--dl:.45s"><span>4,511</span></div><div class="bar b" style="--w:82%;--dl:.55s"><span>8,336</span></div></div></div>
+      </div>
+    </div>
+    <div class="frame rv">
+      <p class="chart-title">Sorting the loaded rows</p><p class="chart-note" style="margin:0 0 14px">milliseconds from a click on a header to the new order on screen</p>
+      <div class="gb">
+        <div class="grp"><div class="lab"><b>1,000</b>rows</div><div class="bars2"><div class="bar" style="--w:20.7%"><span>124</span></div><div class="bar b" style="--w:55.8%;--dl:.1s"><span>335</span></div></div></div>
+        <div class="grp"><div class="lab"><b>5,000</b>rows</div><div class="bars2"><div class="bar" style="--w:34.3%;--dl:.15s"><span>206</span></div><div class="bar b" style="--w:73.2%;--dl:.25s"><span>439</span></div></div></div>
+        <div class="grp"><div class="lab"><b>10,000</b>rows</div><div class="bars2"><div class="bar" style="--w:55%;--dl:.3s"><span>330</span></div><div class="bar b" style="--w:89.2%;--dl:.4s"><span>535</span></div></div></div>
+        <div class="grp"><div class="lab"><b>50,000</b>rows</div><div class="bars2"><div class="bar" style="--w:38.7%;--dl:.45s"><span>232</span></div><div class="bar b" style="--w:89%;--dl:.55s"><span>534</span></div></div></div>
+      </div>
+      <p class="chart-note">At 50,000 the grid then fetches the first 10,000 rows in the new order from Salesforce: about 4.4 s with 5 columns and 8.2 s with 20.</p>
+    </div>
+    <div class="frame rv">
+      <p class="chart-title">An edit appearing in its cell</p><p class="chart-note" style="margin:0 0 14px">milliseconds from pressing Enter to the new value on screen</p>
+      <div class="gb">
+        <div class="grp"><div class="lab"><b>1,000</b>rows</div><div class="bars2"><div class="bar" style="--w:15.7%"><span>47</span></div><div class="bar b" style="--w:45.3%;--dl:.1s"><span>136</span></div></div></div>
+        <div class="grp"><div class="lab"><b>5,000</b>rows</div><div class="bars2"><div class="bar" style="--w:26.3%;--dl:.15s"><span>79</span></div><div class="bar b" style="--w:68.7%;--dl:.25s"><span>206</span></div></div></div>
+        <div class="grp"><div class="lab"><b>10,000</b>rows</div><div class="bars2"><div class="bar" style="--w:40%;--dl:.3s"><span>120</span></div><div class="bar b" style="--w:92%;--dl:.4s"><span>276</span></div></div></div>
+        <div class="grp"><div class="lab"><b>50,000</b>rows</div><div class="bars2"><div class="bar" style="--w:49%;--dl:.45s"><span>147</span></div><div class="bar b" style="--w:91%;--dl:.55s"><span>273</span></div></div></div>
+      </div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:20px">A grid opens with one request to Salesforce, which returns its settings, your layout and the first rows together. The charts above were measured before the grid worked this way, so a first row now comes sooner than they show: in the same org, a grid of 56 rows and 16 columns has its rows about 0.4 s after it starts loading, against about 1.05 s before.</p>
+  <div class="call" style="margin-top:20px"><span class="k">Make a grid faster</span><p>Fewer columns help most: 20 columns take roughly twice as long as 5 to load, sort and edit. A smaller Page Size shows the first rows sooner on slow connections. And a grid of an object with more than 10,000 records sorts and searches on the server, which is slower than sorting rows already in the browser.</p></div>
+</section>
+
+<section id="notyet">
+  <div class="sec-head"><span class="sec-num">Honest list</span><h2>Not yet</h2>
+  <p class="sec-sub">Things people ask for that Rowhouse does not do.</p></div>
+  <div class="tiles rv-stagger">
+    <div class="tile rose"><div class="ic">{{ic:search}}</div><h4>Saved filters</h4><p>A user's own column filters last until they leave the page; only the admin's are kept, on the grid.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:users}}</div><h4>A layout per child table</h4><p>Each user's layout is kept for a grid, not for the related records tabs under its rows.</p></div>
+    <div class="tile teal"><div class="ic">{{ic:shield}}</div><h4>Shield-encrypted fields</h4><p>Not yet tested with Shield Platform Encryption. Sorting, searching or grouping by an encrypted field may fail.</p></div>
+    <div class="tile clay"><div class="ic">{{ic:layers}}</div><h4>Experience Cloud, multi-currency, record types</h4><p>Not supported in sites; not tested with several currencies; picklists offer every active value, whatever the record type.</p></div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="sec-head"><span class="sec-num">Questions</span><h2>Questions people ask</h2></div>
+  <details class="faq"><summary>Can I undo after saving?</summary><div class="a"><p>No. Undo covers changes you have not saved. Saved values are the record's; use the record's field history, or the grid's audit trail if your admin turned it on, to see what they were.</p></div></details>
+  <details class="faq"><summary>What if two people edit the same record?</summary><div class="a"><p>The last save wins, as with a list view's inline edit. Rowhouse does not lock records while they are being edited.</p></div></details>
+  <details class="faq"><summary>Do my company's validation rules, triggers and flows still run?</summary><div class="a"><p>Yes. A save from the grid is an ordinary save. If a rule refuses a record, its cell shows the rule's message and the other records still save.</p></div></details>
+  <details class="faq"><summary>Does any data leave Salesforce?</summary><div class="a"><p>No. Rowhouse makes no callouts and loads no outside code. Export creates a file in your own browser.</p></div></details>
+  <details class="faq"><summary>Does it work in Salesforce Classic or the mobile app?</summary><div class="a"><p>It runs on Lightning pages in Lightning Experience, and in a narrow space it switches to record cards. It does not run in Classic or in Experience Cloud sites, and it has not yet been tested in the Salesforce mobile app.</p></div></details>
+  <details class="faq"><summary>Why is a lookup filter not applied when I search?</summary><div class="a"><p>The search offers every record you can see. If the field's lookup filter rejects the one you choose, Salesforce refuses it when you save, and the cell says why.</p></div></details>
+</section>
+
+<section id="glossary">
+  <div class="sec-head"><span class="sec-num">Words</span><h2>Glossary</h2></div>
+  <div class="tbox"><table class="ref">
+    <tbody>
+      <tr><td>API name</td><td>The name Salesforce uses for an object or field in code and settings, such as <code>Opportunity</code>, <code>CloseDate</code> or <code>My_Field__c</code>. Shown in Object Manager under Field Name.</td></tr>
+      <tr><td>Grid Configuration</td><td>The record that describes one grid, built on the Grid Admin tab or in Setup. Its API name goes into the Rowhouse Grid component.</td></tr>
+      <tr><td>Grid Admin tab</td><td>Where grids are listed, built, changed, cloned and archived without Setup, on its Grids page, and Rowhouse's own settings are made, on its Settings page. The gear on a grid opens the same editor for that grid.</td></tr>
+      <tr><td>Archived grid</td><td>A grid taken out of use from its menu on the Grid Admin tab, without deleting it: listed under Archived grids in the Grids page's side navigation, refused by the pages that show it, and restored from there. Deleting it for good is done in Setup.</td></tr>
+      <tr><td>Grid Guide tab</td><td>This guide. Everyone with Rowhouse Grid User can open it in the Rowhouse app, from the App Launcher or from the <b>?</b> on a grid; its pages for admins show to Rowhouse Grid Admin.</td></tr>
+      <tr><td>Rowhouse app</td><td>The Lightning app, with the Rowhouse logo, that holds the Grid Guide (where it opens), Grid Admin and Grid Edit Logs tabs. Rowhouse Grid User shows it with the Grid Guide only; Rowhouse Grid Admin adds the other two.</td></tr>
+      <tr><td>Rowhouse Grid</td><td>The Lightning component you drag onto a page in Lightning App Builder.</td></tr>
+      <tr><td>Unsaved edit</td><td>A change shown in its cell, shaded yellow, not yet saved to Salesforce.</td></tr>
+      <tr><td>Save bar</td><td>The light-blue bar at the bottom of the grid with the count of unsaved changes, Undo, Redo, Cancel and Save.</td></tr>
+      <tr><td>Range</td><td>A rectangle of cells selected with Shift, for copy, paste, fill down and clear.</td></tr>
+      <tr><td>Selected rows</td><td>Rows ticked in the first column, for Update field, Delete and actions.</td></tr>
+      <tr><td>Format rule</td><td>A highlight (a color, bold, an icon or a data bar) that shows when a field meets a test or a formula is true, explained in the Display Key.</td></tr>
+      <tr><td>Grid Filter</td><td>A condition every row of a grid must meet, set by the admin, shown to users as a locked chip.</td></tr>
+      <tr><td>Formula column</td><td>A column the grid works out from other fields, in the syntax of a formula field. Read-only.</td></tr>
+      <tr><td>Record Page Field</td><td>On a Grid Configuration, the lookup that links the grid's records to the record page it is placed on.</td></tr>
+      <tr><td>Grid User Layout</td><td>The private record that keeps one user's layout of one grid; Reset layout deletes it.</td></tr>
+      <tr><td>Group, subtotal, Total row</td><td>Rows gathered by a column's value, with figures for each group; the Total row covers the whole list.</td></tr>
+      <tr><td>Child table</td><td>A tab of related records under a row, itself a full grid.</td></tr>
+      <tr><td>Action</td><td>A flow, Apex action or quick action run from a row's menu or on the selected rows.</td></tr>
+      <tr><td>Grid Edit Log</td><td>Where the audit trail is kept, one entry per change, when a grid has Log Changes ticked. Entries are kept forever unless an admin chooses a period on the Grid Admin tab; then a clean-up deletes older ones each night.</td></tr>
+      <tr><td>Rowhouse Setting</td><td>The one record, named Default, of settings for Rowhouse as a whole: for now, how long Grid Edit Log keeps its entries. Set on the Grid Admin tab's Settings page.</td></tr>
+      <tr><td>Rowhouse Grid User · Diagnostics · Admin</td><td>The three permission sets: the first for everyone who uses a grid, the second for troubleshooting, the third for whoever builds grids.</td></tr>
+    </tbody></table></div>
+  <div class="next">
+    <a href="tutorials.html"><small>Back</small><b>← Tutorials</b></a>
+    <a class="fwd" href="welcome.html"><small>Home</small><b>Documentation home →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

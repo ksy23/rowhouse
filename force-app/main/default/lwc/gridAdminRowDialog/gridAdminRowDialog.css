@@ -1,0 +1,22 @@
+/* The records to delete in Setup: each a link, its API name beside it, a note under it. */
+.rh-row-dialog-record {
+    margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-row-dialog-record-name {
+    margin-left: var(--slds-g-spacing-2, 0.5rem);
+    color: var(--slds-g-color-neutral-base-50, #747474);
+    font-family: var(--slds-g-font-family-monospace, monospace);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-row-dialog-record-note {
+    display: block;
+    color: var(--slds-g-color-neutral-base-50, #747474);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-row-dialog-loading {
+    position: relative;
+    min-height: 4rem;
+}

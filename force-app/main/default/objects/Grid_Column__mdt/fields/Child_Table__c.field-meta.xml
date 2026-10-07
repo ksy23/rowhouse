@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Child_Table__c</fullName>
+    <label>Child Table</label>
+    <type>Text</type>
+    <length>40</length>
+    <required>false</required>
+    <description>Makes this a child total column: the API name of one of this grid's Grid Child Table records. The column shows, on each row, a total of that child table's records for the row, worked out with the child grid's own filters. Leave blank for a column on a field. With it, Field API Name is left blank and Child Total says what to work out.</description>
+    <inlineHelpText>For a child total column: the Grid Child Table (API name) whose records it totals for each row. Leave blank for a column on a field.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

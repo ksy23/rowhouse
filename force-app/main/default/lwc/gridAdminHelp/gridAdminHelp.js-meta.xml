@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <description>The Grid Guide beside the grid editor on the Grid Admin tab: what the open tab's settings do, with a link to the full Configuration reference.</description>
+    <isExposed>false</isExposed>
+</LightningComponentBundle>

@@ -1,0 +1,241 @@
+<template>
+    <article class="slds-card rh-admin">
+        <!-- The Grid Guide's header: the logo, the tab's name, and its two pages. -->
+        <header class="slds-card__header rh-admin-header">
+            <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
+                <img class="rh-admin-logo" src={logoUrl} alt="Rowhouse" width="177" height="32" />
+                <div class="slds-col slds-m-left_medium rh-admin-title">
+                    <h1 class="slds-text-heading_medium">Grid Admin</h1>
+                    <p class="slds-text-body_small slds-text-color_weak">Build and change the grids your users see, without going into Setup.</p>
+                </div>
+                <!-- The documentation: Get started, in the Grid Guide, in a new browser
+                     tab, so a grid half built here stays as it is. -->
+                <lightning-button
+                    class="rh-admin-help"
+                    label="Grid Guide"
+                    icon-name="utility:help"
+                    title="The Grid Guide: how to set up and use grids (opens in a new tab)"
+                    onclick={handleHelp}
+                ></lightning-button>
+            </div>
+            <nav class="rh-admin-nav" aria-label="Grid Admin">
+                <ul class="rh-admin-nav-list">
+                    <template for:each={navItems} for:item="item">
+                        <li key={item.id} class={item.className}>
+                            <a class="rh-admin-nav-link" href="#" aria-current={item.current} data-view={item.id} onclick={handleNav}>{item.label}</a>
+                        </li>
+                    </template>
+                </ul>
+            </nav>
+        </header>
+
+        <div class="rh-admin-body">
+            <template lwc:if={loading}>
+                <div class="rh-admin-loading" role="status">
+                    <lightning-spinner alternative-text="Loading the grids" size="medium" variant="brand"></lightning-spinner>
+                </div>
+            </template>
+            <template lwc:elseif={loadError}>
+                <div class="slds-scoped-notification slds-scoped-notification_light slds-m-around_medium rh-admin-error" role="alert">
+                    <p>{loadError}</p>
+                    <p class="slds-m-top_x-small slds-text-body_small">Ask a Salesforce admin to assign you the Rowhouse Grid Admin permission set.</p>
+                </div>
+            </template>
+
+            <!-- ============================================================ Grids -->
+            <template lwc:elseif={showList}>
+                <div class="rh-admin-page rh-admin-page_side">
+                    <!-- What the list shows, as the Grid Guide's pages draw their side navigation. -->
+                    <nav class="rh-admin-side" aria-label="Grids to show">
+                        <template for:each={sideGroups} for:item="group">
+                            <div key={group.key} class="rh-admin-side-group">
+                                <span class="rh-admin-side-k">{group.label}</span>
+                                <ul class="rh-admin-side-list">
+                                    <template for:each={group.items} for:item="item">
+                                        <li key={item.key}>
+                                            <a class={item.className} href="#" aria-current={item.current} aria-label={item.ariaLabel} data-value={item.value} onclick={handleSideNav}><span class="rh-admin-side-label">{item.label}</span><span class="rh-admin-side-count">{item.count}</span></a>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </template>
+                    </nav>
+                    <div class="rh-admin-main">
+                        <section class="rh-sec rh-admin-hero" aria-labelledby="rh-admin-grids-heading">
+                            <span class="rh-eyebrow">Grid Admin</span>
+                            <h2 class="rh-display" id="rh-admin-grids-heading">Your grids</h2>
+                            <p class="rh-lede">
+                                Open a grid to change it, or build a new one. To show a grid, add the Rowhouse Grid component to a Lightning page and enter the
+                                grid's API name.
+                            </p>
+                            <div class="rh-admin-cta">
+                                <lightning-button
+                                    class="rh-admin-new"
+                                    label="New grid"
+                                    variant="brand"
+                                    icon-name="utility:add"
+                                    title={newTitle}
+                                    disabled={newDisabled}
+                                    onclick={handleNew}
+                                ></lightning-button>
+                                <a class="rh-link-button rh-admin-guide-link" href={startUrl} onclick={handleGuideLink}>Get started →</a>
+                            </div>
+                            <div class="rh-stats rh-admin-stats">
+                                <div class="rh-stat rh-admin-stat-grids">
+                                    <span class="rh-stat-n">{stats.grids}</span>
+                                    <span class="rh-stat-l">{stats.gridsLabel}</span>
+                                </div>
+                                <div class="rh-stat rh-stat_sky rh-admin-stat-objects">
+                                    <span class="rh-stat-n">{stats.objects}</span>
+                                    <span class="rh-stat-l">{stats.objectsLabel}</span>
+                                </div>
+                                <div class="rh-stat rh-stat_plum rh-admin-stat-logging">
+                                    <span class="rh-stat-n">{stats.logging}</span>
+                                    <span class="rh-stat-l">{stats.loggingLabel}</span>
+                                </div>
+                                <div class="rh-stat rh-stat_gold rh-admin-stat-children">
+                                    <span class="rh-stat-n">{stats.children}</span>
+                                    <span class="rh-stat-l">{stats.childrenLabel}</span>
+                                </div>
+                                <div class="rh-stat rh-stat_teal rh-admin-stat-retention">
+                                    <span class="rh-stat-n">{retentionLabel}</span>
+                                    <span class="rh-stat-l">
+                                        the edit log keeps its entries · <a class="rh-more rh-admin-to-settings" href="#" data-view="settings" onclick={handleNav}>Settings →</a>
+                                    </span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="rh-sec rh-admin-list-section" aria-labelledby="rh-admin-list-heading">
+                            <div class="rh-admin-list-head">
+                                <div>
+                                    <span class="rh-secnum">{listEyebrow}</span>
+                                    <h2 class="rh-h2 rh-admin-count" id="rh-admin-list-heading">{countText}</h2>
+                                </div>
+                                <div class="rh-admin-filters">
+                                    <lightning-input
+                                        class="rh-admin-search"
+                                        type="search"
+                                        label="Search grids"
+                                        variant="label-hidden"
+                                        placeholder="Search grids"
+                                        value={search}
+                                        onchange={handleSearch}
+                                    ></lightning-input>
+                                </div>
+                            </div>
+                            <span class="slds-assistive-text rh-admin-sort-status" aria-live="polite" aria-atomic="true">{sortAnnouncement}</span>
+                            <template lwc:if={showArchivedNote}>
+                                <p class="rh-sub rh-admin-archived-note">
+                                    Archived grids are out of use: pages that show them say so. Restore one to use it again, or delete it for good in Setup.
+                                </p>
+                            </template>
+                            <template lwc:if={hasRows}>
+                                <div class="rh-admin-table-wrap">
+                                    <table class="rh-admin-list">
+                                        <thead>
+                                            <tr>
+                                                <!-- Each heading sorts the list by its column; again, the other way. -->
+                                                <template for:each={columnHeads} for:item="h">
+                                                    <th key={h.key} scope="col" class={h.className} aria-sort={h.ariaSort}>
+                                                        <button class="rh-admin-sort" type="button" title={h.title} aria-label={h.sortLabel} data-key={h.key} onclick={handleSort}>
+                                                            <span class="rh-admin-sort-label">{h.label}</span>
+                                                            <lightning-icon class="rh-admin-sort-icon" icon-name={h.iconName} size="xx-small"></lightning-icon>
+                                                        </button>
+                                                    </th>
+                                                </template>
+                                                <th scope="col" class="rh-admin-actions"><span class="slds-assistive-text">Actions</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={rows} for:item="r">
+                                                <tr key={r.key}>
+                                                    <th scope="row">
+                                                        <template lwc:if={r.archived}>
+                                                            <span class="rh-admin-archived-title">{r.label}</span>
+                                                        </template>
+                                                        <template lwc:else>
+                                                            <button class="slds-button rh-admin-open" title={r.editLabel} data-name={r.name} onclick={handleOpen}>{r.label}</button>
+                                                        </template>
+                                                    </th>
+                                                    <td class="rh-admin-name">{r.name}</td>
+                                                    <td>{r.objectLabel}</td>
+                                                    <td class="rh-admin-num">{r.columns}</td>
+                                                    <!-- Edit, Clone and Archive; Restore and Delete in Setup when archived. -->
+                                                    <td class="rh-admin-actions">
+                                                        <lightning-button-menu
+                                                            class="rh-admin-row-menu"
+                                                            alternative-text={r.menuLabel}
+                                                            icon-size="x-small"
+                                                            menu-alignment="auto"
+                                                            data-name={r.name}
+                                                            onselect={handleRowAction}
+                                                        >
+                                                            <template lwc:if={r.archived}>
+                                                                <lightning-menu-item value="restore" label="Restore" prefix-icon-name="utility:undo" disabled={deployDisabled}></lightning-menu-item>
+                                                                <lightning-menu-item value="setup" label="Delete in Setup" prefix-icon-name="utility:delete"></lightning-menu-item>
+                                                            </template>
+                                                            <template lwc:else>
+                                                                <lightning-menu-item value="edit" label="Edit" prefix-icon-name="utility:edit"></lightning-menu-item>
+                                                                <lightning-menu-item value="clone" label="Clone" prefix-icon-name="utility:copy" disabled={deployDisabled}></lightning-menu-item>
+                                                                <lightning-menu-item value="archive" label="Archive" prefix-icon-name="utility:archive" disabled={deployDisabled}></lightning-menu-item>
+                                                            </template>
+                                                        </lightning-button-menu>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+                            <template lwc:elseif={hasConfigs}>
+                                <p class="rh-sub rh-admin-no-match">No grids match. Clear the search.</p>
+                            </template>
+                            <template lwc:elseif={showingArchived}>
+                                <div class="slds-text-align_center slds-p-around_large rh-admin-empty rh-admin-no-archived">
+                                    <p class="slds-text-heading_small">No archived grids</p>
+                                    <p class="slds-m-top_x-small slds-text-color_weak">Archive a grid from its menu, ▾, to take it out of use without deleting it.</p>
+                                </div>
+                            </template>
+                            <template lwc:else>
+                                <div class="slds-text-align_center slds-p-around_large rh-admin-empty">
+                                    <p class="slds-text-heading_small">No grids yet</p>
+                                    <p class="slds-m-top_x-small slds-text-color_weak">Build one with New grid.</p>
+                                </div>
+                            </template>
+                        </section>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ============================================================ Settings -->
+            <template lwc:elseif={showSettings}>
+                <div class="rh-admin-page">
+                    <section class="rh-sec rh-admin-hero" aria-labelledby="rh-admin-settings-heading">
+                        <span class="rh-eyebrow">Grid Admin · Settings</span>
+                        <h2 class="rh-display" id="rh-admin-settings-heading">Settings</h2>
+                        <p class="rh-lede">Settings for Rowhouse as a whole, rather than for one grid.</p>
+                    </section>
+                    <!-- How long the Grid Edit Log keeps its entries. -->
+                    <c-grid-log-retention onsaved={handleRetentionSaved}></c-grid-log-retention>
+                </div>
+            </template>
+
+            <!-- ============================================================ a grid -->
+            <template lwc:elseif={showEditor}>
+                <c-grid-config-editor layout="page" config-name={editing} onsaved={handleSaved} onclose={handleEditorClose}></c-grid-config-editor>
+            </template>
+        </div>
+
+        <!-- Clone, Archive, Restore, Delete in Setup. -->
+        <template lwc:if={dialog}>
+            <c-grid-admin-row-dialog
+                action={dialog.action}
+                grid={dialog.grid}
+                names={allNames}
+                ondone={handleDialogDone}
+                oncancel={handleDialogCancel}
+            ></c-grid-admin-row-dialog>
+        </template>
+    </article>
+</template>

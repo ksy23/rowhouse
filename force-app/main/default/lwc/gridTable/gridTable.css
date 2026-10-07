@@ -1,0 +1,740 @@
+/*
+ * Rowhouse-owned classes only. Nothing here targets a .slds-* selector or a
+ * --slds-c-* component hook (HR-15); layout that SLDS does not provide gets an
+ * rh- class of its own.
+ */
+.rh-grid {
+    position: relative;
+}
+
+/*
+ * The table keeps a band of its own under the scroller for the Save bar, so
+ * the bar never covers the last rows, the Total row, the horizontal scrollbar
+ * or "Load more". 5.75rem = the bar (about 4.6rem: 0.5rem padding, a line of
+ * text, a 0.25rem gap, 2rem buttons, 0.5rem padding, two 1px borders) plus
+ * 0.5rem below it and a little air above. FOOTER_RESERVE in gridTable.js matches it.
+ */
+.rh-grid.rh-has-footer {
+    padding-bottom: 5.75rem;
+}
+
+.rh-scroller {
+    overflow: auto;
+}
+
+/*
+ * Sticky header: owning the scroller is what makes this routine. The whole
+ * thead sticks, not each header cell. A sticky element is its own stacking
+ * context, so sticky cells trapped each column's resize handle beneath the
+ * next cell: SLDS centres the handle on the column border, and its right half
+ * could not be grabbed. With one
+ * sticky thead, the cells keep SLDS's position: relative and the handle's own
+ * z-index puts it above its neighbour, as in the SLDS blueprint.
+ */
+.rh-thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/*
+ * A line under the header row, in the color of the lines between rows. SLDS
+ * 2's bordered table draws a line above every body row but the first, so only
+ * the header's grey set it apart from the first row (measured in Lightning
+ * Experience). It is on the header cells,
+ * so it stays with the sticky header while rows scroll under it.
+ */
+.rh-grid .rh-thead th {
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
+}
+
+/*
+ * A focused header cell's ring is drawn over its content, not under it. SLDS
+ * 2 draws the ring as an inset shadow on the cell, and paints the control
+ * inside a focused header cell white, which covers it: a focused column
+ * header showed no ring at all, and the Select all cell only a clipped piece
+ * of one down its left side. So
+ * the same shadow, taken from the cell, is drawn again on a layer on top that
+ * clicks pass through.
+ */
+.rh-grid th.rh-cell_focus::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    box-shadow: inherit;
+    pointer-events: none;
+}
+
+/*
+ * The Select all box's wrapper fills its cell, as a column header's control
+ * does, so SLDS's hover grey and focused white cover the whole cell, not a
+ * 32px box round the checkbox. The checkbox stays at the right, over the
+ * rows' boxes.
+ */
+.rh-grid .rh-select-all-action {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/*
+ * A column's resize guide line reaches the bottom of what shows, and no
+ * further. SLDS draws it 100vh tall; invisible, it still counted as content,
+ * and a short grid scrolled into empty space (found in Lightning Experience).
+ * The height is set on the header by gridTable.js
+ * sizeResizeLines; until then the line has none.
+ */
+.rh-resize-divider::after {
+    height: var(--rh-divider-height, 0);
+}
+
+.rh-cell {
+    position: relative;
+}
+
+/*
+ * Frozen columns: each cell sticks at the left offset set inline. The
+ * .rh-grid prefix outranks SLDS's `position: relative` on table cells without
+ * naming an SLDS class (HR-15). A line marks where the frozen columns end.
+ *
+ * Body cells need a background, or the cells scrolling underneath show
+ * through: white, but only while the row is at rest. SLDS paints a hovered or
+ * selected row's color on its cells, and a frozen cell must take it too: a
+ * white frozen cell beside a grey or blue row made the row look broken: the
+ * white beat SLDS's colors. So the white is left
+ * off a hovered, selected (rh-row_selected) or open (rh-row_open) row, and
+ * those colors, all opaque, show instead. :where() adds no specificity, so
+ * formats and the unsaved color still win on a frozen cell.
+ */
+.rh-grid .rh-frozen {
+    position: sticky;
+    z-index: 1;
+}
+
+.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open)) > td.rh-frozen {
+    background-color: var(--slds-g-color-neutral-base-100, rgb(255, 255, 255));
+}
+
+.rh-grid .rh-frozen_last {
+    box-shadow: inset -1px 0 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
+}
+
+/*
+ * A focused cell's ring is as thick under the pointer as away from it. SLDS 2 draws it 2px wide in navy at rest, but
+ * only 1px wide in its blue while the pointer is over the cell (both measured
+ * in Lightning Experience). The blue stays; the width is the resting one. A
+ * header cell's ring, drawn again on top (above), takes it too.
+ */
+.rh-grid .rh-cell_focus:hover {
+    box-shadow: inset 0 0 0 2px var(--slds-g-color-accent-2, #0250d9);
+}
+
+/*
+ * The frozen edge's line is a box shadow, and so is SLDS's focus ring, so the
+ * line wiped the ring off the last frozen column's focused cell. Both, then,
+ * the ring 2px wide like every other cell's. After the rule above, which it
+ * would otherwise lose to under the pointer.
+ */
+.rh-grid .rh-frozen_last.rh-cell_focus {
+    box-shadow: inset 0 0 0 2px var(--slds-g-color-accent-2, #0250d9),
+        inset -1px 0 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
+}
+
+/*
+ * No ring on a cell while its editor is open: the editor covers the cell, and the ring showed as a blue line below
+ * it. The frozen edge's line stays. More specific than every ring rule above.
+ */
+.rh-grid td.rh-is-editing.rh-cell_focus {
+    box-shadow: none;
+}
+
+.rh-grid td.rh-is-editing.rh-frozen_last {
+    box-shadow: inset -1px 0 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
+}
+
+/*
+ * An open row stays shaded while its panel is open, so the panel reads as its
+ * row's. As weak as :where() makes it: a format, the selected blue and
+ * the unsaved color all show through.
+ *
+ * The shade is a very light blue, the panel's, not grey: half the palette's
+ * blue 95 (#eef4ff, the lightest blue SLDS has) and half white, about
+ * #f7faff, because blue 95 alone is too strong. Mixed from the hooks, so dark
+ * mode mixes its own two colors; a browser without color-mix() takes blue 95 from the line above.
+ * Far lighter than the #d6e6ff SLDS gives a selected row (measured in
+ * Lightning Experience), so an open row does not look selected.
+ */
+.rh-grid :where(tr.rh-row_open) > td {
+    background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
+    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+}
+
+/*
+ * A row format's fill is a bar at the row's left edge: a whole row of
+ * color competed with the hover, selected and unsaved colors, and a blue one
+ * looked selected. The row's class names the color; its first cell draws it.
+ */
+.rh-grid tr.rh-row_bar > td:first-child:not(.rh-frozen) {
+    position: relative;
+}
+
+.rh-grid tr.rh-row_bar > td:first-child::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--slds-g-sizing-2, 0.25rem);
+    background-color: var(--rh-bar-color);
+}
+
+.rh-fmt_bar-green {
+    --rh-bar-color: var(--slds-g-color-palette-green-60, #3ba755);
+}
+
+.rh-fmt_bar-amber {
+    --rh-bar-color: var(--slds-g-color-palette-yellow-70, #e4a201);
+}
+
+.rh-fmt_bar-red {
+    --rh-bar-color: var(--slds-g-color-palette-red-60, #fe5c4c);
+}
+
+.rh-fmt_bar-purple {
+    --rh-bar-color: var(--slds-g-color-palette-purple-60, #ad7bee);
+}
+
+.rh-fmt_bar-grey {
+    --rh-bar-color: var(--slds-g-color-palette-neutral-60, #939393);
+}
+
+.rh-cards .rh-card_bar {
+    box-shadow: inset 4px 0 0 var(--rh-bar-color);
+}
+
+/*
+ * Conditional formatting. Colors from the SLDS palette hooks, 90 for
+ * fills and 40 for text, which keeps body text above 4.5:1 on every fill. As
+ * specific as the frozen rule and after it, so a frozen cell takes its fill.
+ * A fill outranks SLDS's unsaved-edit color and row hover (both seen in
+ * Lightning Experience), so gridTable gives no format to a cell
+ * with an unsaved edit or an error; the selected range, below, tints over a
+ * fill. Amber, not yellow: SLDS marks an unsaved edit in pale yellow. Purple,
+ * not blue: SLDS marks a selected row in light blue, and a blue fill looked
+ * selected.
+ */
+.rh-grid td.rh-fmt_fill-green,
+.rh-grid .rh-card-value.rh-fmt_fill-green {
+    background-color: var(--slds-g-color-palette-green-90, rgb(205, 239, 196));
+}
+
+.rh-grid td.rh-fmt_fill-amber,
+.rh-grid .rh-card-value.rh-fmt_fill-amber {
+    background-color: var(--slds-g-color-palette-yellow-90, rgb(249, 227, 182));
+}
+
+.rh-grid td.rh-fmt_fill-red,
+.rh-grid .rh-card-value.rh-fmt_fill-red {
+    background-color: var(--slds-g-color-palette-red-90, rgb(254, 222, 216));
+}
+
+.rh-grid td.rh-fmt_fill-purple,
+.rh-grid .rh-card-value.rh-fmt_fill-purple {
+    background-color: var(--slds-g-color-palette-purple-90, rgb(236, 225, 249));
+}
+
+.rh-grid td.rh-fmt_fill-grey,
+.rh-grid .rh-card-value.rh-fmt_fill-grey {
+    background-color: var(--slds-g-color-palette-neutral-90, rgb(229, 229, 229));
+}
+
+.rh-grid .rh-fmt_text-red {
+    color: var(--slds-g-color-palette-red-40, rgb(186, 5, 23));
+}
+
+.rh-grid .rh-fmt_text-green {
+    color: var(--slds-g-color-palette-green-40, rgb(57, 101, 71));
+}
+
+.rh-grid .rh-fmt_text-grey {
+    color: var(--slds-g-color-palette-neutral-40, rgb(92, 92, 92));
+}
+
+.rh-grid .rh-fmt_bold {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+/*
+ * A data bar: the value's place between the lowest and the highest
+ * loaded value, drawn behind it from the left in the palette's teal 90 (body
+ * text stays above 4.5:1 on it). A background image, so a fill, a frozen
+ * cell's color or the selected range's tint still shows past the bar's end.
+ */
+.rh-grid td.rh-fmt_databar,
+.rh-grid .rh-card-value.rh-fmt_databar {
+    background-image: linear-gradient(
+        to right,
+        var(--slds-g-color-palette-teal-90, rgb(172, 243, 228)) var(--rh-databar, 0%),
+        transparent var(--rh-databar, 0%)
+    );
+    background-repeat: no-repeat;
+}
+
+/* A rule's icon sits before the value, on its line, and never shrinks away. */
+.rh-format-icon {
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+/*
+ * Grouping. A group's header row is shaded, frozen cells included (as
+ * specific as the frozen rule plus one element, so it wins), and each level
+ * its own shade, outermost darkest, so the tree does not read flat. Its
+ * height is set inline to the record rows' height; with wrapped text its
+ * content stays centred rather than at the top.
+ */
+.rh-grid tr.rh-group-row > td {
+    background-color: var(--slds-g-color-neutral-base-95, rgb(243, 243, 243));
+}
+
+.rh-grid tr.rh-group-row_1 > td {
+    background-color: var(--slds-g-color-neutral-base-90, rgb(229, 229, 229));
+}
+
+.rh-grid tr.rh-group-row_3 > td {
+    background-color: var(--slds-g-color-neutral-base-100, rgb(255, 255, 255));
+}
+
+/* A record's Group cell draws a guide line at its innermost group's indent. */
+.rh-grid td.rh-group-cell_record {
+    background-image: linear-gradient(var(--slds-g-color-neutral-base-80, #c9c9c9), var(--slds-g-color-neutral-base-80, #c9c9c9));
+    background-size: 1px 100%;
+    background-repeat: no-repeat;
+    background-position: var(--rh-guide, 18px) 0;
+}
+
+.rh-group-chips {
+    gap: 0.25rem;
+}
+
+/* The filters, above the grouping; the admin's lock as faint as a read-only column's. */
+.rh-filter-chips {
+    gap: 0.25rem;
+}
+
+.rh-filter-chip_locked {
+    padding-right: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-filter-lock,
+.rh-header-filter {
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.rh-table_wrap tr.rh-group-row > td {
+    vertical-align: middle;
+}
+
+.rh-group-label {
+    min-width: 0;
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-group-count {
+    flex-shrink: 0;
+    font-weight: var(--slds-g-font-weight-4, 400);
+}
+
+/*
+ * Child tables. An open row's panel is one cell across the whole row,
+ * its height set inline (fixed by level, gridNest detailHeight, so the
+ * windowing arithmetic stays exact). The panel inside it is as wide as the
+ * scroller's visible area (measured), and its left margin follows a sideways
+ * scroll (--rh-scroll-left, set by gridTable handleScroll), so the tabs stay
+ * in view however far the parent table is scrolled; the child grid inside is
+ * sized to fit it (gridNest childTableHeight).
+ *
+ * NOT position: sticky. A sticky element is always a stacking context, and a
+ * child grid's dialogs (import, change a field) are position: fixed inside it:
+ * trapped there, they were painted over by the parent's later rows, which hid
+ * their Cancel and Import buttons.
+ * A margin makes no stacking context.
+ *
+ * The cell is shaded very light blue, like its open row, hovered or not (the
+ * child table's own header row keeps SLDS's grey), and lets text wrap again: table cells do not, and
+ * the panel's content inherits it.
+ */
+.rh-grid td.rh-detail-cell,
+.rh-grid tr.rh-detail-row:hover > td.rh-detail-cell {
+    padding: 0;
+    vertical-align: top;
+    white-space: normal;
+    background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
+    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+}
+
+.rh-detail-panel {
+    /* Indented under the row's toggle, with a bar that ties it to its row. */
+    margin-left: calc(var(--rh-scroll-left, 0px) + var(--rh-panel-indent, 0px));
+    border-left: 3px solid var(--slds-g-color-accent-2, #0250d9);
+    box-sizing: border-box;
+    overflow: auto;
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+}
+
+/*
+ * SLDS gives a fixed-layout table's tbody `transform: translateZ(0)`, and any
+ * transform makes an element the frame of its position: fixed descendants. A
+ * child grid's dialog, inside an open row's panel, was then placed and clipped
+ * within the parent's scroller: its backdrop left the page and the grid's own
+ * header uncovered. Only a table
+ * with child tables drops the transform, from its own tbody; every other table
+ * keeps SLDS's. The child combinator matters: every grid is a gridTable, so a
+ * descendant selector would also reach the child tables in its open panels.
+ */
+.rh-table_parent > tbody {
+    transform: none;
+}
+
+.rh-grid td.rh-expand-cell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* How many related records a row has, beside its toggle. */
+.rh-expand-count {
+    margin-left: 0.125rem;
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-50, rgb(116, 116, 116));
+    vertical-align: middle;
+}
+
+/* In cards, an open record's related records sit on the same light blue. */
+.rh-card-detail {
+    white-space: normal;
+    background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
+    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+}
+
+/* A subtotal: "Sum" in small grey type, then the value. */
+.rh-subtotal,
+.rh-total-label {
+    display: block;
+}
+
+.rh-subtotal-kind {
+    margin-right: var(--slds-g-spacing-1, 0.25rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-50, rgb(116, 116, 116));
+}
+
+/* A group's share of the whole list: after its count or subtotal, in grey. */
+.rh-subtotal-share,
+.rh-group-share {
+    color: var(--slds-g-color-neutral-base-50, rgb(116, 116, 116));
+    font-weight: var(--slds-g-font-weight-regular, 400);
+}
+
+.rh-subtotal-share {
+    margin-left: var(--slds-g-spacing-1, 0.25rem);
+}
+
+/* A subtotal an unsaved edit has moved: the pale yellow of an unsaved cell. */
+.rh-grid td.rh-subtotal_edited,
+.rh-grid tr.rh-group-row > td.rh-subtotal_edited,
+.rh-grid .rh-totals td.rh-subtotal_edited {
+    background-color: var(--slds-g-color-palette-yellow-95, rgb(251, 243, 224));
+}
+
+.rh-total-word {
+    margin-right: var(--slds-g-spacing-2, 0.5rem);
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+/*
+ * The Total row: its own one-row table, stuck to the bottom of the scroller so
+ * it stays in view while the rows scroll. Shaded like a group row, with a
+ * heavier line above it.
+ */
+.rh-totals {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+}
+
+.rh-grid .rh-totals td {
+    background-color: var(--slds-g-color-neutral-base-95, rgb(243, 243, 243));
+    box-shadow: inset 0 2px 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+/* Both lines on the last frozen cell of the Total row. */
+.rh-grid .rh-totals td.rh-frozen_last {
+    box-shadow: inset 0 2px 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201)),
+        inset -1px 0 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
+}
+
+/* Cells in the selected range. After the frozen rule, so it tints them too. */
+.rh-grid td.rh-in-range {
+    background-color: var(--slds-g-color-brand-base-95, rgb(238, 244, 255));
+}
+
+/* An open row is already nearly that light blue, so there the range is a step darker. */
+.rh-grid tr.rh-row_open > td.rh-in-range {
+    background-color: var(--slds-g-color-palette-blue-90, rgb(216, 230, 254));
+}
+
+/* The edit box is the cell's width, for every editor, not SLDS's 20rem popover.
+  What cannot fit (a lookup's matches, the date
+   calendar, a multi-select's lists) hangs below it, inside the editor. */
+.rh-edit-popover {
+    position: absolute;
+    top: 0;
+    left: 0.0625rem;
+    width: calc(100% - 0.0625rem);
+    z-index: 3;
+}
+
+.rh-error-popover {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 3;
+    white-space: normal;
+}
+
+.rh-spacer td {
+    padding: 0;
+    border: 0;
+}
+
+/*
+ * The Save bar: a pill in the selection bar's light blue (gridView.css),
+ * centred at the bottom of the grid, with what is unsaved above its buttons.
+ */
+.rh-footer {
+    z-index: 4;
+    width: fit-content;
+    max-width: calc(100% - 2 * var(--slds-g-spacing-3, 0.75rem));
+    margin: 0 auto;
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-4, 1rem);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-brand-base-80, #aacbff);
+    border-radius: var(--slds-g-radius-border-4, 1rem);
+    background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
+    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+.rh-footer-actions {
+    margin-top: var(--slds-g-spacing-1, 0.25rem);
+}
+
+/*
+ * While the edits save, Save keeps its blue with a white spinner and
+ * "Saving…". SLDS draws an inline spinner's dots round the
+ * middle of its top edge, so it goes down by half its height, as the Color
+ * Key's does (gridView.css).
+ */
+.rh-save-spinner {
+    transform: translateY(50%);
+}
+
+.rh-footer-save[aria-disabled="true"] {
+    cursor: progress;
+}
+
+/* Table: in the band under the scroller (.rh-has-footer), 0.5rem off the bottom. */
+.rh-footer_docked {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--slds-g-spacing-2, 0.5rem);
+}
+
+/*
+ * Wrapped text. slds-line-clamp stops it at three lines; this makes every
+ * wrapped cell exactly three lines tall, so all rows share one height and the
+ * windowing arithmetic (row height x row count) stays exact. Rows align to the
+ * top, as a spreadsheet does, once any column wraps. The number of lines is
+ * what the loaded values need, not always three.
+ */
+.rh-grid .rh-wrap-text {
+    line-height: 1.25rem;
+    /* The lines the loaded values need, one to three, set on the table. */
+    height: calc(var(--rh-wrap-lines, 3) * 1.25rem);
+    -webkit-line-clamp: var(--rh-wrap-lines, 3);
+}
+
+.rh-table_wrap td {
+    vertical-align: top;
+}
+
+/*
+ * The edit pencil shows only on the cell under the pointer, or the cell with
+ * focus, so keyboard and touch users still see it. It fades, rather
+ * than being hidden, so it keeps its place in the row (values never shift),
+ * stays in the tab order in actionable mode, and is still read by screen
+ * readers. It is the only button directly inside a cell's content.
+ */
+.rh-cell-content > button {
+    opacity: 0;
+}
+
+.rh-cell:hover .rh-cell-content > button,
+.rh-cell:focus-within .rh-cell-content > button {
+    opacity: 1;
+}
+
+/*
+ * Once shown, the pencil is Salesforce's data-table blue, as in a list view:
+ * SLDS paints its own pencil with the accent-2 global hook on the hovered or
+ * focused cell. lightning-icon
+ * takes its color from a hook chain, and the shared icon-color hook is the
+ * one link HR-15 allows. If Salesforce changes that hook, the pencil
+ * falls back to grey. Enabled buttons only: the lock stays light grey.
+ */
+.rh-cell:hover .rh-cell-content > button:enabled,
+.rh-cell:focus-within .rh-cell-content > button:enabled {
+    --slds-s-icon-color-foreground: var(--slds-g-color-accent-2, #0250d9);
+}
+
+/*
+ * A read-only cell's lock shows only on hover or focus, like the pencil, and
+ * in light grey: half-strength over SLDS's #5c5c5c icon color, about #aeaeae
+ * on a white row. The column header carries one lock instead.
+ * After the rules above and as specific, so hovering does not darken it.
+ */
+.rh-cell .rh-cell-content > button:disabled {
+    opacity: 0;
+}
+
+.rh-cell:hover .rh-cell-content > button:disabled,
+.rh-cell:focus-within .rh-cell-content > button:disabled {
+    opacity: 0.5;
+}
+
+/* The column menu's arrow is the list view's blue (#0250d9, measured). */
+.rh-menu-button {
+    --slds-s-icon-color-foreground: var(--slds-g-color-accent-2, #0250d9);
+}
+
+/* SLDS centres a cell's contents vertically; beside wrapped text, the edit
+   button belongs on the first line. */
+.rh-table_wrap .rh-cell-content {
+    align-items: flex-start;
+}
+
+/* The column menu opens below its header cell. */
+.rh-column-menu {
+    top: 100%;
+}
+
+/* The Group column's menu: wide enough for "Order groups by sum of Amount". */
+.rh-column-menu_wide {
+    min-width: 17rem;
+}
+
+/* A row's actions: the menu button in the middle of its cell, as in
+   SLDS's data-table row actions; the menu wide enough for an action's name,
+   and left-aligned inside a centred cell. */
+.rh-grid td.rh-actions-cell,
+.rh-grid th.rh-actions-col {
+    text-align: center;
+}
+
+.rh-row-menu {
+    min-width: var(--slds-g-sizing-13, 10rem);
+    text-align: left;
+}
+
+/* Narrow layout: record cards. */
+.rh-card {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Tap a value to edit it: the value is the button, text as text. */
+.rh-cards .rh-card-value-button {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0;
+    min-height: 1.5rem;
+    line-height: inherit;
+    color: inherit;
+    font-weight: inherit;
+    text-align: left;
+    white-space: normal;
+}
+
+.rh-card-pencil {
+    opacity: 0.6;
+    --slds-s-icon-color-foreground: var(--slds-g-color-accent-2, #0250d9);
+}
+
+.rh-card-value {
+    display: flex;
+    align-items: center;
+    min-height: 1.5rem;
+}
+
+/* Cards always wrap: line breaks kept, long words and URLs broken. */
+.rh-card-text {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+
+/*
+ * Cards: keep Save and Cancel on screen while the list scrolls with the page.
+ * Lifted by 2.5rem, the height of the Lightning utility bar, which is fixed to
+ * the bottom of the window and would otherwise cover it. In apps without a
+ * utility bar that leaves a small gap, which is preferred to a hidden Save.
+ */
+.rh-footer_sticky {
+    position: sticky;
+    bottom: 2.5rem;
+}
+
+/*
+ * A header dragged to move its column: the header fades, and a bar in
+ * Salesforce's brand blue on the side of the header it would land beside.
+ */
+.rh-grid th.rh-dragging {
+    opacity: 0.5;
+}
+
+.rh-grid th.rh-drop_before {
+    box-shadow: inset 3px 0 0 var(--slds-g-color-brand-base-50, #0176d3);
+}
+
+.rh-grid th.rh-drop_after {
+    box-shadow: inset -3px 0 0 var(--slds-g-color-brand-base-50, #0176d3);
+}
+
+/* The drop zone that groups by a dragged header: a dashed box, blue while a header is over it. */
+.rh-group-zone {
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border: var(--slds-g-sizing-border-1, 1px) dashed var(--slds-g-color-border-2, rgb(174, 174, 174));
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    color: var(--slds-g-color-on-surface-1, rgb(116, 116, 116));
+}
+
+.rh-group-zone_over {
+    border-color: var(--slds-g-color-accent-1, rgb(1, 118, 211));
+    background-color: var(--slds-g-color-brand-base-95, rgb(238, 244, 255));
+    color: var(--slds-g-color-accent-1, rgb(1, 118, 211));
+}
+
+/* The Group header, with a groupable header over it. */
+.rh-grid th.rh-drop_group {
+    box-shadow: inset 0 0 0 2px var(--slds-g-color-accent-1, rgb(1, 118, 211));
+}
+
+/* After the group rows' shading, which would otherwise hide it (found live). */
+.rh-grid tr.rh-group-row > td.rh-subtotal_edited {
+    background-color: var(--slds-g-color-palette-yellow-95, rgb(251, 243, 224));
+}

@@ -1,0 +1,69 @@
+<template>
+    <section class="rh-sec rh-retention" aria-labelledby="rh-retention-heading">
+        <span class="rh-secnum">Audit trail</span>
+        <h2 class="rh-h2 rh-retention-heading" id="rh-retention-heading">Grid Edit Log</h2>
+        <p class="rh-sub">
+            A grid with Log every change writes one entry for each change. Old entries take up data storage, about 2 KB each; the nightly clean-up
+            deletes the ones older than the period you choose, for good. <a class="rh-more rh-retention-help" href={helpUrl} onclick={handleHelp}>How long entries are kept ↗</a>
+        </p>
+        <template lwc:if={loading}>
+            <div class="rh-retention-loading" role="status">
+                <lightning-spinner alternative-text="Loading the edit log's retention" size="small" variant="brand"></lightning-spinner>
+            </div>
+        </template>
+        <template lwc:elseif={loadError}>
+            <p class="slds-m-top_small slds-text-color_error rh-retention-error" role="alert">{loadError}</p>
+        </template>
+        <template lwc:else>
+            <div class="rh-retention-form">
+                <lightning-combobox
+                    class="rh-retention-choice"
+                    label="Keep entries for"
+                    dropdown-alignment="auto"
+                    options={options}
+                    value={chosen}
+                    disabled={choiceDisabled}
+                    onchange={handleChoice}
+                ></lightning-combobox>
+                <lightning-button
+                    class="rh-retention-save"
+                    label="Save"
+                    variant="brand"
+                    title={saveTitle}
+                    disabled={saveDisabled}
+                    onclick={handleSave}
+                ></lightning-button>
+                <template lwc:if={saving}>
+                    <span class="slds-text-body_small slds-text-color_weak rh-retention-saving" role="status">Saving…</span>
+                </template>
+            </div>
+            <template lwc:if={warning}>
+                <div class="rh-call rh-call_warn slds-m-top_medium rh-retention-warning" role="status">
+                    <span class="rh-call-k">To put right</span>
+                    <p>{warning}</p>
+                </div>
+            </template>
+            <template lwc:if={saveError}>
+                <p class="slds-m-top_small slds-text-color_error rh-retention-save-error" role="alert">{saveError}</p>
+            </template>
+            <!-- What is set, when it next runs and as whom, and what it affects: the Grid Guide's stat cards. -->
+            <div class="rh-stats rh-retention-stats">
+                <div class="rh-stat rh-stat_teal rh-retention-period">
+                    <span class="rh-stat-n">{periodFigure}</span>
+                    <span class="rh-stat-l">{periodText}</span>
+                </div>
+                <div class="rh-stat rh-stat_sky rh-retention-next">
+                    <span class="rh-stat-n">{nextFigure}</span>
+                    <span class="rh-stat-l rh-retention-status">{statusText}</span>
+                </div>
+                <div class="rh-stat rh-stat_plum rh-retention-logging">
+                    <span class="rh-stat-n">{loggingFigure}</span>
+                    <span class="rh-stat-l">{loggingText}</span>
+                </div>
+            </div>
+            <template lwc:if={lastText}>
+                <p class="slds-m-top_small slds-text-body_small slds-text-color_weak rh-retention-last">{lastText}</p>
+            </template>
+        </template>
+    </section>
+</template>

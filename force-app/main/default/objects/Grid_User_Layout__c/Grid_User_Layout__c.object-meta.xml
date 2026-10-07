@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Grid User Layout</label>
+    <pluralLabel>Grid User Layouts</pluralLabel>
+    <nameField>
+        <label>Grid</label>
+        <type>Text</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>Private</sharingModel>
+    <enableReports>false</enableReports>
+    <enableSearch>false</enableSearch>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <description>How one user left one Rowhouse grid: the column widths, wrapping, sort, grouping and open rows the grid restores next time. One record per user per grid, owned by the user and private to them. Reset layout on the grid deletes it.</description>
+</CustomObject>

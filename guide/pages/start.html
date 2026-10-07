@@ -1,0 +1,193 @@
+<!--meta {"title": "Get started", "desc": "Admin guide: what you need, how a Rowhouse grid is defined, giving people access, and your first grid in ten minutes.", "section": "start", "audience": "admin"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / Admin guide</div>
+    <span class="aud admin">Admin</span>
+    <h1 style="margin-top:14px">Get started</h1>
+    <p class="dek">What you need, how a grid is put together, who needs which permission set, and a first grid on a page in about ten minutes.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">On this page</span>
+    <a href="#need">What you need</a>
+    <a href="#model">How a grid is defined</a>
+    <a href="#access">Give people access</a>
+    <a href="#first">Your first grid</a>
+    <a href="#where">Where to put a grid</a>
+    <a href="#move">Moving grids between orgs</a>
+    <a href="#tips">Tips</a>
+    <span class="s-k">Admin guide</span>
+    <a href="configure.html">Configuration reference</a>
+    <a href="features.html">Features in depth</a>
+  </aside>
+
+  <main class="content">
+
+<section id="need">
+  <div class="sec-head"><span class="sec-num">01</span><h2>What you need</h2></div>
+  <div class="prose">
+    <ul class="tick">
+      <li><b>Lightning Experience.</b> Rowhouse is a Lightning web component. It is placed on App, Record and Home pages; it does not run in Salesforce Classic, in Experience Cloud sites, or in the Salesforce mobile app's own list views.</li>
+      <li><b>Permission to customize the application.</b> Grids are described by Custom Metadata records. You build them on the <b>Grid Admin</b> tab, or record by record in Setup; saving either way needs the Customize Application permission, which Salesforce admins have. Placing a grid on a page needs the usual permissions for Lightning App Builder.</li>
+      <li><b>Rowhouse installed in the org.</b> If you are reading this on the Grid Guide tab, it is.</li>
+    </ul>
+  </div>
+  <div class="call">
+    <span class="k">Good to know before you plan a grid</span>
+    <p>A grid shows <b>every record of its object that the user is allowed to see</b>. Without filters, a grid of Opportunities shows open and closed ones alike. Add <b>Grid Filters</b> (such as Stage does not equal Closed Won) to narrow it for everyone; users cannot remove them. Users can also search, filter by a column, and group (for example by Stage) to keep closed records together where they can be collapsed.</p>
+  </div>
+</section>
+
+<section id="model">
+  <div class="sec-head"><span class="sec-num">02</span><h2>How a grid is defined</h2>
+    <p class="sec-sub">A grid is a <b>Grid Configuration</b> record plus the records that point to it. They are Custom Metadata, so they are settings, not data: they move between sandboxes and production in a change set or a deployment, and nobody has to re-create them by hand.</p></div>
+
+  <div class="frame rv">
+    <svg class="dia" viewBox="0 0 920 330" role="img" aria-labelledby="mT mD">
+      <title id="mT">The six kinds of configuration record</title>
+      <desc id="mD">A Grid Configuration in the centre. Grid Columns, Grid Format Rules, Grid Filters, Grid Actions and Grid Child Tables each point to it through their Grid Configuration field. A Grid Child Table also points to a second Grid Configuration, the one shown in its tab.</desc>
+      <path class="wire" d="M250,47 C330,47 330,165 380,165"/>
+      <path class="wire plum" d="M250,115 C330,115 330,165 380,165"/>
+      <path class="wire teal" d="M250,183 C330,183 330,165 380,165"/>
+      <path class="wire rose" d="M250,251 C330,251 330,165 380,165"/>
+      <path class="wire gold" d="M670,165 H560"/>
+      <path class="wire gold" d="M760,205 V265 H560 C520,265 500,250 500,215" />
+      <g class="node s"><rect x="30" y="20" width="220" height="54" rx="10"/><text class="b" x="48" y="43">Grid Column</text><text class="s" x="48" y="62">one per column · required</text></g>
+      <g class="node p"><rect x="30" y="88" width="220" height="54" rx="10"/><text class="b" x="48" y="111">Grid Format Rule</text><text class="s" x="48" y="130">one per display rule · optional</text></g>
+      <g class="node t"><rect x="30" y="156" width="220" height="54" rx="10"/><text class="b" x="48" y="179">Grid Filter</text><text class="s" x="48" y="198">one per condition · optional</text></g>
+      <g class="node r"><rect x="30" y="224" width="220" height="54" rx="10"/><text class="b" x="48" y="247">Grid Action</text><text class="s" x="48" y="266">one per action · optional</text></g>
+      <g class="node a pop"><rect x="380" y="110" width="180" height="110" rx="12"/><text class="k" x="398" y="134">The grid</text><text class="b" x="398" y="160" style="font-size:16px">Grid</text><text class="b" x="398" y="180" style="font-size:16px">Configuration</text><text class="s" x="398" y="202">one per grid · required</text></g>
+      <g class="node g"><rect x="670" y="125" width="220" height="80" rx="10"/><text class="b" x="688" y="150">Grid Child Table</text><text class="s" x="688" y="170">one per tab under each row</text><text class="s" x="688" y="188">links a parent and a child grid</text></g>
+      <text class="s" x="580" y="285">its tab shows another Grid Configuration</text>
+      <circle r="4.5" class="dot sky"><animateMotion dur="2.6s" repeatCount="indefinite" path="M250,47 C330,47 330,165 380,165"/></circle>
+      <circle r="4.5" class="dot plum"><animateMotion dur="2.6s" begin=".6s" repeatCount="indefinite" path="M250,115 C330,115 330,165 380,165"/></circle>
+      <circle r="4.5" class="dot teal"><animateMotion dur="2.6s" begin="1.2s" repeatCount="indefinite" path="M250,183 C330,183 330,165 380,165"/></circle>
+      <circle r="4.5" class="dot rose"><animateMotion dur="2.6s" begin="1.8s" repeatCount="indefinite" path="M250,251 C330,251 330,165 380,165"/></circle>
+      <circle r="4.5" class="dot gold"><animateMotion dur="2.6s" begin=".4s" repeatCount="indefinite" path="M670,165 H560"/></circle>
+    </svg>
+  </div>
+
+  <div class="tbox rv" style="margin-top:22px">
+    <table class="ref">
+      <thead><tr><th>Record</th><th>How many</th><th>What it holds</th></tr></thead>
+      <tbody>
+        <tr><td>Grid Configuration</td><td class="d">1 per grid</td><td>The object, the sort it opens with, how many rows the first page loads, its height, frozen columns, the lookup that ties it to a record page, and what users may do: edit, export, import, delete, and whether every change is logged.</td></tr>
+        <tr><td>Grid Column</td><td class="d">1 per column</td><td>The field, or a formula the grid works out; the order, whether it can be edited, sorted or wrapped, its width, and grouping and subtotal settings.</td></tr>
+        <tr><td>Grid Format Rule</td><td class="d">0 or more</td><td>A test (a value, a range, another field, or a formula) and a look: a fill, a text color, bold, an icon or a data bar, on a cell, or a bar on the whole row.</td></tr>
+        <tr><td>Grid Filter</td><td class="d">0 or more</td><td>A condition every record in the grid must meet. Users see it as a locked chip and cannot remove it.</td></tr>
+        <tr><td>Grid Child Table</td><td class="d">0 or more</td><td>A tab of related records under each row, shown with another Grid Configuration.</td></tr>
+        <tr><td>Grid Action</td><td class="d">0 or more</td><td>A flow, Apex action or quick action users can run on a row or on the selected rows.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:10px">Every field of every record is in the <a href="configure.html">configuration reference</a>. In Setup, each field also has help text: hover over the <b>i</b> beside its label.</p>
+</section>
+
+<section id="access">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Give people access</h2>
+    <p class="sec-sub">Rowhouse ships three permission sets. None gives access to your records: what a user sees and changes in a grid is exactly what their profile, permission sets and sharing already allow.</p></div>
+  <div class="split rv-stagger">
+    <div class="tile" style="--c:var(--accent)"><div class="ic">{{ic:users}}</div><h4>Rowhouse Grid User · required</h4><p>Assign it to everyone who uses a grid, admins included. It lets them open grids, save changes, write to the audit log, keep their own layout of each grid, and read this guide in the <b>Rowhouse</b> app (its <b>Grid Guide</b> tab, the only one they see there, also opened by the <b>?</b> on each grid). A profile cannot grant this access; it has to be the permission set.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:gauge}}</div><h4>Rowhouse Grid Diagnostics · optional</h4><p>Shows troubleshooting information: configuration warnings above each grid, and load and save timings in the browser console. Assign it while you investigate a problem, then remove it.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:layers}}</div><h4>Rowhouse Grid Admin · for whoever builds grids</h4><p>Adds the <b>Grid Admin</b> and <b>Grid Edit Logs</b> tabs to the <b>Rowhouse</b> app, beside its <b>Grid Guide</b>, and the gear to each grid, where grids are built and changed, and includes Rowhouse Grid Diagnostics. It also shows the guide's pages for admins: this one, Configure and Features. Assign it with Rowhouse Grid User. Saving a grid also needs Customize Application.</p></div>
+  </div>
+
+  <h3>Assign Rowhouse Grid User</h3>
+  <ol class="tut">
+    <li><b>Open the permission set.</b> In Setup, type <span class="v plain">Permission Sets</span> in the Quick Find box and click <span class="ui">Permission Sets</span>. Click <span class="ui">Rowhouse Grid User</span>.</li>
+    <li><b>Add people.</b> Click <span class="ui">Manage Assignments</span>, then <span class="ui">Add Assignment</span>. Tick each person who will use a grid, including yourself.</li>
+    <li><b>Confirm.</b> Click <span class="ui">Next</span>, leave the expiration as <span class="ui">No expiration date</span>, and click <span class="ui">Assign</span>, then <span class="ui">Done</span>.</li>
+    <li><b>Give yourself Rowhouse Grid Admin.</b> Go back to <span class="ui">Permission Sets</span>, click <span class="ui">Rowhouse Grid Admin</span>, and repeat steps 2 and 3, ticking yourself.</li>
+  </ol>
+  <div class="call w"><span class="k">If someone sees nothing</span><p>A user without Rowhouse Grid User sees an error where the grid should be. A user who has it but cannot read the grid's object sees a message saying so. Check the permission set first, then their access to the object.</p></div>
+</section>
+
+<section id="first">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Your first grid: an account directory</h2>
+    <p class="sec-sub">A small grid of Accounts with four columns, where users can fix phone numbers, industries and owners, built on the Grid Admin tab. Ten minutes, start to finish. For a bigger example with grouping and colors, follow <a href="tutorial-pipeline.html">the pipeline review tutorial</a>, which builds its grid in Setup, record by record.</p></div>
+
+  <h3>1 · Open the Grid Admin tab</h3>
+  <ol class="tut">
+    <li><b>Open the Rowhouse app.</b> Click the App Launcher (the nine dots at the top left), type <span class="v plain">Rowhouse</span> in its search box, and click <span class="ui">Rowhouse</span> under <span class="ui">Apps</span>, beside the Rowhouse logo. The app opens on its <span class="ui">Grid Guide</span> tab, this guide. Click the <span class="ui">Grid Admin</span> tab beside it. It opens on its <span class="ui">Grids</span> page: <i>Your grids</i>, cards that sum up the org's grids, and the list of every grid in use, with a side navigation on the left that narrows it to archived grids or one object's.</li>
+    <li><b>Start a grid.</b> Click <span class="ui">New grid</span>.</li>
+  </ol>
+
+  <h3>2 · Name it and choose the object</h3>
+  <ol class="tut">
+    <li><b>Fill in the Grid tab</b> and leave the rest as it is:
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Grid Title</td><td><span class="v">Account Directory</span><button class="copy" data-copy="Account Directory">Copy</button></td></tr>
+        <tr><td>API name</td><td><span class="v">Account_Directory</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object</td><td><span class="v">Account (Account)</span> <span class="note">choose it from the list</span></td></tr>
+        <tr><td>Sort by</td><td><span class="v">Account Name (Name)</span> <span class="note">appears once the object is chosen</span></td></tr>
+        <tr><td>Sort direction</td><td><span class="v">Ascending</span> <span class="note">already chosen</span></td></tr>
+        <tr><td>Edit cells in the grid</td><td><span class="tick">✓</span> ticked (the default)</td></tr>
+      </tbody></table>
+    </li>
+  </ol>
+
+  <h3>3 · Add the columns and save</h3>
+  <ol class="tut">
+    <li><b>Open the Columns tab.</b> Click <span class="ui">Columns (1)</span>. <span class="ui">Account Name (Name)</span> is there already: a new grid starts with its object's name.</li>
+    <li><b>Add three more.</b> For each row of this table, click <span class="ui">Add column</span>, choose the field in the new row's <span class="ui">Field</span> list, type the header if the table has one, and tick <span class="ui">Edit</span>:
+      <div class="tbox" style="margin-top:10px"><table class="ref">
+        <thead><tr><th>Field</th><th>Header</th><th>Edit</th></tr></thead>
+        <tbody>
+          <tr><td class="d">Account Phone (Phone)</td><td>—</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Industry (Industry)</td><td>—</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Owner ID (OwnerId)</td><td>Account Owner<button class="copy" data-copy="Account Owner">Copy</button></td><td class="tick">✓</td></tr>
+        </tbody></table></div>
+      <p class="note" style="margin-top:8px">A blank header shows the field's label; a lookup such as OwnerId is headed by what it points to, "Owner" (the box shows it in grey). Here it gets one that says more. Leave a dash (—) empty.</p>
+    </li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>. The editor says <i>Saving. This takes a few seconds…</i>, and then a green <i>Grid saved</i> message appears. If Save stays grey, the list under the grid's name says what to fix first.</li>
+  </ol>
+  <p class="note">Rather build it in Setup? A grid is a Grid Configuration record and a Grid Column record per column; the <a href="configure.html">configuration reference</a> has every field, and the tutorials build their grids that way.</p>
+
+  <h3>4 · Put the grid on a page</h3>
+  <ol class="tut">
+    <li><b>Create an App page.</b> In Setup, type <span class="v plain">Lightning App Builder</span> in the Quick Find box and click <span class="ui">Lightning App Builder</span>. Click <span class="ui">New</span>, choose <span class="ui">App Page</span>, and click <span class="ui">Next</span>.</li>
+    <li><b>Name it.</b> Enter the Label <span class="v">Account Directory</span> and click <span class="ui">Next</span>. Choose <span class="ui">One Region</span> and click <span class="ui">Done</span>.</li>
+    <li><b>Add the grid.</b> In the list of components on the left, find <span class="ui">Rowhouse Grid</span> under <span class="ui">Custom</span> (near the bottom of the list) and drag it onto the page. On the right, enter <span class="v">Account_Directory</span><button class="copy" data-copy="Account_Directory">Copy</button> in <span class="ui">Grid Configuration</span>.</li>
+    <li><b>Save and activate.</b> Click <span class="ui">Save</span>. When Salesforce offers to activate the page, click <span class="ui">Activate</span> (or, later, click <span class="ui">Activation…</span> at the top right). On the <span class="ui">Lightning Experience</span> tab, choose the app your users work in (for example <span class="ui">Sales</span>), click <span class="ui">Add page to app</span>, and click <span class="ui">Save</span>.</li>
+    <li><b>Open it.</b> Open that app and click the <span class="ui">Account Directory</span> tab in its navigation bar (or the <span class="ui">More</span> menu).</li>
+  </ol>
+  <div class="check">A grid titled <b>Account Directory</b> with the Accounts icon, four columns (Account Name, Account Phone, Industry, Account Owner), sorted by name. Hover over a phone number: a blue pencil means you can edit it. Hover over an account name: a light grey lock, because Account Name was not made editable.</div>
+</section>
+
+<section id="where">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Where to put a grid</h2></div>
+  <div class="tiles rv-stagger">
+    <div class="tile"><div class="ic">{{ic:page}}</div><h4>App page: the usual home</h4><p>A grid on its own App page, added to an app as a tab, fills the window from its top edge to the bottom of the screen. Leave Height (px) empty for this.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:grid}}</div><h4>Home page</h4><p>Beside other components, set <b>Height (px)</b> on the Grid Configuration (for example 420), or the grid pushes the rest of the page down a full window.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:layers}}</div><h4>Record page</h4><p>With a Height set. Give the grid a <b>Record Page Field</b> and it shows only that record's related rows; without one it shows its whole list. See <a href="tutorial-contacts.html">Contacts on an account page</a>.</p></div>
+  </div>
+</section>
+
+<section id="move">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Moving grids between orgs</h2></div>
+  <div class="prose">
+    <p>Grid Configurations and everything that points to them are Custom Metadata records. Build a grid in a sandbox, then add its records to an outbound change set (they are listed under <b>Custom Metadata Type</b> records by type) or include them in your deployment. Deploy the Grid Configuration with its columns, rules, filters, child tables and actions together, since they point to it.</p>
+    <p>The page that shows the grid is a Lightning page, which deploys the same way as any other.</p>
+  </div>
+</section>
+
+<section id="tips">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Tips from building the tutorials</h2></div>
+  <ul class="tick">
+    <li><b>In Setup, number Sort Order in tens</b> (10, 20, 30). A new column can then go between two others without renumbering. The Grid Admin tab numbers them for you, in the order of its list.</li>
+    <li><b>In Setup, start each record's name with the grid's name</b>, as in <span class="v plain">Account_Directory_Phone</span>. Records of all grids share one list in Setup, and names must be unique across all of them. The Grid Admin tab names them that way itself.</li>
+    <li><b>Use API names, without a namespace prefix</b>: <span class="v plain">OwnerId</span>, not <span class="v plain">Owner</span>; <span class="v plain">My_Field__c</span>, not its label.</li>
+    <li><b>Give yourself Rowhouse Grid Diagnostics while you build</b> (Rowhouse Grid Admin includes it). A setting that cannot work (a misspelt field, a subtotal that does not fit) is skipped, not fatal, and the warning shows above the grid only to people with that permission set. On the Grid Admin tab the same warnings show under the editor as you change things.</li>
+    <li><b>Change a grid where it is.</b> With Rowhouse Grid Admin, a gear beside a grid's Refresh button opens that grid's settings; save, and the grid loads again with the change.</li>
+    <li><b>Lookups show names.</b> A lookup column, such as AccountId or OwnerId, shows the related record's name as a link and is edited by searching.</li>
+  </ul>
+  <div class="next">
+    <a href="welcome.html"><small>Back</small><b>← Home</b></a>
+    <a class="fwd" href="configure.html"><small>Next</small><b>Configuration reference →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

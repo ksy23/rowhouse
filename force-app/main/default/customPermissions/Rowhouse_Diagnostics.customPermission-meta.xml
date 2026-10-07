@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Rowhouse Grid Diagnostics</label>
+    <description>Shows Rowhouse troubleshooting information: configuration warnings above each grid, and load and save timings in the browser console, never record data. Grant it through the Rowhouse Grid Diagnostics permission set while investigating a problem.</description>
+    <isLicensed>false</isLicensed>
+</CustomPermission>

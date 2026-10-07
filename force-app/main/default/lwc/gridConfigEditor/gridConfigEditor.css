@@ -1,0 +1,209 @@
+/* The grid settings editor. rh- classes and global styling hooks only (HR-15). */
+@import 'c/adminStyles';
+
+:host {
+    display: block;
+}
+
+.rh-editor-loading {
+    position: relative;
+    min-height: 8rem;
+}
+
+/*
+ * The entry tables fit their space: fixed widths for the small columns, the
+ * rest shared. A table that scrolled sideways clipped every field list that
+ * opened in it to the table's height (found in Lightning Experience, 1 Oct
+ * 2026), so it scrolls sideways only where there is truly no room. A field
+ * list is as wide as its box, so the Field column takes what is left over.
+ */
+.rh-editor-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.rh-editor-table th:first-child {
+    width: 4rem;
+}
+
+.rh-editor-table th:last-child {
+    width: 3.5rem;
+}
+
+.rh-editor-table th:nth-last-child(2) {
+    width: 3.5rem;
+}
+
+.rh-columns th:nth-child(3) {
+    width: 8rem;
+}
+
+.rh-columns th:nth-child(4),
+.rh-columns th:nth-child(5),
+.rh-columns th:nth-child(6) {
+    width: 3rem;
+}
+
+/* Always shown: wide enough for its two words. */
+.rh-columns th:nth-child(7) {
+    width: 7rem;
+}
+
+.rh-columns th:nth-child(8) {
+    width: 4.5rem;
+}
+
+/* Group: wide enough for "Users can group" under its list, which ran into Subtotal. */
+.rh-columns th:nth-child(9) {
+    width: 8.5rem;
+}
+
+.rh-columns th:nth-child(10) {
+    width: 6.5rem;
+}
+
+.rh-order {
+    white-space: nowrap;
+}
+
+@media (max-width: 52em) {
+    .rh-editor-table-wrap {
+        overflow-x: auto;
+    }
+
+    .rh-editor-table {
+        min-width: 63rem;
+    }
+}
+
+/* An entry switched off stays in the list, quieter. */
+.rh-entry_off {
+    color: var(--slds-g-color-on-surface-1, rgb(116, 116, 116));
+    background-color: var(--slds-g-color-surface-container-2, rgb(243, 243, 243));
+}
+
+/* The buttons stay in reach while the lists scroll. */
+.rh-editor-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin-top: var(--slds-g-spacing-4, 1rem);
+    padding: var(--slds-g-spacing-3, 0.75rem) 0;
+    border-top: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, rgb(201, 201, 201));
+    background-color: var(--slds-g-color-surface-container-1, rgb(255, 255, 255));
+}
+
+.rh-editor-status {
+    min-height: 1.5rem;
+}
+
+.rh-editor-errors ul,
+.rh-editor-warnings ul {
+    margin-top: var(--slds-g-spacing-1, 0.25rem);
+}
+
+/*
+ * What the grid would leave out: the caution yellow (SLDS's yellow 95) of the
+ * configuration warnings above a grid.
+ */
+.rh-editor-warnings {
+    background-color: var(--slds-g-color-palette-yellow-95, rgb(251, 243, 224));
+}
+
+/* Help for each tab: top right, with the tab's introduction beside it. */
+.rh-editor-help {
+    float: right;
+    margin-left: var(--slds-g-spacing-2, 0.5rem);
+}
+
+/* ---------------------------------------------------------------- the page layout on the Grid Admin tab */
+
+.rh-ed-head {
+    padding: var(--slds-g-spacing-5, 1.5rem) var(--slds-g-spacing-6, 2rem) var(--slds-g-spacing-4, 1rem);
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line-soft);
+}
+
+.rh-ed-crumbs a {
+    color: var(--rh-accent);
+}
+
+.rh-ed-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-ed-title {
+    flex: 1 1 18rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.rh-ed-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-ed-actions .rh-editor-status {
+    margin: 0;
+}
+
+.rh-ed-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    font-size: var(--slds-g-font-scale-base, 0.8125rem);
+    color: var(--rh-ink-2);
+}
+
+/* The tabs, and the Grid Guide beside them. */
+.rh-ed-body_page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20rem;
+}
+
+.rh-ed-body_page.rh-ed-body_nohelp {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.rh-ed-body_page .rh-ed-main {
+    min-width: 0;
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-6, 2rem) var(--slds-g-spacing-6, 2rem);
+}
+
+.rh-ed-help {
+    border-left: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line);
+    background: var(--rh-surface-2);
+    padding: var(--slds-g-spacing-5, 1.5rem);
+}
+
+/* The panel does what each tab's ? did: open the Grid Guide's part about it. */
+.rh-editor_page .rh-editor-help {
+    display: none;
+}
+
+/* Narrower than a laptop, the Grid Guide follows the tabs instead of sitting beside them. */
+@media (max-width: 64em) {
+    .rh-ed-body_page {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rh-ed-help {
+        border-left: 0;
+        border-top: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line);
+    }
+}
+
+@media (max-width: 30em) {
+    .rh-ed-head,
+    .rh-ed-body_page .rh-ed-main {
+        padding-left: var(--slds-g-spacing-4, 1rem);
+        padding-right: var(--slds-g-spacing-4, 1rem);
+    }
+}

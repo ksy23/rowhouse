@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Action_Name__c</fullName>
+    <label>Action Name</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>The API name of what runs: the flow, the Apex class with the invocable method, or the quick action. For an object's quick action use Object.ActionName (for example Account.NewCase); for a global quick action use the name alone (for example LogACall).</description>
+    <inlineHelpText>API name of the flow, the Apex class with the invocable method, or the quick action. For an object's quick action use Object.ActionName, such as Account.NewCase.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

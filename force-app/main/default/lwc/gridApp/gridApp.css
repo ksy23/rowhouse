@@ -1,0 +1,4 @@
+/* The grid's own styles are in c/gridView; this component only hosts it. */
+:host {
+    display: block;
+}

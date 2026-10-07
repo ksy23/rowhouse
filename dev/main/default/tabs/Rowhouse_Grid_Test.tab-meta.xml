@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>DEVELOPMENT ONLY. The App Builder placement of gridApp.</description>
+    <flexiPage>Rowhouse_Grid_Test</flexiPage>
+    <label>Rowhouse Grid Test</label>
+    <motif>Custom57: Building</motif>
+</CustomTab>

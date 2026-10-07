@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Published-benchmark configuration: see docs/benchmarks.md. -->
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Bench 5 Columns</label>
+    <protected>false</protected>
+    <values><field>Object_API_Name__c</field><value xsi:type="xsd:string">Rowhouse_Bench__c</value></values>
+    <values><field>Page_Size__c</field><value xsi:type="xsd:double">200</value></values>
+    <values><field>Default_Sort_Field__c</field><value xsi:type="xsd:string">Name</value></values>
+    <values><field>Default_Sort_Direction__c</field><value xsi:type="xsd:string">asc</value></values>
+    <values><field>Allow_Inline_Edit__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Allow_CSV_Export__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Allow_Mass_Delete__c</field><value xsi:type="xsd:boolean">false</value></values>
+</CustomMetadata>

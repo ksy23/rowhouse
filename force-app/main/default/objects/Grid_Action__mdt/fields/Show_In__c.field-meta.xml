@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Show_In__c</fullName>
+    <label>Show In</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>Where the action is offered: each row's menu, the bar that appears when rows are selected, or both. Blank means both.</description>
+    <inlineHelpText>Where users find the action: each row's menu, the bar shown when rows are selected, or both.</inlineHelpText>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Both</fullName>
+                <default>true</default>
+                <label>Row menu and selection</label>
+            </value>
+            <value>
+                <fullName>Row</fullName>
+                <default>false</default>
+                <label>Row menu</label>
+            </value>
+            <value>
+                <fullName>Selection</fullName>
+                <default>false</default>
+                <label>Selection</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

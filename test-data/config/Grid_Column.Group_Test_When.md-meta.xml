@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>When</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Group_Test</value></values>
+    <values><field>Field_API_Name__c</field><value xsi:type="xsd:string">DateTime_Field__c</value></values>
+    <values><field>Column_Label__c</field><value xsi:type="xsd:string">When</value></values>
+    <values><field>Width_Px__c</field><value xsi:type="xsd:double">170</value></values>
+    <values><field>Editable__c</field><value xsi:type="xsd:boolean">false</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">4</value></values>
+    <values><field>Subtotal__c</field><value xsi:type="xsd:string">min</value></values>
+</CustomMetadata>

@@ -1,0 +1,9 @@
+/* Under the column's header, like its menu. Wide enough for two dates. */
+.rh-filter-panel {
+    top: 100%;
+    width: 18rem;
+    max-width: none;
+    white-space: normal;
+    text-align: left;
+    font-weight: var(--slds-g-font-weight-4, 400);
+}

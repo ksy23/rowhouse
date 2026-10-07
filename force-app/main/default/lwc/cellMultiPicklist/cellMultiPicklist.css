@@ -1,0 +1,15 @@
+/* The lists hang from the box, which is the cell's width. */
+.rh-multi-picklist {
+    position: relative;
+}
+
+/* An input's height even when nothing is chosen. */
+.rh-multi-summary {
+    min-height: 2rem;
+}
+
+/* Room for the two lists side by side, wider than SLDS lets a menu be. */
+.rh-multi-panel {
+    width: 26rem;
+    max-width: none;
+}

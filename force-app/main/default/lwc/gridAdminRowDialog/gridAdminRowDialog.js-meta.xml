@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <isExposed>false</isExposed>
+    <description>Rowhouse: clones, archives or restores a grid from the Grid Admin tab, or lists its records to delete in Setup.</description>
+</LightningComponentBundle>

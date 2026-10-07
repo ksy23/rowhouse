@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allow_Import__c</fullName>
+    <label>Allow Import</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Lets users import a CSV or Excel file. Rows with a record Id update that record; rows without one create a new record. Only the grid's editable columns are written, and users also need edit or create access to the object.</description>
+    <inlineHelpText>Check to let users import a CSV or Excel file to update or create records.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

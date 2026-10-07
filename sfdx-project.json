@@ -1,0 +1,41 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "package": "Rowhouse (Unlocked)",
+      "versionNumber": "0.1.0.NEXT",
+      "default": true,
+      "unpackagedMetadata": {
+        "path": "test-data/metadata"
+      }
+    },
+    {
+      "path": "test-data/metadata",
+      "default": false
+    },
+    {
+      "path": "test-data/config",
+      "default": false
+    },
+    {
+      "path": "test-data/bench",
+      "default": false
+    },
+    {
+      "path": "test-data/actions",
+      "default": false
+    },
+    {
+      "path": "test-data/tests/apex",
+      "default": false
+    },
+    {
+      "path": "dev",
+      "default": false
+    }
+  ],
+  "name": "rowhouse",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "67.0"
+}

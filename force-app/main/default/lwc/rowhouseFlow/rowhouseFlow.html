@@ -1,0 +1,45 @@
+<template>
+    <article class="slds-card rh-flow-page">
+        <div class="slds-card__header slds-grid slds-grid_vertical-align-center">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <lightning-icon icon-name="standard:flow" size="small"></lightning-icon>
+                </div>
+                <div class="slds-media__body">
+                    <h1 class="slds-card__header-title">
+                        <span class="slds-truncate" title={title}>{title}</span>
+                    </h1>
+                    <template lwc:if={rowsText}>
+                        <p class="slds-text-body_small slds-text-color_weak rh-flow-rows">{rowsText}</p>
+                    </template>
+                </div>
+            </header>
+            <div class="slds-no-flex">
+                <!-- Back to the grid without finishing; the grid reads the rows again. -->
+                <button class="slds-button slds-button_neutral rh-flow-cancel" onclick={handleCancel}>Cancel</button>
+            </div>
+        </div>
+        <div class="slds-card__body slds-card__body_inner rh-flow-body">
+            <template lwc:if={loading}>
+                <div class="slds-is-relative rh-flow-loading">
+                    <lightning-spinner alternative-text="Loading the flow" size="medium" variant="brand"></lightning-spinner>
+                </div>
+            </template>
+            <template lwc:elseif={error}>
+                <div class="slds-notify slds-notify_alert slds-alert_error rh-flow-error" role="alert">
+                    <span class="slds-assistive-text">Error</span>
+                    <h2>{error}</h2>
+                </div>
+            </template>
+            <template lwc:elseif={showFlow}>
+                <!-- The screen flow, as the user, on a page of its own. -->
+                <lightning-flow
+                    class="rh-flow"
+                    flow-api-name={flowName}
+                    flow-input-variables={inputs}
+                    onstatuschange={handleStatusChange}
+                ></lightning-flow>
+            </template>
+        </div>
+    </article>
+</template>

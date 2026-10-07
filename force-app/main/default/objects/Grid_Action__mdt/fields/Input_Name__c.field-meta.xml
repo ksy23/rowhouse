@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Input_Name__c</fullName>
+    <label>Input Name</label>
+    <type>Text</type>
+    <length>80</length>
+    <required>false</required>
+    <description>The name of the input that receives the record Id. If blank: recordId for a flow, contextId for a quick action, and the only input of an Apex action. A screen flow run on selected rows receives their Ids in a text collection variable named ids, as flows launched from a list view do.</description>
+    <inlineHelpText>Leave blank to use recordId for flows and contextId for quick actions. Enter a name only if your flow or Apex action uses a different input.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Rowhouse Grid Admin</label>
+    <description>Opens the Grid Admin tab and the gear on each grid, where grid configurations are built and changed. Saving a change also needs the Customize Application permission. Grant it through the Rowhouse Grid Admin permission set.</description>
+    <isLicensed>false</isLicensed>
+</CustomPermission>

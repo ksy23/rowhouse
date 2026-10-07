@@ -1,0 +1,62 @@
+<template>
+    <section class="slds-dropdown slds-dropdown_right slds-p-around_small rh-filter-panel" role="dialog" aria-label={heading} onkeydown={handleKeyDown}>
+        <h2 class="slds-text-heading_small slds-m-bottom_x-small rh-filter-heading">{heading}</h2>
+        <div class="slds-form-element slds-m-bottom_x-small">
+            <label class="slds-form-element__label" for="filter-operator">Condition</label>
+            <div class="slds-form-element__control">
+                <div class="slds-select_container">
+                    <select class="slds-select rh-filter-operator" id="filter-operator" onchange={handleOperatorChange}>
+                        <template for:each={operators} for:item="o">
+                            <option key={o.value} value={o.value} selected={o.selected}>{o.label}</option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <template lwc:if={showValue}>
+            <div class={valueClass}>
+                <!-- One label and control per kind: an id may appear once in a template. -->
+                <template lwc:if={isSelect}>
+                    <label class="slds-form-element__label" for="filter-value-select">{valueLabel}</label>
+                    <div class="slds-form-element__control">
+                        <div class="slds-select_container">
+                            <select class="slds-select rh-filter-value" id="filter-value-select" onchange={handleValueChange}>
+                                <template for:each={choices} for:item="c">
+                                    <option key={c.value} value={c.value} selected={c.selected}>{c.label}</option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </template>
+                <template lwc:else>
+                    <label class="slds-form-element__label" for="filter-value-input">{valueLabel}</label>
+                    <div class="slds-form-element__control">
+                        <input class="slds-input rh-filter-value" id="filter-value-input" type={inputType} step="any" value={draft.value} oninput={handleValueChange} />
+                    </div>
+                </template>
+            </div>
+            <template lwc:if={isBetween}>
+                <div class="slds-form-element slds-m-bottom_x-small">
+                    <label class="slds-form-element__label" for="filter-value-to">And</label>
+                    <div class="slds-form-element__control">
+                        <input class="slds-input rh-filter-value-to" id="filter-value-to" type={inputType} step="any" value={draft.valueTo} oninput={handleValueToChange} />
+                    </div>
+                </div>
+            </template>
+        </template>
+        <template lwc:if={problem}>
+            <p class="slds-form-element__help slds-text-color_error slds-m-bottom_x-small rh-filter-problem" role="alert">{problem}</p>
+        </template>
+        <div class="slds-grid slds-grid_align-spread slds-m-top_x-small">
+            <div>
+                <template lwc:if={hasFilter}>
+                    <button class="slds-button rh-filter-remove" onclick={handleRemove}>Remove filter</button>
+                </template>
+            </div>
+            <div>
+                <button class="slds-button slds-button_neutral rh-filter-cancel" onclick={handleCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand rh-filter-apply" onclick={handleApply}>Apply</button>
+            </div>
+        </div>
+    </section>
+</template>

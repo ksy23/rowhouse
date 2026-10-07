@@ -1,0 +1,1343 @@
+/**
+ * GridConfig — reads a grid's configuration from Custom Metadata.
+ *
+ * Configuration is deployable metadata, not records: it moves between orgs in a
+ * change set or a package, and it is readable here without a SOQL query against
+ * the governor limit (getInstance / getAll).
+ *
+ * Two views of one configuration:
+ *   load()    — the configuration as an admin wrote it, validated against the
+ *               schema. The save path uses its editable columns as the HR-6
+ *               allow-list.
+ *   forUser() — what the running user may actually see and edit: unreadable
+ *               columns removed, editability narrowed by field-level security.
+ *
+ * FORMAT RULES
+ * Conditional formatting comes from Grid_Format_Rule__mdt records. Each rule is
+ * checked here against the schema. A rule an admin got wrong (an unknown field,
+ * an operator that means nothing for the field's type, a value that is not a
+ * number or a date) is skipped with a warning rather than breaking the grid for
+ * everyone, and the warning is shown only to users with the
+ * Rowhouse_Diagnostics permission. forUser() drops a rule on a field the user
+ * cannot read, silently: a colored row would otherwise reveal the value.
+ *
+ * GROUPING AND SUBTOTALS
+ * A Grid Column may carry a Group Level (1 to 3: the grouping the grid opens
+ * with), a Group Date Unit for a date, and a Subtotal. The same rule applies:
+ * a setting that cannot work (grouping by a number, a sum of a checkbox) is
+ * left out with a warning, and forUser() drops what the user cannot read.
+ *
+ * CHILD TABLES
+ * Grid Child Table records list the tabs of related records under each row;
+ * GridNesting checks them, and forUser() drops a tab the user cannot read.
+ *
+ * ACTIONS
+ * Grid Action records list what users can run on a row or on the selection;
+ * GridActions checks them, and forUser() drops one whose custom permission the
+ * user does not hold. GridActionService runs them.
+ *
+ * FILTERS AND THE RECORD PAGE
+ * Grid Filter records narrow the records every user of the grid sees; a
+ * Record Page Field narrows them, on a record page, to that record's. Both
+ * become SOQL in GridFilters. A filter that cannot work stops the grid: unlike
+ * a display rule, skipping it would show records the admin meant to keep out.
+ *
+ * CHILD TOTALS
+ * A Grid Column with a Child Table is a child total column: on each row, a
+ * sum, average, lowest, highest or count of that child table's records for
+ * the row, worked out on the server with the child grid's own filters
+ * (GridNesting). One that cannot be built is skipped with a warning;
+ * forUser() drops one whose records or fields the user cannot read.
+ *
+ * FORMULAS
+ * A Grid Column with a Formula is a formula column, worked out on the server
+ * for each row (GridFormulas); a display rule with a Formula is tested the
+ * same way. A formula that cannot be built is skipped with a warning, as a
+ * rule is; forUser() drops one that reads a field the user cannot.
+ *
+ * DRAFTS AND TURNED-OFF RECORDS
+ * build() reads a configuration from records in hand, so the Grid Admin
+ * tab checks a draft with the same code the grid uses (GridAdmin). Columns,
+ * actions and child tables marked Inactive are left out, as are rules not
+ * Active: the Grid Admin tab turns records off, since Apex cannot delete
+ * Custom Metadata.
+ */
+public with sharing class GridConfig {
+
+    /** Types whose length the text editors count against. */
+    private static final Set<Schema.DisplayType> LENGTH_TYPES = new Set<Schema.DisplayType>{
+        Schema.DisplayType.STRING, Schema.DisplayType.TEXTAREA, Schema.DisplayType.EMAIL,
+        Schema.DisplayType.PHONE, Schema.DisplayType.URL
+    };
+
+    /** Types the grid has an editor for, date/time, time and text areas among them. */
+    public static final Set<String> EDITABLE_TYPES = new Set<String>{
+        'text', 'email', 'phone', 'url', 'number', 'currency', 'percent', 'date', 'checkbox', 'picklist',
+        'multipicklist', 'reference', 'owner', 'datetime', 'time', 'textarea'
+    };
+    private static final Set<String> KNOWN_TYPES = new Set<String>{
+        'text', 'email', 'phone', 'url', 'textarea', 'number', 'currency', 'percent', 'date', 'datetime',
+        'time', 'checkbox', 'picklist', 'multipicklist', 'reference', 'owner', 'id'
+    };
+
+    /**
+     * The looks a format rule may give; the grid maps each to one class.
+     * There is no blue fill: a blue row would look selected.
+     */
+    public static final Set<String> FORMAT_STYLES = new Set<String>{
+        'fill_green', 'fill_amber', 'fill_red', 'fill_purple', 'fill_grey', 'text_red', 'text_green',
+        'text_grey', 'bold', 'icon_warning', 'icon_error', 'icon_success', 'icon_info', 'icon_up', 'icon_down',
+        'data_bar'
+    };
+    /**
+     * The types a column is offered for grouping by, unless the admin gives it
+     * a Group Level: values that repeat. Grouping by a name or a note
+     * makes a group per row, and "Group by" on every column's menu was noise.
+     */
+    public static final Set<String> GROUP_OFFERED_TYPES = new Set<String>{
+        'picklist', 'checkbox', 'reference', 'owner', 'date', 'datetime'
+    };
+    private static final Set<String> NUMBER_TYPES = new Set<String>{ 'number', 'currency', 'percent' };
+    private static final Set<String> DATE_TYPES = new Set<String>{ 'date', 'datetime' };
+    /** Types with an order, for greater and less than. */
+    private static final Set<String> ORDERED_TYPES = new Set<String>{
+        'number', 'currency', 'percent', 'date', 'datetime', 'time'
+    };
+    /** Types whose values are text, for contains and starts with. */
+    private static final Set<String> TEXT_TYPES = new Set<String>{
+        'text', 'email', 'phone', 'url', 'textarea', 'id', 'picklist', 'multipicklist'
+    };
+    private static final Set<String> OPERATORS = new Set<String>{
+        'equals', 'not_equals', 'greater_than', 'greater_or_equal', 'less_than', 'less_or_equal', 'between',
+        'contains', 'not_contains', 'starts_with', 'is_blank', 'is_not_blank'
+    };
+    /** Operators a two-field rule may use. */
+    private static final Set<String> COMPARE_OPERATORS = new Set<String>{
+        'equals', 'not_equals', 'greater_than', 'greater_or_equal', 'less_than', 'less_or_equal'
+    };
+    /**
+     * How a date column can be grouped: by calendar period, by the week
+     * (from the first day of the week in the user's locale), or by the org's
+     * fiscal quarter or year.
+     */
+    public static final Set<String> GROUP_UNITS = new Set<String>{
+        'day', 'week', 'month', 'quarter', 'year', 'fiscal_quarter', 'fiscal_year'
+    };
+    public static final Integer MAX_GROUP_LEVELS = 3;
+    private static final Pattern RELATIVE_DATE = Pattern.compile('^TODAY(?:([+-])(\\d{1,4}))?$');
+    private static final Pattern ISO_DATE = Pattern.compile('^\\d{4}-\\d{2}-\\d{2}$');
+    private static final Pattern TIME_OF_DAY = Pattern.compile('^([01]\\d|2[0-3]):([0-5]\\d)(?::([0-5]\\d))?$');
+
+    public class Column {
+        @AuraEnabled public String field;
+        @AuraEnabled public String label;
+        @AuraEnabled public String type;
+        @AuraEnabled public Boolean editable;
+        @AuraEnabled public Boolean sortable;
+        @AuraEnabled public Integer scale;
+        /** A text field's most characters, for the text area editor's count; null for other types. */
+        @AuraEnabled public Integer length;
+        @AuraEnabled public Integer width;
+        @AuraEnabled public Boolean required;
+        /** Admin default: show up to three lines instead of clipping to one. */
+        @AuraEnabled public Boolean wrap;
+        /** The admin keeps it on screen: users can move it but not hide it. */
+        @AuraEnabled public Boolean alwaysShown;
+        /**
+         * Picklist values: { value, label }, and for a dependent picklist also
+         * validFor, the controlling values the value is offered for.
+         */
+        @AuraEnabled public List<Map<String, Object>> options;
+        /** A lookup's target objects, local names. */
+        @AuraEnabled public List<String> referenceTo;
+        /** A dependent picklist's controlling field, local name. */
+        @AuraEnabled public String dependentOn;
+        /** The object's name field: its cells link to the record, as a list view's do. */
+        @AuraEnabled public Boolean isName = false;
+        /** An External Id field: an import can match records by it. */
+        @AuraEnabled public Boolean externalId = false;
+        /**
+         * The lookup field has a lookup filter: its cell edits with
+         * Salesforce's own lookup, which applies the filter, by fieldApiName.
+         */
+        @AuraEnabled public Boolean filteredLookup = false;
+        /** The field's API name, namespace included, for Salesforce's own lookup; set for a filtered lookup only. */
+        @AuraEnabled public String fieldApiName;
+        /**
+         * The target objects this user may create a record of from the lookup's
+         * New item: [{ object: API name, label }]. forUser() sets it, for
+         * an editable lookup only.
+         */
+        @AuraEnabled public List<Map<String, String>> newTargets;
+        /** A lookup's targets' icons, by local name; set by GridIcons, for getGridConfig only. */
+        @AuraEnabled public Map<String, String> referenceIcons;
+        /** The grid can group by this column; forUser() narrows it. */
+        @AuraEnabled public Boolean groupable = false;
+        /** sum, average, min, max or count: what groups and the Total row show; null for none. */
+        @AuraEnabled public String subtotal;
+        /** The user may filter by this column from its menu; forUser() narrows it. */
+        @AuraEnabled public Boolean filterable = false;
+        /** A formula column: worked out on the server, read only; field is _fx_ and its API name. */
+        @AuraEnabled public Boolean isFormula = false;
+        /** A formula column's formula, built. Never sent. */
+        public GridFormulas.Compiled formula;
+        /** A child total column: worked out on the server, read only; field is _ct_ and its API name. */
+        @AuraEnabled public Boolean isChildTotal = false;
+        /** What a child total column totals. Never sent. */
+        public GridNesting.ChildTotal childTotal;
+        /**
+         * What the admin allowed, before any display limitation. This — not
+         * `editable` — is the server's HR-6 allow-list: the grid may choose not
+         * to offer an editor (long text, say), but that is a UI decision, and the
+         * security boundary must not move with it.
+         */
+        public Boolean adminEditable = false;
+    }
+
+    /**
+     * One conditional format, as the grid applies it: when `field` meets
+     * `operator` and `value`, the cell in that field's column (applyTo 'cell')
+     * or every cell of the row ('row') takes `style`. `value` arrives
+     * normalised: a picklist label becomes its API value, a number is plain, a
+     * date is ISO or TODAY with an offset in days, a time is HH:MM:SS, a lookup
+     * is an 18-character Id or $User.
+     */
+    public class FormatRule {
+        @AuraEnabled public String name;
+        /** What the rule means, in the admin's words: its Label. The grid shows it in the legend. */
+        @AuraEnabled public String label;
+        @AuraEnabled public String field;
+        @AuraEnabled public String type;
+        @AuraEnabled public String operator;
+        @AuraEnabled public String value;
+        @AuraEnabled public String style;
+        @AuraEnabled public String applyTo;
+        /** Between's upper end; null otherwise. */
+        @AuraEnabled public String valueTo;
+        /** The field compared with, instead of a value; null otherwise. */
+        @AuraEnabled public String compareField;
+        /** That field's cell type: a date compared with a date/time reads each by its own. */
+        @AuraEnabled public String compareType;
+        /** Tested by a formula on the server: a row matches when its _rules lists this rule. */
+        @AuraEnabled public Boolean isFormula = false;
+        /** The formula, built. Never sent. */
+        public GridFormulas.Compiled formula;
+    }
+
+    /**
+     * One tab of related records under each row: the Grid Child Table
+     * `name` the browser hands back to ask for its rows, the tab's `label`, and
+     * the child grid's configuration. See GridNesting.
+     */
+    public class Child {
+        @AuraEnabled public String name;
+        @AuraEnabled public String label;
+        @AuraEnabled public String configName;
+        @AuraEnabled public String objectApiName;
+        /** The child object's field that points to the row, local name; the server filters by it. */
+        @AuraEnabled public String relationshipField;
+        /** The child grid's height in pixels, the admin's Height; null for the standard height. */
+        @AuraEnabled public Integer height;
+    }
+
+    /**
+     * One action users can run from the grid: a screen flow, an
+     * autolaunched flow, an invocable Apex action or a quick action. `name` is
+     * the Grid Action's DeveloperName, which the browser hands back to run it;
+     * what it runs stays here. A screen flow runs in the browser, so for one
+     * of those the browser is told the flow and its input (flowName,
+     * inputName); for the others it is told neither.
+     */
+    public class Action {
+        @AuraEnabled public String name;
+        @AuraEnabled public String label;
+        /** screenflow, flow, apex or quickaction. */
+        @AuraEnabled public String type;
+        /** Offered in each row's menu. */
+        @AuraEnabled public Boolean onRow = true;
+        /** Offered in the bar that appears with a selection. */
+        @AuraEnabled public Boolean onSelection = true;
+        /** The admin's question before it runs; null asks nothing of its own. */
+        @AuraEnabled public String confirmation;
+        /** A screen flow's API name, for the browser; null for the other types. */
+        @AuraEnabled public String flowName;
+        /** A screen flow's input for one record's Id; null for the other types. */
+        @AuraEnabled public String inputName;
+        /** What runs on the server: a flow, class or quick action name. Never sent. */
+        public String actionName;
+        /** The input the server fills with the record Id; blank finds it (GridActionService). Never sent. */
+        public String serverInput;
+        /** A custom permission the user must hold; blank for none. Never sent. */
+        public String requiredPermission;
+    }
+
+    public class Definition {
+        @AuraEnabled public String name;
+        /** The configuration's label, which the grid shows as its title. */
+        @AuraEnabled public String label;
+        @AuraEnabled public String objectApiName;
+        @AuraEnabled public String objectLabel;
+        /** The object's icon, "standard:account"; set by GridIcons, for getGridConfig only. */
+        @AuraEnabled public String objectIcon;
+        @AuraEnabled public Integer pageSize;
+        @AuraEnabled public String sortField;
+        @AuraEnabled public String sortDirection;
+        @AuraEnabled public Boolean allowInlineEdit;
+        @AuraEnabled public Boolean allowCsvExport;
+        /**
+         * The admin allows deleting the selected rows. forUser() narrows
+         * it to users who may delete the object.
+         */
+        @AuraEnabled public Boolean allowMassDelete;
+        /**
+         * The admin allows importing a file. forUser() narrows it to
+         * users who may edit the object, since an import writes the grid's
+         * editable columns.
+         */
+        @AuraEnabled public Boolean allowImport;
+        /** This user may create records of the object; set by forUser(). */
+        @AuraEnabled public Boolean canCreate = false;
+        /**
+         * Every change this grid makes is written to Grid Edit Log.
+         * Server-side only: each write reads it from the configuration.
+         */
+        public Boolean logChanges = false;
+        /** Columns, from the left, that stay in place when the grid scrolls sideways. */
+        @AuraEnabled public Integer frozenColumns;
+        /** The grid's height in pixels; null fills the window. */
+        @AuraEnabled public Integer height;
+        @AuraEnabled public List<Column> columns = new List<Column>();
+        /** Conditional formats, in the order they apply. */
+        @AuraEnabled public List<FormatRule> formatRules = new List<FormatRule>();
+        /**
+         * The grouping the grid opens with, outermost first:
+         * [{ field, unit }], unit being day, month, quarter or year for a date
+         * and null otherwise. Users change it for their session.
+         */
+        @AuraEnabled public List<Map<String, String>> grouping = new List<Map<String, String>>();
+        /** Tabs of related records under each row, in order; forUser() drops what the user cannot read. */
+        @AuraEnabled public List<Child> children = new List<Child>();
+        /** Actions users can run on a row or the selection, in order; forUser() drops what the user may not run. */
+        @AuraEnabled public List<Action> actions = new List<Action>();
+        /** Configuration problems that did not stop the grid, such as a skipped format rule. */
+        @AuraEnabled public List<String> warnings = new List<String>();
+        /** The admin's filters, in words for the grid to show; every one holds. */
+        @AuraEnabled public List<GridFilters.Condition> filters = new List<GridFilters.Condition>();
+        /**
+         * On a record page, the field pointing to the page's record;
+         * null for none. The browser uses it only to say the list is filtered.
+         */
+        @AuraEnabled public String recordPageField;
+
+        /** HR-6: lower-case local names of the columns an admin marked editable. */
+        public Set<String> editableFields() {
+            Set<String> out = new Set<String>();
+            if (allowInlineEdit != true) {
+                return out;
+            }
+            for (Column c : columns) {
+                if (c.adminEditable == true) {
+                    out.add(c.field.toLowerCase());
+                }
+            }
+            return out;
+        }
+
+        /**
+         * The fields to read: every column, then the controlling field of any
+         * dependent picklist that is not itself a column, since the grid needs
+         * it to offer the right values, then the field of any format
+         * rule, which the grid tests on every row.
+         */
+        public List<String> fieldNames() {
+            List<String> out = new List<String>();
+            Set<String> seen = new Set<String>();
+            for (Column c : columns) {
+                if (c.isFormula != true && c.isChildTotal != true) {
+                    out.add(c.field);
+                    seen.add(c.field.toLowerCase());
+                }
+            }
+            for (Column c : columns) {
+                if (c.dependentOn != null && seen.add(c.dependentOn.toLowerCase())) {
+                    out.add(c.dependentOn);
+                }
+            }
+            for (FormatRule r : formatRules) {
+                // A formula rule's field is only the cell it colors; a
+                // two-field rule reads its other field too.
+                if (r.field != null && r.isFormula != true && seen.add(r.field.toLowerCase())) {
+                    out.add(r.field);
+                }
+                if (r.compareField != null && seen.add(r.compareField.toLowerCase())) {
+                    out.add(r.compareField);
+                }
+            }
+            return out;
+        }
+
+        /** The paths the grid's formulas read, each once, read with the rows but not sent. */
+        public List<String> formulaPaths() {
+            Set<String> seen = new Set<String>();
+            List<String> out = new List<String>();
+            for (Column c : columns) {
+                if (c.formula != null) {
+                    for (String p : c.formula.paths) {
+                        if (seen.add(p.toLowerCase())) {
+                            out.add(p);
+                        }
+                    }
+                }
+            }
+            for (FormatRule r : formatRules) {
+                if (r.formula != null) {
+                    for (String p : r.formula.paths) {
+                        if (seen.add(p.toLowerCase())) {
+                            out.add(p);
+                        }
+                    }
+                }
+            }
+            return out;
+        }
+
+        /** The child total columns, which the server works out for each page of rows. */
+        public Boolean hasChildTotals() {
+            for (Column c : columns) {
+                if (c.childTotal != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /** The formula columns and formula rules, which the server works out for each row. */
+        public Boolean hasFormulas() {
+            for (Column c : columns) {
+                if (c.formula != null) {
+                    return true;
+                }
+            }
+            for (FormatRule r : formatRules) {
+                if (r.formula != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * The configuration as authored. Throws with the name if it does not
+     * exist, and says so if it is archived: a page that shows it then
+     * says what happened, rather than showing a grid the admin took away.
+     */
+    public static Definition load(String developerName) {
+        return load(developerName, false);
+    }
+
+    /**
+     * The same, archived or not when `evenIfArchived`: a parent grid's child
+     * total column still totals the related records of a child table
+     * whose grid is archived, and reads that grid's filters to do it.
+     */
+    public static Definition load(String developerName, Boolean evenIfArchived) {
+        Grid_Configuration__mdt cfg = String.isBlank(developerName) ? null : Grid_Configuration__mdt.getInstance(developerName);
+        if (cfg == null) {
+            throw new GridException('No Grid Configuration named "' + developerName + '".');
+        }
+        if (cfg.Archived__c == true && evenIfArchived != true) {
+            throw new GridException('The grid ' + cfg.MasterLabel + ' is archived. A Rowhouse admin can restore it on the Grid Admin tab.');
+        }
+        return build(cfg, columnsOf(cfg), rulesOf(cfg), GridNesting.linksOf(cfg), GridActions.recordsOf(cfg),
+            GridFilters.recordsOf(cfg));
+    }
+
+    /**
+     * getAll() and getInstance() return only the first 255 characters of a
+     * Long Text Area field (Salesforce documents this); SOQL returns all of it.
+     * A formula that long is read again with SOQL, so it is never used, or
+     * saved back by the Grid Admin tab, cut short.
+     */
+    @TestVisible
+    private static final Integer CACHED_TEXT_LIMIT = 255;
+
+    /**
+     * Every Grid Column of a configuration, turned off or not, in no particular order.
+     *
+     * By SOQL on the configuration, in user mode as every query is
+     * (GridSecurity): about 25 ms for Test_Records' 16 columns, where getAll()
+     * read every grid's columns, all 144 in a test org, in 100–140 ms,
+     * and more with every grid an org adds. SOQL also
+     * returns a long formula whole. A user who may not query the type (no
+     * Rowhouse Grid User) is read with getAll(), as everyone was before.
+     */
+    public static List<Grid_Column__mdt> columnsOf(Grid_Configuration__mdt cfg) {
+        if (cfg.Id != null) {
+            try {
+                return (List<Grid_Column__mdt>) GridSecurity.query(
+                    'SELECT ' + String.join(allFieldsOf(Grid_Column__mdt.SObjectType), ', ')
+                        + ' FROM ' + GridDescribe.apiName(Grid_Column__mdt.SObjectType)
+                        + ' WHERE ' + GridDescribe.apiName(Grid_Column__mdt.Grid_Configuration__c) + ' = :configId',
+                    new Map<String, Object>{ 'configId' => cfg.Id }
+                );
+            } catch (Exception e) {
+                // No access to the type: read below, as every user can.
+            }
+        }
+        List<Grid_Column__mdt> out = new List<Grid_Column__mdt>();
+        Set<Id> longFormulas = new Set<Id>();
+        for (Grid_Column__mdt c : Grid_Column__mdt.getAll().values()) {
+            if (belongsTo(c.Grid_Configuration__c, cfg)) {
+                out.add(c);
+                if (c.Formula__c != null && c.Formula__c.length() >= CACHED_TEXT_LIMIT) {
+                    longFormulas.add(c.Id);
+                }
+            }
+        }
+        if (!longFormulas.isEmpty()) {
+            Map<Id, Grid_Column__mdt> whole = new Map<Id, Grid_Column__mdt>();
+            try {
+                whole.putAll([SELECT Id, Formula__c FROM Grid_Column__mdt WHERE Id IN :longFormulas]);
+            } catch (Exception e) {
+                // A user who cannot query the type keeps the first 255 characters:
+                // such a formula then fails to build and is skipped, with a warning.
+            }
+            for (Integer i = 0; i < out.size(); i++) {
+                if (whole.containsKey(out[i].Id)) {
+                    // getAll()'s records are read-only: the whole formula goes on a copy.
+                    Grid_Column__mdt copy = out[i].clone(true, true, true, true);
+                    copy.Formula__c = whole.get(out[i].Id).Formula__c;
+                    out[i] = copy;
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Every field of a type, by API name: what getAll() hands back, for a query to match it. */
+    private static List<String> allFieldsOf(Schema.SObjectType objectType) {
+        List<String> names = new List<String>();
+        for (Schema.SObjectField f : objectType.getDescribe(SObjectDescribeOptions.DEFERRED).fields.getMap().values()) {
+            names.add(GridDescribe.apiName(f));
+        }
+        return names;
+    }
+
+    /** Every Grid Format Rule of a configuration, active or not, in no particular order. */
+    public static List<Grid_Format_Rule__mdt> rulesOf(Grid_Configuration__mdt cfg) {
+        List<Grid_Format_Rule__mdt> out = new List<Grid_Format_Rule__mdt>();
+        Set<Id> longFormulas = new Set<Id>();
+        for (Grid_Format_Rule__mdt r : Grid_Format_Rule__mdt.getAll().values()) {
+            if (belongsTo(r.Grid_Configuration__c, cfg)) {
+                out.add(r);
+                if (r.Formula__c != null && r.Formula__c.length() >= CACHED_TEXT_LIMIT) {
+                    longFormulas.add(r.Id);
+                }
+            }
+        }
+        if (!longFormulas.isEmpty()) {
+            Map<Id, Grid_Format_Rule__mdt> whole = new Map<Id, Grid_Format_Rule__mdt>();
+            try {
+                whole.putAll([SELECT Id, Formula__c FROM Grid_Format_Rule__mdt WHERE Id IN :longFormulas]);
+            } catch (Exception e) {
+                // A user who cannot query the type keeps the first 255 characters:
+                // such a formula then fails to build and is skipped, with a warning.
+            }
+            for (Integer i = 0; i < out.size(); i++) {
+                if (whole.containsKey(out[i].Id)) {
+                    // getAll()'s records are read-only: the whole formula goes on a copy.
+                    Grid_Format_Rule__mdt copy = out[i].clone(true, true, true, true);
+                    copy.Formula__c = whole.get(out[i].Id).Formula__c;
+                    out[i] = copy;
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * A configuration from records in hand: the org's (load), or a draft the
+     * Grid Admin tab has not saved yet (GridAdmin), so that a draft
+     * is checked by exactly the code that will read it once saved. Columns,
+     * actions and child tables marked Inactive, and rules not Active, are left
+     * out, as if they were not there.
+     */
+    public static Definition build(Grid_Configuration__mdt cfg, List<Grid_Column__mdt> allColumns,
+                                   List<Grid_Format_Rule__mdt> allRules, List<Grid_Child__mdt> links,
+                                   List<Grid_Action__mdt> actionRecords) {
+        return build(cfg, allColumns, allRules, links, actionRecords, new List<Grid_Filter__mdt>());
+    }
+
+    /** The same, with the configuration's Grid Filters. */
+    public static Definition build(Grid_Configuration__mdt cfg, List<Grid_Column__mdt> allColumns,
+                                   List<Grid_Format_Rule__mdt> allRules, List<Grid_Child__mdt> links,
+                                   List<Grid_Action__mdt> actionRecords, List<Grid_Filter__mdt> filterRecords) {
+        Schema.SObjectType objectType = GridDescribe.typeFor(cfg.Object_API_Name__c);
+
+        Definition def = new Definition();
+        def.name = cfg.DeveloperName;
+        def.label = cfg.MasterLabel;
+        def.objectApiName = GridDescribe.localName(objectType);
+        def.objectLabel = objectType.getDescribe(SObjectDescribeOptions.DEFERRED).getLabelPlural();
+        def.pageSize = cfg.Page_Size__c == null ? GridDataService.DEFAULT_PAGE_SIZE
+            : Math.max(1, Math.min(GridDataService.MAX_PAGE_SIZE, cfg.Page_Size__c.intValue()));
+        def.sortField = cfg.Default_Sort_Field__c;
+        def.sortDirection = 'desc'.equalsIgnoreCase(cfg.Default_Sort_Direction__c) ? 'desc' : 'asc';
+        def.allowInlineEdit = cfg.Allow_Inline_Edit__c;
+        def.allowCsvExport = cfg.Allow_CSV_Export__c;
+        def.allowMassDelete = cfg.Allow_Mass_Delete__c == true;
+        def.allowImport = cfg.Allow_Import__c == true;
+        def.logChanges = cfg.Log_Changes__c == true;
+        def.frozenColumns = cfg.Frozen_Columns__c == null ? 0 : Math.max(0, cfg.Frozen_Columns__c.intValue());
+        def.height = cfg.Height_Px__c == null || cfg.Height_Px__c <= 0 ? null : cfg.Height_Px__c.intValue();
+        // Checked here, so a Record Page Field that is not a lookup stops the grid
+        // at once rather than on the first record page.
+        def.recordPageField = String.isBlank(cfg.Record_Page_Field__c) ? null : cfg.Record_Page_Field__c.trim();
+        if (def.recordPageField != null) {
+            def.recordPageField = GridDescribe.localName(GridFilters.recordField(def));
+        }
+        def.filters = GridFilters.fromRecords(filterRecords, objectType);
+        Integer formulas = 0;
+
+        List<Grid_Column__mdt> columns = new List<Grid_Column__mdt>();
+        for (Grid_Column__mdt c : allColumns) {
+            if (c.Inactive__c != true) {
+                columns.add(c);
+            }
+        }
+        columns.sort(new BySortOrder());
+
+        List<GroupDefault> groupDefaults = new List<GroupDefault>();
+        Integer childTotals = 0;
+        for (Grid_Column__mdt c : columns) {
+            if (String.isNotBlank(c.Child_Table__c)) {
+                if (childTotals >= GridNesting.MAX_CHILD_TOTALS) {
+                    def.warnings.add('Grid Column ' + c.DeveloperName + ' was skipped: a grid has at most '
+                        + GridNesting.MAX_CHILD_TOTALS + ' child total columns.');
+                    continue;
+                }
+                try {
+                    def.columns.add(childTotalColumn(c, objectType, links));
+                    childTotals++;
+                } catch (GridException e) {
+                    def.warnings.add('Child total column ' + c.DeveloperName + ' was skipped: ' + e.getMessage());
+                }
+                continue;
+            }
+            if (String.isNotBlank(c.Formula__c)) {
+                if (formulas >= GridFormulas.MAX_FORMULAS) {
+                    def.warnings.add('Grid Column ' + c.DeveloperName + ' was skipped: a grid has at most '
+                        + GridFormulas.MAX_FORMULAS + ' formulas.');
+                    continue;
+                }
+                try {
+                    def.columns.add(formulaColumn(c, objectType));
+                    formulas++;
+                } catch (GridException e) {
+                    def.warnings.add('Formula column ' + c.DeveloperName + ' was skipped: ' + e.getMessage());
+                }
+                continue;
+            }
+            Schema.SObjectField f = GridDescribe.field(objectType, c.Field_API_Name__c);
+            Schema.DescribeFieldResult d = f.getDescribe();
+            Column col = new Column();
+            col.field = d.getLocalName();
+            col.label = String.isNotBlank(c.Column_Label__c) ? c.Column_Label__c : defaultLabel(d);
+            String configured = String.isBlank(c.Cell_Type__c) ? null : c.Cell_Type__c.trim().toLowerCase();
+            if (configured != null && !KNOWN_TYPES.contains(configured)) {
+                throw new GridException('Grid Column ' + c.DeveloperName + ' has an unknown Cell Type "' + c.Cell_Type__c + '".');
+            }
+            col.type = configured != null ? configured : GridDescribe.cellType(f);
+            // Rich text stays read only: the grid edits plain text, and its markup
+            // would be lost. Long plain text is editable: its editor
+            // reads the whole value first (GridController.fetchFullText), so the
+            // shortened copy the rows carry (TC-055) is never what is saved.
+            Boolean richText = d.getType() == Schema.DisplayType.TEXTAREA && d.isHtmlFormatted();
+            // The allow-list ignores the RUNNING USER's field-level security on
+            // purpose: describe is user-scoped, and FLS is stripInaccessible's job.
+            // Mixing the two would let an FLS strip masquerade as an allow-list
+            // refusal, and the tests could no longer tell which mechanism worked.
+            col.adminEditable = c.Editable__c == true && writableByType(d);
+            // User-independent here. forUser() narrows it with GridSecurity.canEdit
+            // (HR-5: access decisions are made in GridSecurity and nowhere else).
+            col.editable = col.adminEditable && EDITABLE_TYPES.contains(col.type) && !richText;
+            col.sortable = c.Sortable__c != false && d.isSortable();
+            col.scale = d.getScale();
+            col.length = LENGTH_TYPES.contains(d.getType()) && d.getLength() > 0 ? d.getLength() : null;
+            col.width = c.Width_Px__c == null ? null : c.Width_Px__c.intValue();
+            col.wrap = c.Wrap_Text__c == true;
+            col.alwaysShown = c.Always_Shown__c == true;
+            col.required = writableByType(d) && GridDescribe.isRequired(d);
+            if (d.getType() == Schema.DisplayType.PICKLIST || d.getType() == Schema.DisplayType.MULTIPICKLIST) {
+                Map<String, List<String>> validFor = GridDescribe.dependencies(f);
+                if (validFor != null) {
+                    col.dependentOn = GridDescribe.localName(d.getController());
+                }
+                col.options = new List<Map<String, Object>>();
+                for (Schema.PicklistEntry e : d.getPicklistValues()) {
+                    if (e.isActive()) {
+                        Map<String, Object> option = new Map<String, Object>{ 'value' => e.getValue(), 'label' => e.getLabel() };
+                        if (validFor != null) {
+                            option.put('validFor', validFor.get(e.getValue()));
+                        }
+                        col.options.add(option);
+                    }
+                }
+            }
+            if (d.getType() == Schema.DisplayType.REFERENCE) {
+                col.referenceTo = GridDescribe.referenceTargets(f);
+                // A lookup filter is applied by Salesforce's own lookup:
+                // Apex can tell a field has one, but not what it says.
+                if (d.getFilteredLookupInfo() != null) {
+                    col.filteredLookup = true;
+                    col.fieldApiName = GridDescribe.apiName(f);
+                }
+            }
+            col.isName = d.isNameField();
+            col.externalId = d.isExternalId();
+            // Offered where values repeat; any groupable column the admin groups by,
+            // or lets users group by with Allow Grouping.
+            col.groupable = GridDescribe.isGroupable(d)
+                && (GROUP_OFFERED_TYPES.contains(col.type) || c.Group_Level__c != null || c.Allow_Grouping__c == true);
+            if (c.Allow_Grouping__c == true && !GridDescribe.isGroupable(d)) {
+                def.warnings.add('Grid Column ' + c.DeveloperName + ': Allow Grouping does not apply to ' + d.getLabel()
+                    + ', a ' + col.type + ' field the grid cannot group by.');
+            }
+            String subtotal = String.isBlank(c.Subtotal__c) ? null : c.Subtotal__c.trim().toLowerCase();
+            if (subtotal != null && GridDescribe.subtotalFits(subtotal, d)) {
+                col.subtotal = subtotal;
+            } else if (subtotal != null) {
+                def.warnings.add('Grid Column ' + c.DeveloperName + ': a ' + subtotal + ' subtotal does not apply to '
+                    + d.getLabel() + ', a ' + col.type + ' field, so it is not shown.');
+            }
+            if (c.Group_Level__c != null) {
+                groupDefaults.add(new GroupDefault(c, col, d));
+            }
+            // A user filters by the values SOQL can filter on.
+            col.filterable = d.isFilterable() && col.type != 'id';
+            def.columns.add(col);
+        }
+        loadGrouping(def, groupDefaults);
+        loadFormatRules(def, allRules, objectType, GridFormulas.MAX_FORMULAS - formulas);
+        def.children = GridNesting.childrenFrom(links, objectType, def.warnings);
+        def.actions = GridActions.actionsFrom(actionRecords, objectType, def.warnings);
+        return def;
+    }
+
+    /** One column's Group Level, waiting to be put in order. */
+    private class GroupDefault {
+        public Grid_Column__mdt source;
+        public Column col;
+        public Schema.DescribeFieldResult d;
+        public GroupDefault(Grid_Column__mdt source, Column col, Schema.DescribeFieldResult d) {
+            this.source = source;
+            this.col = col;
+            this.d = d;
+        }
+    }
+
+    /**
+     * The grouping the grid opens with: the columns with a Group Level, level 1
+     * first. A level that is not 1, 2 or 3, a column the grid cannot group by,
+     * and a second column on a level already taken are left out with a warning.
+     */
+    private static void loadGrouping(Definition def, List<GroupDefault> defaults) {
+        Map<Integer, GroupDefault> byLevel = new Map<Integer, GroupDefault>();
+        for (GroupDefault g : defaults) {
+            Decimal raw = g.source.Group_Level__c;
+            String name = 'Grid Column ' + g.source.DeveloperName;
+            if (raw < 1 || raw > MAX_GROUP_LEVELS || raw != raw.setScale(0, System.RoundingMode.DOWN)) {
+                def.warnings.add(name + ': Group Level must be 1, 2 or 3.');
+            } else if (!g.col.groupable) {
+                def.warnings.add(name + ': the grid cannot group by ' + g.d.getLabel() + ', a ' + g.col.type + ' field.');
+            } else if (byLevel.containsKey(raw.intValue())) {
+                def.warnings.add(name + ': Group Level ' + raw.intValue() + ' is already used by '
+                    + byLevel.get(raw.intValue()).source.DeveloperName + '.');
+            } else {
+                byLevel.put(raw.intValue(), g);
+            }
+        }
+        for (Integer level = 1; level <= MAX_GROUP_LEVELS; level++) {
+            GroupDefault g = byLevel.get(level);
+            if (g == null) {
+                continue;
+            }
+            String unit = null;
+            if (GridDescribe.isDateLike(g.d)) {
+                unit = String.isBlank(g.source.Group_Date_Unit__c) ? 'month' : g.source.Group_Date_Unit__c.trim().toLowerCase();
+                if (!GROUP_UNITS.contains(unit)) {
+                    def.warnings.add('Grid Column ' + g.source.DeveloperName + ': unknown Group Date Unit "'
+                        + g.source.Group_Date_Unit__c + '"; grouping by month.');
+                    unit = 'month';
+                }
+            }
+            def.grouping.add(new Map<String, String>{ 'field' => g.col.field, 'unit' => unit });
+        }
+    }
+
+    /** Active format rules in Sort Order; a rule that does not make sense is skipped with a warning. */
+    private static void loadFormatRules(Definition def, List<Grid_Format_Rule__mdt> allRules, Schema.SObjectType objectType,
+                                        Integer formulaBudget) {
+        List<Grid_Format_Rule__mdt> rules = new List<Grid_Format_Rule__mdt>();
+        for (Grid_Format_Rule__mdt r : allRules) {
+            if (r.Active__c != false) {
+                rules.add(r);
+            }
+        }
+        rules.sort(new RulesInOrder());
+        Map<String, Column> byField = new Map<String, Column>();
+        for (Column c : def.columns) {
+            byField.put(c.field.toLowerCase(), c);
+        }
+        Integer budget = formulaBudget;
+        for (Grid_Format_Rule__mdt r : rules) {
+            try {
+                if (String.isNotBlank(r.Formula__c) && budget <= 0) {
+                    throw new GridException('a grid has at most ' + GridFormulas.MAX_FORMULAS + ' formulas.');
+                }
+                FormatRule rule = formatRule(r, objectType, byField);
+                if (rule.formula != null) {
+                    budget--;
+                }
+                def.formatRules.add(rule);
+            } catch (GridException e) {
+                def.warnings.add('Format rule ' + r.DeveloperName + ' was skipped: ' + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * A formula column: its key, label, type and formula, built for the
+     * grid's object. Throws a GridException in an admin's terms.
+     */
+    private static Column formulaColumn(Grid_Column__mdt c, Schema.SObjectType objectType) {
+        if (String.isBlank(c.Column_Label__c)) {
+            throw new GridException('a formula column needs a Column Label.');
+        }
+        String type = String.isBlank(c.Formula_Type__c) ? 'text' : c.Formula_Type__c.trim().toLowerCase();
+        if (!GridFormulas.RETURN_TYPES.containsKey(type)) {
+            throw new GridException('unknown Formula Type "' + c.Formula_Type__c + '".');
+        }
+        Column col = new Column();
+        col.field = GridFormulas.KEY_PREFIX + c.DeveloperName;
+        col.label = c.Column_Label__c.trim();
+        col.type = type;
+        col.isFormula = true;
+        col.formula = GridFormulas.compile(objectType, c.Formula__c, GridFormulas.RETURN_TYPES.get(type));
+        col.scale = NUMBER_TYPES.contains(type) ? (c.Decimal_Places__c == null ? 2 : Math.max(0, Math.min(9, c.Decimal_Places__c.intValue()))) : null;
+        col.width = c.Width_Px__c == null ? null : c.Width_Px__c.intValue();
+        col.wrap = c.Wrap_Text__c == true;
+        col.alwaysShown = c.Always_Shown__c == true;
+        col.editable = false;
+        col.sortable = false;
+        col.required = false;
+        col.groupable = false;
+        col.filterable = false;
+        return col;
+    }
+
+    /**
+     * A child total column: its key, label, type and what it totals,
+     * checked against this grid's child tables (`links`, the org's or a
+     * draft's). Throws a GridException in an admin's terms.
+     */
+    public static Column childTotalColumn(Grid_Column__mdt c, Schema.SObjectType objectType, List<Grid_Child__mdt> links) {
+        GridNesting.ChildTotal total = GridNesting.childTotalOf(c.Child_Table__c, c.Child_Total__c, c.Child_Field__c, objectType, links);
+        Column col = new Column();
+        col.field = GridNesting.TOTAL_PREFIX + c.DeveloperName;
+        col.label = String.isNotBlank(c.Column_Label__c) ? c.Column_Label__c.trim() : total.defaultLabel;
+        col.type = total.type;
+        col.scale = total.scale;
+        col.isChildTotal = true;
+        col.childTotal = total;
+        col.width = c.Width_Px__c == null ? null : c.Width_Px__c.intValue();
+        col.wrap = c.Wrap_Text__c == true;
+        col.alwaysShown = c.Always_Shown__c == true;
+        col.editable = false;
+        col.sortable = false;
+        col.required = false;
+        col.groupable = false;
+        col.filterable = false;
+        return col;
+    }
+
+    /**
+     * A field's heading when the admin gives none: its label, less the
+     * " ID" describe puts after a standard lookup's ("Account ID", "Owner ID"),
+     * which is not what a record page or a list view says.
+     */
+    public static String defaultLabel(Schema.DescribeFieldResult d) {
+        String label = d.getLabel();
+        if (d.getType() == Schema.DisplayType.REFERENCE && label.endsWith(' ID') && label.length() > 3) {
+            return label.removeEnd(' ID');
+        }
+        return label;
+    }
+
+    /**
+     * One format rule, checked against the schema and normalised. Throws a
+     * GridException whose message says what is wrong, in an admin's terms.
+     */
+    @TestVisible
+    private static FormatRule formatRule(Grid_Format_Rule__mdt r, Schema.SObjectType objectType, Map<String, Column> columnsByField) {
+        FormatRule rule = new FormatRule();
+        rule.name = r.DeveloperName;
+        rule.label = String.isNotBlank(r.MasterLabel) ? r.MasterLabel : r.DeveloperName;
+        rule.style = String.isBlank(r.Style__c) ? null : r.Style__c.trim().toLowerCase();
+        if (rule.style == null) {
+            throw new GridException('it has no Style.');
+        }
+        if (!FORMAT_STYLES.contains(rule.style)) {
+            throw new GridException('unknown Style "' + r.Style__c + '".');
+        }
+        rule.applyTo = 'row'.equalsIgnoreCase(String.isBlank(r.Apply_To__c) ? '' : r.Apply_To__c.trim()) ? 'row' : 'cell';
+        if (String.isNotBlank(r.Formula__c)) {
+            return formulaRule(rule, r, objectType, columnsByField);
+        }
+        Schema.SObjectField f = GridDescribe.field(objectType, r.Field_API_Name__c);
+        Schema.DescribeFieldResult d = f.getDescribe();
+        rule.field = d.getLocalName();
+        Column col = columnsByField.get(rule.field.toLowerCase());
+        rule.type = col != null ? col.type : GridDescribe.cellType(f);
+        rule.operator = String.isBlank(r.Operator__c) ? 'equals' : r.Operator__c.trim().toLowerCase();
+        if (!OPERATORS.contains(rule.operator)) {
+            throw new GridException('unknown Operator "' + r.Operator__c + '".');
+        }
+        if (rule.applyTo == 'cell' && col == null) {
+            throw new GridException(d.getLabel() + ' is not a column of this grid, so there is no cell to format.'
+                + ' Set Apply To to Row, or add the column.');
+        }
+        requireStyleFits(rule, d);
+        requireOperatorFits(rule, d);
+        if (String.isNotBlank(r.Compare_Field__c)) {
+            compareWith(rule, r, objectType, d);
+            return rule;
+        }
+        rule.value = ruleValue(rule, d, r.Value__c);
+        if (rule.operator == 'between') {
+            if (String.isBlank(r.Value_To__c)) {
+                throw new GridException('Between needs Value To, the upper end of the range.');
+            }
+            rule.valueTo = ruleValue(rule, d, r.Value_To__c);
+        }
+        return rule;
+    }
+
+    /** A data bar needs a number in a cell; the other styles fit anything. */
+    private static void requireStyleFits(FormatRule rule, Schema.DescribeFieldResult d) {
+        if (rule.style != 'data_bar') {
+            return;
+        }
+        if (!NUMBER_TYPES.contains(rule.type)) {
+            throw new GridException('a data bar shows a number, and ' + d.getLabel() + ' is a ' + rule.type + ' field.');
+        }
+        if (rule.applyTo != 'cell') {
+            throw new GridException('a data bar goes in a cell. Set Apply To to Cell.');
+        }
+    }
+
+    /**
+     * A two-field rule: Field compared with Compare Field, both of the
+     * same kind; Value must be blank. Equals and does not equal for any kind,
+     * greater and less than for numbers, dates and times.
+     */
+    private static void compareWith(FormatRule rule, Grid_Format_Rule__mdt r, Schema.SObjectType objectType,
+                                    Schema.DescribeFieldResult d) {
+        if (String.isNotBlank(r.Value__c)) {
+            throw new GridException('it has both a Value and a Compare Field. Clear one of them.');
+        }
+        if (!COMPARE_OPERATORS.contains(rule.operator)) {
+            throw new GridException('the ' + rule.operator.replace('_', ' ') + ' operator cannot compare two fields.');
+        }
+        Schema.SObjectField other = GridDescribe.field(objectType, r.Compare_Field__c);
+        Schema.DescribeFieldResult od = other.getDescribe();
+        String otherType = GridDescribe.cellType(other);
+        if (kindOf(rule.type) != kindOf(otherType)) {
+            throw new GridException(d.getLabel() + ' and ' + od.getLabel() + ' are not the same kind of field, so they cannot be compared.');
+        }
+        if (od.getLocalName().equalsIgnoreCase(rule.field)) {
+            throw new GridException('it compares ' + d.getLabel() + ' with itself.');
+        }
+        rule.compareField = od.getLocalName();
+        rule.compareType = otherType;
+    }
+
+    /** Which fields can be compared with which. */
+    private static String kindOf(String type) {
+        if (NUMBER_TYPES.contains(type)) {
+            return 'number';
+        }
+        if (DATE_TYPES.contains(type)) {
+            return 'date';
+        }
+        if (type == 'reference' || type == 'owner') {
+            return 'reference';
+        }
+        if (type == 'time' || type == 'checkbox' || type == 'multipicklist') {
+            return type;
+        }
+        return 'text';
+    }
+
+    /**
+     * A formula rule: a true-or-false formula, built for the grid's
+     * object. Field names the cell it colors; with Apply To Row it may be
+     * blank. Operator and Value are not used.
+     */
+    private static FormatRule formulaRule(FormatRule rule, Grid_Format_Rule__mdt r, Schema.SObjectType objectType,
+                                          Map<String, Column> columnsByField) {
+        rule.isFormula = true;
+        rule.operator = 'formula';
+        if (String.isNotBlank(r.Field_API_Name__c)) {
+            String name = r.Field_API_Name__c.trim();
+            Column col = columnsByField.get(name.toLowerCase());
+            if (col == null) {
+                Schema.DescribeFieldResult d = GridDescribe.field(objectType, name).getDescribe();
+                col = columnsByField.get(d.getLocalName().toLowerCase());
+                if (col == null && rule.applyTo == 'cell') {
+                    throw new GridException(d.getLabel() + ' is not a column of this grid, so there is no cell to format.'
+                        + ' Set Apply To to Row, or add the column.');
+                }
+                rule.field = d.getLocalName();
+            } else {
+                rule.field = col.field;
+            }
+            rule.type = col == null ? null : col.type;
+        } else if (rule.applyTo == 'cell') {
+            throw new GridException('a formula rule that colors a cell needs the Field of that cell. Or set Apply To to Row.');
+        }
+        if (rule.style == 'data_bar') {
+            throw new GridException('a data bar needs a number to measure, not a formula.');
+        }
+        rule.formula = GridFormulas.compile(objectType, r.Formula__c, FormulaEval.FormulaReturnType.BOOLEAN);
+        return rule;
+    }
+
+    private static void requireOperatorFits(FormatRule rule, Schema.DescribeFieldResult d) {
+        requireFits(rule.operator, rule.type, d.getLabel());
+    }
+
+    /**
+     * Does the operator mean something for a field of this type? Throws, in an
+     * admin's terms, when it does not. Format rules and filters alike.
+     */
+    public static void requireFits(String op, String type, String fieldLabel) {
+        if (!OPERATORS.contains(op)) {
+            throw new GridException('unknown Operator "' + op + '".');
+        }
+        Boolean fits;
+        if (op == 'is_blank' || op == 'is_not_blank') {
+            fits = type != 'checkbox'; // a checkbox is never blank: test it for false
+        } else if (op == 'equals' || op == 'not_equals') {
+            fits = true;
+        } else if (op == 'starts_with') {
+            fits = TEXT_TYPES.contains(type) && type != 'multipicklist';
+        } else if (op == 'contains' || op == 'not_contains') {
+            fits = TEXT_TYPES.contains(type);
+        } else {
+            fits = ORDERED_TYPES.contains(type);
+        }
+        if (!fits) {
+            throw new GridException('the ' + op.replace('_', ' ') + ' operator does not apply to ' + fieldLabel
+                + ', a ' + type + ' field.');
+        }
+    }
+
+    /** The rule's value, checked for the field's type and normalised; null for the blank tests. */
+    private static String ruleValue(FormatRule rule, Schema.DescribeFieldResult d, String raw) {
+        return conditionValue(rule.operator, rule.type, d, raw);
+    }
+
+    /**
+     * A condition's value, checked for the field's type and normalised; null
+     * for the blank tests. Format rules and filters alike.
+     */
+    public static String conditionValue(String operator, String type, Schema.DescribeFieldResult d, String raw) {
+        if (operator == 'is_blank' || operator == 'is_not_blank') {
+            return null;
+        }
+        String value = raw == null ? '' : raw.trim();
+        if (value == '') {
+            throw new GridException('it has no Value. To test for an empty field, use Is blank.');
+        }
+        if (NUMBER_TYPES.contains(type)) {
+            try {
+                return Decimal.valueOf(value).toPlainString();
+            } catch (Exception e) {
+                throw new GridException('Value "' + value + '" is not a number. Write it as 1234.5, without separators or symbols.');
+            }
+        }
+        if (DATE_TYPES.contains(type)) {
+            return dateValue(value);
+        }
+        if (type == 'time') {
+            Matcher m = TIME_OF_DAY.matcher(value);
+            if (!m.matches()) {
+                throw new GridException('Value "' + value + '" is not a time. Write it as 17:30 or 17:30:00.');
+            }
+            return m.group(1) + ':' + m.group(2) + ':' + (m.group(3) == null ? '00' : m.group(3));
+        }
+        if (type == 'checkbox') {
+            if (value.equalsIgnoreCase('true') || value.equalsIgnoreCase('false')) {
+                return value.toLowerCase();
+            }
+            throw new GridException('Value "' + value + '" is not true or false.');
+        }
+        if (type == 'reference' || type == 'owner') {
+            return referenceValue(value, d);
+        }
+        if ((type == 'picklist' || type == 'multipicklist') && operator != 'starts_with') {
+            return picklistValue(value, d, type == 'multipicklist' && (operator == 'equals' || operator == 'not_equals'));
+        }
+        return value;
+    }
+
+    /** An ISO date, or TODAY with an optional offset in days, upper-cased and without spaces. */
+    private static String dateValue(String value) {
+        String compact = value.deleteWhitespace().toUpperCase();
+        if (RELATIVE_DATE.matcher(compact).matches()) {
+            return compact;
+        }
+        if (ISO_DATE.matcher(compact).matches()) {
+            try {
+                Date parsed = Date.valueOf(compact);
+                // Date.valueOf rolls 2026-02-30 over to 2 March; a real date comes back unchanged.
+                if (String.valueOf(parsed) == compact) {
+                    return compact;
+                }
+            } catch (Exception e) {
+                // falls through to the message below
+            }
+        }
+        throw new GridException('Value "' + value + '" is not a date. Write it as 2026-12-31, TODAY, TODAY+7 or TODAY-30.');
+    }
+
+    /** $User, or the Id of a record the lookup can point to, as 18 characters. */
+    private static String referenceValue(String value, Schema.DescribeFieldResult d) {
+        if (value.equalsIgnoreCase('$User')) {
+            return '$User';
+        }
+        Id recordId;
+        try {
+            recordId = Id.valueOf(value);
+        } catch (Exception e) {
+            throw new GridException('Value "' + value + '" is not a record Id or $User.');
+        }
+        if (!d.getReferenceTo().contains(recordId.getSObjectType())) {
+            throw new GridException('Value "' + value + '" is not the Id of a record ' + d.getLabel() + ' can point to.');
+        }
+        return String.valueOf(recordId);
+    }
+
+    /**
+     * A picklist value by API name or label, in any case, as its API name.
+     * Inactive values count: a rule may want to flag rows that still hold one.
+     * For a multi-select equals, each semicolon-separated value is matched.
+     */
+    private static String picklistValue(String value, Schema.DescribeFieldResult d, Boolean several) {
+        List<String> parts = several ? value.split(';') : new List<String>{ value };
+        List<String> out = new List<String>();
+        for (String part : parts) {
+            String wanted = part.trim();
+            String found = null;
+            for (Schema.PicklistEntry e : d.getPicklistValues()) {
+                if (e.getValue().equalsIgnoreCase(wanted)) {
+                    found = e.getValue();
+                    break;
+                }
+            }
+            if (found == null) {
+                for (Schema.PicklistEntry e : d.getPicklistValues()) {
+                    if (e.getLabel().equalsIgnoreCase(wanted)) {
+                        found = e.getValue();
+                        break;
+                    }
+                }
+            }
+            if (found == null) {
+                throw new GridException('"' + wanted + '" is not a value of ' + d.getLabel() + '.');
+            }
+            out.add(found);
+        }
+        return String.join(out, ';');
+    }
+
+    /**
+     * The lookup targets this user may create a record of, for a
+     * lookup's New item: not users or queues, which are not created from a
+     * lookup in Salesforce either.
+     */
+    private static List<Map<String, String>> newTargets(List<String> referenceTo) {
+        List<Map<String, String>> out = new List<Map<String, String>>();
+        for (String name : referenceTo) {
+            Schema.SObjectType t = GridDescribe.typeFor(name);
+            if (t == User.SObjectType || t == Group.SObjectType || !GridSecurity.canCreate(t)) {
+                continue;
+            }
+            out.add(new Map<String, String>{
+                'object' => GridDescribe.apiName(t),
+                'label' => t.getDescribe(SObjectDescribeOptions.DEFERRED).getLabel()
+            });
+        }
+        return out.isEmpty() ? null : out;
+    }
+
+    /** What this user may see and edit. */
+    public static Definition forUser(String developerName) {
+        Definition def = load(developerName);
+        Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
+        GridSecurity.requireRead(objectType);
+        Boolean objectEditable = def.allowInlineEdit == true && GridSecurity.canUpdate(objectType);
+        def.allowMassDelete = def.allowMassDelete == true && GridSecurity.canDelete(objectType);
+        def.allowImport = def.allowImport == true && objectEditable;
+        def.canCreate = GridSecurity.canCreate(objectType);
+        // The admin's filters narrow every query; one on a field this user cannot
+        // read could not be run in user mode, and leaving it out would widen
+        // what the user sees. So the grid does not open.
+        for (GridFilters.Condition fc : def.filters) {
+            Schema.SObjectField f = GridDescribe.field(objectType, fc.field);
+            if (!GridSecurity.canRead(f)) {
+                throw new GridException('This grid shows only the records chosen by ' + defaultLabel(f.getDescribe())
+                    + ', a field you do not have access to. Ask your Salesforce admin.');
+            }
+        }
+        List<Column> visible = new List<Column>();
+        for (Column c : def.columns) {
+            if (c.isFormula == true) {
+                // A formula column shows what its fields add up to, so it needs
+                // every one of them readable.
+                if (GridFormulas.canReadAll(objectType, c.formula.paths)) {
+                    visible.add(c);
+                }
+                continue;
+            }
+            if (c.isChildTotal == true) {
+                // A child total shows what the child records add up to, so it needs
+                // them, their link to the row and the field totalled readable.
+                if (GridNesting.canTotal(c.childTotal)) {
+                    visible.add(c);
+                }
+                continue;
+            }
+            Schema.SObjectField f = GridDescribe.field(objectType, c.field);
+            if (!GridSecurity.canRead(f)) {
+                continue; // unreadable columns are not rendered, exported or sent
+            }
+            c.editable = c.editable && objectEditable && GridSecurity.canEdit(f);
+            // A lookup is edited by searching its target, so the user must be
+            // able to read the target's names.
+            if (c.referenceTo != null) {
+                c.editable = c.editable && GridSecurity.canReadName(f);
+                c.newTargets = c.editable == true && c.type == 'reference' ? newTargets(c.referenceTo) : null;
+            }
+            // A dependent picklist is only offered with its controlling value.
+            if (c.dependentOn != null) {
+                c.editable = c.editable && GridSecurity.canRead(GridDescribe.field(objectType, c.dependentOn));
+            }
+            // A lookup's groups are labelled with the records' names.
+            if (c.referenceTo != null) {
+                c.groupable = c.groupable && GridSecurity.canReadName(f);
+                // ... and is filtered by them.
+                c.filterable = c.filterable && GridSecurity.canReadName(f);
+            }
+            visible.add(c);
+        }
+        def.columns = visible;
+        // The default grouping keeps only columns this user can group by.
+        Set<String> groupable = new Set<String>();
+        for (Column c : visible) {
+            if (c.groupable) {
+                groupable.add(c.field);
+            }
+        }
+        List<Map<String, String>> grouping = new List<Map<String, String>>();
+        for (Map<String, String> level : def.grouping) {
+            if (groupable.contains(level.get('field'))) {
+                grouping.add(level);
+            }
+        }
+        def.grouping = grouping;
+        // A rule on a field this user cannot read would reveal the value by its
+        // color, so it goes, without a warning that would name the field.
+        // The same for a rule's other field and a formula rule's fields; a
+        // formula rule's own Field is only the cell it colors, a column.
+        Set<String> shown = new Set<String>();
+        for (Column c : visible) {
+            shown.add(c.field.toLowerCase());
+        }
+        List<FormatRule> readable = new List<FormatRule>();
+        for (FormatRule r : def.formatRules) {
+            Boolean ok;
+            if (r.isFormula == true) {
+                ok = GridFormulas.canReadAll(objectType, r.formula.paths)
+                    && (r.field == null || r.applyTo == 'row' || shown.contains(r.field.toLowerCase()));
+            } else {
+                ok = GridSecurity.canRead(GridDescribe.field(objectType, r.field))
+                    && (r.compareField == null || GridSecurity.canRead(GridDescribe.field(objectType, r.compareField)));
+            }
+            if (ok) {
+                readable.add(r);
+            }
+        }
+        def.formatRules = readable;
+        // A tab of records the user cannot read is not offered, silently,
+        // as for a column.
+        List<Child> children = new List<Child>();
+        for (Child c : def.children) {
+            if (GridNesting.canOpen(c)) {
+                children.add(c);
+            }
+        }
+        def.children = children;
+        // An action that needs a custom permission the user lacks is not
+        // offered; the server checks again when one is run.
+        List<Action> actions = new List<Action>();
+        for (Action a : def.actions) {
+            if (GridActions.canRun(a)) {
+                actions.add(a);
+            }
+        }
+        def.actions = actions;
+        return def;
+    }
+
+    /** Can this field ever be written, for anyone? (Not an FLS question.) */
+    public static Boolean writableByType(Schema.DescribeFieldResult d) {
+        return !d.isCalculated() && !d.isAutoNumber() && d.getType() != Schema.DisplayType.ID
+            && d.getName() != 'CreatedDate' && d.getName() != 'LastModifiedDate' && d.getName() != 'SystemModstamp';
+    }
+
+    /** A metadata relationship field holds the parent's Id; match on Id or name. */
+    public static Boolean belongsTo(Object parent, Grid_Configuration__mdt cfg) {
+        if (parent == null) {
+            return false;
+        }
+        String ref = String.valueOf(parent);
+        return ref == cfg.DeveloperName
+            || ref == cfg.QualifiedApiName
+            || (cfg.Id != null && ref.left(15) == String.valueOf(cfg.Id).left(15));
+    }
+
+    private class BySortOrder implements Comparator<Grid_Column__mdt> {
+        public Integer compare(Grid_Column__mdt a, Grid_Column__mdt b) {
+            Decimal x = a.Sort_Order__c == null ? 9999 : a.Sort_Order__c;
+            Decimal y = b.Sort_Order__c == null ? 9999 : b.Sort_Order__c;
+            if (x != y) {
+                return x < y ? -1 : 1;
+            }
+            return a.DeveloperName.compareTo(b.DeveloperName);
+        }
+    }
+
+    private class RulesInOrder implements Comparator<Grid_Format_Rule__mdt> {
+        public Integer compare(Grid_Format_Rule__mdt a, Grid_Format_Rule__mdt b) {
+            Decimal x = a.Sort_Order__c == null ? 9999 : a.Sort_Order__c;
+            Decimal y = b.Sort_Order__c == null ? 9999 : b.Sort_Order__c;
+            if (x != y) {
+                return x < y ? -1 : 1;
+            }
+            return a.DeveloperName.compareTo(b.DeveloperName);
+        }
+    }
+}

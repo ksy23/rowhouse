@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Grid Save Result</label>
+    <pluralLabel>Grid Save Results</pluralLabel>
+    <nameField>
+        <label>Result Name</label>
+        <type>Text</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>Private</sharingModel>
+    <enableReports>false</enableReports>
+    <enableSearch>false</enableSearch>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <description>Used by Rowhouse to report the outcome of large saves back to the grid. Records are private to the user who saved, deleted once the grid has read them, and removed automatically after a day. Nothing needs to be set up or maintained.</description>
+</CustomObject>

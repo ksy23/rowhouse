@@ -1,0 +1,12 @@
+/* The calendar hangs from the box, as SLDS's date input's does. */
+.rh-date {
+    position: relative;
+}
+
+/* SLDS centres a dropdown under its trigger; this one starts at the box's
+   edge (slds-dropdown_left or _right in the markup) and keeps the
+   datepicker's own width, wider than a narrow cell. */
+.rh-calendar {
+    width: max-content;
+    max-width: none;
+}

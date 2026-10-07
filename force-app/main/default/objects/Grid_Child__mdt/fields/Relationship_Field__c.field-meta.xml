@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Relationship_Field__c</fullName>
+    <label>Relationship Field</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>The API name of the lookup or master-detail field on the child grid's object that points to the parent row, without a namespace prefix. For example, AccountId for Contacts shown under Accounts.</description>
+    <inlineHelpText>API name of the field on the child records that points to the parent, such as AccountId for Contacts under Accounts.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

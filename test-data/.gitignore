@@ -1,0 +1,4 @@
+# Benchmark sets are generated, not committed — 2.4 MB of derived data that one
+# command reproduces byte-for-byte thanks to the fixed seed.
+#   python3 scripts/generate-benchmark.py
+data/benchmark-*.csv

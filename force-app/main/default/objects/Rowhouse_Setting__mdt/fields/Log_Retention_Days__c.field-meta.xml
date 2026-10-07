@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Log_Retention_Days__c</fullName>
+    <label>Log Retention (days)</label>
+    <type>Number</type>
+    <precision>5</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <description>How many days Grid Edit Log entries are kept. Every night, entries older than this are deleted and emptied from the Recycle Bin. If blank, entries are kept forever. The Grid Admin tab offers 90, 365, 730 and 2555 days (7 years).</description>
+    <inlineHelpText>Leave blank to keep the edit log forever. Set it on the Grid Admin tab, which also starts the nightly clean-up.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

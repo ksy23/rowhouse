@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Key__c</fullName>
+    <label>Key</label>
+    <type>Text</type>
+    <length>120</length>
+    <required>true</required>
+    <unique>true</unique>
+    <caseSensitive>true</caseSensitive>
+    <externalId>true</externalId>
+    <description>The user's Id and the grid's API name, which make each user's layout of each grid one record.</description>
+    <inlineHelpText>The user and the grid this layout belongs to.</inlineHelpText>
+</CustomField>

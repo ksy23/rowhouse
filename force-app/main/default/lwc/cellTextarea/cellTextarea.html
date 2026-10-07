@@ -1,0 +1,46 @@
+<template>
+    <template lwc:if={isEdit}>
+        <!-- The box, the cell's width, shows the start of the text; the text area hangs below it (see cellTextarea.js). -->
+        <div class="rh-textarea" onkeydown={handleKeyDown}>
+            <div class="slds-input slds-truncate rh-textarea-summary" title={summary} aria-hidden="true" onmousedown={handleSummaryMouseDown}>{summary}</div>
+            <div class={panelClass}>
+                <div class={formElementClass}>
+                    <label class="slds-form-element__label" for="textarea-input">{label}</label>
+                    <div class="slds-form-element__control">
+                        <textarea
+                            class="slds-textarea rh-textarea-input"
+                            id="textarea-input"
+                            disabled={loading}
+                            readonly={failed}
+                            maxlength={maxLengthAttr}
+                            aria-invalid={ariaInvalid}
+                            aria-required={ariaRequired}
+                            aria-describedby="textarea-help"
+                            oninput={handleInput}
+                            onkeydown={handleTextKeyDown}
+                        ></textarea>
+                    </div>
+                    <div class="slds-grid slds-grid_align-spread slds-m-top_xx-small" id="textarea-help">
+                        <template lwc:if={error}>
+                            <p class="slds-form-element__help rh-editor-error" role="alert">{error}</p>
+                        </template>
+                        <template lwc:elseif={loading}>
+                            <p class="slds-form-element__help rh-loading" role="status">Loading the whole text…</p>
+                        </template>
+                        <template lwc:else>
+                            <p class="slds-form-element__help slds-text-color_weak rh-keys">Ctrl+Enter to finish</p>
+                        </template>
+                        <p class="slds-form-element__help slds-text-color_weak rh-count">{countText}</p>
+                    </div>
+                </div>
+                <div class="slds-m-top_x-small slds-text-align_right">
+                    <button class="slds-button slds-button_neutral" onclick={handleCancel}>Cancel</button>
+                    <button class="slds-button slds-button_brand" data-done disabled={loading} onclick={handleDone}>Done</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template lwc:else>
+        <span class="slds-truncate" title={value}>{value}</span>
+    </template>
+</template>

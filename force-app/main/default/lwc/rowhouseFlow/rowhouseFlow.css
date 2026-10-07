@@ -1,0 +1,12 @@
+/* Layout only. Color, type and spacing come from SLDS classes and hooks; Rowhouse classes only (HR-15). */
+
+/* The flow reads best at a form's width, centred, as a record's edit page is. */
+.rh-flow-page {
+    max-width: 48rem;
+    margin: 0 auto;
+}
+
+/* Room for the spinner while the flow's details load. */
+.rh-flow-loading {
+    min-height: var(--slds-g-sizing-14, 12rem);
+}

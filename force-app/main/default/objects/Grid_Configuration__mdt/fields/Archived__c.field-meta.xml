@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Archived__c</fullName>
+    <label>Archived</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Takes the grid out of use without deleting it. An archived grid is listed only under Archived on the Grid Admin tab, a page that shows it says it is archived, and another grid's child table that shows it is hidden. Restore it on the Grid Admin tab. To delete it for good, delete its records in Setup.</description>
+    <inlineHelpText>Check to take the grid out of use. Pages that show it say it is archived. Restore it on the Grid Admin tab.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

@@ -1,0 +1,93 @@
+/* The Grid Guide tab. rh- classes and global styling hooks only (HR-15). */
+
+:host {
+    display: block;
+}
+
+.rh-guide {
+    scroll-margin-top: var(--slds-g-spacing-4, 1rem);
+}
+
+.rh-guide-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding-bottom: 0;
+}
+
+.rh-guide-logo {
+    display: block;
+    height: var(--slds-g-sizing-9, 2rem);
+    width: auto;
+    flex-shrink: 0;
+}
+
+.rh-guide-title {
+    min-width: var(--slds-g-sizing-13, 10rem);
+    padding-left: var(--slds-g-spacing-4, 1rem);
+    border-left: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, rgb(201, 201, 201));
+}
+
+/* The guide's sections: links, drawn as SLDS draws tabs. */
+.rh-guide-nav {
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, rgb(201, 201, 201));
+    overflow-x: auto;
+}
+
+.rh-guide-nav-list {
+    display: flex;
+    gap: var(--slds-g-spacing-5, 1.5rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rh-guide-nav-item {
+    flex: 0 0 auto;
+}
+
+.rh-guide-nav-link {
+    display: block;
+    padding: var(--slds-g-spacing-2, 0.5rem) 0;
+    color: var(--slds-g-color-on-surface-2, rgb(46, 46, 46));
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: var(--slds-g-sizing-border-3, 3px) solid transparent;
+}
+
+.rh-guide-nav-link:hover,
+.rh-guide-nav-link:focus {
+    color: var(--slds-g-color-accent-1, rgb(1, 118, 211));
+    text-decoration: none;
+}
+
+.rh-guide-nav-item_current .rh-guide-nav-link {
+    color: var(--slds-g-color-on-surface-3, rgb(24, 24, 24));
+    font-weight: var(--slds-g-font-weight-bold, bold);
+    border-bottom-color: var(--slds-g-color-accent-1, rgb(1, 118, 211));
+}
+
+.rh-guide-body {
+    min-height: var(--slds-g-sizing-15, 20rem);
+}
+
+.rh-guide-admin-only {
+    max-width: var(--slds-g-sizing-content-3, 60ch);
+}
+
+.rh-guide-footer {
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-on-surface-1, rgb(116, 116, 116));
+    text-align: left;
+}
+
+/* Below a phone's width the logo sits above the title. */
+@media (max-width: 30em) {
+    .rh-guide-title {
+        padding-left: 0;
+        border-left: 0;
+        margin-left: 0;
+        margin-top: var(--slds-g-spacing-2, 0.5rem);
+        flex-basis: 100%;
+    }
+}

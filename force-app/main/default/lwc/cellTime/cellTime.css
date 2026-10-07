@@ -1,0 +1,11 @@
+/* The list hangs from the box, as the date editor's calendar does. */
+.rh-time {
+    position: relative;
+}
+
+/* At least as wide as a time in any locale, never narrower than the box. */
+.rh-time-list {
+    min-width: 8rem;
+    max-height: 13.5rem;
+    overflow-y: auto;
+}

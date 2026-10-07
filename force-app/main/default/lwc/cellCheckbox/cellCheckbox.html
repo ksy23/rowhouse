@@ -1,0 +1,19 @@
+<template>
+    <template lwc:if={isEdit}>
+        <div class="slds-checkbox" onkeydown={handleKeyDown} onmousedown={handleMouseDown}>
+            <input type="checkbox" id="cb" checked={checked} onchange={handleChange} />
+            <label class="slds-checkbox__label" for="cb">
+                <span class="slds-checkbox_faux"></span>
+                <span class="slds-form-element__label slds-assistive-text">{label}</span>
+            </label>
+        </div>
+    </template>
+    <template lwc:else>
+        <template lwc:if={checked}>
+            <lightning-icon icon-name="utility:check" size="xx-small" alternative-text={stateText}></lightning-icon>
+        </template>
+        <template lwc:else>
+            <span class="slds-assistive-text">{stateText}</span>
+        </template>
+    </template>
+</template>

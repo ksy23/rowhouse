@@ -1,0 +1,177 @@
+<!--meta {"title": "Tutorial: the weekly pipeline review", "desc": "Build a Rowhouse grid of opportunities grouped by stage, with a sum of amounts, overdue dates in red and big deals in green, then use it to update a pipeline.", "section": "tutorials", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Pipeline review</div>
+    <span class="aud both">Sales operations · about 25 minutes</span>
+    <h1 style="margin-top:14px">The weekly pipeline review</h1>
+    <p class="dek">Every Monday, Abigail walks the sales managers through the open pipeline. Until now she has exported opportunities to a spreadsheet, fixed them there, and asked each rep to retype the changes. This grid lets her fix them where they live.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Build it · admin</span>
+    <a href="#goal">What you will build</a>
+    <a href="#config">1. The configuration</a>
+    <a href="#columns">2. Eight columns</a>
+    <a href="#rules">3. Three display rules</a>
+    <a href="#page">4. The page</a>
+    <span class="s-k">Use it · Abigail</span>
+    <a href="#review">5. Read the pipeline</a>
+    <a href="#fix">6. Fix deals</a>
+    <a href="#save">7. Save and check</a>
+    <a href="#learned">What you learned</a>
+  </aside>
+
+  <main class="content">
+
+<section id="goal">
+  <div class="persona"><span class="avatar">AW</span><div><b>Abigail Whitcomb, Sales Operations Manager</b><span>Runs the Monday pipeline call for four sales managers. Wants overdue deals to stand out and totals per stage at a glance.</span></div></div>
+  <div class="sec-head"><span class="sec-num">The goal</span><h2>What you will build</h2></div>
+  <figure class="rv mt0">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Pipeline_Review</span></div><div class="stage"><div class="card-m">
+      <div class="m-head"><div class="m-ico opp"><svg viewBox="0 0 24 24"><path d="M4 18h16v2H4zM6 10h3v6H6zm5-4h3v10h-3zm5 6h3v4h-3z"/></svg></div><div><div class="m-title">Pipeline Review</div><div class="m-meta">31 items • Sorted by Close Date • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-chips">Grouped by <span class="m-chip">Stage <span class="x">✕</span></span> <span class="m-link">Stop grouping</span></div>
+      <table class="mt"><colgroup><col style="width:4%"><col style="width:24%"><col style="width:25%"><col style="width:17%"><col style="width:13%"><col style="width:17%"></colgroup>
+        <thead><tr><th class="cb"><span class="mcb"></span></th><th class="dd">Group</th><th class="dd">Opportunity</th><th class="r dd">Amount</th><th class="r dd">Probability</th><th class="dd">Close Date <span class="srt">↑</span></th></tr></thead>
+        <tbody>
+          <tr class="grp"><td></td><td class="gl"><span class="chev open"></span>Stage: Prospecting <span class="cnt">(1)</span></td><td></td><td class="r">Sum $100,000.00</td><td class="r">Avg 10.00%</td><td>Min 10/2/2026</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td></td><td class="lnk">Pyramid Emergency Generators</td><td class="r">$100,000.00</td><td class="r">10%</td><td>10/2/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev open"></span>Stage: Qualification <span class="cnt">(1)</span></td><td></td><td class="r">Sum $15,000.00</td><td class="r">Avg 10.00%</td><td>Min 9/25/2026</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td></td><td class="lnk">Dickenson Mobile Generators</td><td class="r">$15,000.00</td><td class="r">10%</td><td class="t-red">9/25/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev open"></span>Stage: Needs Analysis <span class="cnt">(1)</span></td><td></td><td class="r">Sum $675,000.00</td><td class="r">Avg 20.00%</td><td>Min 12/15/2026</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td></td><td class="lnk">United Oil Plant Standby Generators</td><td class="r f-green">$675,000.00</td><td class="r">20%</td><td>12/15/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev"></span>Stage: Value Proposition <span class="cnt">(2)</span></td><td></td><td class="r">Sum $330,000.00</td><td class="r">Avg 50.00%</td><td>Min 10/30/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev"></span>Stage: Id. Decision Makers <span class="cnt">(2)</span></td><td></td><td class="r">Sum $75,000.00</td><td class="r">Avg 60.00%</td><td>Min 10/9/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev"></span>Stage: Perception Analysis <span class="cnt">(1)</span></td><td></td><td class="r">Sum $120,000.00</td><td class="r">Avg 70.00%</td><td>Min 11/6/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev"></span>Stage: Proposal/Price Quote <span class="cnt">(2)</span></td><td></td><td class="r">Sum $520,000.00</td><td class="r">Avg 75.00%</td><td>Min 10/28/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev open"></span>Stage: Negotiation/Review <span class="cnt">(3)</span></td><td></td><td class="r">Sum $430,000.00</td><td class="r">Avg 90.00%</td><td>Min 10/20/2026</td></tr>
+          <tr class="bar"><td class="cb"><span class="mcb"></span></td><td></td><td class="lnk">United Oil Installations</td><td class="r f-green">$270,000.00</td><td class="r">90%</td><td>10/20/2026</td></tr>
+          <tr class="bar"><td class="cb"><span class="mcb"></span></td><td></td><td class="lnk">Edge Emergency Generator</td><td class="r">$35,000.00</td><td class="r">90%</td><td>10/23/2026</td></tr>
+          <tr class="bar"><td class="cb"><span class="mcb"></span></td><td></td><td class="lnk">United Oil Office Portable Generators</td><td class="r">$125,000.00</td><td class="r">90%</td><td>12/4/2026</td></tr>
+          <tr class="grp"><td></td><td class="gl"><span class="chev"></span>Stage: Closed Won <span class="cnt">(18)</span></td><td></td><td class="r">Sum $3,645,000.00</td><td class="r">Avg 100.00%</td><td>Min 9/6/2024</td></tr>
+          <tr class="tot"><td></td><td>Total <span style="font-weight:500;margin-left:6px">31 records</span></td><td></td><td class="r">Sum $5,910,000.00</td><td class="r">Avg 82.26%</td><td>Min 9/6/2024</td></tr>
+        </tbody></table>
+    </div></div></div>
+    <figcaption>The finished grid: grouped by stage in the picklist's order, a sum of amounts per stage and in total, overdue close dates in red, big deals in green, deals in negotiation marked with a purple bar. Collapsed stages still count in the Total.</figcaption>
+  </figure>
+  <div class="call"><span class="k">You need</span><p>The Rowhouse Grid User permission set, permission to customize the application, and some opportunities. Our example org has 31; the record names below are ours, so pick your own where a step names one.</p></div>
+</section>
+
+<section id="config">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>1. The Grid Configuration</h2></div>
+  <ol class="tut">
+    <li><b>Open the records.</b> In Setup, type <span class="v plain">Custom Metadata Types</span> in the Quick Find box and click <span class="ui">Custom Metadata Types</span>. Beside <span class="ui">Grid Configuration</span>, click <span class="ui">Manage Records</span>, then <span class="ui">New</span>.</li>
+    <li><b>Fill in these fields</b> and leave the others as they are:
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Label</td><td><span class="v">Pipeline Review</span><button class="copy" data-copy="Pipeline Review">Copy</button></td></tr>
+        <tr><td>Grid Configuration Name</td><td><span class="v">Pipeline_Review</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object API Name</td><td><span class="v">Opportunity</span><button class="copy" data-copy="Opportunity">Copy</button></td></tr>
+        <tr><td>Default Sort Field</td><td><span class="v">CloseDate</span><button class="copy" data-copy="CloseDate">Copy</button></td></tr>
+        <tr><td>Default Sort Direction</td><td><span class="v">Ascending</span></td></tr>
+        <tr><td>Frozen Columns</td><td><span class="v">1</span> <span class="note">the opportunity name stays put as you scroll sideways</span></td></tr>
+      </tbody></table>
+    </li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>.</li>
+  </ol>
+</section>
+
+<section id="columns">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. Eight columns</h2>
+  <p class="sec-sub">Stage gets a Group Level, so the grid opens grouped by it. Amount, Probability and Close Date get subtotals, shown on every stage and in a Total row.</p></div>
+  <ol class="tut">
+    <li><b>Open Grid Column records.</b> Back in <span class="ui">Custom Metadata Types</span>, beside <span class="ui">Grid Column</span>, click <span class="ui">Manage Records</span>, then <span class="ui">New</span>.</li>
+    <li><b>Create one record per row below.</b> The Grid Column Name fills in from the Label. In every record, type <span class="v">Pipeline Review</span> in <span class="ui">Grid Configuration</span>. Leave empty what the table leaves empty, and leave <span class="ui">Sortable</span> ticked. Click <span class="ui">Save &amp; New</span> between records, and <span class="ui">Save</span> after the last.
+      <div class="tbox" style="margin-top:12px"><table class="ref">
+        <thead><tr><th>Label · Name</th><th>Field API Name</th><th>Column Label</th><th>Sort Order</th><th>Editable</th><th>More</th></tr></thead>
+        <tbody>
+          <tr><td>Pipeline Name<br><span class="d">Pipeline_Name</span></td><td class="d">Name</td><td>Opportunity</td><td class="d">10</td><td>—</td><td></td></tr>
+          <tr><td>Pipeline Account<br><span class="d">Pipeline_Account</span></td><td class="d">AccountId</td><td>Account</td><td class="d">20</td><td class="tick">✓</td><td></td></tr>
+          <tr><td>Pipeline Stage<br><span class="d">Pipeline_Stage</span></td><td class="d">StageName</td><td></td><td class="d">30</td><td class="tick">✓</td><td>Group Level <span class="v plain">1</span></td></tr>
+          <tr><td>Pipeline Amount<br><span class="d">Pipeline_Amount</span></td><td class="d">Amount</td><td></td><td class="d">40</td><td class="tick">✓</td><td>Subtotal <span class="v plain">Sum</span></td></tr>
+          <tr><td>Pipeline Probability<br><span class="d">Pipeline_Probability</span></td><td class="d">Probability</td><td>Probability</td><td class="d">50</td><td>—</td><td>Subtotal <span class="v plain">Average</span></td></tr>
+          <tr><td>Pipeline Close Date<br><span class="d">Pipeline_Close_Date</span></td><td class="d">CloseDate</td><td></td><td class="d">60</td><td class="tick">✓</td><td>Subtotal <span class="v plain">Min</span></td></tr>
+          <tr><td>Pipeline Next Step<br><span class="d">Pipeline_Next_Step</span></td><td class="d">NextStep</td><td></td><td class="d">70</td><td class="tick">✓</td><td>Wrap Text <span class="tick">✓</span></td></tr>
+          <tr><td>Pipeline Owner<br><span class="d">Pipeline_Owner</span></td><td class="d">OwnerId</td><td>Owner</td><td class="d">80</td><td class="tick">✓</td><td></td></tr>
+        </tbody></table></div>
+    </li>
+  </ol>
+  <div class="check why">Column Label replaces a field's own label in the header. Salesforce labels the name field just "Name", so it gets a friendlier one; lookups would be headed "Account" and "Owner" anyway, and are labelled here so the record says so. Opportunity Name is left read-only so a click on it opens the record.</div>
+</section>
+
+<section id="rules">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>3. Three display rules</h2></div>
+  <ol class="tut">
+    <li><b>Open Grid Format Rule records.</b> In <span class="ui">Custom Metadata Types</span>, beside <span class="ui">Grid Format Rule</span>, click <span class="ui">Manage Records</span>, then <span class="ui">New</span>.</li>
+    <li><b>Create these three.</b> In each, type the Label, then replace the <span class="ui">Grid Format Rule Name</span> that fills in with the name in the table. Type <span class="v">Pipeline Review</span> in <span class="ui">Grid Configuration</span> and leave <span class="ui">Active</span> ticked:
+      <div class="tbox" style="margin-top:12px"><table class="ref">
+        <thead><tr><th>Label · Name</th><th>Field API Name</th><th>Operator</th><th>Value</th><th>Style</th><th>Apply To</th><th>Sort Order</th></tr></thead>
+        <tbody>
+          <tr><td>Overdue<br><span class="d">Pipeline_Overdue</span></td><td class="d">CloseDate</td><td>Less than</td><td class="d">TODAY</td><td><span class="t-red">Red text</span></td><td>Cell</td><td class="d">10</td></tr>
+          <tr><td>Big deal<br><span class="d">Pipeline_Big_Deal</span></td><td class="d">Amount</td><td>Greater than or equal to</td><td class="d">250000</td><td><span style="background:var(--f-green);padding:1px 5px;border-radius:3px;color:#181818">Green fill</span></td><td>Cell</td><td class="d">20</td></tr>
+          <tr><td>In negotiation<br><span class="d">Pipeline_Negotiating</span></td><td class="d">StageName</td><td>Equals</td><td class="d">Negotiation/Review</td><td><span style="box-shadow:inset 4px 0 0 var(--b-purple);padding:1px 5px 1px 9px">Purple fill</span></td><td>Row</td><td class="d">30</td></tr>
+        </tbody></table></div>
+    </li>
+  </ol>
+  <div class="check why">The Label is what the grid's Display Key shows, so write it for users. The Name only has to be unique across all grids. Write numbers without a currency symbol or commas: <span class="v plain">250000</span>, not $250,000. <span class="v plain">TODAY</span> is today in each user's time zone. A Row rule's fill shows as a bar at the row's left edge, so it never hides a cell's own color.</div>
+</section>
+
+<section id="page">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>4. The page</h2></div>
+  <ol class="tut">
+    <li><b>Create an App page.</b> In Setup, type <span class="v plain">Lightning App Builder</span> in the Quick Find box and click <span class="ui">Lightning App Builder</span>. Click <span class="ui">New</span>, choose <span class="ui">App Page</span>, click <span class="ui">Next</span>, enter the Label <span class="v">Pipeline Review</span>, click <span class="ui">Next</span>, choose <span class="ui">One Region</span>, and click <span class="ui">Done</span>.</li>
+    <li><b>Add the grid.</b> Drag <span class="ui">Rowhouse Grid</span> from the <span class="ui">Custom</span> components onto the page, and enter <span class="v">Pipeline_Review</span><button class="copy" data-copy="Pipeline_Review">Copy</button> in <span class="ui">Grid Configuration</span>.</li>
+    <li><b>Save and activate.</b> Click <span class="ui">Save</span>, then <span class="ui">Activate</span>. On the <span class="ui">Lightning Experience</span> tab, choose <span class="ui">Sales</span>, click <span class="ui">Add page to app</span>, then <span class="ui">Save</span>.</li>
+  </ol>
+</section>
+
+<section id="review">
+  <div class="sec-head"><span class="sec-num">Use it · Abigail</span><h2>5. Read the pipeline</h2></div>
+  <ol class="tut">
+    <li><b>Open the grid.</b> Open the <span class="ui">Sales</span> app and click <span class="ui">Pipeline Review</span> in the navigation bar (or under <span class="ui">More</span>).
+      <div class="check">"Grouped by Stage" above the grid, a row for each stage with its count, the sum of its amounts, the average probability and the earliest close date, and a Total row at the bottom.</div></li>
+    <li><b>Put the closed deals away.</b> Groups follow the order of the Stage picklist, as they do in a Salesforce report: <span class="ui">Stage: Prospecting</span> first and <span class="ui">Stage: Closed Won</span> last. Scroll down the grid to <span class="ui">Stage: Closed Won</span> and click the arrow on its row. Its deals fold away; the Total row still counts them.</li>
+    <li><b>Find the late ones.</b> Red dates in the open stages are overdue. Click <span class="ui">Display Key</span> above the grid to see what each color means, then click it again to close it.</li>
+  </ol>
+  <div class="call w"><span class="k">Closed deals have past dates too</span><p>A rule tests one field, so closed deals with past close dates are red as well. That is why the grid is grouped by stage: closed deals sit in their own groups, which Abigail keeps folded.</p></div>
+</section>
+
+<section id="fix">
+  <div class="sec-head"><span class="sec-num">Use it · Abigail</span><h2>6. Fix deals as the managers call them out</h2></div>
+  <ol class="tut">
+    <li><b>Change an amount.</b> Click the Amount of an open deal (we use <i>University of AZ Installations</i>, $100,000), type <span class="v">250000</span> and press <kbd>Enter</kbd>.
+      <div class="check">The cell turns yellow and shows $250,000. A Save bar appears under the grid: "1 unsaved change".</div></li>
+    <li><b>Move a deal to another stage.</b> Click the Stage of another open deal (we use <i>Edge Emergency Generator</i>), press <kbd>Enter</kbd> to edit it, choose <span class="ui">Negotiation/Review</span> in the list (or type its first letters), and press <kbd>Enter</kbd>.
+      <div class="check">The deal gets its purple bar at once, but stays in its group until you save. The Save bar now says "2 unsaved changes".</div></li>
+    <li><b>Give three deals the same next step.</b> Scroll the grid sideways to Next Step (the Opportunity column stays put). Click the Next Step of the first deal in a stage with three or more deals (in our org, Id. Decision Makers), type <span class="v">Send revised quote</span> and press <kbd>Enter</kbd>. Press <kbd>Shift</kbd>+<kbd>↓</kbd> twice to stretch the selection over the two deals below, then press <kbd>Ctrl</kbd>+<kbd>D</kbd> (<kbd>Cmd</kbd>+<kbd>D</kbd> on a Mac) to fill down.
+      <div class="check">All three Next Step cells say "Send revised quote", and the Save bar counts the new changes.</div></li>
+    <li><b>Change your mind, then change it back.</b> Press <kbd>Ctrl</kbd>+<kbd>Z</kbd> (<kbd>Cmd</kbd>+<kbd>Z</kbd>): the fill down is undone in one step. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>) to redo it. The Save bar's <span class="ui">Undo</span> and <span class="ui">Redo</span> buttons do the same.</li>
+    <li><b>Push out an overdue date.</b> Double-click a red Close Date in an open stage. A calendar opens under the cell (above it, if the cell is near the bottom of the grid). Click the right arrow beside the month name to go to next month, and click any day.
+      <div class="check">The date is no longer red: it shows the day you picked, in yellow, as an unsaved change.</div></li>
+  </ol>
+</section>
+
+<section id="save">
+  <div class="sec-head"><span class="sec-num">Use it · Abigail</span><h2>7. Save and check</h2></div>
+  <ol class="tut">
+    <li><b>Save.</b> Click <span class="ui">Save</span> on the Save bar.
+      <div class="check">The yellow goes. University of AZ Installations' $250,000 turns green (Big deal). Edge Emergency Generator moves to the Negotiation/Review group with a purple bar at its left edge, and the group sums change to match. The new date is no longer red.</div></li>
+    <li><b>Check a record.</b> Click a deal's name: the opportunity opens, with the values you saved. Press your browser's Back button to return to the grid. (<kbd>Cmd</kbd>-click or <kbd>Ctrl</kbd>-click opens it in a new browser tab instead.)</li>
+  </ol>
+</section>
+
+<section id="learned">
+  <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
+  <div class="tiles rv-stagger">
+    <div class="tile"><div class="ic">{{ic:layers}}</div><h4>Group Level and Subtotal</h4><p>Open a grid grouped, with figures on every group and a Total row.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:palette}}</div><h4>Format rules</h4><p>Cell colors, red text and a Row bar, each explained in the Display Key.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:copy}}</div><h4>Spreadsheet editing</h4><p>Typing, picklists, the calendar, fill down, undo and redo, all saved together.</p></div>
+  </div>
+  <div class="next">
+    <a href="tutorials.html"><small>Back</small><b>← All tutorials</b></a>
+    <a class="fwd" href="tutorial-service.html"><small>Next tutorial</small><b>The morning triage →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

@@ -1,0 +1,178 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        aria-describedby="description"
+        class="slds-modal slds-fade-in-open rh-mass-update"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <lightning-button-icon
+                class="slds-button slds-button_icon slds-modal__close"
+                icon-name="utility:close"
+                variant="bare"
+                size="large"
+                alternative-text="Cancel and close"
+                title="Cancel and close"
+                onclick={handleCancel}
+            ></lightning-button-icon>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate">{heading}</h1>
+            </div>
+            <div class={bodyClass}>
+                <p id="description" class="slds-m-bottom_small">
+                    <template lwc:if={rowNames}>
+                        <span class="slds-show slds-text-title_bold slds-m-bottom_xx-small rh-mass-rows">{rowNames}</span>
+                    </template>
+                    The new value becomes an unsaved change on every selected row. Nothing is written until you save, and
+                    Undo takes it back.
+                </p>
+                <lightning-combobox
+                    data-first
+                    class="slds-m-bottom_small rh-mass-field"
+                    name="field"
+                    label="Field"
+                    placeholder="Choose a field"
+                    options={fieldOptions}
+                    value={field}
+                    onchange={handleFieldChange}
+                ></lightning-combobox>
+
+                <template lwc:if={isTextBox}>
+                    <lightning-input
+                        data-value
+                        data-enter-applies
+                        class="rh-mass-value"
+                        type={inputType}
+                        label={valueLabel}
+                        value={text}
+                        onchange={handleTextChange}
+                    ></lightning-input>
+                </template>
+                <template lwc:elseif={isDate}>
+                    <lightning-input
+                        data-value
+                        data-enter-applies
+                        class="rh-mass-value"
+                        type="date"
+                        date-style="short"
+                        label={valueLabel}
+                        value={text}
+                        onchange={handleTextChange}
+                    ></lightning-input>
+                </template>
+                <template lwc:elseif={isDateTime}>
+                    <lightning-input
+                        data-value
+                        data-enter-applies
+                        class="rh-mass-value"
+                        type="datetime"
+                        timezone={timeZone}
+                        label={valueLabel}
+                        value={text}
+                        onchange={handleTextChange}
+                    ></lightning-input>
+                </template>
+                <template lwc:elseif={isTime}>
+                    <lightning-input
+                        data-value
+                        data-enter-applies
+                        class="rh-mass-value"
+                        type="time"
+                        label={valueLabel}
+                        value={text}
+                        onchange={handleTextChange}
+                    ></lightning-input>
+                </template>
+                <template lwc:elseif={isTextarea}>
+                    <lightning-textarea
+                        data-value
+                        class="rh-mass-value"
+                        label={valueLabel}
+                        value={text}
+                        max-length={maxLength}
+                        onchange={handleTextChange}
+                    ></lightning-textarea>
+                </template>
+                <template lwc:elseif={isCheckbox}>
+                    <lightning-combobox
+                        data-value
+                        class="rh-mass-value"
+                        name="checkbox"
+                        label={valueLabel}
+                        placeholder="Choose"
+                        options={checkboxOptions}
+                        value={choice}
+                        onchange={handleChoiceChange}
+                    ></lightning-combobox>
+                </template>
+                <template lwc:elseif={isPicklist}>
+                    <lightning-combobox
+                        data-value
+                        class="rh-mass-value"
+                        name="picklist"
+                        label={valueLabel}
+                        placeholder="Choose a value"
+                        options={picklistOptions}
+                        value={choice}
+                        onchange={handleChoiceChange}
+                    ></lightning-combobox>
+                </template>
+                <template lwc:elseif={isMulti}>
+                    <lightning-dual-listbox
+                        data-value
+                        class="rh-mass-value"
+                        label={valueLabel}
+                        source-label="Available"
+                        selected-label="Chosen"
+                        options={multiOptions}
+                        value={chosen}
+                        size="5"
+                        onchange={handleMultiChange}
+                    ></lightning-dual-listbox>
+                </template>
+                <template lwc:elseif={isLookup}>
+                    <div class="slds-form-element">
+                        <span class="slds-form-element__label" aria-hidden="true">{valueLabel}</span>
+                        <template for:each={lookupKeys} for:item="k">
+                            <c-cell-lookup
+                                key={k.key}
+                                data-value
+                                class="rh-mass-value"
+                                mode="edit"
+                                value={lookup.value}
+                                value-label={lookup.label}
+                                icons={lookupIcons}
+                                label={valueLabel}
+                                config-name={configName}
+                                field={field}
+                                tab-leaves={tabLeaves}
+                                oncommit={handleLookupCommit}
+                                oncancel={handleLookupCancel}
+                            ></c-cell-lookup>
+                        </template>
+                    </div>
+                </template>
+
+                <template lwc:if={currentValues}>
+                    <p class="slds-text-body_small slds-m-top_x-small rh-mass-current">{currentValues}</p>
+                </template>
+                <template lwc:if={error}>
+                    <p class="slds-text-color_error slds-m-top_x-small rh-mass-error" role="alert">{error}</p>
+                </template>
+                <template lwc:if={hint}>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small rh-mass-hint">{hint}</p>
+                </template>
+            </div>
+            <div class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral rh-mass-cancel" onclick={handleCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand rh-mass-apply" disabled={applyDisabled} onclick={handleApply}>Apply</button>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

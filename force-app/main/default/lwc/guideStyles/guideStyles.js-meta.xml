@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <description>The Grid Guide's stylesheet, imported by every guide page: the documentation in Salesforce's look, from global styling hooks.</description>
+    <isExposed>false</isExposed>
+</LightningComponentBundle>

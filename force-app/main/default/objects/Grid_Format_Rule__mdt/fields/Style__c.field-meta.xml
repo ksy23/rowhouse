@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Style__c</fullName>
+    <label>Style</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>How a matching cell or row looks. Colors come from the Salesforce Lightning Design System palette. On a row, the fill shows as a bar at the row's left edge, and an icon goes before the row's first value. A data bar shows how large a number is beside the column's other values; it applies to a number cell only.</description>
+    <inlineHelpText>The highlight, icon or data bar to apply when the condition is met.</inlineHelpText>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>fill_green</fullName>
+                <default>false</default>
+                <label>Green fill</label>
+            </value>
+            <value>
+                <fullName>fill_amber</fullName>
+                <default>false</default>
+                <label>Amber fill</label>
+            </value>
+            <value>
+                <fullName>fill_red</fullName>
+                <default>false</default>
+                <label>Red fill</label>
+            </value>
+            <value>
+                <fullName>fill_purple</fullName>
+                <default>false</default>
+                <label>Purple fill</label>
+            </value>
+            <value>
+                <fullName>fill_grey</fullName>
+                <default>false</default>
+                <label>Grey fill</label>
+            </value>
+            <value>
+                <fullName>text_red</fullName>
+                <default>false</default>
+                <label>Red text</label>
+            </value>
+            <value>
+                <fullName>text_green</fullName>
+                <default>false</default>
+                <label>Green text</label>
+            </value>
+            <value>
+                <fullName>text_grey</fullName>
+                <default>false</default>
+                <label>Grey text</label>
+            </value>
+            <value>
+                <fullName>bold</fullName>
+                <default>false</default>
+                <label>Bold</label>
+            </value>
+            <value>
+                <fullName>icon_warning</fullName>
+                <default>false</default>
+                <label>Warning icon</label>
+            </value>
+            <value>
+                <fullName>icon_error</fullName>
+                <default>false</default>
+                <label>Error icon</label>
+            </value>
+            <value>
+                <fullName>icon_success</fullName>
+                <default>false</default>
+                <label>Success icon</label>
+            </value>
+            <value>
+                <fullName>icon_info</fullName>
+                <default>false</default>
+                <label>Info icon</label>
+            </value>
+            <value>
+                <fullName>icon_up</fullName>
+                <default>false</default>
+                <label>Up arrow</label>
+            </value>
+            <value>
+                <fullName>icon_down</fullName>
+                <default>false</default>
+                <label>Down arrow</label>
+            </value>
+            <value>
+                <fullName>data_bar</fullName>
+                <default>false</default>
+                <label>Data bar</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

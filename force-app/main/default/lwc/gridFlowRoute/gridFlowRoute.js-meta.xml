@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <isExposed>false</isExposed>
+    <description>Rowhouse: how a grid hands a screen-flow action to the page that runs it, and how that page hands back.</description>
+</LightningComponentBundle>

@@ -1,0 +1,11 @@
+<template>
+    <section class="rh-children" aria-label={panelLabel}>
+        <lightning-tabset active-tab-value={activeTab}>
+            <template for:each={tabItems} for:item="tab">
+                <lightning-tab key={tab.key} label={tab.tabLabel} value={tab.key} onactive={handleActive}>
+                    <c-grid-view data-tab={tab.key} config-name={tab.configName} parent={tab.parent} oncountchange={handleCountChange}></c-grid-view>
+                </lightning-tab>
+            </template>
+        </lightning-tabset>
+    </section>
+</template>

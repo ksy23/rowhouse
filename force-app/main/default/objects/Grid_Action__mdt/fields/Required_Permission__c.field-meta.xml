@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Required_Permission__c</fullName>
+    <label>Required Permission</label>
+    <type>Text</type>
+    <length>80</length>
+    <required>false</required>
+    <description>The API name of a custom permission. If set, only users with that permission see and can run the action. If blank, everyone who can use the grid and read the records can. Rowhouse does not check access to the flow, class or quick action itself, so use this to restrict actions that should not be available to everyone.</description>
+    <inlineHelpText>Optional. API name of a custom permission. Only users with it see and can run this action.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

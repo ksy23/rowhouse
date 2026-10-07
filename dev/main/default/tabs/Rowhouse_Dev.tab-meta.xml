@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>DEVELOPMENT ONLY. Rowhouse grid on the test records.</description>
+    <label>Rowhouse (dev)</label>
+    <lwcComponent>rowhouseDevHost</lwcComponent>
+    <motif>Custom63: Train</motif>
+</CustomTab>

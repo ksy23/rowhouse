@@ -1,0 +1,424 @@
+<template>
+    <article class={articleClass} data-view-root>
+        <div class={headerClass}>
+            <template lwc:if={showBusyBar}>
+                <!-- While rows load, a thin bar sweeps along the top of the grid, so a
+                     click shows at once that something is happening. The count line and the
+                     live region say so in words; the bar is for the eye only. -->
+                <div class="rh-busy" aria-hidden="true"><span class="rh-busy-bar"></span></div>
+            </template>
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <!-- The object's icon and the title, as a list view's header. A child table's tab names it. -->
+                <template lwc:if={showMeta}>
+                    <div class="slds-media__figure">
+                        <template lwc:if={titlePending}>
+                            <span class="rh-skeleton rh-skeleton_icon" aria-hidden="true"></span>
+                        </template>
+                        <template lwc:else>
+                            <lightning-icon icon-name={objectIcon} size="small" class="rh-object-icon"></lightning-icon>
+                        </template>
+                    </div>
+                </template>
+                <div class="slds-media__body">
+                    <h2 class={titleClass}>
+                        <template lwc:if={titlePending}>
+                            <!-- The grid's name is not known until it opens: a grey bar where it will be. -->
+                            <span class="rh-skeleton rh-skeleton_title" aria-hidden="true"></span>
+                            <span class="slds-assistive-text">Loading the grid</span>
+                        </template>
+                        <template lwc:else>
+                            <span class="slds-truncate" title={title}>{title}</span>
+                        </template>
+                    </h2>
+                    <template lwc:if={showMeta}>
+                        <p class="slds-text-body_small slds-text-color_weak rh-meta">
+                            <span class="rh-count">{countLabel}</span>
+                            <template lwc:if={isFiltered}>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-filtered">Filtered</span>
+                            </template>
+                            <template lwc:if={isTruncated}>
+                                <lightning-helptext class="slds-m-left_xx-small rh-truncated" content={truncatedMessage}></lightning-helptext>
+                            </template>
+                            <template lwc:if={sortedByText}>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-sorted">{sortedByText}</span>
+                            </template>
+                            <template lwc:if={loadedAt}>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-updated">Updated <lightning-relative-date-time value={loadedAt}></lightning-relative-date-time></span>
+                            </template>
+                        </p>
+                    </template>
+                </div>
+            </header>
+            <div class="slds-no-flex slds-grid slds-grid_vertical-align-center rh-toolbar">
+                <lightning-input
+                    class="rh-search"
+                    type="search"
+                    label="Search this list"
+                    variant="label-hidden"
+                    placeholder="Search this list…"
+                    value={searchValue}
+                    disabled={searchDisabled}
+                    onchange={handleSearchChange}
+                ></lightning-input>
+                <template lwc:if={wideToolbar}>
+                    <template lwc:if={hasLegend}>
+                        <!-- A native button: aria-expanded and aria-controls stay in this shadow root. -->
+                        <button
+                            class="slds-button slds-button_neutral slds-m-left_x-small rh-legend-toggle"
+                            aria-expanded={legendExpanded}
+                            aria-controls="legend"
+                            onclick={handleLegendToggle}
+                        >
+                            <!-- While the key opens or closes, SLDS's inline spinner stands in for the
+                                 icon: the same 16px, so the button keeps its width. Spans, as a button
+                                 may hold only phrasing content. -->
+                            <template lwc:if={legendBusy}>
+                                <span role="status" class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-legend-spinner">
+                                    <span class="slds-assistive-text">{legendBusy}</span>
+                                    <span class="slds-spinner__dot-a"></span>
+                                    <span class="slds-spinner__dot-b"></span>
+                                </span>
+                            </template>
+                            <template lwc:else>
+                                <lightning-icon icon-name="utility:color_swatch" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                            </template>Display Key
+                        </button>
+                    </template>
+                    <lightning-button-icon
+                        class="slds-m-left_x-small rh-refresh"
+                        icon-name="utility:refresh"
+                        alternative-text={refreshLabel}
+                        title={refreshLabel}
+                        disabled={refreshDisabled}
+                        onclick={handleRefresh}
+                    ></lightning-button-icon>
+                    <template lwc:if={canChooseColumns}>
+                        <!-- This user's own columns: show, hide and reorder. -->
+                        <lightning-button-icon
+                            class="slds-m-left_x-small rh-choose-columns"
+                            icon-name="utility:columns"
+                            alternative-text="Choose columns"
+                            title="Choose columns: show, hide and reorder this grid's columns, for you"
+                            onclick={handleColumnsOpen}
+                        ></lightning-button-icon>
+                    </template>
+                    <template lwc:if={canResetLayout}>
+                        <!-- This user's layout is kept: put back the admin's. -->
+                        <lightning-button-icon
+                            class="slds-m-left_x-small rh-reset-layout"
+                            icon-name="utility:undo"
+                            alternative-text="Reset layout"
+                            title="Reset layout: your columns, their widths and wrapping, your sort, grouping and open rows go back to how your admin set up this grid"
+                            onclick={handleResetLayout}
+                        ></lightning-button-icon>
+                    </template>
+                    <template lwc:if={canConfigure}>
+                        <!-- Rowhouse Grid Admin only: this grid's settings. -->
+                        <lightning-button-icon
+                            class="slds-m-left_x-small rh-settings"
+                            icon-name="utility:settings"
+                            alternative-text={settingsLabel}
+                            title={settingsLabel}
+                            disabled={settingsDisabled}
+                            onclick={handleSettingsOpen}
+                        ></lightning-button-icon>
+                    </template>
+                    <!-- The Grid Guide's User guide, in a new browser tab. -->
+                    <lightning-button-icon
+                        class="slds-m-left_x-small rh-help"
+                        icon-name="utility:help"
+                        alternative-text="Help"
+                        title="Help: how to work in this grid (opens the Grid Guide in a new tab)"
+                        onclick={handleHelp}
+                    ></lightning-button-icon>
+                    <template lwc:if={hasImportExport}>
+                        <lightning-button-group class="slds-m-left_x-small">
+                            <template lwc:if={canImport}>
+                                <lightning-button
+                                    class="rh-import"
+                                    label="Import"
+                                    icon-name="utility:upload"
+                                    title={importLabel}
+                                    disabled={importDisabled}
+                                    onclick={handleImportOpen}
+                                ></lightning-button>
+                            </template>
+                            <template lwc:if={canExport}>
+                                <lightning-button
+                                    class="rh-export"
+                                    label="Export"
+                                    icon-name="utility:download"
+                                    title="Export as CSV"
+                                    disabled={exportDisabled}
+                                    onclick={handleExport}
+                                ></lightning-button>
+                            </template>
+                        </lightning-button-group>
+                    </template>
+                </template>
+                <template lwc:else>
+                    <!-- Narrow, or a child table: the actions in one menu. -->
+                    <lightning-button-menu
+                        class="slds-m-left_x-small rh-actions-menu"
+                        alternative-text="List actions"
+                        icon-name="utility:down"
+                        menu-alignment="right"
+                        onselect={handleMenuSelect}
+                    >
+                        <template for:each={menuItems} for:item="m">
+                            <lightning-menu-item key={m.key} value={m.value} label={m.label} disabled={m.disabled}></lightning-menu-item>
+                        </template>
+                    </lightning-button-menu>
+                </template>
+            </div>
+            <!-- With a selection: what can be done to it. It floats, centred just
+                 under the header, rather than pushing the table down, so the row just
+                 clicked stays under the pointer and the header stays in view. -->
+            <template lwc:if={hasSelectionBar}>
+                <div class="slds-grid slds-wrap slds-grid_vertical-align-center slds-p-horizontal_small rh-selection-bar" role="region" aria-label="Selected rows">
+                    <span class="slds-text-title_bold slds-m-right_small rh-selection-count">{selectedText}</span>
+                    <template lwc:if={canMassUpdate}>
+                        <lightning-button
+                            class="slds-m-right_x-small rh-mass-edit"
+                            label="Update field"
+                            icon-name="utility:edit"
+                            disabled={massEditDisabled}
+                            onclick={handleMassUpdateOpen}
+                        ></lightning-button>
+                    </template>
+                    <template lwc:if={canMassDelete}>
+                        <lightning-button
+                            class="slds-m-right_x-small rh-mass-delete"
+                            label="Delete"
+                            variant="destructive-text"
+                            icon-name="utility:delete"
+                            disabled={massDisabled}
+                            onclick={handleMassDelete}
+                        ></lightning-button>
+                    </template>
+                    <!-- The grid's actions for a selection: buttons, or one menu when there are many. -->
+                    <template for:each={selectionActionButtons} for:item="a">
+                        <lightning-button
+                            key={a.key}
+                            class="slds-m-right_x-small rh-selection-action"
+                            label={a.label}
+                            disabled={massEditDisabled}
+                            data-action={a.name}
+                            onclick={handleSelectionAction}
+                        ></lightning-button>
+                    </template>
+                    <template lwc:if={selectionActionMenu}>
+                        <lightning-button-menu
+                            class="slds-m-right_x-small rh-selection-actions"
+                            label="Actions"
+                            alternative-text="Actions for the selected rows"
+                            disabled={massEditDisabled}
+                            onselect={handleSelectionAction}
+                        >
+                            <template for:each={selectionActionMenu} for:item="a">
+                                <lightning-menu-item key={a.key} value={a.name} label={a.label}></lightning-menu-item>
+                            </template>
+                        </lightning-button-menu>
+                    </template>
+                    <!-- More records match than are loaded: select them all, to delete. -->
+                    <template lwc:if={canSelectAllMatching}>
+                        <lightning-button
+                            class="slds-m-right_small rh-select-all-matching"
+                            label={selectAllMatchingLabel}
+                            variant="base"
+                            onclick={handleSelectAllMatching}
+                        ></lightning-button>
+                    </template>
+                    <lightning-button class="rh-clear-selection" label="Clear" title="Clear selection" variant="base" onclick={handleClearSelection}></lightning-button>
+                </div>
+            </template>
+        </div>
+
+        <template lwc:if={legendOpen}>
+            <div class="slds-p-horizontal_medium slds-p-bottom_x-small rh-legend" id="legend" role="region" aria-label="Display Key">
+                <ul class="slds-grid slds-wrap">
+                    <template for:each={legendItems} for:item="l">
+                        <li key={l.key} class="slds-grid slds-grid_vertical-align-center slds-m-right_medium slds-m-bottom_xx-small">
+                            <span class={l.swatchCls} aria-hidden="true">
+                                <template lwc:if={l.hasIcon}>
+                                    <lightning-icon icon-name={l.icon} variant={l.variant} size="xx-small"></lightning-icon>
+                                </template>
+                                <template lwc:else>Aa</template>
+                            </span>
+                            <span class="slds-m-left_x-small">{l.label}</span>
+                            <span class="slds-assistive-text">: {l.style}, {l.where}</span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </template>
+
+        <div class="slds-card__body rh-body">
+            <template lwc:if={loadError}>
+                <div class="slds-notify slds-notify_alert slds-alert_error rh-load-error" role="alert">
+                    <span class="slds-assistive-text">Error</span>
+                    <h2>{loadError}</h2>
+                </div>
+            </template>
+            <template lwc:if={notice}>
+                <div class={noticeClass} role="alert">
+                    <h2 class="rh-notice">{notice.message}</h2>
+                </div>
+            </template>
+            <!-- After a delete: what went, and Undo. -->
+            <template lwc:if={undoDelete}>
+                <div class="slds-scoped-notification slds-scoped-notification_light slds-media slds-media_center slds-m-bottom_x-small rh-undo-delete" role="status">
+                    <div class="slds-media__figure">
+                        <lightning-icon icon-name="utility:success" variant="success" size="x-small" alternative-text="Done"></lightning-icon>
+                    </div>
+                    <div class="slds-media__body">
+                        <span class="rh-undo-delete-text">{undoDeleteText}</span>
+                        <lightning-button class="slds-m-left_small rh-undo-delete-button" label="Undo" disabled={undoDeleteDisabled} onclick={handleUndoDelete}></lightning-button>
+                    </div>
+                    <div class="slds-media__figure slds-media__figure_reverse">
+                        <lightning-button-icon class="rh-undo-delete-close" icon-name="utility:close" variant="bare" alternative-text="Close" title="Close" onclick={handleUndoDeleteClose}></lightning-button-icon>
+                    </div>
+                </div>
+            </template>
+            <template lwc:if={configWarnings}>
+                <div class="slds-scoped-notification slds-scoped-notification_light slds-m-bottom_x-small rh-config-warnings" role="status">
+                    <p>
+                        <span class="rh-warnings-summary">{warningsSummary}</span>
+                        <button class="slds-button slds-m-left_x-small rh-warnings-toggle" aria-expanded={warningsExpanded} onclick={handleWarningsToggle}>{warningsToggleLabel}</button>
+                    </p>
+                    <template lwc:if={warningsOpen}>
+                        <ul class="slds-list_dotted slds-m-top_xx-small">
+                            <template for:each={configWarnings} for:item="w">
+                                <li key={w.key}>{w.message}</li>
+                            </template>
+                        </ul>
+                    </template>
+                </div>
+            </template>
+            <template lwc:if={saveProgress}>
+                <p class="slds-text-body_small slds-p-horizontal_medium rh-progress">{saveProgress}</p>
+            </template>
+
+            <template lwc:if={showPlaceholder}>
+                <!-- Where the rows will be, while they load: a header row and rows,
+                     with a light sweeping across them. -->
+                <div class="rh-placeholder" role="status" aria-label="Loading">
+                    <div class="rh-placeholder-row rh-placeholder-head">
+                        <span class="rh-placeholder-bar rh-placeholder-bar_c"></span>
+                        <span class="rh-placeholder-bar rh-placeholder-bar_b"></span>
+                        <span class="rh-placeholder-bar rh-placeholder-bar_b"></span>
+                        <span class="rh-placeholder-bar rh-placeholder-bar_c"></span>
+                    </div>
+                    <template for:each={placeholderRows} for:item="p">
+                        <div key={p.key} class={p.cls}>
+                            <span class="rh-placeholder-bar rh-placeholder-bar_a"></span>
+                            <span class="rh-placeholder-bar rh-placeholder-bar_b"></span>
+                            <span class="rh-placeholder-bar rh-placeholder-bar_c"></span>
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <template lwc:elseif={showTable}>
+                <c-grid-table
+                    config={tableConfig}
+                    oncellchange={handleCellChange}
+                    oncellschange={handleCellsChange}
+                    onundo={handleUndo}
+                    onredo={handleRedo}
+                    onsortchange={handleSortChange}
+                    ongroupchange={handleGroupChange}
+                    onfilterchange={handleFilterChange}
+                    onlayoutchange={handleLayoutChange}
+                    oncolumnschange={handleColumnsChange}
+                    onselectionchange={handleSelectionChange}
+                    onloadmore={handleLoadMore}
+                    onsave={handleSave}
+                    oncancel={handleCancel}
+                    onemptyaction={handleEmptyAction}
+                    onchildcount={handleChildCount}
+                    onrowaction={handleRowAction}
+                    onnewrecord={handleNewRecord}
+                ></c-grid-table>
+            </template>
+        </div>
+
+        <template lwc:if={massUpdateOpen}>
+            <c-grid-mass-update
+                columns={massColumns}
+                count={selectedCount}
+                rows={selectedRows}
+                ref-names={refNames}
+                config-name={configName}
+                onapply={handleMassUpdateApply}
+                oncancel={handleMassUpdateCancel}
+            ></c-grid-mass-update>
+        </template>
+
+        <template lwc:if={deleteOpen}>
+            <c-grid-delete-dialog
+                names={deleteNames}
+                count={deleteCount}
+                matching={deleteMatching}
+                has-drafts={deleteHasDrafts}
+                onconfirm={handleDeleteConfirm}
+                oncancel={handleDeleteCancel}
+            ></c-grid-delete-dialog>
+        </template>
+
+        <template lwc:if={newRecord}>
+            <c-grid-new-record
+                object-api-name={newRecord.object}
+                object-label={newRecord.objectLabel}
+                field-label={newRecordFieldLabel}
+                oncreated={handleNewRecordCreated}
+                oncancel={handleNewRecordCancel}
+            ></c-grid-new-record>
+        </template>
+
+        <template lwc:if={actionDialog}>
+            <c-grid-action-dialog
+                label={actionDialog.label}
+                question={actionDialog.question}
+                names={actionDialog.names}
+                count={actionDialog.count}
+                has-drafts={actionDialog.hasDrafts}
+                onconfirm={handleActionConfirm}
+                oncancel={handleActionCancel}
+            ></c-grid-action-dialog>
+        </template>
+
+        <template lwc:if={columnsOpen}>
+            <c-grid-columns-dialog
+                columns={massColumns}
+                choice={columnChoice}
+                onsave={handleColumnsSave}
+                oncancel={handleColumnsCancel}
+            ></c-grid-columns-dialog>
+        </template>
+
+        <template lwc:if={importOpen}>
+            <c-grid-import-dialog
+                columns={massColumns}
+                rows={rows}
+                ref-names={refNames}
+                can-create={canCreate}
+                config-name={configName}
+                parent={parent}
+                record-id={importRecordId}
+                onclose={handleImportClose}
+            ></c-grid-import-dialog>
+        </template>
+
+        <template lwc:if={settingsOpen}>
+            <c-grid-settings
+                config-name={configName}
+                grid-title={title}
+                onsaved={handleSettingsSaved}
+                onclose={handleSettingsClose}
+            ></c-grid-settings>
+        </template>
+
+        <div class="slds-assistive-text rh-live" role="status" aria-live="polite">{announcement}</div>
+        <div class="rh-download" lwc:dom="manual"></div>
+    </article>
+</template>

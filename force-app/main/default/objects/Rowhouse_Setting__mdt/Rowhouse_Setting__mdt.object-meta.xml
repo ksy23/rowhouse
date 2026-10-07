@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Rowhouse Setting</label>
+    <pluralLabel>Rowhouse Settings</pluralLabel>
+    <description>Settings for Rowhouse as a whole, as against one grid. Rowhouse reads the record named Default; the Grid Admin tab creates and changes it.</description>
+    <visibility>Public</visibility>
+</CustomObject>

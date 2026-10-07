@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <!-- The Grid Guide tab. Exposed only so it can be a Lightning
+         tab; it has no @api members, so nothing here is permanent (HR-2). -->
+    <isExposed>true</isExposed>
+    <masterLabel>Grid Guide</masterLabel>
+    <description>Rowhouse's documentation inside Salesforce: how to set up grids, and how to work in them.</description>
+    <targets>
+        <target>lightning__Tab</target>
+    </targets>
+</LightningComponentBundle>

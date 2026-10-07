@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Multi_Picklist__c</fullName>
+    <description>DEVELOPMENT ONLY. A field of the Rowhouse test records, used by the Apex tests and the test grids.</description>
+    <label>Multi Picklist</label>
+    <type>MultiselectPicklist</type>
+    <visibleLines>4</visibleLines>
+    <required>false</required>
+    <valueSet>
+        <restricted>false</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Red</fullName>
+                <default>false</default>
+                <label>Red</label>
+            </value>
+            <value>
+                <fullName>Green</fullName>
+                <default>false</default>
+                <label>Green</label>
+            </value>
+            <value>
+                <fullName>Blue</fullName>
+                <default>false</default>
+                <label>Blue</label>
+            </value>
+            <value>
+                <fullName>Amber</fullName>
+                <default>false</default>
+                <label>Amber</label>
+            </value>
+            <value>
+                <fullName>Slate</fullName>
+                <default>false</default>
+                <label>Slate</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

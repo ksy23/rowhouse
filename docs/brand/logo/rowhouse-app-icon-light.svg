@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rowhouse — app icon, light — the mark in its own colors on a pale tile
+     The alternate to rowhouse-app-icon.svg, for light home screens and for
+     anywhere the pine tile would go heavy. Same tile, same radius, same inset
+     as the primary — only the colors differ, so the two are interchangeable.
+     This is the only icon that carries the clay: the live row at full strength.
+     Geometry is fixed; do not redraw. 32-unit grid; roof x2-30 apex y3.5
+     eaves y11.5; bars x2 w28 h4 r1 at y14, y20, y26.
+     (c) Kugamon LLC. The mark is a trademark; the software is Apache-2.0. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="t d">
+  <title id="t">Rowhouse</title>
+  <desc id="d">A gabled roof above three horizontal bars, like rows in a table. The middle bar is picked out in a contrasting color, standing for the row currently being edited.</desc>
+  <rect width="64" height="64" rx="14" fill="#E1EFE8"/>
+  <g transform="translate(10.5 10.5) scale(1.344)">
+    <path fill="#0F5C45" d="M2 11.5 L16 3.5 L30 11.5 Z"/>
+    <rect x="2" y="14" width="28" height="4" rx="1" fill="#0F5C45"/>
+    <rect x="2" y="20" width="28" height="4" rx="1" fill="#B3431F"/>
+    <rect x="2" y="26" width="28" height="4" rx="1" fill="#0F5C45"/>
+  </g>
+</svg>

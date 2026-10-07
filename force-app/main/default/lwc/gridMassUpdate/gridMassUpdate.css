@@ -1,0 +1,9 @@
+/*
+ * Room inside the dialog for a lookup's list of matches and a dual listbox, so
+ * neither opens into a scrolled box; only for those two, since a tall
+ * empty dialog round a text box looked unfinished. Rowhouse classes
+ * only (HR-15).
+ */
+.rh-mass-body_tall {
+    min-height: var(--slds-g-sizing-15, 20rem);
+}

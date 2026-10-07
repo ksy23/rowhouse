@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Grid_Configuration__c</fullName>
+    <label>Grid Configuration</label>
+    <type>MetadataRelationship</type>
+    <referenceTo>Grid_Configuration__mdt</referenceTo>
+    <relationshipLabel>Grid Actions</relationshipLabel>
+    <relationshipName>Grid_Actions</relationshipName>
+    <required>false</required>
+    <description>The grid that offers this action.</description>
+    <inlineHelpText>The grid that offers this action.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

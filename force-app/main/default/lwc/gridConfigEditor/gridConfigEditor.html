@@ -1,0 +1,765 @@
+<template>
+    <div class={rootClass}>
+        <template lwc:if={loading}>
+            <div class="rh-editor-loading" role="status">
+                <lightning-spinner alternative-text="Loading the grid's settings" size="medium" variant="brand"></lightning-spinner>
+            </div>
+        </template>
+        <template lwc:elseif={loadError}>
+            <div class="slds-notify slds-notify_alert slds-alert_error rh-editor-load-error" role="alert">
+                <span class="slds-assistive-text">Error</span>
+                <h2>{loadError}</h2>
+            </div>
+        </template>
+        <template lwc:elseif={draft}>
+            <!-- ======================================================= the page layout's heading -->
+            <template lwc:if={isPage}>
+                <div class="rh-ed-head">
+                    <nav class="rh-crumbs rh-ed-crumbs" aria-label="Breadcrumbs">
+                        <a class="rh-ed-crumb" href="#" onclick={handleCrumb}>Grid Admin</a>
+                        <span aria-hidden="true"> / </span>
+                        <a class="rh-ed-crumb" href="#" onclick={handleCrumb}>Grids</a>
+                        <span aria-hidden="true"> / </span>
+                        <span aria-current="page">{heading}</span>
+                    </nav>
+                    <div class="rh-ed-title-row">
+                        <h2 class="rh-display rh-ed-title">{heading}</h2>
+                        <div class="rh-ed-actions">
+                            <p class="slds-text-body_small slds-text-color_weak rh-editor-status" role="status" aria-live="polite">
+                                <template lwc:if={busy}>
+                                    <span class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-editor-busy">
+                                        <span class="slds-assistive-text">Working</span>
+                                        <span class="slds-spinner__dot-a"></span>
+                                        <span class="slds-spinner__dot-b"></span>
+                                    </span>
+                                </template>
+                                {status}
+                            </p>
+                            <template lwc:if={showHelpButton}>
+                                <lightning-button class="rh-ed-show-help" variant="base" label="Show help" icon-name="utility:help" onclick={handleShowHelp}></lightning-button>
+                            </template>
+                            <template lwc:if={confirmingClose}>
+                                <span class="rh-editor-discard-question">Discard your changes?</span>
+                                <lightning-button class="rh-editor-keep" label="Keep editing" onclick={handleKeepEditing}></lightning-button>
+                                <lightning-button class="rh-editor-discard" label="Discard" variant="destructive" onclick={handleDiscard}></lightning-button>
+                            </template>
+                            <template lwc:else>
+                                <lightning-button class="rh-editor-cancel" label={cancelLabel} disabled={saving} onclick={handleCancel}></lightning-button>
+                                <lightning-button class="rh-editor-save" label="Save" variant="brand" title={saveTitle} disabled={saveDisabled} onclick={handleSave}></lightning-button>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="rh-ed-meta">
+                        <template lwc:if={objectChip}>
+                            <span class="rh-chip rh-ed-object">{objectChip}</span>
+                        </template>
+                        <template lwc:if={nameChip}>
+                            <span class="rh-chip rh-chip_code rh-ed-name">{nameChip}</span>
+                        </template>
+                        <span class="rh-ed-place">{placeText}</span>
+                    </div>
+                    <template lwc:if={hasErrors}>
+                        <div class="slds-text-color_error slds-m-top_small rh-editor-errors" role="alert">
+                            <p class="slds-text-title_bold">Fix these before saving:</p>
+                            <ul class="slds-list_dotted">
+                                <template for:each={errors} for:item="e">
+                                    <li key={e.key}>{e.message}</li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                    <template lwc:if={hasWarnings}>
+                        <div class="slds-scoped-notification slds-scoped-notification_light slds-m-top_small rh-editor-warnings" role="status">
+                            <p class="slds-text-title_bold">The grid would leave these out:</p>
+                            <ul class="slds-list_dotted">
+                                <template for:each={warnings} for:item="w">
+                                    <li key={w.key}>{w.message}</li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <div class={bodyClass}>
+                <div class="rh-ed-main">
+                    <template lwc:if={readOnlyNotice}>
+                        <div class="slds-scoped-notification slds-scoped-notification_light slds-m-bottom_small rh-editor-read-only" role="status">
+                            <p>You can look at these settings. Saving them needs the Customize Application permission, which Salesforce admins have.</p>
+                        </div>
+                    </template>
+
+                    <lightning-tabset active-tab-value={activeTab} class="rh-editor-tabs">
+                        <!-- ======================================================= the grid -->
+                        <lightning-tab label="Grid" value="grid" onactive={handleTab}>
+                            <!-- This part of the Configuration reference, in a new browser tab. -->
+                            <lightning-button-icon
+                                class="rh-editor-help"
+                                variant="bare"
+                                icon-name="utility:help"
+                                alternative-text="Help for Grid"
+                                title="Help for Grid: the Grid Configuration record in the Grid Guide (opens in a new tab)"
+                                data-section="config"
+                                onclick={handleHelp}
+                            ></lightning-button-icon>
+                            <div class="slds-grid slds-wrap slds-gutters_small rh-editor-grid-tab">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                    <lightning-input
+                                        class="rh-config-label"
+                                        label="Grid Title"
+                                        required
+                                        max-length={maxName}
+                                        value={config.label}
+                                        disabled={saving}
+                                        field-level-help="The grid's heading, and its name in the list of grids."
+                                        data-list="config"
+                                        data-prop="label"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                    <lightning-input
+                                        class="rh-config-name"
+                                        label="API name"
+                                        required
+                                        max-length={maxName}
+                                        pattern="[A-Za-z][A-Za-z0-9_]*"
+                                        message-when-pattern-mismatch="Start with a letter; use letters, numbers and underscores."
+                                        value={config.name}
+                                        disabled={nameLocked}
+                                        field-level-help={nameHelp}
+                                        data-list="config"
+                                        data-prop="name"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                    <template lwc:if={isNew}>
+                                        <lightning-combobox
+                                            class="rh-config-object"
+                                            label="Object"
+                                            required
+                                            placeholder="Choose the object the grid shows"
+                                            options={objectOptions}
+                                            value={config.objectApiName}
+                                            disabled={saving}
+                                            field-level-help="The records the grid lists. It cannot change once the grid is saved."
+                                            data-list="config"
+                                            data-prop="objectApiName"
+                                            onchange={handleChange}
+                                        ></lightning-combobox>
+                                    </template>
+                                    <template lwc:else>
+                                        <lightning-input class="rh-config-object-text" label="Object" value={objectText} readonly></lightning-input>
+                                    </template>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                    <lightning-input
+                                        class="rh-config-page-size"
+                                        type="number"
+                                        label="Rows per page"
+                                        min="1"
+                                        max="2000"
+                                        value={config.pageSize}
+                                        placeholder="200"
+                                        field-level-help="How many rows the first request reads. The grid reads on as you scroll."
+                                        data-list="config"
+                                        data-prop="pageSize"
+                                        data-kind="number"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                </div>
+                                <template lwc:if={hasObject}>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                        <lightning-combobox
+                                            class="rh-config-sort-field"
+                                            label="Sort by"
+                                            options={sortFieldOptions}
+                                            value={config.sortField}
+                                            data-list="config"
+                                            data-prop="sortField"
+                                            onchange={handleChange}
+                                        ></lightning-combobox>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                        <lightning-combobox
+                                            class="rh-config-sort-direction"
+                                            label="Sort direction"
+                                            options={sortDirectionOptions}
+                                            value={config.sortDirection}
+                                            data-list="config"
+                                            data-prop="sortDirection"
+                                            onchange={handleChange}
+                                        ></lightning-combobox>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                        <lightning-combobox
+                                            class="rh-config-record-page"
+                                            label="On a record page, show the records whose"
+                                            options={recordPageOptions}
+                                            value={recordPageValue}
+                                            field-level-help="Placed on a record page, the grid shows only the records whose field points to that page's record, and an import fills it in. Elsewhere it shows every record."
+                                            data-list="config"
+                                            data-prop="recordPageField"
+                                            onchange={handleChange}
+                                        ></lightning-combobox>
+                                    </div>
+                                </template>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                    <lightning-input
+                                        class="rh-config-frozen"
+                                        type="number"
+                                        label="Frozen columns"
+                                        min="0"
+                                        max="5"
+                                        value={config.frozenColumns}
+                                        placeholder="0"
+                                        field-level-help="Columns, from the left, that stay in place when the grid scrolls sideways."
+                                        data-list="config"
+                                        data-prop="frozenColumns"
+                                        data-kind="number"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                                    <lightning-input
+                                        class="rh-config-height"
+                                        type="number"
+                                        label="Height in pixels"
+                                        min="0"
+                                        value={config.height}
+                                        placeholder="Fills the window"
+                                        field-level-help="Leave blank and the grid fills the window."
+                                        data-list="config"
+                                        data-prop="height"
+                                        data-kind="number"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                </div>
+                                <fieldset class="slds-col slds-size_1-of-1 slds-form-element slds-m-bottom_small">
+                                    <legend class="slds-form-element__legend slds-form-element__label">What users can do</legend>
+                                    <lightning-input class="rh-config-edit" type="checkbox" label="Edit cells in the grid" checked={config.allowInlineEdit} data-list="config" data-prop="allowInlineEdit" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                    <lightning-input class="rh-config-export" type="checkbox" label="Export as CSV" checked={config.allowCsvExport} data-list="config" data-prop="allowCsvExport" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                    <lightning-input class="rh-config-import" type="checkbox" label="Import from a CSV or Excel file" checked={config.allowImport} data-list="config" data-prop="allowImport" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                    <lightning-input class="rh-config-delete" type="checkbox" label="Delete selected rows" checked={config.allowMassDelete} data-list="config" data-prop="allowMassDelete" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                    <lightning-input class="rh-config-log" type="checkbox" label="Log every change in Grid Edit Log" checked={config.logChanges} data-list="config" data-prop="logChanges" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                </fieldset>
+                            </div>
+                        </lightning-tab>
+
+                        <!-- ======================================================= columns -->
+                        <lightning-tab label={columnsTabLabel} value="columns" onactive={handleTab}>
+                            <!-- This part of the Configuration reference, in a new browser tab. -->
+                            <lightning-button-icon
+                                class="rh-editor-help"
+                                variant="bare"
+                                icon-name="utility:help"
+                                alternative-text="Help for Columns"
+                                title="Help for Columns: the Grid Column record in the Grid Guide (opens in a new tab)"
+                                data-section="column"
+                                onclick={handleHelp}
+                            ></lightning-button-icon>
+                            <template lwc:if={needsObject}>
+                                <p class="slds-text-color_weak rh-needs-object">Choose the grid's object first, on the Grid tab.</p>
+                            </template>
+                            <template lwc:else>
+                                <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">
+                                    Left to right, as the grid shows them. A blank header uses the field's label. Users can hide and move columns for themselves; tick Always shown to keep one on screen. A saved column cannot be deleted: switch it off instead.
+                                </p>
+                                <div class="rh-editor-table-wrap">
+                                    <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-editor-table rh-columns">
+                                        <thead>
+                                            <tr class="slds-line-height_reset">
+                                                <th scope="col"><span class="slds-assistive-text">Order</span></th>
+                                                <th scope="col">Field</th>
+                                                <th scope="col">Header</th>
+                                                <th scope="col">Edit</th>
+                                                <th scope="col">Sort</th>
+                                                <th scope="col">Wrap</th>
+                                                <th scope="col" title="Users cannot hide it; they can still move it">Always shown</th>
+                                                <th scope="col">Width</th>
+                                                <th scope="col">Group</th>
+                                                <th scope="col">Subtotal</th>
+                                                <th scope="col">On</th>
+                                                <th scope="col"><span class="slds-assistive-text">Remove</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={columnRows} for:item="c">
+                                                <tr key={c.key} class={c.rowClass} data-key={c.key}>
+                                                    <td class="rh-order">
+                                                        <lightning-button-icon icon-name="utility:arrowup" variant="bare" size="small" alternative-text={c.upLabel} title={c.upLabel} disabled={c.upDisabled} data-list="columns" data-key={c.key} data-delta="-1" onclick={handleMove}></lightning-button-icon>
+                                                        <lightning-button-icon icon-name="utility:arrowdown" variant="bare" size="small" alternative-text={c.downLabel} title={c.downLabel} disabled={c.downDisabled} data-list="columns" data-key={c.key} data-delta="1" onclick={handleMove}></lightning-button-icon>
+                                                    </td>
+                                                    <td class="rh-cell-wide">
+                                                        <template lwc:if={c.isFormula}>
+                                                            <!-- A formula column: its formula, what it returns, and its decimal places. -->
+                                                            <lightning-textarea class="rh-column-formula" label={c.formulaLabel} variant="label-hidden" placeholder="Such as Amount__c * 0.2" max-length="3900" value={c.formula} data-list="columns" data-key={c.key} data-prop="formula" onchange={handleChange}></lightning-textarea>
+                                                            <div class="slds-grid slds-gutters_xx-small slds-m-top_xx-small">
+                                                                <div class="slds-col">
+                                                                    <lightning-combobox class="rh-column-formula-type" label={c.formulaTypeLabel} variant="label-hidden" options={formulaTypeOptions} value={c.formulaType} data-list="columns" data-key={c.key} data-prop="formulaType" onchange={handleChange}></lightning-combobox>
+                                                                </div>
+                                                                <template lwc:if={c.showDecimals}>
+                                                                    <div class="slds-col">
+                                                                        <lightning-input class="rh-column-decimals" type="number" label={c.decimalsLabel} variant="label-hidden" min="0" max="9" placeholder="2 places" value={c.decimalPlaces} data-list="columns" data-key={c.key} data-prop="decimalPlaces" data-kind="number" onchange={handleChange}></lightning-input>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <template lwc:elseif={c.isChildTotal}>
+                                                            <!-- A child total column: which child table, what total, of which field. -->
+                                                            <lightning-combobox class="rh-column-child-table" label={c.childTableLabel} variant="label-hidden" placeholder="Choose a child table" options={c.childTableOptions} value={c.childTable} data-list="columns" data-key={c.key} data-prop="childTable" onchange={handleChange}></lightning-combobox>
+                                                            <div class="slds-grid slds-gutters_xx-small slds-m-top_xx-small">
+                                                                <div class="slds-col">
+                                                                    <lightning-combobox class="rh-column-child-total" label={c.childTotalLabel} variant="label-hidden" options={childTotalOptions} value={c.childTotal} data-list="columns" data-key={c.key} data-prop="childTotal" onchange={handleChange}></lightning-combobox>
+                                                                </div>
+                                                                <div class="slds-col">
+                                                                    <lightning-combobox class="rh-column-child-field" label={c.childFieldLabel} variant="label-hidden" placeholder={c.childFieldPlaceholder} options={c.childFieldOptions} value={c.childField} data-list="columns" data-key={c.key} data-prop="childField" onchange={handleChange}></lightning-combobox>
+                                                                </div>
+                                                            </div>
+                                                        </template>
+                                                        <template lwc:else>
+                                                            <lightning-combobox class="rh-column-field" label={c.fieldLabel} variant="label-hidden" placeholder="Choose a field" options={c.fieldOptions} value={c.field} data-list="columns" data-key={c.key} data-prop="field" onchange={handleChange}></lightning-combobox>
+                                                        </template>
+                                                    </td>
+                                                    <td class="rh-cell-wide">
+                                                        <lightning-input class="rh-column-label" label={c.headerLabel} variant="label-hidden" max-length="80" placeholder={c.headerPlaceholder} required={c.headerRequired} value={c.columnLabel} data-list="columns" data-key={c.key} data-prop="columnLabel" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td>
+                                                        <lightning-input class="rh-column-editable" type="checkbox" label={c.editableLabel} variant="label-hidden" checked={c.editable} disabled={c.editableDisabled} data-list="columns" data-key={c.key} data-prop="editable" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td>
+                                                        <lightning-input class="rh-column-sortable" type="checkbox" label={c.sortableLabel} variant="label-hidden" checked={c.sortable} disabled={c.sortableDisabled} data-list="columns" data-key={c.key} data-prop="sortable" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td>
+                                                        <lightning-input class="rh-column-wrap" type="checkbox" label={c.wrapLabel} variant="label-hidden" checked={c.wrap} data-list="columns" data-key={c.key} data-prop="wrap" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td>
+                                                        <lightning-input class="rh-column-always" type="checkbox" label={c.alwaysShownLabel} variant="label-hidden" checked={c.alwaysShown} data-list="columns" data-key={c.key} data-prop="alwaysShown" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td class="rh-cell-number">
+                                                        <lightning-input class="rh-column-width" type="number" label={c.widthLabel} variant="label-hidden" min="40" max="1000" placeholder="Auto" value={c.width} data-list="columns" data-key={c.key} data-prop="width" data-kind="number" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td class="rh-cell-mid">
+                                                        <lightning-combobox class="rh-column-group" label={c.groupLabel} variant="label-hidden" options={groupLevelOptions} value={c.groupLevel} disabled={c.groupDisabled} data-list="columns" data-key={c.key} data-prop="groupLevel" onchange={handleChange}></lightning-combobox>
+                                                        <template lwc:if={c.showUnit}>
+                                                            <lightning-combobox class="slds-m-top_xx-small rh-column-unit" label={c.unitLabel} variant="label-hidden" options={dateUnitOptions} value={c.groupUnit} data-list="columns" data-key={c.key} data-prop="groupUnit" onchange={handleChange}></lightning-combobox>
+                                                        </template>
+                                                        <!-- Users may group by it from its menu: shown for a type not offered anyway. -->
+                                                        <template lwc:if={c.showAllowGrouping}>
+                                                            <lightning-input class="slds-m-top_xx-small rh-column-allow-group" type="checkbox" label="Users can group" title={c.allowGroupingLabel} checked={c.allowGrouping} data-list="columns" data-key={c.key} data-prop="allowGrouping" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                                        </template>
+                                                    </td>
+                                                    <td class="rh-cell-mid">
+                                                        <lightning-combobox class="rh-column-subtotal" label={c.subtotalLabel} variant="label-hidden" options={c.subtotalOptions} value={c.subtotal} disabled={c.subtotalDisabled} data-list="columns" data-key={c.key} data-prop="subtotal" onchange={handleChange}></lightning-combobox>
+                                                    </td>
+                                                    <td>
+                                                        <lightning-input class="rh-column-on" type="toggle" label={c.onLabel} variant="label-hidden" message-toggle-active="" message-toggle-inactive="" checked={c.on} data-list="columns" data-key={c.key} data-prop="inactive" data-kind="on" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td>
+                                                        <template lwc:if={c.removable}>
+                                                            <lightning-button-icon class="rh-column-remove" icon-name="utility:delete" variant="bare" alternative-text={c.removeLabel} title={c.removeLabel} data-list="columns" data-key={c.key} onclick={handleRemove}></lightning-button-icon>
+                                                        </template>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- A block of its own: a lightning-button is inline, so a top margin on it moves nothing and the button met the table's edge. -->
+                                <div class="slds-m-top_small rh-add-row">
+                                    <lightning-button class="rh-add-column" label="Add column" icon-name="utility:add" data-list="columns" onclick={handleAdd}></lightning-button>
+                                    <lightning-button class="slds-m-left_x-small rh-add-formula-column" label="Add formula column" icon-name="utility:formula" data-list="columns" data-formula onclick={handleAdd}></lightning-button>
+                                    <!-- A total of a child table's records under each row: once the grid has a saved child table. -->
+                                    <template lwc:if={canAddChildTotal}>
+                                        <lightning-button class="slds-m-left_x-small rh-add-child-total" label="Add child total column" icon-name="utility:summary" data-list="columns" data-child-total onclick={handleAdd}></lightning-button>
+                                    </template>
+                                </div>
+                                <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small rh-formula-hint">{formulaHint}</p>
+                            </template>
+                        </lightning-tab>
+
+                        <!-- ===================================================== display rules -->
+                        <lightning-tab label={rulesTabLabel} value="rules" onactive={handleTab}>
+                            <!-- This part of the Configuration reference, in a new browser tab. -->
+                            <lightning-button-icon
+                                class="rh-editor-help"
+                                variant="bare"
+                                icon-name="utility:help"
+                                alternative-text="Help for Display rules"
+                                title="Help for Display rules: the Grid Format Rule record in the Grid Guide (opens in a new tab)"
+                                data-section="rule"
+                                onclick={handleHelp}
+                            ></lightning-button-icon>
+                            <template lwc:if={needsObject}>
+                                <p class="slds-text-color_weak rh-needs-object">Choose the grid's object first, on the Grid tab.</p>
+                            </template>
+                            <template lwc:else>
+                                <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">
+                                    Each rule colors a cell or a row, or gives it an icon or a data bar, when a field meets a condition, when two fields compare, or when a formula is true. The meaning is what the Display Key shows. Rules apply top to bottom.
+                                </p>
+                                <template lwc:if={hasRules}>
+                                    <div class="rh-editor-table-wrap">
+                                        <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-editor-table rh-rules">
+                                            <thead>
+                                                <tr class="slds-line-height_reset">
+                                                    <th scope="col"><span class="slds-assistive-text">Order</span></th>
+                                                    <th scope="col">Meaning</th>
+                                                    <th scope="col">Field</th>
+                                                    <th scope="col">Condition</th>
+                                                    <th scope="col">Value</th>
+                                                    <th scope="col">Look</th>
+                                                    <th scope="col">Applies to</th>
+                                                    <th scope="col">On</th>
+                                                    <th scope="col"><span class="slds-assistive-text">Remove</span></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template for:each={ruleRows} for:item="r">
+                                                    <tr key={r.key} class={r.rowClass} data-key={r.key}>
+                                                        <td class="rh-order">
+                                                            <lightning-button-icon icon-name="utility:arrowup" variant="bare" size="small" alternative-text={r.upLabel} title={r.upLabel} disabled={r.upDisabled} data-list="rules" data-key={r.key} data-delta="-1" onclick={handleMove}></lightning-button-icon>
+                                                            <lightning-button-icon icon-name="utility:arrowdown" variant="bare" size="small" alternative-text={r.downLabel} title={r.downLabel} disabled={r.downDisabled} data-list="rules" data-key={r.key} data-delta="1" onclick={handleMove}></lightning-button-icon>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <lightning-input class="rh-rule-label" label={r.meaningLabel} variant="label-hidden" max-length={maxName} placeholder="Such as Overdue" value={r.label} data-list="rules" data-key={r.key} data-prop="label" onchange={handleChange}></lightning-input>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <lightning-combobox class="rh-rule-field" label={r.fieldLabel} variant="label-hidden" placeholder={r.fieldPlaceholder} options={r.fieldOptions} value={r.field} data-list="rules" data-key={r.key} data-prop="field" onchange={handleChange}></lightning-combobox>
+                                                        </td>
+                                                        <td class="rh-cell-mid">
+                                                            <lightning-combobox class="rh-rule-operator" label={r.operatorLabel} variant="label-hidden" options={r.operatorOptions} value={r.operator} data-list="rules" data-key={r.key} data-prop="operator" onchange={handleChange}></lightning-combobox>
+                                                            <template lwc:if={r.canCompare}>
+                                                                <!-- Two fields: the value, or another field of the same kind. -->
+                                                                <lightning-combobox class="slds-m-top_xx-small rh-rule-compare" label={r.compareLabel} variant="label-hidden" options={r.compareOptions} value={r.compareField} data-list="rules" data-key={r.key} data-prop="compareField" onchange={handleChange}></lightning-combobox>
+                                                            </template>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <template lwc:if={r.isFormula}>
+                                                                <lightning-textarea class="rh-rule-formula" label={r.formulaLabel} variant="label-hidden" placeholder="Such as Amount__c > Budget__c * 1.1" max-length="3900" value={r.formula} data-list="rules" data-key={r.key} data-prop="formula" onchange={handleChange}></lightning-textarea>
+                                                            </template>
+                                                            <template lwc:if={r.showValue}>
+                                                                <lightning-input class="rh-rule-value" label={r.valueLabel} variant="label-hidden" placeholder={r.valueHint} value={r.value} data-list="rules" data-key={r.key} data-prop="value" onchange={handleChange}></lightning-input>
+                                                            </template>
+                                                            <template lwc:if={r.showValueTo}>
+                                                                <lightning-input class="slds-m-top_xx-small rh-rule-value-to" label={r.valueToLabel} variant="label-hidden" placeholder="and" value={r.valueTo} data-list="rules" data-key={r.key} data-prop="valueTo" onchange={handleChange}></lightning-input>
+                                                            </template>
+                                                        </td>
+                                                        <td class="rh-cell-mid">
+                                                            <lightning-combobox class="rh-rule-style" label={r.styleLabel} variant="label-hidden" options={styleOptions} value={r.style} data-list="rules" data-key={r.key} data-prop="style" onchange={handleChange}></lightning-combobox>
+                                                        </td>
+                                                        <td class="rh-cell-mid">
+                                                            <lightning-combobox class="rh-rule-apply" label={r.applyLabel} variant="label-hidden" options={applyToOptions} value={r.applyTo} data-list="rules" data-key={r.key} data-prop="applyTo" onchange={handleChange}></lightning-combobox>
+                                                        </td>
+                                                        <td>
+                                                            <lightning-input class="rh-rule-on" type="toggle" label={r.onLabel} variant="label-hidden" message-toggle-active="" message-toggle-inactive="" checked={r.on} data-list="rules" data-key={r.key} data-prop="active" data-kind="checkbox" onchange={handleChange}></lightning-input>
+                                                        </td>
+                                                        <td>
+                                                            <template lwc:if={r.removable}>
+                                                                <lightning-button-icon class="rh-rule-remove" icon-name="utility:delete" variant="bare" alternative-text={r.removeLabel} title={r.removeLabel} data-list="rules" data-key={r.key} onclick={handleRemove}></lightning-button-icon>
+                                                            </template>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </template>
+                                <div class="slds-m-top_small rh-add-row">
+                                    <lightning-button class="rh-add-rule" label="Add display rule" icon-name="utility:add" data-list="rules" onclick={handleAdd}></lightning-button>
+                                </div>
+                            </template>
+                        </lightning-tab>
+
+                        <!-- ======================================================= filters -->
+                        <lightning-tab label={filtersTabLabel} value="filters" onactive={handleTab}>
+                            <!-- This part of the Configuration reference, in a new browser tab. -->
+                            <lightning-button-icon
+                                class="rh-editor-help"
+                                variant="bare"
+                                icon-name="utility:help"
+                                alternative-text="Help for Filters"
+                                title="Help for Filters: the Grid Filter record in the Grid Guide (opens in a new tab)"
+                                data-section="filter"
+                                onclick={handleHelp}
+                            ></lightning-button-icon>
+                            <template lwc:if={needsObject}>
+                                <p class="slds-text-color_weak rh-needs-object">Choose the grid's object first, on the Grid tab.</p>
+                            </template>
+                            <template lwc:else>
+                                <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">
+                                    The grid shows only the records that meet every filter that is on. Users see them above the grid and cannot remove them. Filters narrow the list; who can see a record is still up to sharing.
+                                </p>
+                                <template lwc:if={hasFilters}>
+                                    <div class="rh-editor-table-wrap">
+                                        <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-editor-table rh-filters">
+                                            <thead>
+                                                <tr class="slds-line-height_reset">
+                                                    <th scope="col"><span class="slds-assistive-text">Order</span></th>
+                                                    <th scope="col">Name</th>
+                                                    <th scope="col">Field</th>
+                                                    <th scope="col">Condition</th>
+                                                    <th scope="col">Value</th>
+                                                    <th scope="col">On</th>
+                                                    <th scope="col"><span class="slds-assistive-text">Remove</span></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template for:each={filterRows} for:item="x">
+                                                    <tr key={x.key} class={x.rowClass} data-key={x.key}>
+                                                        <td class="rh-order">
+                                                            <lightning-button-icon icon-name="utility:arrowup" variant="bare" size="small" alternative-text={x.upLabel} title={x.upLabel} disabled={x.upDisabled} data-list="filters" data-key={x.key} data-delta="-1" onclick={handleMove}></lightning-button-icon>
+                                                            <lightning-button-icon icon-name="utility:arrowdown" variant="bare" size="small" alternative-text={x.downLabel} title={x.downLabel} disabled={x.downDisabled} data-list="filters" data-key={x.key} data-delta="1" onclick={handleMove}></lightning-button-icon>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <lightning-input class="rh-filter-label" label={x.labelLabel} variant="label-hidden" max-length={maxName} placeholder="Made from the condition" value={x.label} data-list="filters" data-key={x.key} data-prop="label" onchange={handleChange}></lightning-input>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <lightning-combobox class="rh-filter-field" label={x.fieldLabel} variant="label-hidden" placeholder="Choose a field" options={x.fieldOptions} value={x.field} data-list="filters" data-key={x.key} data-prop="field" onchange={handleChange}></lightning-combobox>
+                                                        </td>
+                                                        <td class="rh-cell-mid">
+                                                            <lightning-combobox class="rh-filter-operator" label={x.operatorLabel} variant="label-hidden" options={x.operatorOptions} value={x.operator} data-list="filters" data-key={x.key} data-prop="operator" onchange={handleChange}></lightning-combobox>
+                                                        </td>
+                                                        <td class="rh-cell-mid">
+                                                            <template lwc:if={x.showValue}>
+                                                                <lightning-input class="rh-filter-value" label={x.valueLabel} variant="label-hidden" placeholder={x.valueHint} value={x.value} data-list="filters" data-key={x.key} data-prop="value" onchange={handleChange}></lightning-input>
+                                                            </template>
+                                                            <template lwc:if={x.showValueTo}>
+                                                                <lightning-input class="slds-m-top_xx-small rh-filter-value-to" label={x.valueToLabel} variant="label-hidden" placeholder="and" value={x.valueTo} data-list="filters" data-key={x.key} data-prop="valueTo" onchange={handleChange}></lightning-input>
+                                                            </template>
+                                                        </td>
+                                                        <td>
+                                                            <lightning-input class="rh-filter-on" type="toggle" label={x.onLabel} variant="label-hidden" message-toggle-active="" message-toggle-inactive="" checked={x.on} data-list="filters" data-key={x.key} data-prop="inactive" data-kind="on" onchange={handleChange}></lightning-input>
+                                                        </td>
+                                                        <td>
+                                                            <template lwc:if={x.removable}>
+                                                                <lightning-button-icon class="rh-filter-remove" icon-name="utility:delete" variant="bare" alternative-text={x.removeLabel} title={x.removeLabel} data-list="filters" data-key={x.key} onclick={handleRemove}></lightning-button-icon>
+                                                            </template>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </template>
+                                <div class="slds-m-top_small rh-add-row">
+                                    <lightning-button class="rh-add-filter" label="Add filter" icon-name="utility:add" data-list="filters" onclick={handleAdd}></lightning-button>
+                                </div>
+                            </template>
+                        </lightning-tab>
+
+                        <!-- ======================================================= actions -->
+                        <lightning-tab label={actionsTabLabel} value="actions" onactive={handleTab}>
+                            <!-- This part of the Configuration reference, in a new browser tab. -->
+                            <lightning-button-icon
+                                class="rh-editor-help"
+                                variant="bare"
+                                icon-name="utility:help"
+                                alternative-text="Help for Actions"
+                                title="Help for Actions: the Grid Action record in the Grid Guide (opens in a new tab)"
+                                data-section="action"
+                                onclick={handleHelp}
+                            ></lightning-button-icon>
+                            <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">
+                                What users can run on a row, or on the rows they select: a flow, an Apex action or a quick action. The label is what the menu item says.
+                            </p>
+                            <template lwc:if={hasActions}>
+                                <div class="rh-editor-table-wrap">
+                                    <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-editor-table rh-actions">
+                                        <thead>
+                                            <tr class="slds-line-height_reset">
+                                                <th scope="col"><span class="slds-assistive-text">Order</span></th>
+                                                <th scope="col">Label</th>
+                                                <th scope="col">Type</th>
+                                                <th scope="col">Runs</th>
+                                                <th scope="col">Input</th>
+                                                <th scope="col">Offered in</th>
+                                                <th scope="col">Asks first</th>
+                                                <th scope="col">Permission</th>
+                                                <th scope="col">On</th>
+                                                <th scope="col"><span class="slds-assistive-text">Remove</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={actionRows} for:item="a">
+                                                <tr key={a.key} class={a.rowClass} data-key={a.key}>
+                                                    <td class="rh-order">
+                                                        <lightning-button-icon icon-name="utility:arrowup" variant="bare" size="small" alternative-text={a.upLabel} title={a.upLabel} disabled={a.upDisabled} data-list="actions" data-key={a.key} data-delta="-1" onclick={handleMove}></lightning-button-icon>
+                                                        <lightning-button-icon icon-name="utility:arrowdown" variant="bare" size="small" alternative-text={a.downLabel} title={a.downLabel} disabled={a.downDisabled} data-list="actions" data-key={a.key} data-delta="1" onclick={handleMove}></lightning-button-icon>
+                                                    </td>
+                                                    <td class="rh-cell-wide">
+                                                        <lightning-input class="rh-action-label" label={a.labelLabel} variant="label-hidden" max-length={maxName} placeholder="Such as Log a call" value={a.label} data-list="actions" data-key={a.key} data-prop="label" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td class="rh-cell-mid">
+                                                        <lightning-combobox class="rh-action-type" label={a.typeLabel} variant="label-hidden" options={actionTypeOptions} value={a.type} data-list="actions" data-key={a.key} data-prop="type" onchange={handleChange}></lightning-combobox>
+                                                    </td>
+                                                    <td class="rh-cell-wide">
+                                                        <lightning-input class="rh-action-name" label={a.actionNameLabel} variant="label-hidden" placeholder={a.actionNameHint} value={a.actionName} data-list="actions" data-key={a.key} data-prop="actionName" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td class="rh-cell-mid">
+                                                        <lightning-input class="rh-action-input" label={a.inputLabel} variant="label-hidden" placeholder={a.inputHint} value={a.inputName} data-list="actions" data-key={a.key} data-prop="inputName" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td class="rh-cell-mid">
+                                                        <lightning-combobox class="rh-action-show" label={a.showInLabel} variant="label-hidden" options={showInOptions} value={a.showIn} data-list="actions" data-key={a.key} data-prop="showIn" onchange={handleChange}></lightning-combobox>
+                                                    </td>
+                                                    <td class="rh-cell-wide">
+                                                        <lightning-input class="rh-action-confirm" label={a.confirmationLabel} variant="label-hidden" placeholder="Nothing" value={a.confirmation} data-list="actions" data-key={a.key} data-prop="confirmation" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td class="rh-cell-mid">
+                                                        <lightning-input class="rh-action-permission" label={a.permissionLabel} variant="label-hidden" placeholder="Anyone" value={a.requiredPermission} data-list="actions" data-key={a.key} data-prop="requiredPermission" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td>
+                                                        <lightning-input class="rh-action-on" type="toggle" label={a.onLabel} variant="label-hidden" message-toggle-active="" message-toggle-inactive="" checked={a.on} data-list="actions" data-key={a.key} data-prop="inactive" data-kind="on" onchange={handleChange}></lightning-input>
+                                                    </td>
+                                                    <td>
+                                                        <template lwc:if={a.removable}>
+                                                            <lightning-button-icon class="rh-action-remove" icon-name="utility:delete" variant="bare" alternative-text={a.removeLabel} title={a.removeLabel} data-list="actions" data-key={a.key} onclick={handleRemove}></lightning-button-icon>
+                                                        </template>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+                            <div class="slds-m-top_small rh-add-row">
+                                <lightning-button class="rh-add-action" label="Add action" icon-name="utility:add" data-list="actions" onclick={handleAdd}></lightning-button>
+                            </div>
+                        </lightning-tab>
+
+                        <!-- ======================================================= child tables -->
+                        <lightning-tab label={childrenTabLabel} value="children" onactive={handleTab}>
+                            <!-- This part of the Configuration reference, in a new browser tab. -->
+                            <lightning-button-icon
+                                class="rh-editor-help"
+                                variant="bare"
+                                icon-name="utility:help"
+                                alternative-text="Help for Child tables"
+                                title="Help for Child tables: the Grid Child Table record in the Grid Guide (opens in a new tab)"
+                                data-section="child"
+                                onclick={handleHelp}
+                            ></lightning-button-icon>
+                            <template lwc:if={needsObject}>
+                                <p class="slds-text-color_weak rh-needs-object">Choose the grid's object first, on the Grid tab.</p>
+                            </template>
+                            <template lwc:else>
+                                <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">
+                                    Tabs of related records under each row. Each shows another grid, limited to the records whose field points to the row.
+                                </p>
+                                <template lwc:if={noChildChoices}>
+                                    <p class="slds-text-body_small slds-m-bottom_x-small rh-no-child-choices">
+                                        No grid shows an object with a lookup to this one yet. Create that grid first, then add it here.
+                                    </p>
+                                </template>
+                                <template lwc:if={hasChildren}>
+                                    <div class="rh-editor-table-wrap">
+                                        <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-editor-table rh-children">
+                                            <thead>
+                                                <tr class="slds-line-height_reset">
+                                                    <th scope="col"><span class="slds-assistive-text">Order</span></th>
+                                                    <th scope="col">Grid</th>
+                                                    <th scope="col">Linked by</th>
+                                                    <th scope="col">Tab label</th>
+                                                    <th scope="col" title="How tall the child grid is under an open row">Height</th>
+                                                    <th scope="col">On</th>
+                                                    <th scope="col"><span class="slds-assistive-text">Remove</span></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template for:each={childRows} for:item="c">
+                                                    <tr key={c.key} class={c.rowClass} data-key={c.key}>
+                                                        <td class="rh-order">
+                                                            <lightning-button-icon icon-name="utility:arrowup" variant="bare" size="small" alternative-text={c.upLabel} title={c.upLabel} disabled={c.upDisabled} data-list="children" data-key={c.key} data-delta="-1" onclick={handleMove}></lightning-button-icon>
+                                                            <lightning-button-icon icon-name="utility:arrowdown" variant="bare" size="small" alternative-text={c.downLabel} title={c.downLabel} disabled={c.downDisabled} data-list="children" data-key={c.key} data-delta="1" onclick={handleMove}></lightning-button-icon>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <lightning-combobox class="rh-child-config" label={c.configLabel} variant="label-hidden" placeholder="Choose a grid" options={c.configOptions} value={c.childConfig} data-list="children" data-key={c.key} data-prop="childConfig" onchange={handleChange}></lightning-combobox>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <lightning-combobox class="rh-child-field" label={c.relationshipLabel} variant="label-hidden" placeholder="Choose a field" options={c.relationshipOptions} value={c.relationshipField} data-list="children" data-key={c.key} data-prop="relationshipField" onchange={handleChange}></lightning-combobox>
+                                                        </td>
+                                                        <td class="rh-cell-wide">
+                                                            <lightning-input class="rh-child-label" label={c.tabLabelLabel} variant="label-hidden" placeholder={c.tabPlaceholder} value={c.tabLabel} data-list="children" data-key={c.key} data-prop="tabLabel" onchange={handleChange}></lightning-input>
+                                                        </td>
+                                                        <td class="rh-cell-number">
+                                                            <!-- The child grid's height; blank for the standard. -->
+                                                            <lightning-input class="rh-child-height" type="number" label={c.heightLabel} variant="label-hidden" min="160" max="2000" placeholder="Standard" value={c.height} data-list="children" data-key={c.key} data-prop="height" data-kind="number" onchange={handleChange}></lightning-input>
+                                                        </td>
+                                                        <td>
+                                                            <lightning-input class="rh-child-on" type="toggle" label={c.onLabel} variant="label-hidden" message-toggle-active="" message-toggle-inactive="" checked={c.on} data-list="children" data-key={c.key} data-prop="inactive" data-kind="on" onchange={handleChange}></lightning-input>
+                                                        </td>
+                                                        <td>
+                                                            <template lwc:if={c.removable}>
+                                                                <lightning-button-icon class="rh-child-remove" icon-name="utility:delete" variant="bare" alternative-text={c.removeLabel} title={c.removeLabel} data-list="children" data-key={c.key} onclick={handleRemove}></lightning-button-icon>
+                                                            </template>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </template>
+                                <div class="slds-m-top_small rh-add-row">
+                                    <lightning-button class="rh-add-child" label="Add child table" icon-name="utility:add" data-list="children" onclick={handleAdd}></lightning-button>
+                                </div>
+                            </template>
+                        </lightning-tab>
+                    </lightning-tabset>
+                </div>
+                <!-- The Grid Guide's part about the open tab, beside it. -->
+                <template lwc:if={showHelpPanel}>
+                    <aside class="rh-ed-help" aria-label="Grid Guide">
+                        <c-grid-admin-help tab={activeTab} onhide={handleHideHelp}></c-grid-admin-help>
+                    </aside>
+                </template>
+            </div>
+
+            <!-- ======================================================= problems and buttons (the compact layout) -->
+            <template lwc:if={showFooter}>
+                <div class="rh-editor-footer">
+                    <template lwc:if={hasErrors}>
+                        <div class="slds-text-color_error slds-m-bottom_x-small rh-editor-errors" role="alert">
+                            <p class="slds-text-title_bold">Fix these before saving:</p>
+                            <ul class="slds-list_dotted">
+                                <template for:each={errors} for:item="e">
+                                    <li key={e.key}>{e.message}</li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                    <template lwc:if={hasWarnings}>
+                        <div class="slds-scoped-notification slds-scoped-notification_light slds-m-bottom_x-small rh-editor-warnings" role="status">
+                            <p class="slds-text-title_bold">The grid would leave these out:</p>
+                            <ul class="slds-list_dotted">
+                                <template for:each={warnings} for:item="w">
+                                    <li key={w.key}>{w.message}</li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                    <div class="slds-grid slds-grid_vertical-align-center slds-wrap rh-editor-buttons">
+                        <p class="slds-col slds-text-body_small slds-text-color_weak rh-editor-status" role="status" aria-live="polite">
+                            <template lwc:if={busy}>
+                                <!-- SLDS's inline spinner: it sits in the line instead of covering the editor. -->
+                                <span class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-editor-busy">
+                                    <span class="slds-assistive-text">Working</span>
+                                    <span class="slds-spinner__dot-a"></span>
+                                    <span class="slds-spinner__dot-b"></span>
+                                </span>
+                            </template>
+                            {status}
+                        </p>
+                        <template lwc:if={confirmingClose}>
+                            <span class="slds-m-right_small rh-editor-discard-question">Discard your changes?</span>
+                            <lightning-button class="slds-m-right_x-small rh-editor-keep" label="Keep editing" onclick={handleKeepEditing}></lightning-button>
+                            <lightning-button class="rh-editor-discard" label="Discard" variant="destructive" onclick={handleDiscard}></lightning-button>
+                        </template>
+                        <template lwc:else>
+                            <lightning-button class="slds-m-right_x-small rh-editor-cancel" label={cancelLabel} disabled={saving} onclick={handleCancel}></lightning-button>
+                            <lightning-button class="rh-editor-save" label="Save" variant="brand" title={saveTitle} disabled={saveDisabled} onclick={handleSave}></lightning-button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </div>
+</template>

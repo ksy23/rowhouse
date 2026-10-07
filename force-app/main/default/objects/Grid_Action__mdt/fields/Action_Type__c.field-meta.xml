@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Action_Type__c</fullName>
+    <label>Action Type</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>What kind of action this is. A screen flow opens in a dialog. Autolaunched flows, Apex actions and quick actions run on the server, one record at a time, with the permissions they are built with.</description>
+    <inlineHelpText>Screen flows open in a dialog. Autolaunched flows, Apex actions and quick actions run on the server, one record at a time.</inlineHelpText>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>ScreenFlow</fullName>
+                <default>false</default>
+                <label>Screen flow</label>
+            </value>
+            <value>
+                <fullName>Flow</fullName>
+                <default>false</default>
+                <label>Autolaunched flow</label>
+            </value>
+            <value>
+                <fullName>Apex</fullName>
+                <default>false</default>
+                <label>Invocable Apex action</label>
+            </value>
+            <value>
+                <fullName>QuickAction</fullName>
+                <default>false</default>
+                <label>Quick action</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

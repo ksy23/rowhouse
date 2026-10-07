@@ -1,0 +1,292 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        class="slds-modal slds-fade-in-open slds-modal_medium rh-import"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <lightning-button-icon
+                class="slds-button slds-button_icon slds-modal__close"
+                icon-name="utility:close"
+                variant="bare"
+                size="large"
+                alternative-text="Close"
+                title="Close"
+                disabled={isRunning}
+                onclick={handleClose}
+            ></lightning-button-icon>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate" tabindex="-1" data-first={focusHeading}>{heading}</h1>
+                <!-- The steps, so it is clear a check comes before anything is written. -->
+                <lightning-progress-indicator class="slds-m-top_small rh-import-steps" current-step={currentStep} type="base">
+                    <lightning-progress-step label="Choose a file" value="choose"></lightning-progress-step>
+                    <lightning-progress-step label="Check the rows" value="preview"></lightning-progress-step>
+                    <lightning-progress-step label="Import" value="running"></lightning-progress-step>
+                    <lightning-progress-step label="Done" value="done"></lightning-progress-step>
+                </lightning-progress-indicator>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small rh-import-step">{stepText}</p>
+            </div>
+            <div class="slds-modal__content slds-p-around_medium rh-import-body">
+                <template lwc:if={isChoose}>
+                    <ul class="slds-m-bottom_medium rh-import-rules">
+                        <li class="slds-media slds-media_center slds-m-bottom_x-small">
+                            <div class="slds-media__figure"><lightning-icon icon-name="utility:table" size="x-small"></lightning-icon></div>
+                            <div class="slds-media__body">The first row names the columns, as this grid's export does.</div>
+                        </li>
+                        <li class="slds-media slds-media_center slds-m-bottom_x-small">
+                            <div class="slds-media__figure"><lightning-icon icon-name="utility:record_update" size="x-small"></lightning-icon></div>
+                            <div class="slds-media__body">{createRule}</div>
+                        </li>
+                        <li class="slds-media slds-media_center">
+                            <div class="slds-media__figure"><lightning-icon icon-name="utility:clear" size="x-small"></lightning-icon></div>
+                            <div class="slds-media__body">An empty cell clears the field; a column that is not in the file is left as it is.</div>
+                        </li>
+                    </ul>
+                    <div class="slds-form-element">
+                        <span class="slds-form-element__label" id="file-label">CSV or Excel (.xlsx) file</span>
+                        <div class="slds-form-element__control">
+                            <div class="slds-file-selector slds-file-selector_images">
+                                <div class={dropzoneClass} ondragover={handleDragOver} ondragleave={handleDragLeave} ondrop={handleDrop}>
+                                    <input
+                                        type="file"
+                                        class="slds-file-selector__input slds-assistive-text rh-import-file"
+                                        accept=".csv,.txt,.tsv,.xlsx"
+                                        id="file-input"
+                                        aria-labelledby="file-label file-body"
+                                        disabled={isReading}
+                                        data-first
+                                        onchange={handleFile}
+                                    />
+                                    <label class="slds-file-selector__body" for="file-input" id="file-body">
+                                        <lightning-icon icon-name="utility:upload" size="small" class="slds-file-selector__body-icon slds-m-right_small"></lightning-icon>
+                                        <span class="slds-file-selector__button slds-button slds-button_neutral">Choose file</span>
+                                        <span class="slds-file-selector__text slds-medium-show">or drop a file here</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="slds-button slds-m-top_small rh-import-template" onclick={handleTemplate}>
+                        <lightning-icon icon-name="utility:download" size="x-small" class="slds-m-right_x-small"></lightning-icon>Download a template with this grid's columns
+                    </button>
+                    <template lwc:if={isReading}>
+                        <p class="slds-m-top_small rh-import-reading" role="status">Reading {fileName}…</p>
+                    </template>
+                    <template lwc:if={error}>
+                        <p class="slds-text-color_error slds-m-top_small rh-import-error" role="alert">{error}</p>
+                    </template>
+                </template>
+
+                <template lwc:if={isPreview}>
+                    <!-- A workbook's sheet: the first until another is chosen. -->
+                    <template lwc:if={hasSheets}>
+                        <div class="slds-form-element slds-m-bottom_small rh-import-sheet">
+                            <label class="slds-form-element__label" for="sheet-select">Sheet</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-select_container">
+                                    <select class="slds-select" id="sheet-select" onchange={handleSheet}>
+                                        <template for:each={sheetOptions} for:item="o">
+                                            <option key={o.value} value={o.value} selected={o.selected}>{o.label}</option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template lwc:if={error}>
+                        <p class="slds-text-color_error slds-m-bottom_small rh-import-error" role="alert">{error}</p>
+                    </template>
+                    <template lwc:if={planReady}>
+                        <p class="slds-text-heading_small slds-m-bottom_x-small rh-import-summary" role="status">{fileName}: {summary}</p>
+                        <!-- The same, at a glance; the sentence above is what a screen reader reads. -->
+                        <div class="slds-grid slds-gutters_x-small slds-m-bottom_small rh-import-counts" aria-hidden="true">
+                            <template for:each={countFigures} for:item="f">
+                                <div key={f.key} class="slds-col">
+                                    <div class={f.cls}>
+                                        <p class="slds-text-heading_medium">{f.value}</p>
+                                        <p class="slds-text-body_small">{f.label}</p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <template lwc:if={nothingToImport}>
+                            <p class="slds-text-color_error slds-m-bottom_small rh-import-nothing" role="alert">{nothingText}</p>
+                        </template>
+                        <p class="slds-m-bottom_x-small rh-import-id-text">{idText}</p>
+                        <!-- Match records by an External Id column instead of the record Id. -->
+                        <template lwc:if={matchOptions}>
+                            <div class="slds-form-element slds-m-bottom_small rh-import-match">
+                                <label class="slds-form-element__label" for="match-select">Match records by</label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <select class="slds-select" id="match-select" onchange={handleMatch}>
+                                            <template for:each={matchOptions} for:item="o">
+                                                <option key={o.value} value={o.value} selected={o.selected}>{o.label}</option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                    <!-- Each file column and what it is imported as, which the user can change. -->
+                    <p class="slds-text-title slds-m-top_small slds-m-bottom_xx-small">Columns</p>
+                    <div class="slds-scrollable_x slds-m-bottom_small">
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-import-mapping">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col"><div class="slds-truncate">In the file</div></th>
+                                    <th scope="col"><div class="slds-truncate">Imported as</div></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={mappingRows} for:item="m">
+                                    <tr key={m.key}>
+                                        <th scope="row"><div class="slds-truncate" title={m.header}>{m.header}</div></th>
+                                        <td>
+                                            <div class="slds-select_container">
+                                                <select class="slds-select rh-import-map" aria-label={m.label} data-index={m.index} onchange={handleMapping}>
+                                                    <template for:each={m.options} for:item="o">
+                                                        <option key={o.value} value={o.value} selected={o.selected}>{o.label}</option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <template lwc:if={m.note}>
+                                                <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small rh-import-map-note">{m.note}</p>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <template lwc:if={hasPreviewRows}>
+                        <p class="slds-text-title slds-m-top_small slds-m-bottom_xx-small">The first rows, as they will be written</p>
+                        <div class="slds-scrollable_x rh-import-preview">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered">
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th scope="col"><div class="slds-truncate">Line</div></th>
+                                        <th scope="col"><div class="slds-truncate">Action</div></th>
+                                        <template for:each={previewColumns} for:item="c">
+                                            <th key={c.key} scope="col" class={c.cls}><div class="slds-truncate" title={c.label}>{c.label}</div></th>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={previewRows} for:item="r">
+                                        <tr key={r.key}>
+                                            <td>{r.line}</td>
+                                            <td>{r.action}</td>
+                                            <template for:each={r.cells} for:item="cell">
+                                                <td key={cell.key} class={cell.cls}><div class="slds-truncate" title={cell.text}>{cell.text}</div></td>
+                                            </template>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                    <template lwc:if={hasProblems}>
+                        <div class="slds-grid slds-grid_vertical-align-center slds-m-top_small slds-m-bottom_xx-small">
+                            <p class="slds-text-title slds-col">{problemsTitle}</p>
+                            <button class="slds-button rh-import-download-problems" onclick={handleDownloadProblems}>
+                                <lightning-icon icon-name="utility:download" size="x-small" class="slds-m-right_x-small"></lightning-icon>Download the rows with problems
+                            </button>
+                        </div>
+                        <div class="slds-scrollable_x">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-import-problems">
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th scope="col"><div class="slds-truncate">Line</div></th>
+                                        <th scope="col"><div class="slds-truncate">Column</div></th>
+                                        <th scope="col"><div class="slds-truncate">In the file</div></th>
+                                        <th scope="col"><div class="slds-truncate">Problem</div></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={problems} for:item="p">
+                                        <tr key={p.key}>
+                                            <td>{p.line}</td>
+                                            <td>{p.column}</td>
+                                            <td><div class="slds-truncate" title={p.raw}>{p.raw}</div></td>
+                                            <td class="slds-cell-wrap">{p.problem}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </template>
+
+                <template lwc:if={isRunning}>
+                    <p class="slds-m-bottom_small rh-import-progress" role="status">{progressText}</p>
+                    <lightning-progress-bar value={percent} size="large" aria-label="Import progress"></lightning-progress-bar>
+                </template>
+
+                <template lwc:if={isDone}>
+                    <p class="slds-text-heading_small slds-m-bottom_small rh-import-result" role="status">{resultText}</p>
+                    <template lwc:if={fieldsText}>
+                        <p class="slds-m-bottom_small rh-import-fields">{fieldsText}</p>
+                    </template>
+                    <template lwc:if={hasFailures}>
+                        <p class="slds-text-title slds-m-top_small">{failuresTitle}</p>
+                        <ul class="slds-list_dotted rh-import-failures">
+                            <template for:each={failures} for:item="f">
+                                <li key={f.key}>Line {f.line}: {f.text}</li>
+                            </template>
+                        </ul>
+                    </template>
+                    <!-- Undo import: asked first, then done, then said. -->
+                    <template lwc:if={undoConfirming}>
+                        <div class="slds-box slds-theme_warning slds-m-top_medium rh-import-undo-confirm" role="alert">
+                            <p>{undoText}</p>
+                        </div>
+                    </template>
+                    <template lwc:if={undoRunning}>
+                        <p class="slds-m-top_medium rh-import-undo-running" role="status">Undoing the import…</p>
+                    </template>
+                    <template lwc:if={undoDone}>
+                        <p class="slds-text-heading_small slds-m-top_medium rh-import-undo-result" role="status">{undoResultText}</p>
+                        <template lwc:if={hasUndoFailures}>
+                            <ul class="slds-list_dotted rh-import-undo-failures">
+                                <template for:each={undoFailures} for:item="f">
+                                    <li key={f.key}>{f.text}</li>
+                                </template>
+                            </ul>
+                        </template>
+                    </template>
+                </template>
+                <div class="rh-import-download" lwc:dom="manual"></div>
+            </div>
+            <div class="slds-modal__footer">
+                <template lwc:if={isPreview}>
+                    <button class="slds-button slds-button_neutral rh-import-back" onclick={handleBack}>Choose another file</button>
+                    <button class="slds-button slds-button_neutral rh-import-cancel" onclick={handleClose}>Cancel</button>
+                    <button class="slds-button slds-button_brand rh-import-go" disabled={importDisabled} onclick={handleImport}>{importLabel}</button>
+                </template>
+                <template lwc:elseif={isDone}>
+                    <template lwc:if={undoConfirming}>
+                        <button class="slds-button slds-button_neutral rh-import-keep" onclick={handleKeep}>Keep the import</button>
+                        <button class="slds-button slds-button_destructive rh-import-undo-go" onclick={handleUndoConfirm}>Undo import</button>
+                    </template>
+                    <template lwc:else>
+                        <template lwc:if={canUndo}>
+                            <button class="slds-button slds-button_neutral rh-import-undo" onclick={handleUndo}>Undo import</button>
+                        </template>
+                        <button class="slds-button slds-button_brand rh-import-close" disabled={undoRunning} onclick={handleClose}>Close</button>
+                    </template>
+                </template>
+                <template lwc:else>
+                    <button class="slds-button slds-button_neutral rh-import-cancel" disabled={isRunning} onclick={handleClose}>Cancel</button>
+                </template>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

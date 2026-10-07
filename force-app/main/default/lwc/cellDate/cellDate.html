@@ -1,0 +1,102 @@
+<template>
+    <template lwc:if={isEdit}>
+        <!-- The box, the cell's width, with the calendar hanging below it (see cellDate.js). -->
+        <div class="rh-date" onkeydown={handleKeyDown}>
+            <div class={formElementClass}>
+                <label class="slds-form-element__label slds-assistive-text" for="date-input">{label}</label>
+                <div class="slds-form-element__control">
+                    <input
+                        type="text"
+                        class="slds-input"
+                        id="date-input"
+                        autocomplete="off"
+                        value={inputText}
+                        aria-invalid={ariaInvalid}
+                        aria-required={ariaRequired}
+                        aria-describedby="date-error"
+                        oninput={handleInput}
+                        onkeydown={handleInputKeyDown}
+                    />
+                </div>
+                <template lwc:if={error}>
+                    <p class="slds-form-element__help rh-editor-error" id="date-error" role="alert">{error}</p>
+                </template>
+            </div>
+            <div class={dropdownClass} onmousedown={handleCalendarMouseDown}>
+                <div class="slds-datepicker__filter slds-grid">
+                    <div class="slds-datepicker__filter_month slds-grid slds-grid_align-spread slds-grow">
+                        <div class="slds-align-middle">
+                            <lightning-button-icon
+                                class="rh-previous-month"
+                                icon-name="utility:left"
+                                variant="container"
+                                size="small"
+                                alternative-text="Previous Month"
+                                title="Previous Month"
+                                onclick={handlePreviousMonth}
+                            ></lightning-button-icon>
+                        </div>
+                        <h2 class="slds-align-middle rh-month" aria-live="polite" aria-atomic="true">{monthLabel}</h2>
+                        <div class="slds-align-middle">
+                            <lightning-button-icon
+                                class="rh-next-month"
+                                icon-name="utility:right"
+                                variant="container"
+                                size="small"
+                                alternative-text="Next Month"
+                                title="Next Month"
+                                onclick={handleNextMonth}
+                            ></lightning-button-icon>
+                        </div>
+                    </div>
+                    <div class="slds-shrink-none">
+                        <label class="slds-assistive-text" for="date-year">Pick a Year</label>
+                        <div class="slds-select_container">
+                            <select class="slds-select rh-year" id="date-year" onchange={handleYearChange}>
+                                <template for:each={years} for:item="y">
+                                    <option key={y.value} value={y.value} selected={y.selected}>{y.value}</option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <table class="slds-datepicker__month" role="grid" aria-label={gridLabel} tabindex="-1" onkeydown={handleGridKeyDown}>
+                    <thead>
+                        <tr>
+                            <template for:each={weekdays} for:item="d">
+                                <th key={d.key} scope="col"><abbr title={d.long}>{d.short}</abbr></th>
+                            </template>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={weeks} for:item="w">
+                            <tr key={w.key}>
+                                <template for:each={w.days} for:item="d">
+                                    <td
+                                        key={d.key}
+                                        class={d.cls}
+                                        role="gridcell"
+                                        aria-selected={d.selected}
+                                        aria-current={d.current}
+                                        aria-label={d.label}
+                                        tabindex={d.tabIndex}
+                                        data-iso={d.iso}
+                                        onclick={handleDayClick}
+                                    ><span class="slds-day">{d.day}</span></td>
+                                </template>
+                            </tr>
+                        </template>
+                        <tr>
+                            <td colspan="7" role="gridcell">
+                                <button class="slds-button slds-align_absolute-center slds-text-link rh-today" onclick={handleToday}>Today</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+    <template lwc:else>
+        <span class="slds-truncate" title={text}>{text}</span>
+    </template>
+</template>

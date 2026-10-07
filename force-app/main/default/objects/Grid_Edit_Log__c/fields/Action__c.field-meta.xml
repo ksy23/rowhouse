@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Action__c</fullName>
+    <label>Action</label>
+    <type>Text</type>
+    <length>40</length>
+    <required>false</required>
+    <description>For an Action entry, the API name of the Grid Action that ran.</description>
+    <inlineHelpText>API name of the Grid Action that ran.</inlineHelpText>
+</CustomField>

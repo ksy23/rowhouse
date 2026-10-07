@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>New_Value__c</fullName>
+    <label>New Value</label>
+    <type>LongTextArea</type>
+    <length>131072</length>
+    <visibleLines>3</visibleLines>
+    <description>For an Update entry, the value the grid saved, as text, in the same format as Old Value. Later changes made by triggers or flows are not shown here.</description>
+    <inlineHelpText>The value the grid saved.</inlineHelpText>
+</CustomField>

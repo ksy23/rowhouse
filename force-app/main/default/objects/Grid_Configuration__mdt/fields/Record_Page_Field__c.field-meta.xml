@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Record_Page_Field__c</fullName>
+    <label>Record Page Field</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>On a record page, the grid shows only the records whose field of this name points to the page's record, such as AccountId for a Contacts grid on Account pages. It must be a lookup of the grid's object. Leave blank to show the same records on every page; on App and Home pages it has no effect.</description>
+    <inlineHelpText>On a record page, show only records whose lookup of this name points to the page's record. Example: AccountId.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

@@ -1,0 +1,26 @@
+<template>
+    <template lwc:if={isEdit}>
+        <div onkeydown={handleKeyDown}>
+            <lightning-input
+                type={inputType}
+                label={label}
+                variant="label-hidden"
+                value={inputValue}
+                max-length={maxLength}
+                required={required}
+                onchange={handleChange}
+            ></lightning-input>
+            <template lwc:if={error}>
+                <p class="slds-form-element__help slds-text-color_error rh-editor-error" role="alert">{error}</p>
+            </template>
+        </div>
+    </template>
+    <template lwc:else>
+        <template lwc:if={href}>
+            <a class="slds-truncate" href={href} target="_blank" rel="noopener noreferrer" title={text}>{text}</a>
+        </template>
+        <template lwc:else>
+            <span class="slds-truncate" title={text}>{text}</span>
+        </template>
+    </template>
+</template>

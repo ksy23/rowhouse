@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Half percent or more</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Test_Records</value></values>
+    <values><field>Field_API_Name__c</field><value xsi:type="xsd:string">Percent_Field__c</value></values>
+    <values><field>Operator__c</field><value xsi:type="xsd:string">greater_or_equal</value></values>
+    <values><field>Value__c</field><value xsi:type="xsd:string">50</value></values>
+    <values><field>Style__c</field><value xsi:type="xsd:string">bold</value></values>
+    <values><field>Apply_To__c</field><value xsi:type="xsd:string">row</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">50</value></values>
+    <values><field>Active__c</field><value xsi:type="xsd:boolean">true</value></values>
+</CustomMetadata>

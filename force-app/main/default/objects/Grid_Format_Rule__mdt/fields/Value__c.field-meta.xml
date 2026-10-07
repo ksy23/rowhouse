@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Value__c</fullName>
+    <label>Value</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>What the field is compared with. Numbers as 1234.5; dates as 2026-12-31, TODAY, TODAY+7 or TODAY-30; checkboxes as true or false; lookups and owners as a record Id, or $User for the person viewing the grid. Leave blank for Is blank and Is not blank.</description>
+    <inlineHelpText>What to compare with. Examples: 1000, 2026-12-31, TODAY+7, true, or $User for the current user. Leave blank for Is blank and Is not blank.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

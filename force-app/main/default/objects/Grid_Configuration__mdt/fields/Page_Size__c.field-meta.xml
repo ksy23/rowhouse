@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Page_Size__c</fullName>
+    <label>Page Size</label>
+    <type>Number</type>
+    <precision>4</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <description>How many rows the first page loads, from 1 to 2,000. Default 200. Later pages load 2,000 rows at a time as the user scrolls.</description>
+    <inlineHelpText>Rows the first page loads, from 1 to 2,000. Leave blank for 200.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

@@ -1,0 +1,13 @@
+/* The calendar and the time hang from the box, as the date editor's do. */
+.rh-datetime {
+    position: relative;
+}
+
+.rh-calendar {
+    width: max-content;
+    max-width: none;
+}
+
+.rh-datetime-time {
+    border-top: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, rgb(229, 229, 229));
+}

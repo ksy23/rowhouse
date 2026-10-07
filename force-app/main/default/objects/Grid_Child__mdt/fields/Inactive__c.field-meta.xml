@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Inactive__c</fullName>
+    <label>Inactive</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Check to turn the child table off without deleting it. The Grid Admin tab turns child tables off this way, since it cannot delete Custom Metadata records. A record that does not mention this field stays on.</description>
+    <inlineHelpText>Check to turn the child table off without deleting it.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

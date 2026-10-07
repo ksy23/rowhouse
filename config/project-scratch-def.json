@@ -1,0 +1,11 @@
+{
+  "orgName": "Rowhouse test org",
+  "edition": "Developer",
+  "features": ["EnableSetPasswordInApi"],
+  "settings": {
+    "lightningExperienceSettings": { "enableS1DesktopEnabled": true },
+    "securitySettings": {
+      "sessionSettings": { "enableLightningLogin": false }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Grid_Configuration__c</fullName>
+    <label>Grid Configuration</label>
+    <type>MetadataRelationship</type>
+    <referenceTo>Grid_Configuration__mdt</referenceTo>
+    <relationshipLabel>Grid Filters</relationshipLabel>
+    <relationshipName>Grid_Filters</relationshipName>
+    <required>false</required>
+    <description>The grid this filter narrows.</description>
+    <inlineHelpText>The grid this filter narrows.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

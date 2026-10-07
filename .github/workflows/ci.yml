@@ -1,0 +1,85 @@
+# Rowhouse — CI. Every hard rule that can be enforced mechanically, is.
+#
+# One entry point, `npm run verify`, so a laptop and CI run exactly the same
+# gates: the static-check self-test (each check must be seen to fail on a
+# planted violation), the hard-rule checks in scripts/checks/run-all.js, ESLint
+# with the custom Rowhouse rules, SLDS Linter, and Jest with the accessibility
+# assertions.
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: Hard rules, lint and Jest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      # --legacy-peer-deps: two ESLint plugins still declare an older ESLint
+      # peer range than the ESLint 9 this project uses.
+      - run: npm ci --legacy-peer-deps
+      - run: npm run verify
+
+  apex:
+    name: Apex suite in a scratch org (unlocked build)
+    runs-on: ubuntu-latest
+    needs: static
+    # Runs only once a Dev Hub is connected: add its auth URL as the repository
+    # secret SFDX_AUTH_URL (sf org display --verbose on the Dev Hub prints it).
+    # The managed build's leg of the matrix comes with the packaging work.
+    env:
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+    steps:
+      - name: Skip without a Dev Hub
+        if: env.SFDX_AUTH_URL == ''
+        run: echo "::notice::No SFDX_AUTH_URL secret; run the Apex suite in a Developer Edition org instead."
+      - uses: actions/checkout@v4
+        if: env.SFDX_AUTH_URL != ''
+      - name: Install the Salesforce CLI
+        if: env.SFDX_AUTH_URL != ''
+        run: npm install -g @salesforce/cli
+      - name: Authenticate the Dev Hub
+        if: env.SFDX_AUTH_URL != ''
+        run: |
+          echo "$SFDX_AUTH_URL" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --set-default-dev-hub
+          rm auth.txt
+      - name: Create a scratch org
+        if: env.SFDX_AUTH_URL != ''
+        run: sf org create scratch -f config/project-scratch-def.json -a ci -d -y 1 -w 10
+      - name: Deploy the product, the test objects, the configurations and the tests
+        if: env.SFDX_AUTH_URL != ''
+        run: |
+          sf project deploy start -d force-app -o ci -w 20
+          sf project deploy start -d test-data/metadata -o ci -w 10
+          sf project deploy start -d test-data/config -o ci -w 10
+          sf project deploy start -d test-data/bench -o ci -w 10
+          sf project deploy start -d test-data/tests/apex -o ci -w 10
+      - name: Run the Apex suite
+        # No seed data and no admin permission sets: every test builds the
+        # users and rows it needs (GridTestUsers), as a package build org will.
+        if: env.SFDX_AUTH_URL != ''
+        run: sf apex run test -o ci -l RunLocalTests --code-coverage --result-format json -w 30 > apex-results.json
+      - name: Fail below 75% coverage
+        # 75% aggregate is the gate on promoting a 2GP version to released.
+        if: env.SFDX_AUTH_URL != ''
+        run: |
+          COV=$(jq -r '.result.summary.testRunCoverage' apex-results.json | tr -d '%')
+          echo "coverage: ${COV}%"
+          if [ -z "$COV" ] || [ "$COV" = "null" ]; then
+            echo "::error::Could not read coverage from apex-results.json."; exit 1; fi
+          awk -v c="$COV" 'BEGIN { exit (c+0 >= 75) ? 0 : 1 }' || {
+            echo "::error::Coverage ${COV}% is below the 75% promotion gate."; exit 1; }
+      - name: Always clean up the scratch org
+        if: always() && env.SFDX_AUTH_URL != ''
+        run: sf org delete scratch -o ci -p || true

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Tab_Label__c</fullName>
+    <label>Tab Label</label>
+    <type>Text</type>
+    <length>80</length>
+    <required>false</required>
+    <description>The tab's name. If blank, the child grid configuration's label is used.</description>
+    <inlineHelpText>Optional. Leave blank to use the child grid configuration's label.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

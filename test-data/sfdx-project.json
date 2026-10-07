@@ -1,0 +1,9 @@
+{
+  "packageDirectories": [
+    { "path": "metadata", "default": true }
+  ],
+  "name": "rowhouse-test-data",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "67.0"
+}

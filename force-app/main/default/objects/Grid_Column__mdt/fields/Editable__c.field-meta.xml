@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Editable__c</fullName>
+    <label>Editable</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Lets users edit this column in the grid. The grid must allow inline edit, and users need edit access to the field and the record. Rich text is always read-only in the grid; long text is edited in a text area that first reads the whole value.</description>
+    <inlineHelpText>Check to let users edit this column. The grid must allow inline edit, and users need edit access to the field.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

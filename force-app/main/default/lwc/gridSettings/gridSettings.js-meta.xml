@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <!-- Internal: the dialog a grid's gear opens. -->
+    <isExposed>false</isExposed>
+    <description>Rowhouse grid settings dialog: the gear on a grid opens it, for users with the Rowhouse Grid Admin permission set.</description>
+</LightningComponentBundle>

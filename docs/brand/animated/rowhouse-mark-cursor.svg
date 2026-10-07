@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rowhouse — animated: cursor
+     The highlighted row steps down the rows and back, the way a cursor moves
+     through a table. The mark animating its own meaning.
+
+     WHY THE FILL ANIMATES INSTEAD OF A BAR SLIDING
+     Sliding a clay bar over the pine ones leaves an artefact at every
+     anti-aliased edge: laid on top it darkens them, and masking the pine with
+     a hole of the same size does not help, because the pine survives at
+     coverage a*(1-a) — about 25% halfway across the pixel. Bleeding the hole
+     wider only trades the dark fringe for a pale one. Animating fill moves no
+     geometry at all, so there is nothing to composite and nothing to go
+     wrong at any size.
+     It is also truer to the thing it depicts: a cursor in a grid jumps from
+     row to row, it does not glide.
+
+     RESTS with the middle row live — the real static mark — so a renderer
+     that ignores animation still shows the correct logo.
+     (c) Kugamon LLC. The mark is a trademark; the software is Apache-2.0. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t d">
+  <title id="t">Rowhouse</title>
+  <desc id="d">The Rowhouse mark with the highlighted row stepping between the three rows and back, the way a cursor moves down a table.</desc>
+  <style>
+    .row { animation-duration: 5s; animation-iteration-count: infinite }
+    .r1  { animation-name: live-top }
+    .r2  { animation-name: live-mid }
+    .r3  { animation-name: live-bot }
+
+    /* One row is live at a time, in the order middle, bottom, middle, top.
+       Back through the middle each way, so the highlight never jumps the
+       full height of the mark. */
+    @keyframes live-top {
+      0%,  52% { fill: #0F5C45 }
+      60%, 70% { fill: #B3431F }
+      78%,100% { fill: #0F5C45 }
+    }
+    @keyframes live-mid {
+      0%,  10% { fill: #B3431F }
+      18%, 32% { fill: #0F5C45 }
+      40%, 50% { fill: #B3431F }
+      58%, 72% { fill: #0F5C45 }
+      80%,100% { fill: #B3431F }
+    }
+    @keyframes live-bot {
+      0%,  12% { fill: #0F5C45 }
+      20%, 30% { fill: #B3431F }
+      38%,100% { fill: #0F5C45 }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .row { animation: none }
+    }
+  </style>
+
+  <path fill="#0F5C45" d="M2 11.5 L16 3.5 L30 11.5 Z"/>
+  <rect class="row r1" x="2" y="14" width="28" height="4" rx="1" fill="#0F5C45"/>
+  <rect class="row r2" x="2" y="20" width="28" height="4" rx="1" fill="#B3431F"/>
+  <rect class="row r3" x="2" y="26" width="28" height="4" rx="1" fill="#0F5C45"/>
+</svg>

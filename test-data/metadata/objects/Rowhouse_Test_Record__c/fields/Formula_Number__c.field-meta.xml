@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Formula_Number__c</fullName>
+    <label>Formula Number</label>
+    <type>Number</type>
+    <precision>18</precision>
+    <scale>2</scale>
+    <formula>Number_Field__c * 2</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <required>false</required>
+    <description>DEVELOPMENT ONLY. Read-only by type. Also the sort-on-formula test: formula fields are sortable in SOQL but not indexed.</description>
+</CustomField>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Value_To__c</fullName>
+    <label>Value To</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>For Between only: the upper end of the range. Both ends are included.</description>
+    <inlineHelpText>For Between: the upper end. Both ends are included.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

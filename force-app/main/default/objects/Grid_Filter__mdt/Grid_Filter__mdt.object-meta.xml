@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Grid Filter</label>
+    <pluralLabel>Grid Filters</pluralLabel>
+    <description>A condition every record in a Rowhouse grid must meet. Users cannot remove it; all of a grid's active filters must hold.</description>
+    <visibility>Public</visibility>
+</CustomObject>

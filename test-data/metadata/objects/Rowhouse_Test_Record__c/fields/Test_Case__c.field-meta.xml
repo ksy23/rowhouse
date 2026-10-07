@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Test_Case__c</fullName>
+    <label>Test Case</label>
+    <type>Text</type>
+    <length>80</length>
+    <externalId>false</externalId>
+    <required>false</required>
+    <description>DEVELOPMENT ONLY. Which edge case this record exists to break. A failing test quotes this, so you never have to read the generator to find out what broke.</description>
+</CustomField>

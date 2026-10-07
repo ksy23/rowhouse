@@ -1,0 +1,376 @@
+<!--meta {"title": "User guide", "desc": "Working in a Rowhouse grid: finding records, editing and saving, every keyboard key, copy and paste, undo, selecting rows, grouping, related records, actions, import and export, and phones.", "section": "using", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / User guide</div>
+    <span class="aud user">User</span>
+    <h1 style="margin-top:14px">Working in a grid</h1>
+    <p class="dek">A grid works like a Salesforce list view that you can type into, with the keys you already know from Excel and Google Sheets. Nothing is saved until you click Save.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Basics</span>
+    <a href="#tour">A tour of the screen</a>
+    <a href="#find">Find and sort</a>
+    <a href="#edit">Edit and save</a>
+    <a href="#keys">Keys</a>
+    <a href="#sheet">Copy, paste, fill, undo</a>
+    <span class="s-k">More</span>
+    <a href="#select">Change many rows</a>
+    <a href="#group">Group and total</a>
+    <a href="#related">Related records</a>
+    <a href="#actions">Actions</a>
+    <a href="#io">Import and export</a>
+    <a href="#columns">Columns</a>
+    <a href="#phone">On a phone</a>
+    <a href="#a11y">Screen readers</a>
+  </aside>
+
+  <main class="content">
+
+<section id="tour">
+  <div class="sec-head"><span class="sec-num">Basics</span><h2>A tour of the screen</h2></div>
+  <figure class="rv">
+    <div class="screen"><div class="stage"><div class="card-m tour">
+      <div class="m-head">
+        <div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div>
+        <div><div class="m-title">Service Triage</div><div class="m-meta">26 items • Sorted by Priority • Updated a few seconds ago</div></div>
+        <div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Grid settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 20V9"/><path d="m7 14 5-5 5 5"/><path d="M5 4h14"/></svg>Import</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div>
+      </div>
+      <table class="mt"><colgroup><col style="width:5%"><col style="width:14%"><col style="width:33%"><col style="width:17%"><col style="width:14%"><col style="width:12%"><col style="width:5%"></colgroup>
+        <thead><tr><th class="cb"><span class="mcb"></span></th><th class="dd">Case</th><th class="dd">Subject</th><th class="dd">Status</th><th class="dd">Priority <span class="srt">↓</span></th><th class="dd">Origin</th><th></th></tr></thead>
+        <tbody>
+          <tr class="bar amber"><td class="cb"><span class="mcb"></span></td><td class="lnk">00001026</td><td>Generator GC1060 trips on start</td><td>New</td><td class="f-red">High</td><td>Phone</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr class="sel"><td class="cb"><span class="mcb on"></span></td><td class="lnk">00001027</td><td>Invoice shows wrong tax rate</td><td class="edited">Working</td><td>Medium</td><td>Email</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">00001028</td><td>Request: training for new staff</td><td class="focus">Escalated<span class="pen"></span></td><td>Low</td><td>Web</td><td class="c"><span class="m-rm"></span></td></tr>
+        </tbody></table>
+      <div style="height:78px"></div>
+      <div class="m-pill" style="opacity:1"><span class="ms">1 unsaved change</span><span class="mb"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Undo</span><span class="mb"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Redo</span><span class="mb">Cancel</span><span class="mb p">Save</span></div>
+      <span class="hot" style="left:0.3%;top:6px">1</span>
+      <span class="hot" style="left:31%;top:34px">2</span>
+      <span class="hot" style="left:35.9%;top:7px">3</span>
+      <span class="hot" style="left:73.8%;top:5px">4</span>
+      <span class="hot" style="left:34.3%;top:67px">5</span>
+      <span class="hot" style="left:1.5%;top:96px">6</span>
+      <span class="hot" style="left:51.1%;top:159px">7</span>
+      <span class="hot" style="left:96%;top:96px">8</span>
+      <span class="hot" style="left:66.6%;top:217px">9</span>
+    </div></div></div>
+  </figure>
+  <ol class="tut" style="columns:2;column-gap:36px">
+    <li style="break-inside:avoid"><b>The grid's icon and title.</b> Your admin names each grid.</li>
+    <li style="break-inside:avoid"><b>How many records</b>, the sort, and when it was loaded.</li>
+    <li style="break-inside:avoid"><b>Search</b> the list as you type.</li>
+    <li style="break-inside:avoid"><b>Refresh</b>; <b>Choose columns</b>; <b>Display Key</b> when the grid has display rules; <b>Import</b> and <b>Export</b> when your admin allows them; <b>Reset layout</b> once your layout is kept; for the people who manage grids, a gear that opens the grid's settings; and <b>?</b>, which opens this guide.</li>
+    <li style="break-inside:avoid"><b>Column headers.</b> Click to sort; the ▾ opens a menu.</li>
+    <li style="break-inside:avoid"><b>Tick boxes</b> select rows, to change or act on many at once.</li>
+    <li style="break-inside:avoid"><b>The focused cell</b>, with a blue ring. A pencil means you can edit it; yellow means an unsaved change.</li>
+    <li style="break-inside:avoid"><b>The row's menu</b> of actions, when your admin added some.</li>
+    <li style="break-inside:avoid"><b>The Save bar</b> appears when something is unsaved, with Undo, Redo, Cancel and Save.</li>
+  </ol>
+  <p class="note">Colors on cells, icons before values, bars behind numbers and the bar at a row's left edge come from your admin's rules. Click <b>Display Key</b> to see what each one means.</p>
+  <p class="note">Chips under the title, after <b>Filtered by</b>, are the filters in force. One with a lock was set by your admin and stays; yours have an ✕.</p>
+  <p class="note">The <b>?</b> at the end of the icons opens this User guide in a new browser tab, so nothing you have not saved is lost. On a narrow page it is <b>Help</b> in the grid's menu.</p>
+  <p class="note">A gear beside <b>Refresh</b> means you build grids (the Rowhouse Grid Admin permission set): it opens this grid's settings. See the <a href="configure.html#admin">configuration reference</a>.</p>
+  <p class="note">While the grid loads, a thin blue bar sweeps along its top edge and the count line says <b>Loading…</b>. When the grid first opens, grey bars stand where its name, icon and rows will be. The blue bar shows again whenever the grid fetches rows from Salesforce: after a Refresh, a search, or a sort on a grid with more than 10,000 records.</p>
+</section>
+
+<section id="find">
+  <div class="sec-head"><span class="sec-num">Basics</span><h2>Find and sort</h2></div>
+  <div class="split">
+    <div>
+      <h4 class="mt0">Search</h4>
+      <p>Type in <b>Search this list</b>. The grid searches every record it can show, not only the rows on screen: the text, email, phone, web address and picklist fields it reads (its columns, and any field a display rule needs), and the names in lookup columns, anywhere in the value. Numbers and dates are not searched. Clear the box to see everything again.</p>
+      <h4>Sort</h4>
+      <p>Click a column's header to sort by it; click again to reverse. <b>Shift-click</b> another header to sort by it as well, as a tie-breaker. Each column's ▾ menu also has <b>Sort ascending</b> and <b>Sort descending</b>. A picklist sorts in the order of its values, as Salesforce lists them, not alphabetically.</p>
+      <h4>Filter</h4>
+      <p>Open a column's ▾ menu and choose <b>Filter…</b>. Pick a condition (for a date: On, After, Before, Between…), enter a value, and click <b>Apply</b> or press <kbd>Enter</kbd>. The grid asks Salesforce again, so the count, the groups and the totals are of the filtered records. The column's header shows a filter icon, and the filter shows as a chip under the title: its ✕ removes it, and <b>Clear filters</b> removes all of yours. <b>Edit filter…</b> in the menu changes it. One filter per column, up to 10 columns; filters last until you leave or reload the page.</p>
+      <p>A lookup is filtered by the name of its record ("Name contains acme"), and a lookup to people also by <b>Is me</b>. Long text and formula columns cannot be filtered.</p>
+    </div>
+    <div>
+      <h4 class="mt0">Big lists</h4>
+      <p>The grid loads the first 10,000 records straight away, so sorting them is instant. Past that, more load as you scroll toward the end, 2,000 at a time, up to 100,000; a <b>Load more</b> button below the grid does the same. In a list that big, sorting asks Salesforce for the records in the new order, which takes a few seconds.</p>
+      <div class="lims" style="grid-template-columns:1fr">
+        <div class="lim"><span class="t">Loaded when the grid opens</span><span class="n">10,000 rows</span><div class="meter"><i style="--w:10%"></i></div></div>
+        <div class="lim sky"><span class="t">Reachable by scrolling</span><span class="n">100,000 rows</span><div class="meter"><i style="--w:100%"></i></div></div>
+      </div>
+    </div>
+  </div>
+  <figure class="rv" style="margin-top:22px">
+    <div class="screen"><div class="stage"><div class="card-m" style="min-height:250px">
+      <div class="m-head"><div class="m-ico cont"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Account People</div><div class="m-meta">5 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-chips">Filtered by <span class="m-chip lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Email is not blank</span></div>
+      <table class="mt"><colgroup><col style="width:5%"><col style="width:26%"><col style="width:29%"><col style="width:40%"></colgroup>
+        <thead><tr><th class="cb"><span class="mcb"></span></th><th class="dd">Full Name</th><th class="dd" style="box-shadow:inset 0 0 0 2px #0250D9">Title</th><th class="dd">Email</th></tr></thead>
+        <tbody>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Lauren Boyle</td><td><span class="m-ii">i</span>SVP, Technology</td><td class="lnk">lboyle@uog.com</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Molly Fitzgerald</td><td><span class="m-ii">i</span>VP, Sales</td><td class="lnk">molly.fitzgerald@uog.example</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Avi Green</td><td>CFO</td><td class="lnk">agreen@uog.com</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Stella Pavlova</td><td><span class="m-ii">i</span>SVP, Production</td><td class="lnk">spavlova@uog.com</td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Arthur Song</td><td>CEO</td><td class="lnk">asong@uog.com</td></tr>
+        </tbody></table>
+      <div class="m-filter" style="left:31%;top:118px"><b>Filter Title</b><span class="lb">Condition</span><span class="in">Contains <svg class="ud" viewBox="0 0 8 12" aria-hidden="true"><path d="M4 1 7 5H1zM4 11 1 7h6z"/></svg></span><span class="lb">Value</span><span class="in">VP</span><div class="fb"><span>Cancel</span><span class="p">Apply</span></div></div>
+    </div></div></div>
+    <figcaption>Filter… on the Title column: a condition and a value. Apply, or Enter, and the grid asks Salesforce again; the filter becomes a chip beside the admin's locked one.</figcaption>
+  </figure>
+</section>
+
+<section id="edit">
+  <div class="sec-head"><span class="sec-num">Basics</span><h2>Edit and save</h2>
+  <p class="sec-sub">Hover over a cell: a blue pencil means you can change it, a grey lock means you cannot.</p></div>
+  <div class="tiles rv-stagger">
+    <div class="tile"><div class="ic">{{ic:keyboard}}</div><h4>Start typing</h4><p>On a focused cell, just type: your first character replaces the value, as in a spreadsheet.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:edit}}</div><h4>Or open the editor</h4><p>Press <kbd>Enter</kbd> or <kbd>F2</kbd>, double-click the cell, or click the pencil. The editor opens with the current value, so you can change part of it.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:check}}</div><h4>Finish</h4><p><kbd>Enter</kbd> or <kbd>Tab</kbd> keeps the change; <kbd>Esc</kbd> leaves the cell as it was.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:upload}}</div><h4>Save</h4><p>The cell turns yellow and the Save bar appears. Click <b>Save</b> when you are ready, or <b>Cancel</b> to throw every change away.</p></div>
+  </div>
+  <h3>The editors</h3>
+  <div class="tbox"><table class="ref">
+    <thead><tr><th>Field type</th><th>How you edit it</th></tr></thead>
+    <tbody>
+      <tr><td>Text, email, phone, web address</td><td>Type. A required field left empty is refused in the editor with "Complete this field."</td></tr>
+      <tr><td>Number, currency, percent</td><td>Type the number. It is rounded to the field's decimal places straight away, so you see exactly what will be saved.</td></tr>
+      <tr><td>Date/time</td><td>The same calendar, with a list of times every half hour and <b>Now</b>; or type the date and time ("10/2/2026 3:30 PM") and press <kbd>Enter</kbd>. The time is in your Salesforce time zone, named under the calendar.</td></tr>
+      <tr><td>Time</td><td>Pick from the list of times every half hour, or type <span class="v plain">17:30</span>, <span class="v plain">5:30 PM</span> or <span class="v plain">5pm</span> and press <kbd>Enter</kbd>.</td></tr>
+      <tr><td>Long text</td><td>A text area opens under the cell, with a count of characters against the field's limit. <kbd>Enter</kbd> starts a new line; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (<kbd>⌘</kbd>+<kbd>Enter</kbd> on a Mac), <kbd>Tab</kbd> or <b>Done</b> keeps it. A very long value is read whole first, so what you save is never a shortened copy.</td></tr>
+      <tr><td>Date</td><td>A calendar opens with the editor. Click a day, or type the date in the box and press <kbd>Enter</kbd>. <kbd>↓</kbd> moves into the calendar: arrows by day and week, <kbd>Page Up</kbd>/<kbd>Page Down</kbd> by month (with <kbd>Shift</kbd>, by year), <kbd>Enter</kbd> picks. <b>Today</b> picks today.</td></tr>
+      <tr><td>Checkbox</td><td><kbd>Space</kbd> ticks or unticks; <kbd>Enter</kbd> keeps it.</td></tr>
+      <tr><td>Picklist</td><td>Choose from the list. A dependent picklist offers only the values its controlling field allows; changing the controlling value clears a value it no longer allows, and says so.</td></tr>
+      <tr><td>Multi-select picklist</td><td>Move values between Available and Chosen, then click <b>Done</b>.</td></tr>
+      <tr><td>Lookup and owner</td><td>Type part of a name; matches appear after a moment. Arrow to one and press <kbd>Enter</kbd>. Empty the box to clear the field. An owner can be a user or a queue. <b>New Account</b> (or the lookup's object) at the end of the list opens Salesforce's own form; the record you save goes in the cell. A lookup your admin limited with a lookup filter opens Salesforce's own lookup, which offers only the records the filter allows.</td></tr>
+    </tbody></table></div>
+
+  <h3>While it saves, and after</h3>
+  <div class="split">
+    <ul class="tick">
+      <li><b>Big saves go in batches</b> and the grid says how far it has got ("Saving… 3 of 5 batches done").</li>
+      <li><b>Saved rows are read back</b>, so formula fields and anything your company's automation changed show their new values.</li>
+    </ul>
+    <ul class="tick">
+      <li><b>If Salesforce refuses a change</b>, for example a validation rule, the cell is marked and keeps your value; move to it to read why. The other records still save.</li>
+      <li><b>Before you leave the page</b>, Save or Cancel: unsaved edits are not kept for later.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="keys">
+  <div class="sec-head"><span class="sec-num">Basics</span><h2>Keys</h2>
+  <p class="sec-sub">One <kbd>Tab</kbd> takes you into the grid, and one more takes you out. Inside, the arrow keys move. On a Mac, <kbd>Cmd</kbd> where this says Ctrl.</p></div>
+  <div class="frame rv">
+    <div class="split" style="align-items:center">
+      <div class="kdemo" aria-hidden="true">
+        <div class="kgrid">
+          <span>Account</span><span>Stage</span><span>Amount</span>
+          <span>GenePoint</span><span>Prospecting</span><span>$60,000</span>
+          <span>Edge</span><span>Negotiation</span><span class="kv"><b>$95,000</b><em>$98,000</em></span>
+        </div>
+        <div class="kfocus"></div>
+      </div>
+      <div class="keyboard" aria-hidden="true">
+        <div class="row"><span class="k kd-f2">F2</span><span class="k w kd-enter">Enter ⏎</span></div>
+        <div class="row"><span class="k">←</span><span class="k kd-down">↓</span><span class="k kd-right">→</span></div>
+        <div class="row"><span class="k xw kd-type">9 8 0 0 0</span></div>
+      </div>
+    </div>
+    <p class="chart-note">→ → ↓ to reach Amount, type 98000, Enter: the cell turns yellow, waiting for Save.</p>
+  </div>
+  <div class="kb" style="margin-top:22px">
+    <div>
+      <h4 class="mt0">Moving</h4>
+      <div class="kbrow"><span>One cell</span><span class="keys"><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></span></div>
+      <div class="kbrow"><span>Start or end of the row</span><span class="keys"><kbd>Home</kbd> <kbd>End</kbd></span></div>
+      <div class="kbrow"><span>First or last cell of the grid</span><span class="keys"><kbd>Ctrl</kbd>+<kbd>Home</kbd> <kbd>Ctrl</kbd>+<kbd>End</kbd></span></div>
+      <div class="kbrow"><span>A screenful up or down</span><span class="keys"><kbd>Page Up</kbd> <kbd>Page Down</kbd></span></div>
+      <div class="kbrow"><span>Into or out of the grid</span><span class="keys"><kbd>Tab</kbd> <kbd>Shift</kbd>+<kbd>Tab</kbd></span></div>
+    </div>
+    <div>
+      <h4 class="mt0">Editing</h4>
+      <div class="kbrow"><span>Replace the value</span><span class="keys">just type</span></div>
+      <div class="kbrow"><span>Open the editor</span><span class="keys"><kbd>Enter</kbd> <kbd>F2</kbd></span></div>
+      <div class="kbrow"><span>Keep the change</span><span class="keys"><kbd>Enter</kbd> <kbd>Tab</kbd></span></div>
+      <div class="kbrow"><span>Leave the cell as it was</span><span class="keys"><kbd>Esc</kbd></span></div>
+      <div class="kbrow"><span>Use a link or button in a cell</span><span class="keys"><kbd>Enter</kbd>, then <kbd>Tab</kbd>; <kbd>Esc</kbd> to return</span></div>
+    </div>
+    <div>
+      <h4 class="mt0">Headers and rows</h4>
+      <div class="kbrow"><span>Sort by the column</span><span class="keys"><kbd>Space</kbd> on its header</span></div>
+      <div class="kbrow"><span>Add it to the sort</span><span class="keys"><kbd>Shift</kbd>+<kbd>Space</kbd></span></div>
+      <div class="kbrow"><span>Select or unselect the row</span><span class="keys"><kbd>Space</kbd> on a cell</span></div>
+      <div class="kbrow"><span>Open a row's actions</span><span class="keys"><kbd>End</kbd>, then <kbd>Enter</kbd></span></div>
+      <div class="kbrow"><span>Open or close related records</span><span class="keys"><kbd>Enter</kbd> on the toggle</span></div>
+    </div>
+    <div>
+      <h4 class="mt0">Ranges and clipboard</h4>
+      <div class="kbrow"><span>Extend a range</span><span class="keys"><kbd>Shift</kbd>+arrows, or <kbd>Shift</kbd>-click</span></div>
+      <div class="kbrow"><span>Copy · Paste</span><span class="keys"><kbd>Ctrl</kbd>+<kbd>C</kbd> · <kbd>Ctrl</kbd>+<kbd>V</kbd></span></div>
+      <div class="kbrow"><span>Fill down</span><span class="keys"><kbd>Ctrl</kbd>+<kbd>D</kbd></span></div>
+      <div class="kbrow"><span>Clear the range</span><span class="keys"><kbd>Delete</kbd> <kbd>Backspace</kbd></span></div>
+      <div class="kbrow"><span>Undo · Redo</span><span class="keys"><kbd>Ctrl</kbd>+<kbd>Z</kbd> · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> or <kbd>Ctrl</kbd>+<kbd>Y</kbd></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="sheet">
+  <div class="sec-head"><span class="sec-num">Basics</span><h2>Copy, paste, fill down, undo</h2>
+  <p class="sec-sub">All of it works on unsaved edits, so every step can be undone, and Cancel throws it all away.</p></div>
+  <div class="tiles rv-stagger">
+    <div class="tile"><div class="ic">{{ic:grid}}</div><h4>Select a range</h4><p>Hold <kbd>Shift</kbd> and use the arrows, or Shift-click a cell. Any move without Shift goes back to one cell. Sorting clears the range.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:copy}}</div><h4>Copy</h4><p>Copies tab-separated text that Excel and Google Sheets paste as cells: numbers plain, dates as 2026-10-15, checkboxes as TRUE or FALSE.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:download}}</div><h4>Paste</h4><p>Paste a block from a spreadsheet, up to 10,000 cells. One value into a range fills it. Read-only cells are skipped and counted; a value that does not fit a column is marked on its cell.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:layers}}</div><h4>Fill down</h4><p><kbd>Ctrl</kbd>+<kbd>D</kbd> copies the top row of the range into the rows below it; on one cell, it copies the cell above.</p></div>
+    <div class="tile rose"><div class="ic">{{ic:history}}</div><h4>Undo and redo</h4><p>Up to 100 steps, with the keys or the Save bar's buttons. A paste of 500 cells is one step. Saving clears the history.</p></div>
+  </div>
+  <div class="call s" style="margin-top:20px"><span class="k">Pasting lookups</span><p>Paste a record Id, or the name of a record that is already showing in the grid. A name shared by two records in the grid is refused, and asks for the Id.</p></div>
+</section>
+
+<section id="select">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Change many rows at once</h2></div>
+  <figure class="rv">
+    <div class="screen"><div class="stage"><div class="card-m" style="min-height:190px">
+      <div class="m-head"><div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div><div><div class="m-title">Service Triage</div><div class="m-meta">35 items • Sorted by Opened • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-selbar"><b>3 selected</b><span class="mb"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Update field</span><span class="m-link">Clear</span></div>
+      <table class="mt"><colgroup><col style="width:5%"><col style="width:15%"><col style="width:50%"><col style="width:30%"></colgroup><thead><tr><th class="cb"><span class="mcb"></span></th><th class="dd">Case</th><th class="dd">Subject</th><th class="dd">Status</th></tr></thead><tbody>
+        <tr class="sel"><td class="cb"><span class="mcb on"></span></td><td class="lnk">00001026</td><td>Generator GC1060 trips on start-up</td><td>New</td></tr>
+        <tr class="sel"><td class="cb"><span class="mcb on"></span></td><td class="lnk">00001027</td><td>Portal login loops back to sign-in</td><td>New</td></tr>
+        <tr class="sel"><td class="cb"><span class="mcb on"></span></td><td class="lnk">00001028</td><td>Shipment of spare filters arrived damaged</td><td>New</td></tr>
+        <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">00001029</td><td>Invoice shows the wrong tax rate</td><td>Working</td></tr>
+      </tbody></table>
+    </div></div></div>
+    <figcaption>Tick rows (or press Space on them): a bar floats over the top of the grid with what you can do to all of them. Here, <b>Update field</b>; Delete and your admin's actions join it when the grid has them.</figcaption>
+  </figure>
+  <ul class="tick">
+    <li><b>Update field</b> sets one column to one value on every selected row. The changes wait as unsaved edits; check them, then <b>Save</b>.</li>
+    <li><b>Delete</b>, when your admin allows it, asks first, naming the rows. Deleted records go to the Recycle Bin, and a bar under the grid's header offers <b>Undo</b>, which puts them back.</li>
+    <li><b>Actions</b> your admin added for selections show as buttons, or in an Actions menu.</li>
+    <li><b>Select all</b> (the box in the header) takes up to 10,000 rows in the current order. When more records match than are loaded, the bar offers <b>Select all N matching records</b>: Delete then deletes every record the search and filters match. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more, so if a large delete was a mistake, click Undo straight away. <b>Clear</b> unselects everything. A search or a reload clears the selection; a sort or a save keeps it.</li>
+  </ul>
+</section>
+
+<section id="group">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Group and total</h2></div>
+  <div class="split">
+    <ul class="tick">
+      <li><b>Group by a column</b> from its ▾ menu: <b>Group by Stage</b>. Once grouped, other columns offer <b>Add … to grouping</b> (up to three levels) and <b>Group by … only</b>. Or drag a column's header onto the drop zone above the table, or onto the Group column.</li>
+      <li><b>Each group</b> shows its count and subtotals. Click its arrow, or press <kbd>Enter</kbd> on it, to close or open it; the Group column's menu has <b>Expand all groups</b> and <b>Collapse all groups</b>.</li>
+      <li><b>Dates</b> group by month unless you choose day, week, quarter, year, fiscal quarter or fiscal year in the Group column's menu.</li>
+      <li><b>Order and share:</b> the Group column's menu orders the groups by name, by record count or by a subtotal (largest or smallest first), and <b>Show percent of total</b> adds each group's share.</li>
+      <li><b>Groups come in the order a Salesforce report uses:</b> a picklist in its own order of values (Prospecting before Closed Won), dates and numbers from low to high, Not checked before Checked, everything else A to Z, blank last. Sort the column descending to reverse them.</li>
+    </ul>
+    <ul class="tick">
+      <li><b>Chips above the grid</b> show the grouping; the ✕ on a chip removes that level, and <b>Stop grouping</b> removes all of them.</li>
+      <li><b>The Total row</b> at the bottom adds up every matching record, not just the rows on screen.</li>
+      <li><b>Subtotals follow your edits</b> before you save, marked yellow. An edited row moves to its new group when you save.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="related">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Related records</h2>
+  <p class="sec-sub">When your admin has added child tables, a row with related records has a toggle showing how many. Open it to see them in tabs below the row.</p></div>
+  <ul class="tick">
+    <li><b>Each tab is a grid of its own</b>, with its own columns, sort, editing and Save bar. Its changes are saved separately from the main grid's.</li>
+    <li><b>From the keyboard:</b> <kbd>Enter</kbd> on the toggle opens the row; arrow down to the panel and press <kbd>Enter</kbd> to go into the tab's grid; <kbd>Esc</kbd> comes back out.</li>
+    <li><b>Importing into a tab</b> links every new record to the row automatically.</li>
+    <li><b>Open every row at once</b> with the button in the toggle column's header; it closes them again.</li>
+  </ul>
+</section>
+
+<section id="actions">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Actions</h2></div>
+  <div class="split">
+    <ul class="tick">
+      <li><b>On one row:</b> open the ▾ menu at the right end of the row and choose the action. Most run straight away; some ask a question first.</li>
+      <li><b>On many rows:</b> select them, then use the action's button in the selection bar. You are asked first, except for a screen flow, which opens on its own page.</li>
+    </ul>
+    <ul class="tick">
+      <li><b>A screen flow</b> opens on a page of its own, under the action's name, with a <b>Cancel</b> button at the top. Finish it, or click Cancel, and you are back on the grid with those rows read again. Save or cancel your changes in the grid first: the grid asks you to.</li>
+      <li><b>Afterwards</b> a message says how many records it ran on, and any record it could not run on shows why on its row.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="io">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Import and export</h2></div>
+  <div class="split">
+    <div>
+      <h4 class="mt0">Export</h4>
+      <p><b>Export</b> downloads the rows you have loaded, in your current sort, as a CSV file that opens in Excel. It has the record Id first, so the same file can come back in as an import. It exports saved values: unsaved edits, and rows not yet loaded, are left out. A very long text exports as the grid shows it, its first 1,000 characters and "…"; imported back unchanged, it leaves the whole text as it was.</p>
+    </div>
+    <div>
+      <h4 class="mt0">Import</h4>
+      <ol class="steps">
+        <li><b>Save or cancel</b> any changes first.</li>
+        <li><b>Click Import</b> and drop in a CSV or Excel (.xlsx) file. The first row must name the columns, as the grid does. <b>Download a template with this grid's columns</b> gives you a file with the right headers.</li>
+        <li><b>Check the rows</b>: how many records will be updated, how many created, and any rows held back, with the reason. For a workbook, choose the <b>Sheet</b>. Under <b>Columns</b>, change what a file column is imported as, or choose <b>(Not imported)</b>.</li>
+        <li><b>Click Import.</b> When it is done, <b>Undo import</b> puts back what it changed, until you close the dialog. Close it and the grid reloads with your changes.</li>
+      </ol>
+      <p class="note">A row with an Id updates that record; a row without one creates a new record, if you can create records of that kind. With an External Id column in the file, <b>Match records by</b> can match by it instead. An empty cell clears the field; to leave a field alone, leave its column out.</p>
+    </div>
+  </div>
+</section>
+
+<section id="columns">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Columns</h2></div>
+  <ul class="tick">
+    <li><b>Resize</b> by dragging the edge of a header; <b>double-click</b> the edge to fit the column to its contents.</li>
+    <li><b>Wrap text</b> or <b>Clip text</b> from a text column's ▾ menu: wrapped values show up to three lines, clipped ones show the rest in a tooltip.</li>
+    <li><b>Frozen columns</b>, set by your admin, stay in place while you scroll sideways.</li>
+    <li><b>A formula column</b> (a lock when you hover a cell) is worked out by the grid from other fields; it changes after a save.</li>
+  </ul>
+  <h3>Choose your columns</h3>
+  <figure class="rv" style="max-width:560px">
+    <div class="screen"><div class="stage"><div class="card-m m-modal">
+      <div class="m-modal-h">Choose columns</div>
+      <p class="m-modal-p">Move the columns you want into Visible, in the order to show them. Only you see this choice; Reset layout puts back your admin's columns.</p>
+      <p class="m-modal-p weak">Your admin keeps Full Name on screen: it can be moved, not hidden.</p>
+      <div class="m-dual">
+        <div><span class="lb">Available</span><div class="box"><span>Business Phone</span></div></div>
+        <div class="arr"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l5 4-5 4z"/></svg><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M7 1L2 5l5 4z"/></svg></div>
+        <div><span class="lb">Visible</span><div class="box"><span>Full Name <svg class="lk" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span>Email</span><span class="on">Title</span><span>Account</span><span>Days on file</span></div></div>
+        <div class="arr"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 7l4-5 4 5z"/></svg><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 5 4-5z"/></svg></div>
+      </div>
+      <div class="m-modal-f"><span class="m-btn">Cancel</span><span class="m-btn pr">Save</span></div>
+    </div></div></div>
+    <figcaption>Choose columns on Account People: Business Phone hidden, Email moved before Title. Full Name, kept on screen by the admin, cannot leave Visible.</figcaption>
+  </figure>
+  <ul class="tick">
+    <li><b>Choose columns</b>, the button with three bars beside Refresh (in a narrow space, in the menu beside the search), lists the grid's columns in two boxes, <b>Available</b> and <b>Visible</b>. Click a column, then an arrow: ▸ and ◂ move it between the boxes, ▴ and ▾ move it up and down the Visible list. Click <b>Save</b>. It all works from the keyboard.</li>
+    <li><b>Hide column</b>, at the bottom of a column's ▾ menu, hides that column at once.</li>
+    <li><b>Drag a header</b> by its name onto another to move its column: a blue bar shows which side of that header it lands on. (Its very edges resize the column instead.)</li>
+    <li>A column your admin keeps on screen has no <b>Hide column</b>, and shows a lock in the Visible list, which it cannot leave; you can still move it. One column always stays.</li>
+    <li>Hiding changes only what you see. Search still looks in hidden columns, a sort, filter or grouping on one stays in force, and <b>Export</b> writes the columns you see, in your order.</li>
+  </ul>
+  <h3>Your layout is kept</h3>
+  <p>The columns you chose and their order, the widths you set, Wrap or Clip, your sort, your grouping and the rows whose related records you opened are kept in Salesforce for you, a couple of seconds after each change, and the grid opens that way next time, on any computer. Your filters are not kept. To go back to how your admin set the grid up, click <b>Reset layout</b> (the ↶ button beside Refresh; in a narrow space, in the menu beside the search). It shows only once something is kept. A grid of related records under a row keeps no layout of its own.</p>
+</section>
+
+<section id="phone">
+  <div class="sec-head"><span class="sec-num">More</span><h2>On a phone or in a narrow space</h2></div>
+  <div class="split" style="align-items:center">
+    <div class="phone" aria-hidden="true">
+      <div class="pc"><b>00001026</b><span>Subject</span><i>Generator GC1060 trips on start</i><span>Status</span><i class="tap">New</i><span>Priority</span><i>High</i><em>Show all fields (5 more)</em></div>
+      <div class="pc"><b>00001027</b><span>Subject</span><i>Invoice shows wrong tax rate</i><span>Status</span><i>Working</i><span>Priority</span><i>Medium</i><em>Show all fields (5 more)</em></div>
+      <div class="m-pill" style="opacity:1;position:sticky;bottom:6px;margin-top:6px;transform:none;left:auto;display:block"><span class="ms">1 unsaved change</span><span class="mb">Cancel</span><span class="mb p">Save</span></div>
+    </div>
+    <ul class="tick">
+      <li><b>Below 480 pixels wide</b> each record becomes a card: its title and three fields, with <b>Show all fields</b> for the rest.</li>
+      <li><b>Tap a value</b> to edit it. The Save bar stays at the bottom of the screen.</li>
+      <li><b>Cards come 50 at a time</b>, with <b>Show more</b>; sorting is a menu at the top.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="a11y">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Screen readers</h2></div>
+  <div class="prose">
+    <p>Rowhouse is built as an accessible grid: one tab stop, arrow-key navigation, each cell announced with its column, a format rule's meaning read after the value, and every action (a paste, an undo, a selection) announced in words. Its target is WCAG 2.2 AA. It has not yet been tested by hand with every screen reader, so tell your admin about anything that does not read well.</p>
+  </div>
+  <div class="next">
+    <a href="features.html"><small>Back</small><b>← Features in depth</b></a>
+    <a class="fwd" href="tutorials.html"><small>Next</small><b>Tutorials →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

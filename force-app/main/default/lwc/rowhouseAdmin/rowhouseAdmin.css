@@ -1,0 +1,387 @@
+/* The Grid Admin tab (laid out as). rh- classes and global styling hooks only (HR-15). */
+@import 'c/adminStyles';
+
+:host {
+    display: block;
+}
+
+/* ---------------------------------------------------------------- the header: the Grid Guide's */
+
+.rh-admin-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding-bottom: 0;
+}
+
+.rh-admin-logo {
+    display: block;
+    height: var(--slds-g-sizing-9, 2rem);
+    width: auto;
+    flex-shrink: 0;
+}
+
+.rh-admin-title {
+    min-width: 12rem;
+    padding-left: var(--slds-g-spacing-4, 1rem);
+    border-left: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, rgb(201, 201, 201));
+}
+
+/* Its pages: links, drawn as SLDS draws tabs, as the Grid Guide's are. */
+.rh-admin-nav {
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, rgb(201, 201, 201));
+    overflow-x: auto;
+}
+
+.rh-admin-nav-list {
+    display: flex;
+    gap: var(--slds-g-spacing-5, 1.5rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rh-admin-nav-item {
+    flex: 0 0 auto;
+}
+
+.rh-admin-nav-link {
+    display: block;
+    padding: var(--slds-g-spacing-2, 0.5rem) 0;
+    color: var(--slds-g-color-on-surface-2, rgb(46, 46, 46));
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: var(--slds-g-sizing-border-3, 3px) solid transparent;
+}
+
+.rh-admin-nav-link:hover,
+.rh-admin-nav-link:focus {
+    color: var(--slds-g-color-accent-1, rgb(1, 118, 211));
+    text-decoration: none;
+}
+
+.rh-admin-nav-item_current .rh-admin-nav-link {
+    color: var(--slds-g-color-on-surface-3, rgb(24, 24, 24));
+    font-weight: var(--slds-g-font-weight-bold, bold);
+    border-bottom-color: var(--slds-g-color-accent-1, rgb(1, 118, 211));
+}
+
+/* ---------------------------------------------------------------- the pages */
+
+.rh-admin-loading {
+    position: relative;
+    min-height: 8rem;
+}
+
+.rh-admin-page {
+    padding: 0 var(--slds-g-spacing-6, 2rem);
+}
+
+/* The Grids page: the Grid Guide's side navigation on the left, the page on the right,
+   as layout B of the Grid Admin mock-ups drew it. */
+.rh-admin-page_side {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: var(--slds-g-spacing-7, 2.5rem);
+}
+
+.rh-admin-main {
+    min-width: 0;
+}
+
+.rh-admin-side {
+    position: sticky;
+    top: var(--slds-g-spacing-4, 1rem);
+    align-self: start;
+    max-height: calc(100vh - 9rem);
+    overflow: auto;
+    padding: var(--slds-g-spacing-6, 2rem) 0;
+}
+
+.rh-admin-side-k {
+    display: block;
+    margin: var(--slds-g-spacing-4, 1rem) 0 var(--slds-g-spacing-2, 0.5rem);
+    font-size: var(--slds-g-font-scale-neg-2, 0.625rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rh-muted);
+}
+
+.rh-admin-side-group:first-child .rh-admin-side-k {
+    margin-top: 0;
+}
+
+.rh-admin-side-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rh-admin-side-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border-left: var(--slds-g-sizing-border-2, 2px) solid var(--rh-line);
+    color: var(--rh-ink-2);
+    font-size: var(--slds-g-font-scale-base, 0.8125rem);
+    line-height: var(--slds-g-font-line-height-3, 1.375);
+    text-decoration: none;
+}
+
+.rh-admin-side-link:hover,
+.rh-admin-side-link:focus {
+    color: var(--rh-ink);
+    background: var(--rh-surface-2);
+    text-decoration: none;
+}
+
+.rh-admin-side-link_current,
+.rh-admin-side-link_current:hover,
+.rh-admin-side-link_current:focus {
+    color: var(--rh-accent);
+    border-left-color: var(--rh-accent);
+    background: var(--rh-accent-soft);
+    font-weight: var(--slds-g-font-weight-6, 600);
+}
+
+.rh-admin-side-count {
+    color: var(--rh-muted);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    font-weight: var(--slds-g-font-weight-4, 400);
+    font-variant-numeric: tabular-nums;
+}
+
+.rh-admin-side-link_current .rh-admin-side-count {
+    color: var(--rh-accent);
+}
+
+/* Narrower, as the Grid Guide does: the side navigation becomes a row of pills above the page. */
+@media (max-width: 61.25em) {
+    .rh-admin-page_side {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .rh-admin-side {
+        position: static;
+        max-height: none;
+        padding: var(--slds-g-spacing-3, 0.75rem) 0;
+        display: flex;
+        overflow-x: auto;
+        border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line);
+    }
+
+    .rh-admin-side-group,
+    .rh-admin-side-list {
+        display: flex;
+        gap: var(--slds-g-spacing-2, 0.5rem);
+    }
+
+    .rh-admin-side-group + .rh-admin-side-group {
+        margin-left: var(--slds-g-spacing-2, 0.5rem);
+    }
+
+    .rh-admin-side-k {
+        display: none;
+    }
+
+    .rh-admin-side-link {
+        border: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line);
+        border-radius: var(--slds-g-radius-border-pill, 15rem);
+        white-space: nowrap;
+    }
+
+    .rh-admin-side-link_current {
+        border-color: var(--rh-accent-mid);
+    }
+}
+
+.rh-admin-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    margin-top: var(--slds-g-spacing-5, 1.5rem);
+}
+
+.rh-admin-list-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    margin-bottom: var(--slds-g-spacing-4, 1rem);
+}
+
+.rh-admin-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-admin-search {
+    min-width: 15rem;
+}
+
+/* The list: the Grid Guide's reference tables. Nothing is clipped, so a row's
+   menu opens whole over the rows below; the corners are the cells'. */
+.rh-admin-table-wrap {
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line-soft);
+    border-radius: var(--slds-g-radius-border-3, 0.5rem);
+}
+
+.rh-admin-list thead th:first-child {
+    border-top-left-radius: var(--slds-g-radius-border-3, 0.5rem);
+}
+
+.rh-admin-list thead th:last-child {
+    border-top-right-radius: var(--slds-g-radius-border-3, 0.5rem);
+}
+
+.rh-admin-list tbody tr:last-child > :first-child {
+    border-bottom-left-radius: var(--slds-g-radius-border-3, 0.5rem);
+}
+
+.rh-admin-list tbody tr:last-child > :last-child {
+    border-bottom-right-radius: var(--slds-g-radius-border-3, 0.5rem);
+}
+
+.rh-admin-list {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--slds-g-font-scale-base, 0.8125rem);
+}
+
+.rh-admin-list thead th {
+    background: var(--rh-surface-2);
+    color: var(--rh-ink-2);
+    font-weight: var(--slds-g-font-weight-6, 600);
+    text-align: left;
+    white-space: nowrap;
+    padding: var(--slds-g-spacing-3, 0.75rem);
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line);
+}
+
+.rh-admin-list tbody th,
+.rh-admin-list tbody td {
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border-top: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line-soft);
+    text-align: left;
+    font-weight: normal;
+}
+
+.rh-admin-list tbody tr:first-child th,
+.rh-admin-list tbody tr:first-child td {
+    border-top: 0;
+}
+
+.rh-admin-list tbody tr:nth-child(even) {
+    background: var(--rh-surface-2);
+}
+
+.rh-admin-open {
+    font-weight: var(--slds-g-font-weight-6, 600);
+}
+
+.rh-admin-name {
+    font-family: var(--slds-g-font-family-monospace, monospace);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--rh-ink-2);
+}
+
+.rh-admin-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.rh-admin-list thead th.rh-admin-num,
+.rh-admin-list tbody td.rh-admin-num {
+    text-align: right;
+}
+
+/* A heading sorts the list by its column: a plain button in the heading's look; its
+   arrow shows on the current column, in the accent color, and in grey on another while
+   pointed at or focused. The arrow takes its color from the shared icon hook, the one link
+   HR-15 allows. */
+.rh-admin-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+/* A number column's arrow goes before its heading, so the heading stays over the numbers. */
+.rh-admin-num .rh-admin-sort {
+    flex-direction: row-reverse;
+}
+
+.rh-admin-sort:hover {
+    color: var(--rh-ink);
+}
+
+.rh-admin-sort:focus-visible {
+    outline: var(--slds-g-sizing-border-2, 2px) solid var(--rh-accent);
+    outline-offset: var(--slds-g-spacing-1, 0.25rem);
+    border-radius: var(--slds-g-radius-border-1, 0.125rem);
+}
+
+.rh-admin-sort-icon {
+    visibility: hidden;
+    --slds-s-icon-color-foreground: var(--rh-muted);
+}
+
+.rh-admin-sort:hover .rh-admin-sort-icon,
+.rh-admin-sort:focus-visible .rh-admin-sort-icon,
+.rh-admin-sorted .rh-admin-sort-icon {
+    visibility: visible;
+}
+
+.rh-admin-sorted .rh-admin-sort {
+    color: var(--rh-ink);
+}
+
+.rh-admin-sorted .rh-admin-sort-icon {
+    --slds-s-icon-color-foreground: var(--rh-accent);
+}
+
+/* The row menu: a narrow last column. */
+.rh-admin-list thead th.rh-admin-actions,
+.rh-admin-list tbody td.rh-admin-actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+    padding-top: var(--slds-g-spacing-1, 0.25rem);
+    padding-bottom: var(--slds-g-spacing-1, 0.25rem);
+}
+
+/* An archived grid's title: plain text, not a way into the editor. */
+.rh-admin-archived-title {
+    font-weight: var(--slds-g-font-weight-6, 600);
+    color: var(--rh-ink-2);
+}
+
+.rh-admin-archived-note {
+    margin-bottom: var(--slds-g-spacing-3, 0.75rem);
+}
+
+/* Below a phone's width the logo sits above the title, and the page's margins narrow. */
+@media (max-width: 30em) {
+    .rh-admin-title {
+        padding-left: 0;
+        border-left: 0;
+        margin-left: 0;
+        margin-top: var(--slds-g-spacing-2, 0.5rem);
+        flex-basis: 100%;
+    }
+
+    .rh-admin-page {
+        padding: 0 var(--slds-g-spacing-4, 1rem);
+    }
+}

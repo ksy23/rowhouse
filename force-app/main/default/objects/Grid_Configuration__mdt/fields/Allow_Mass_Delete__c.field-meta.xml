@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allow_Mass_Delete__c</fullName>
+    <label>Allow Mass Delete</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Lets users delete the rows they select, after confirming. Deleted records go to the Recycle Bin. Users also need delete access to the object and to each record.</description>
+    <inlineHelpText>Check to let users delete selected rows. Deleted records go to the Recycle Bin.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

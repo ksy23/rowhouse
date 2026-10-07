@@ -1,0 +1,19 @@
+/* The text area hangs from the box, which is the cell's width. */
+.rh-textarea {
+    position: relative;
+}
+
+.rh-textarea-summary {
+    min-height: var(--slds-g-sizing-9, 2rem);
+}
+
+/* Room for a paragraph, wider than a narrow cell and than SLDS lets a menu be. */
+.rh-textarea-panel {
+    width: 26rem;
+    max-width: none;
+}
+
+.rh-textarea-input {
+    min-height: 8.5rem;
+    resize: vertical;
+}

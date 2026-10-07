@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+.sfdx/
+.sf/
+.localdevserver/
+*.log
+.DS_Store
+test-data/data/benchmark-*.csv
+test-data/scripts/__pycache__/
+apex-results.json

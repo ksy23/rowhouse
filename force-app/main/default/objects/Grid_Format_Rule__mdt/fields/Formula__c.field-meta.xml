@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Formula__c</fullName>
+    <label>Formula</label>
+    <type>LongTextArea</type>
+    <length>3900</length>
+    <visibleLines>4</visibleLines>
+    <required>false</required>
+    <description>A Salesforce formula that returns true or false, worked out on the server for each row when the rows are read. With a Formula, Operator and Value are ignored; Field names the cell to color, or leave it blank with Apply To set to Row.</description>
+    <inlineHelpText>A true/false formula, as in a formula field. Operator and Value are then ignored.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

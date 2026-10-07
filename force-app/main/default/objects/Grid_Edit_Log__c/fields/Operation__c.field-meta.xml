@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Operation__c</fullName>
+    <label>Operation</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>The kind of change. Update: one field changed. Create: a record created by an import. Delete: a record deleted. Restore: a deleted record put back by the grid's Undo. Action: a grid action ran on the record. Cleanup: the nightly clean-up deleted entries older than the log retention.</description>
+    <inlineHelpText>Update, Create, Delete, Restore, Action or Cleanup.</inlineHelpText>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Update</fullName><default>false</default><label>Update</label></value>
+            <value><fullName>Create</fullName><default>false</default><label>Create</label></value>
+            <value><fullName>Delete</fullName><default>false</default><label>Delete</label></value>
+            <value><fullName>Action</fullName><default>false</default><label>Action</label></value>
+            <value><fullName>Restore</fullName><default>false</default><label>Restore</label></value>
+            <value><fullName>Cleanup</fullName><default>false</default><label>Cleanup</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

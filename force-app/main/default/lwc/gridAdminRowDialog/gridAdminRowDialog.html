@@ -1,0 +1,92 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        class="slds-modal slds-fade-in-open rh-row-dialog"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <button class="slds-button slds-button_icon slds-modal__close rh-row-dialog-close" title="Cancel and close" disabled={working} onclick={handleCancel}>
+                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                <span class="slds-assistive-text">Cancel and close</span>
+            </button>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate rh-row-dialog-heading">{heading}</h1>
+            </div>
+            <div class="slds-modal__content slds-p-around_medium">
+                <template lwc:if={isClone}>
+                    <p class="slds-m-bottom_small rh-row-dialog-lede">{cloneText}</p>
+                    <lightning-input
+                        class="rh-row-dialog-title"
+                        label="Grid Title"
+                        value={title}
+                        max-length={maxName}
+                        required
+                        disabled={working}
+                        onchange={handleTitle}
+                    ></lightning-input>
+                    <lightning-input
+                        class="slds-m-top_small rh-row-dialog-name"
+                        label="API name"
+                        value={apiName}
+                        max-length={maxName}
+                        required
+                        disabled={working}
+                        field-level-help="What the Rowhouse Grid component on a page is given. Made from the title until you change it; it cannot change once saved."
+                        onchange={handleName}
+                    ></lightning-input>
+                    <template lwc:if={nameError}>
+                        <p class="slds-m-top_xx-small slds-text-color_error rh-row-dialog-name-error">{nameError}</p>
+                    </template>
+                </template>
+                <template lwc:elseif={isSetup}>
+                    <p class="rh-row-dialog-lede">{setupText}</p>
+                    <template lwc:if={loadingRecords}>
+                        <div class="rh-row-dialog-loading">
+                            <lightning-spinner alternative-text="Loading the records" size="small" variant="brand"></lightning-spinner>
+                        </div>
+                    </template>
+                    <template lwc:elseif={records}>
+                        <ol class="slds-list_ordered slds-m-top_small rh-row-dialog-records">
+                            <template for:each={records} for:item="r">
+                                <li key={r.key} class="rh-row-dialog-record">
+                                    <a href={r.url} target="_blank" rel="noopener" aria-label={r.linkLabel}>{r.kind}: {r.label}</a><span class="rh-row-dialog-record-name">{r.name}</span>
+                                    <template lwc:if={r.note}>
+                                        <span class="rh-row-dialog-record-note">{r.note}</span>
+                                    </template>
+                                </li>
+                            </template>
+                        </ol>
+                        <p class="slds-m-top_small slds-text-color_weak rh-row-dialog-after">{afterSetupText}</p>
+                    </template>
+                </template>
+                <template lwc:else>
+                    <p class="rh-row-dialog-lede">{confirmText}</p>
+                    <template lwc:if={usedByText}>
+                        <p class="slds-m-top_small rh-row-dialog-used-by">{usedByText}</p>
+                    </template>
+                </template>
+                <template lwc:if={working}>
+                    <p class="slds-m-top_small rh-row-dialog-working" role="status">{workingText}</p>
+                </template>
+                <template lwc:if={error}>
+                    <p class="slds-m-top_small slds-text-color_error rh-row-dialog-error" role="alert">{error}</p>
+                </template>
+            </div>
+            <div class="slds-modal__footer">
+                <template lwc:if={isSetup}>
+                    <button class="slds-button slds-button_brand rh-row-dialog-cancel" onclick={handleCancel}>Close</button>
+                </template>
+                <template lwc:else>
+                    <button class="slds-button slds-button_neutral rh-row-dialog-cancel" disabled={working} onclick={handleCancel}>Cancel</button>
+                    <button class="slds-button slds-button_brand rh-row-dialog-confirm" disabled={confirmDisabled} onclick={handleConfirm}>{confirmLabel}</button>
+                </template>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

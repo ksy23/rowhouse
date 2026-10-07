@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Width_Px__c</fullName>
+    <description>The column's width in pixels. If blank, the width suits the column's type and values. A column is never narrower than its type needs, and users can resize it.</description>
+    <inlineHelpText>Optional starting width in pixels. Leave blank to size the column automatically.</inlineHelpText>
+    <label>Width (px)</label>
+    <type>Number</type>
+    <precision>4</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

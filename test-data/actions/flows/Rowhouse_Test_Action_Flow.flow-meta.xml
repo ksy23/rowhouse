@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <decisions>
+        <name>Is_Fail_Me</name>
+        <label>Is it Fail me?</label>
+        <locationX>176</locationX>
+        <locationY>278</locationY>
+        <defaultConnector>
+            <targetReference>Mark_Seen</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Other records</defaultConnectorLabel>
+        <rules>
+            <name>Fail_Me</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Record.Name</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Fail me</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Break_Owner</targetReference>
+            </connector>
+            <label>Fail me</label>
+        </rules>
+    </decisions>
+    <description>DEVELOPMENT ONLY. Test data for Rowhouse grid actions, never packaged: marks a Rowhouse Test Record as seen. On a record named Fail me it sets an owner that is not a user, so the interview fails, for the error path.</description>
+    <interviewLabel>Rowhouse test action flow {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Rowhouse test action flow</label>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Record</name>
+        <label>Get the record</label>
+        <locationX>176</locationX>
+        <locationY>158</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Is_Fail_Me</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Rowhouse_Test_Record__c</object>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>Name</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <name>Break_Owner</name>
+        <label>Set an owner that is not a user</label>
+        <locationX>50</locationX>
+        <locationY>398</locationY>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Rowhouse_Test_Record__c</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Mark_Seen</name>
+        <label>Mark as seen</label>
+        <locationX>308</locationX>
+        <locationY>398</locationY>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Text_Field__c</field>
+            <value>
+                <stringValue>Seen by flow</stringValue>
+            </value>
+        </inputAssignments>
+        <object>Rowhouse_Test_Record__c</object>
+    </recordUpdates>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Record</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>

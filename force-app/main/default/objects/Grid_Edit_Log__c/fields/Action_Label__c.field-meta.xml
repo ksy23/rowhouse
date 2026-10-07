@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Action_Label__c</fullName>
+    <label>Action Label</label>
+    <type>Text</type>
+    <length>80</length>
+    <required>false</required>
+    <description>For an Action entry, the action's name as shown in the grid.</description>
+    <inlineHelpText>The action's name as users saw it in the grid.</inlineHelpText>
+</CustomField>

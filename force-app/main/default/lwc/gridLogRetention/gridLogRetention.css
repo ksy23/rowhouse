@@ -1,0 +1,31 @@
+/* The edit log's retention, on the Grid Admin tab's Settings page. rh- classes and global styling hooks only (HR-15). */
+@import 'c/adminStyles';
+
+:host {
+    display: block;
+}
+
+.rh-retention-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    margin-top: var(--slds-g-spacing-5, 1.5rem);
+}
+
+.rh-retention-choice {
+    min-width: 14rem;
+}
+
+.rh-retention-saving {
+    align-self: center;
+}
+
+.rh-retention-warning p {
+    margin: 0;
+}
+
+.rh-retention-loading {
+    position: relative;
+    min-height: var(--slds-g-sizing-10, 3rem);
+}

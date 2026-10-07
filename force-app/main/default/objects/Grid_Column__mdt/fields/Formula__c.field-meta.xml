@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Formula__c</fullName>
+    <label>Formula</label>
+    <type>LongTextArea</type>
+    <length>3900</length>
+    <visibleLines>4</visibleLines>
+    <required>false</required>
+    <description>For a formula column: a Salesforce formula, in the syntax of formula fields, that the grid works out for each row when the rows are read. A formula column has no Field API Name, needs a Column Label, is Text when Formula Type is blank, and is read only.</description>
+    <inlineHelpText>A formula, as in a formula field, worked out for each row. Leave Field API Name blank.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rowhouse — favicon, redrawn on a 16px grid
+     A gable roof over three separate bars: a house, and rows of data.
+     The middle bar is the row being edited.
+     NOT a scaled copy of the mark. Everything but the roof diagonals sits on
+     whole pixels, which is the whole point of this file:
+       roof   apex x8 y1, eaves y5          rows 1-4
+       bars   x1 w14 h2 r0.5 at y7, y10, y13   rows 7-8, 10-11, 13-14
+       gaps   1px between bars, 1px margin top and bottom
+     The mark's own geometry (32-unit grid; roof x2-30 apex y3.5 eaves y11.5;
+     bars x2 w28 h4 r1 at y14, y20, y26) cannot survive 16px: its bars are 2px
+     with 1px gaps and its roof diagonals never land on a pixel boundary.
+     (c) Kugamon LLC. The mark is a trademark; the software is Apache-2.0. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-labelledby="t d">
+  <title id="t">Rowhouse</title>
+  <desc id="d">A gabled roof above three horizontal bars, like rows in a table. The middle bar is picked out in a contrasting color, standing for the row currently being edited.</desc>
+  <path fill="#0F5C45" d="M1 5 L8 1 L15 5 Z"/>
+  <rect x="1" y="7"  width="14" height="2" rx="0.5" fill="#0F5C45"/>
+  <rect x="1" y="10" width="14" height="2" rx="0.5" fill="#B3431F"/>
+  <rect x="1" y="13" width="14" height="2" rx="0.5" fill="#0F5C45"/>
+</svg>

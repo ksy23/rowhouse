@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Group_Date_Unit__c</fullName>
+    <label>Group Date Unit</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>For a date or date/time column used for grouping: group by day, week, month, quarter, year, fiscal quarter or fiscal year. Month if blank. A week starts on the first day of the week in the user's locale; fiscal periods follow the org's fiscal year settings. Users can change it from the Group column's menu.</description>
+    <inlineHelpText>For date columns used for grouping: day, week, month, quarter, year, fiscal quarter or fiscal year. Leave blank for month.</inlineHelpText>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>day</fullName>
+                <default>false</default>
+                <label>Day</label>
+            </value>
+            <value>
+                <fullName>week</fullName>
+                <default>false</default>
+                <label>Week</label>
+            </value>
+            <value>
+                <fullName>month</fullName>
+                <default>false</default>
+                <label>Month</label>
+            </value>
+            <value>
+                <fullName>quarter</fullName>
+                <default>false</default>
+                <label>Quarter</label>
+            </value>
+            <value>
+                <fullName>year</fullName>
+                <default>false</default>
+                <label>Year</label>
+            </value>
+            <value>
+                <fullName>fiscal_quarter</fullName>
+                <default>false</default>
+                <label>Fiscal Quarter</label>
+            </value>
+            <value>
+                <fullName>fiscal_year</fullName>
+                <default>false</default>
+                <label>Fiscal Year</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

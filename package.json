@@ -1,0 +1,31 @@
+{
+  "name": "rowhouse",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Rowhouse — a free, open-source grid component for Salesforce",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test:unit": "sfdx-lwc-jest",
+    "test:unit:coverage": "sfdx-lwc-jest --coverage",
+    "lint": "eslint force-app --max-warnings 0",
+    "check:rules": "node scripts/checks/run-all.js",
+    "guide": "node guide/build.js",
+    "verify": "npm run check:selftest && npm run check:rules && npm run lint && npm run lint:slds && npm run test:data && npm run test:unit",
+    "test:data": "python3 test-data/scripts/test_generate_benchmark.py",
+    "check:selftest": "node scripts/checks/self-test.js && node eslint-rules/tests/run.js",
+    "lint:slds": "slds-linter lint force-app"
+  },
+  "devDependencies": {
+    "@lwc/eslint-plugin-lwc": "^3.5.0",
+    "@lwc/template-compiler": "^8.0.0",
+    "@sa11y/jest": "^7.0.0",
+    "@salesforce-ux/slds-linter": "1.2.1",
+    "@salesforce/eslint-config-lwc": "^4.1.0",
+    "@salesforce/eslint-plugin-lightning": "^2.0.0",
+    "@salesforce/sfdx-lwc-jest": "^7.9.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jest": "^28.0.0",
+    "fast-xml-parser": "^4.4.0"
+  }
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allow_Inline_Edit__c</fullName>
+    <description>Lets users edit values directly in the grid and save them. Only columns marked Editable can be edited, and users need edit access to each field and record.</description>
+    <inlineHelpText>Check to let users edit and save values in the grid's Editable columns.</inlineHelpText>
+    <label>Allow Inline Edit</label>
+    <type>Checkbox</type>
+    <defaultValue>true</defaultValue>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rowhouse — animated: lockup build
+     Plays once. The roof settles, the three rows draw in from the left as a
+     table renders, then the wordmark arrives. Ends exactly on the static
+     lockup, so a renderer that ignores animation still shows the real logo.
+     Honours prefers-reduced-motion.
+     (c) Kugamon LLC. The mark is a trademark; the software is Apache-2.0. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 182 32" role="img" aria-labelledby="t d">
+  <title id="t">Rowhouse</title>
+  <desc id="d">The Rowhouse logo assembling: the roof settles, three rows draw in from the left, then the word ROWHOUSE appears.</desc>
+  <style>
+    .roof { animation: settle .52s cubic-bezier(.2,.75,.3,1) both }
+    .bar  { transform-origin: 2px center;
+             animation: draw .44s cubic-bezier(.2,.75,.3,1) both }
+    .b1 { animation-delay: .14s }
+    .b2 { animation-delay: .24s }
+    .b3 { animation-delay: .34s }
+    .word { animation: arrive .5s cubic-bezier(.2,.75,.3,1) .46s both }
+
+    @keyframes settle { from { transform: translateY(-3.5px); opacity: 0 }
+                         to   { transform: none; opacity: 1 } }
+    @keyframes draw   { from { transform: scaleX(0); opacity: .4 }
+                         to   { transform: none; opacity: 1 } }
+    @keyframes arrive { from { transform: translateX(-5px); opacity: 0 }
+                         to   { transform: none; opacity: 1 } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .roof, .bar, .word { animation: none }
+    }
+  </style>
+
+  <path class="roof" fill="#FCFBF8" d="M2 11.5 L16 3.5 L30 11.5 Z"/>
+  <rect class="bar b1" x="2" y="14" width="28" height="4" rx="1" fill="#FCFBF8"/>
+  <rect class="bar b2" x="2" y="20" width="28" height="4" rx="1" fill="#8FC4AE"/>
+  <rect class="bar b3" x="2" y="26" width="28" height="4" rx="1" fill="#FCFBF8"/>
+  <text class="word" x="44" y="23.6" fill="#FCFBF8" textLength="137" lengthAdjust="spacingAndGlyphs"
+        font-family="Montserrat, Poppins, Futura, Century Gothic, Avenir Next, system-ui, sans-serif" font-size="19" font-weight="400"
+        letter-spacing="2.2">ROWHOUSE</text>
+</svg>

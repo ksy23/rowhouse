@@ -1,0 +1,205 @@
+<!--meta {"title": "Welcome", "desc": "Rowhouse documentation: set up editable grids on Salesforce Lightning pages, and use them like a spreadsheet. Guides for admins and users, with step-by-step tutorials.", "section": "welcome", "audience": "all"} -->
+<header class="hero alive" id="main">
+  <div class="hero-in">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow">Grid Guide</span>
+        <h1>Edit Salesforce records like a spreadsheet.<span class="alt">Set it up without code.</span></h1>
+        <p class="dek">Rowhouse puts an editable grid on any Lightning page. Admins build each grid on the Grid Admin tab, or in Setup. Users get spreadsheet keys, copy and paste, undo, grouping with subtotals, related records under each row, imports and one-click actions, all inside Salesforce's own security.</p>
+        <div class="cta">
+          <a class="btn" href="start.html">I set up Salesforce <span class="arr">→</span></a>
+          <a class="btn" href="using.html" style="background:var(--sky);border-color:var(--sky)">I use the grid <span class="arr">→</span></a>
+          <a class="btn ghost" href="tutorials.html">Follow a tutorial</a>
+        </div>
+      </div>
+
+      <figure class="mt0 mb0" aria-label="An animated example of a Rowhouse grid: a cell is edited, saved, and turns green">
+        <div class="screen">
+          <div class="chrome"><i></i><i></i><i></i><span>yourcompany.lightning.force.com/lightning/n/Pipeline_Review</span></div>
+          <div class="stage">
+            <div class="card-m demo">
+              <div class="m-head"><div class="m-ico opp"><svg viewBox="0 0 24 24"><path d="M4 18h16v2H4zM6 10h3v6H6zm5-4h3v10h-3zm5 6h3v4h-3z"/></svg></div><div><div class="m-title">Pipeline Review</div><div class="m-meta">5 items • Sorted by Close Date • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+              <div class="m-scroll">
+                <table class="mt">
+                  <colgroup><col style="width:5%"><col style="width:33%"><col style="width:21%"><col style="width:20%"><col style="width:21%"></colgroup>
+                  <thead><tr><th class="cb"><span class="mcb"></span></th><th class="dd">Opportunity</th><th class="dd">Stage</th><th class="r dd">Amount</th><th class="dd">Close Date <span class="srt">↑</span></th></tr></thead>
+                  <tbody>
+                    <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Burlington Uniform Refresh</td><td>Qualification</td><td class="r start">$42,500.00</td><td class="t-red">9/28/2026</td></tr>
+                    <tr class="trow"><td class="cb"><span class="mcb"></span></td><td class="lnk">Grand Hotels Guest Wi-Fi</td><td>Proposal/Price Quote</td><td class="r target"><span class="oldv">$180,000.00</span><span class="newv">$250,000.00</span></td><td>10/15/2026</td></tr>
+                    <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">Edge Emergency Generators</td><td>Negotiation/Review</td><td class="r">$95,000.00</td><td>10/22/2026</td></tr>
+                    <tr class="bar green"><td class="cb"><span class="mcb"></span></td><td class="lnk">United Oil Refinery Sensors</td><td>Value Proposition</td><td class="r f-green">$420,000.00</td><td>11/5/2026</td></tr>
+                    <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">GenePoint Lab Expansion</td><td>Prospecting</td><td class="r">$60,000.00</td><td>12/12/2026</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div style="height:84px"></div>
+              <div class="m-pill"><span class="ms">1 unsaved change</span><span class="mb"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Undo</span><span class="mb"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Redo</span><span class="mb">Cancel</span><span class="mb p">Save</span></div>
+              <div class="m-toast">✓ Saved 1 record.</div>
+              <div class="ring"></div>
+              <div class="ed"><span class="typed">250,000</span></div>
+              <div class="cursor"></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>A grid of opportunities. An amount is typed over, the change waits on the Save bar, and after saving a format rule paints big deals green.</figcaption>
+      </figure>
+    </div>
+
+    <div class="stats rv-stagger" style="margin-top:38px">
+      <div class="stat"><span class="n" data-count="10000">10,000</span><span class="l">rows in the browser at once, sorted instantly</span></div>
+      <div class="stat sky"><span class="n" data-count="100000">100,000</span><span class="l">rows reachable by scrolling, 2,000 at a time</span></div>
+      <div class="stat plum"><span class="n" data-count="10000">10,000</span><span class="l">cells in one paste from Excel or Google Sheets</span></div>
+      <div class="stat gold"><span class="n" data-count="100">100</span><span class="l">steps of undo for edits you have not saved</span></div>
+      <div class="stat rose"><span class="n">0</span><span class="l">lines of code to build a grid: it is all settings</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="paths">
+  <div class="sec-head rv">
+    <span class="sec-num">Start here</span>
+    <h2>Two kinds of reader, one grid</h2>
+    <p class="sec-sub">Admins build and place grids. Users work in them. Each part of this guide says who it is for with a badge: <span class="aud admin">Admin</span> <span class="aud user">User</span> <span class="aud both">Both</span></p>
+  </div>
+  <div class="paths rv-stagger">
+    <a class="path" href="start.html">
+      <span class="aud admin">Admin</span>
+      <h3>Set up a grid</h3>
+      <p>Build a grid on the Grid Admin tab (or as a handful of records in Setup), give people access, and drop the Rowhouse Grid component on a page.</p>
+      <ul><li>Your first grid in ten minutes</li><li>Every setting, explained</li><li>Formatting, grouping, child tables, actions</li><li>Security, audit trail, troubleshooting</li></ul>
+      <span class="go">Admin guide →</span>
+    </a>
+    <a class="path u" href="using.html">
+      <span class="aud user">User</span>
+      <h3>Work in a grid</h3>
+      <p>Move with the arrow keys, type over a value, paste a block from Excel, undo, save. Group, open related records, run actions.</p>
+      <ul><li>A tour of the screen</li><li>Every key, in one place</li><li>Copy, paste, fill down, undo</li><li>Import, export, phones</li></ul>
+      <span class="go">User guide →</span>
+    </a>
+    <a class="path t" href="tutorials.html">
+      <span class="aud both">Both</span>
+      <h3>Learn by doing</h3>
+      <p>Five realistic scenarios, each built step by step and then used: a pipeline review, a service desk, key accounts, contacts on an account page and a contact clean-up.</p>
+      <ul><li>Sales operations</li><li>Customer service</li><li>Account management</li><li>Data stewardship</li></ul>
+      <span class="go">Tutorials →</span>
+    </a>
+  </div>
+</section>
+
+<section id="fits">
+  <div class="sec-head rv">
+    <span class="sec-num">How it fits together</span>
+    <h2>Six kinds of record make one grid</h2>
+    <p class="sec-sub">A grid is described by Custom Metadata records, built on the Grid Admin tab or in Setup, which deploy between orgs like any other setting. The Rowhouse Grid component reads them, and every read and write goes through Salesforce's security as the person using the grid.</p>
+  </div>
+  <div class="frame rv">
+    <svg class="dia" viewBox="0 0 960 380" role="img" aria-labelledby="fitT fitD">
+      <title id="fitT">How a Rowhouse grid is put together</title>
+      <desc id="fitD">Six kinds of Custom Metadata record (Grid Configuration, Grid Columns, Grid Format Rules, Grid Filters, Grid Child Tables and Grid Actions) feed the Rowhouse Grid component on a Lightning page. The component serves your users, and reads and saves Salesforce records as each user, so object, field and sharing rules apply.</desc>
+      <text class="k" x="20" y="10">Grid Admin tab or Setup · Custom Metadata</text>
+      <path class="wire" d="M230,39 C300,39 300,190 360,190"/>
+      <path class="wire sky" d="M230,99 C300,99 300,190 360,190"/>
+      <path class="wire plum" d="M230,159 C300,159 300,190 360,190"/>
+      <path class="wire teal" d="M230,219 C300,219 300,190 360,190"/>
+      <path class="wire gold" d="M230,279 C300,279 300,190 360,190"/>
+      <path class="wire rose" d="M230,339 C300,339 300,190 360,190"/>
+      <path class="wire teal" d="M600,170 C665,170 665,95 730,95"/>
+      <path class="wire" d="M600,215 C665,215 665,290 730,290"/>
+      <g class="node a"><rect x="20" y="16" width="210" height="46" rx="8"/><text class="b" x="36" y="37">Grid Configuration</text><text class="s" x="36" y="53">object, sorting, what users may do</text></g>
+      <g class="node s"><rect x="20" y="76" width="210" height="46" rx="8"/><text class="b" x="36" y="97">Grid Columns</text><text class="s" x="36" y="113">one per field or formula shown</text></g>
+      <g class="node p"><rect x="20" y="136" width="210" height="46" rx="8"/><text class="b" x="36" y="157">Grid Format Rules</text><text class="s" x="36" y="173">colors, icons and data bars</text></g>
+      <g class="node t"><rect x="20" y="196" width="210" height="46" rx="8"/><text class="b" x="36" y="217">Grid Filters</text><text class="s" x="36" y="233">conditions every row must meet</text></g>
+      <g class="node g"><rect x="20" y="256" width="210" height="46" rx="8"/><text class="b" x="36" y="277">Grid Child Tables</text><text class="s" x="36" y="293">related records under each row</text></g>
+      <g class="node r"><rect x="20" y="316" width="210" height="46" rx="8"/><text class="b" x="36" y="337">Grid Actions</text><text class="s" x="36" y="353">flows, Apex, quick actions</text></g>
+      <g class="node a pop"><rect x="360" y="130" width="240" height="112" rx="12"/><text class="k" x="378" y="154">Lightning page</text><text class="b" x="378" y="180" style="font-size:16px">Rowhouse Grid</text><text class="s" x="378" y="202">App, Record or Home page</text><text class="s" x="378" y="220">one setting: the configuration's</text><text class="s" x="378" y="234">API name</text></g>
+      <g class="node t"><rect x="730" y="58" width="210" height="74" rx="10"/><text class="k" x="746" y="80">Your users</text><text class="b" x="746" y="102">Edit, paste, group,</text><text class="b" x="746" y="120">import, run actions</text></g>
+      <g class="node"><rect x="730" y="250" width="210" height="90" rx="10"/><text class="k" x="746" y="272">Salesforce data</text><text class="b" x="746" y="294">Read and saved as the user</text><text class="s" x="746" y="313">object, field and sharing</text><text class="s" x="746" y="329">rules always apply</text></g>
+      <circle r="4.5" class="dot"><animateMotion dur="3.2s" repeatCount="indefinite" path="M230,39 C300,39 300,190 360,190"/></circle>
+      <circle r="4.5" class="dot sky"><animateMotion dur="3.2s" begin="0.5s" repeatCount="indefinite" path="M230,99 C300,99 300,190 360,190"/></circle>
+      <circle r="4.5" class="dot plum"><animateMotion dur="3.2s" begin="1s" repeatCount="indefinite" path="M230,159 C300,159 300,190 360,190"/></circle>
+      <circle r="4.5" class="dot teal"><animateMotion dur="3.2s" begin="1.5s" repeatCount="indefinite" path="M230,219 C300,219 300,190 360,190"/></circle>
+      <circle r="4.5" class="dot gold"><animateMotion dur="3.2s" begin="2s" repeatCount="indefinite" path="M230,279 C300,279 300,190 360,190"/></circle>
+      <circle r="4.5" class="dot rose"><animateMotion dur="3.2s" begin="2.5s" repeatCount="indefinite" path="M230,339 C300,339 300,190 360,190"/></circle>
+      <circle r="4.5" class="dot teal"><animateMotion dur="2.4s" repeatCount="indefinite" path="M600,170 C665,170 665,95 730,95"/></circle>
+      <circle r="4.5" class="dot"><animateMotion dur="2.4s" begin=".8s" repeatCount="indefinite" path="M600,215 C665,215 665,290 730,290"/></circle>
+      <circle r="4.5" class="dot clay"><animateMotion dur="2.4s" begin="1.6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" path="M600,215 C665,215 665,290 730,290"/></circle>
+    </svg>
+  </div>
+  <p class="note" style="margin-top:12px">Only the Grid Configuration and its columns are needed. Format rules, filters, child tables and actions are optional. <a href="configure.html">Every field of every record →</a></p>
+</section>
+
+<section id="does">
+  <div class="sec-head rv">
+    <span class="sec-num">What it does</span>
+    <h2>Everything a list view does, and the things it can't</h2>
+  </div>
+  <div class="tiles rv-stagger">
+    <a class="tile" href="using.html#keys"><div class="ic">{{ic:keyboard}}</div><h4>Spreadsheet keys</h4><p>Arrows, Tab, Enter, F2, Escape, Page Up and Down, and typing to replace a value.</p></a>
+    <a class="tile sky" href="using.html#edit"><div class="ic">{{ic:edit}}</div><h4>Every common field type</h4><p>Text and long text, numbers, dates with a calendar, date/times, times, checkboxes, picklists, dependent and multi-select picklists, lookups and owners.</p></a>
+    <a class="tile plum" href="using.html#sheet"><div class="ic">{{ic:copy}}</div><h4>Copy, paste, fill, undo</h4><p>Select a range, paste up to 10,000 cells from Excel or Google Sheets, fill down, and undo up to 100 steps.</p></a>
+    <a class="tile gold" href="features.html#format"><div class="ic">{{ic:palette}}</div><h4>Conditional formatting</h4><p>Fills, colored text, bold, icons and data bars, on a value, a range, two fields or a formula, with a Display Key that says what each one means.</p></a>
+    <a class="tile rose" href="features.html#group"><div class="ic">{{ic:layers}}</div><h4>Grouping and subtotals</h4><p>Up to three levels, dates by day, month, quarter or year, with sums and averages over every matching record.</p></a>
+    <a class="tile teal" href="features.html#child"><div class="ic">{{ic:tree}}</div><h4>Related records under rows</h4><p>Open a row to see its contacts, cases or deals in tabs. Each tab is a full grid of its own.</p></a>
+    <a class="tile clay" href="features.html#actions"><div class="ic">{{ic:bolt}}</div><h4>Actions</h4><p>Run a screen flow, an autolaunched flow, invocable Apex or a quick action on one row or on many.</p></a>
+    <a class="tile" href="features.html#import"><div class="ic">{{ic:upload}}</div><h4>Import and export</h4><p>Bring in a CSV or Excel file with a preview first; export what you see to CSV.</p></a>
+    <a class="tile sky" href="using.html#select"><div class="ic">{{ic:check}}</div><h4>Change many at once</h4><p>Tick rows, then update one field on all of them, delete them, or run an action.</p></a>
+    <a class="tile plum" href="features.html#audit"><div class="ic">{{ic:history}}</div><h4>Audit trail</h4><p>Optionally log every change: who, when, which field, the value before and after.</p></a>
+    <a class="tile gold" href="features.html#security"><div class="ic">{{ic:shield}}</div><h4>Salesforce security, always</h4><p>Users see and change only what their profile, permission sets and sharing allow.</p></a>
+    <a class="tile rose" href="using.html#phone"><div class="ic">{{ic:phone}}</div><h4>Phones and narrow spaces</h4><p>Below 480 pixels wide the grid becomes a list of record cards, tap to edit.</p></a>
+  </div>
+</section>
+
+<section id="life">
+  <div class="sec-head rv">
+    <span class="sec-num">The life of an edit</span>
+    <h2>Nothing is saved until you say so</h2>
+    <p class="sec-sub">Every change waits as an unsaved edit, shaded yellow, until Save. Then it is checked twice, saved in batches, and read back so formulas and automation show their real results.</p>
+  </div>
+  <div class="frame rv">
+    <svg class="dia" viewBox="0 0 960 190" role="img" aria-labelledby="lifeT lifeD">
+      <title id="lifeT">The life of an edit</title>
+      <desc id="lifeD">Six stages: you type, the change waits unsaved; you click Save; your browser checks required fields; the server checks object, field and sharing access and that the column may be edited; records are saved in batches of 200, each in its own transaction, with your triggers, flows and validation rules running; the saved rows are read back.</desc>
+      <path class="wire solid" d="M60,62 H900" style="stroke:var(--line);stroke-width:3"/>
+      <path class="wire" d="M60,62 H900" style="stroke-width:3"/>
+      <g class="gate"><circle cx="60" cy="62" r="22" fill="var(--m-edit)" stroke="#d8c94a"/><text x="60" y="67" text-anchor="middle" class="b">1</text></g>
+      <g class="gate"><circle cx="228" cy="62" r="22" fill="var(--sky-soft)" stroke="var(--sky-mid)"/><text x="228" y="67" text-anchor="middle" class="b">2</text></g>
+      <g class="gate"><circle cx="396" cy="62" r="22" fill="var(--plum-soft)" stroke="var(--plum-mid)"/><text x="396" y="67" text-anchor="middle" class="b">3</text></g>
+      <g class="gate"><circle cx="564" cy="62" r="22" fill="var(--gold-soft)" stroke="var(--gold-mid)"/><text x="564" y="67" text-anchor="middle" class="b">4</text></g>
+      <g class="gate"><circle cx="732" cy="62" r="22" fill="var(--accent-soft)" stroke="var(--accent-mid)"/><text x="732" y="67" text-anchor="middle" class="b">5</text></g>
+      <circle cx="900" cy="62" r="22" fill="var(--teal-soft)" stroke="var(--teal-mid)"/><text x="900" y="67" text-anchor="middle" class="b">6</text>
+      <circle r="7" class="dot clay"><animateMotion dur="6s" repeatCount="indefinite" path="M60,62 H900"/></circle>
+      <text x="60" y="112" text-anchor="middle" class="b">Type</text><text x="60" y="130" text-anchor="middle" class="s">the cell turns</text><text x="60" y="146" text-anchor="middle" class="s">yellow: unsaved</text>
+      <text x="228" y="112" text-anchor="middle" class="b">Save</text><text x="228" y="130" text-anchor="middle" class="s">on the Save bar,</text><text x="228" y="146" text-anchor="middle" class="s">or Cancel it all</text>
+      <text x="396" y="112" text-anchor="middle" class="b">Browser check</text><text x="396" y="130" text-anchor="middle" class="s">required fields,</text><text x="396" y="146" text-anchor="middle" class="s">valid values</text>
+      <text x="564" y="112" text-anchor="middle" class="b">Server check</text><text x="564" y="130" text-anchor="middle" class="s">object, field, sharing,</text><text x="564" y="146" text-anchor="middle" class="s">editable columns only</text>
+      <text x="732" y="112" text-anchor="middle" class="b">Saved in batches</text><text x="732" y="130" text-anchor="middle" class="s">200 records each; your</text><text x="732" y="146" text-anchor="middle" class="s">automation runs</text>
+      <text x="900" y="112" text-anchor="middle" class="b">Read back</text><text x="900" y="130" text-anchor="middle" class="s">formulas and triggers'</text><text x="900" y="146" text-anchor="middle" class="s">results show</text>
+    </svg>
+  </div>
+</section>
+
+<section id="tutorials">
+  <div class="sec-head rv">
+    <span class="sec-num">Tutorials</span>
+    <h2>Five real jobs, built from scratch</h2>
+    <p class="sec-sub">Each tutorial follows one person through one job: the admin builds the grid, then the user works in it. Every step was followed word for word in a Salesforce org before it was published.</p>
+  </div>
+  <div class="paths rv-stagger">
+    <a class="path" href="tutorial-pipeline.html"><span class="aud both">Sales operations</span><h3>The weekly pipeline review</h3><p>Opportunities grouped by stage with a sum of amounts, overdue close dates in red and big deals in green. Fix ten deals in one sitting.</p><span class="go">Start →</span></a>
+    <a class="path u" href="tutorial-service.html"><span class="aud both">Customer service</span><h3>The morning triage</h3><p>New cases flagged on the row, high priority in red, a Log a Call action, and the whole queue moved to Working in two clicks.</p><span class="go">Start →</span></a>
+    <a class="path t" href="tutorial-accounts.html"><span class="aud both">Account management</span><h3>Key accounts, with their people and deals</h3><p>Open any account to see its contacts and opportunities in tabs, and edit them in place.</p><span class="go">Start →</span></a>
+    <a class="path u" href="tutorial-contacts.html"><span class="aud both">Account management</span><h3>Contacts on an account page</h3><p>A grid of each account's contacts on its record page, with a formula column, an icon on the decision makers, a filter, and a layout each user keeps.</p><span class="go">Start →</span></a>
+    <a class="path" href="tutorial-cleanup.html" style="--glow:var(--plum-soft);--edge:var(--plum-mid)"><span class="aud both">Data stewardship</span><h3>The contact clean-up, with an audit trail</h3><p>Export, fix in a spreadsheet, import with a preview, and keep a log of every value that changed.</p><span class="go" style="color:var(--plum)">Start →</span></a>
+  </div>
+</section>
+
+<section id="here">
+  <div class="call rv">
+    <span class="k">Where to find this guide</span>
+    <p>This is the <b>Grid Guide</b> tab. Everyone with the Rowhouse Grid User permission set can open it: in the <b>Rowhouse</b> app, which opens on it (click the App Launcher, type <span class="v plain">Rowhouse</span>, and click Rowhouse under Apps), from the App Launcher's search (<span class="v plain">Grid Guide</span>, under Items), or from the <b>?</b> button on any grid, which opens the <a href="using.html">User guide</a> in a new browser tab. People who build grids also have the Grid Admin and Grid Edit Logs tabs in the app. On the Grid Admin tab, the <b>Grid Guide</b> button opens Get started, and while a grid is open the guide's part about the open tab sits beside it, with <b>Open ↗</b> for the whole of it. The pages for admins (Get started, Configure and Features) show only to the Rowhouse Grid Admin permission set.</p>
+  </div>
+</section>
+
+</div>

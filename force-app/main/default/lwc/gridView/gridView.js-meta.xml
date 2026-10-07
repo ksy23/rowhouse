@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <!-- Internal: one grid, top-level (inside gridApp) or a child table under a
+         row. Not exposed, so its @api members are not permanent (HR-2). -->
+    <isExposed>false</isExposed>
+</LightningComponentBundle>

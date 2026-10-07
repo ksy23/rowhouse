@@ -1,0 +1,179 @@
+<!--meta {"title": "Tutorial: key accounts with their people and deals", "desc": "Build a Rowhouse grid of accounts whose rows open into tabs of contacts and opportunities, each an editable grid of its own.", "section": "tutorials", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Key accounts</div>
+    <span class="aud both">Account management · about 25 minutes</span>
+    <h1 style="margin-top:14px">Key accounts, with their people and deals</h1>
+    <p class="dek">Hannah looks after a dozen accounts. Before each quarterly review she checks every account's contacts and open deals. Today that means opening each account and scrolling its related lists. Here, every account row opens into tabs of its contacts and opportunities.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Build it · admin</span>
+    <a href="#goal">What you will build</a>
+    <a href="#children">1. Two child grids</a>
+    <a href="#parent">2. The account grid</a>
+    <a href="#links">3. Link them</a>
+    <a href="#page">4. The page</a>
+    <span class="s-k">Use it · Hannah</span>
+    <a href="#open">5. Open an account</a>
+    <a href="#edit">6. Edit in a tab</a>
+    <a href="#keys">7. From the keyboard</a>
+    <a href="#learned">What you learned</a>
+  </aside>
+
+  <main class="content">
+
+<section id="goal">
+  <div class="persona"><span class="avatar c">HL</span><div><b>Hannah Lowell, Account Manager</b><span>Prepares quarterly business reviews. Wants each account's people and deals one click away, and to fix a title or a close date without leaving the list.</span></div></div>
+  <div class="sec-head"><span class="sec-num">The goal</span><h2>What you will build</h2>
+  <p class="sec-sub">Three grids: one of accounts, and two that appear as tabs under each account row. The two child grids are ordinary Grid Configurations; a Grid Child Table record links each one to the account grid.</p></div>
+  <div class="frame rv">
+    <svg class="dia" viewBox="0 0 900 200" role="img" aria-labelledby="kaT"><title id="kaT">Key Accounts grid with two child tables, Contacts and Opportunities, linked by AccountId</title>
+      <path class="wire" d="M300,100 C380,100 380,50 470,50"/>
+      <path class="wire sky" d="M300,100 C380,100 380,150 470,150"/>
+      <g class="node a pop"><rect x="40" y="55" width="260" height="90" rx="12"/><text class="k" x="58" y="80">Grid Configuration</text><text class="b" x="58" y="104" style="font-size:16px">Key Accounts</text><text class="s" x="58" y="126">Account · one row per account</text></g>
+      <g class="node g"><rect x="470" y="20" width="200" height="60" rx="10"/><text class="b" x="486" y="45">Tab: Contacts</text><text class="s" x="486" y="65">Grid Child Table · AccountId</text></g>
+      <g class="node g"><rect x="470" y="120" width="200" height="60" rx="10"/><text class="b" x="486" y="145">Tab: Opportunities</text><text class="s" x="486" y="165">Grid Child Table · AccountId</text></g>
+      <path class="wire gold" d="M670,50 H720"/><path class="wire gold" d="M670,150 H720"/>
+      <g class="node s"><rect x="720" y="20" width="160" height="60" rx="10"/><text class="b" x="736" y="45">Key Account</text><text class="b" x="736" y="63">Contacts</text></g>
+      <g class="node s"><rect x="720" y="120" width="160" height="60" rx="10"/><text class="b" x="736" y="145">Key Account</text><text class="b" x="736" y="163">Deals</text></g>
+      <circle r="4.5" class="dot"><animateMotion dur="2.4s" repeatCount="indefinite" path="M300,100 C380,100 380,50 470,50"/></circle>
+      <circle r="4.5" class="dot sky"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M300,100 C380,100 380,150 470,150"/></circle>
+    </svg>
+  </div>
+</section>
+
+<section id="children">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>1. Two child grids</h2>
+  <p class="sec-sub">Build the grids that go in the tabs first, so they can be chosen when you link them. They never need a page of their own.</p></div>
+  <h3>Key Account Contacts</h3>
+  <ol class="tut">
+    <li><b>Create the Grid Configuration</b> (Custom Metadata Types › Grid Configuration › Manage Records › New):
+      <table class="fields"><tbody>
+        <tr><td>Label</td><td><span class="v">Key Account Contacts</span><button class="copy" data-copy="Key Account Contacts">Copy</button></td></tr>
+        <tr><td>Grid Configuration Name</td><td><span class="v">Key_Account_Contacts</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object API Name</td><td><span class="v">Contact</span></td></tr>
+        <tr><td>Default Sort Field</td><td><span class="v">LastName</span></td></tr>
+        <tr><td>Default Sort Direction</td><td><span class="v">Ascending</span></td></tr>
+      </tbody></table> Save.</li>
+    <li><b>Add four Grid Columns</b>, each with <span class="v">Key Account Contacts</span> in Grid Configuration:
+      <div class="tbox" style="margin-top:12px"><table class="ref"><thead><tr><th>Label · Name</th><th>Field API Name</th><th>Column Label</th><th>Sort Order</th><th>Editable</th></tr></thead><tbody>
+        <tr><td>KAC Name<br><span class="d">KAC_Name</span></td><td class="d">Name</td><td>Name</td><td class="d">10</td><td>—</td></tr>
+        <tr><td>KAC Title<br><span class="d">KAC_Title</span></td><td class="d">Title</td><td></td><td class="d">20</td><td class="tick">✓</td></tr>
+        <tr><td>KAC Email<br><span class="d">KAC_Email</span></td><td class="d">Email</td><td></td><td class="d">30</td><td class="tick">✓</td></tr>
+        <tr><td>KAC Phone<br><span class="d">KAC_Phone</span></td><td class="d">Phone</td><td>Phone</td><td class="d">40</td><td class="tick">✓</td></tr>
+      </tbody></table></div></li>
+  </ol>
+  <h3>Key Account Deals</h3>
+  <ol class="tut">
+    <li><b>Create the Grid Configuration:</b>
+      <table class="fields"><tbody>
+        <tr><td>Label</td><td><span class="v">Key Account Deals</span><button class="copy" data-copy="Key Account Deals">Copy</button></td></tr>
+        <tr><td>Grid Configuration Name</td><td><span class="v">Key_Account_Deals</span></td></tr>
+        <tr><td>Object API Name</td><td><span class="v">Opportunity</span></td></tr>
+        <tr><td>Default Sort Field</td><td><span class="v">CloseDate</span></td></tr>
+        <tr><td>Default Sort Direction</td><td><span class="v">Ascending</span></td></tr>
+      </tbody></table> Save.</li>
+    <li><b>Add four Grid Columns</b>, each with <span class="v">Key Account Deals</span> in Grid Configuration:
+      <div class="tbox" style="margin-top:12px"><table class="ref"><thead><tr><th>Label · Name</th><th>Field API Name</th><th>Column Label</th><th>Sort Order</th><th>Editable</th><th>More</th></tr></thead><tbody>
+        <tr><td>KAD Name<br><span class="d">KAD_Name</span></td><td class="d">Name</td><td>Opportunity</td><td class="d">10</td><td>—</td><td></td></tr>
+        <tr><td>KAD Stage<br><span class="d">KAD_Stage</span></td><td class="d">StageName</td><td></td><td class="d">20</td><td class="tick">✓</td><td></td></tr>
+        <tr><td>KAD Amount<br><span class="d">KAD_Amount</span></td><td class="d">Amount</td><td></td><td class="d">30</td><td class="tick">✓</td><td>Subtotal <span class="v plain">Sum</span></td></tr>
+        <tr><td>KAD Close Date<br><span class="d">KAD_Close_Date</span></td><td class="d">CloseDate</td><td></td><td class="d">40</td><td class="tick">✓</td><td></td></tr>
+      </tbody></table></div></li>
+  </ol>
+</section>
+
+<section id="parent">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. The account grid</h2></div>
+  <ol class="tut">
+    <li><b>Create the Grid Configuration:</b>
+      <table class="fields"><tbody>
+        <tr><td>Label</td><td><span class="v">Key Accounts</span><button class="copy" data-copy="Key Accounts">Copy</button></td></tr>
+        <tr><td>Grid Configuration Name</td><td><span class="v">Key_Accounts</span></td></tr>
+        <tr><td>Object API Name</td><td><span class="v">Account</span></td></tr>
+        <tr><td>Default Sort Field</td><td><span class="v">Name</span></td></tr>
+        <tr><td>Default Sort Direction</td><td><span class="v">Ascending</span></td></tr>
+        <tr><td>Frozen Columns</td><td><span class="v">1</span></td></tr>
+      </tbody></table> Save.</li>
+    <li><b>Add six Grid Columns</b>, each with <span class="v">Key Accounts</span> in Grid Configuration:
+      <div class="tbox" style="margin-top:12px"><table class="ref"><thead><tr><th>Label · Name</th><th>Field API Name</th><th>Column Label</th><th>Sort Order</th><th>Editable</th><th>More</th></tr></thead><tbody>
+        <tr><td>KA Name<br><span class="d">KA_Name</span></td><td class="d">Name</td><td></td><td class="d">10</td><td>—</td><td></td></tr>
+        <tr><td>KA Type<br><span class="d">KA_Type</span></td><td class="d">Type</td><td>Type</td><td class="d">20</td><td class="tick">✓</td><td></td></tr>
+        <tr><td>KA Industry<br><span class="d">KA_Industry</span></td><td class="d">Industry</td><td></td><td class="d">30</td><td class="tick">✓</td><td></td></tr>
+        <tr><td>KA Revenue<br><span class="d">KA_Revenue</span></td><td class="d">AnnualRevenue</td><td></td><td class="d">40</td><td class="tick">✓</td><td>Subtotal <span class="v plain">Sum</span></td></tr>
+        <tr><td>KA Phone<br><span class="d">KA_Phone</span></td><td class="d">Phone</td><td>Phone</td><td class="d">50</td><td class="tick">✓</td><td></td></tr>
+        <tr><td>KA Owner<br><span class="d">KA_Owner</span></td><td class="d">OwnerId</td><td>Owner</td><td class="d">60</td><td>—</td><td></td></tr>
+      </tbody></table></div></li>
+  </ol>
+</section>
+
+<section id="links">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>3. Link them as tabs</h2></div>
+  <ol class="tut">
+    <li><b>Open Grid Child Table records.</b> In <span class="ui">Custom Metadata Types</span>, beside <span class="ui">Grid Child Table</span>, click <span class="ui">Manage Records</span>, then <span class="ui">New</span>.</li>
+    <li><b>Create these two:</b>
+      <div class="tbox" style="margin-top:12px"><table class="ref"><thead><tr><th>Label · Name</th><th>Grid Configuration</th><th>Child Configuration</th><th>Relationship Field</th><th>Tab Label</th><th>Sort Order</th></tr></thead><tbody>
+        <tr><td>Key Accounts Contacts<br><span class="d">Key_Accounts_Contacts</span></td><td>Key Accounts</td><td>Key Account Contacts</td><td class="d">AccountId</td><td>Contacts</td><td class="d">10</td></tr>
+        <tr><td>Key Accounts Deals<br><span class="d">Key_Accounts_Deals</span></td><td>Key Accounts</td><td>Key Account Deals</td><td class="d">AccountId</td><td>Opportunities</td><td class="d">20</td></tr>
+      </tbody></table></div></li>
+  </ol>
+  <div class="check why">Relationship Field is the field on the <i>child</i> record that points to the account: AccountId on both Contact and Opportunity. Rowhouse uses it to show each account's own records, and to fill it in on records imported into the tab.</div>
+</section>
+
+<section id="page">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>4. The page</h2></div>
+  <ol class="tut">
+    <li><b>Create an App page</b> in Lightning App Builder, as in the other tutorials: <span class="ui">New</span> › <span class="ui">App Page</span> › Label <span class="v">Key Accounts</span> › <span class="ui">One Region</span>.</li>
+    <li><b>Add the grid.</b> Drag <span class="ui">Rowhouse Grid</span> onto the page and enter <span class="v">Key_Accounts</span><button class="copy" data-copy="Key_Accounts">Copy</button> in <span class="ui">Grid Configuration</span>. Only the account grid is placed; its tabs come with it.</li>
+    <li><b>Save and activate</b>, adding the page to the <span class="ui">Sales</span> app.</li>
+  </ol>
+</section>
+
+<section id="open">
+  <div class="sec-head"><span class="sec-num">Use it · Hannah</span><h2>5. Open an account</h2></div>
+  <ol class="tut">
+    <li><b>Open the grid.</b> In the Sales app, click <span class="ui">Key Accounts</span>.
+      <div class="check">A column of toggles beside the account names. Accounts with related records show a count beside their toggle; accounts with none have no toggle.</div></li>
+    <li><b>Open one.</b> Click the toggle beside an account with contacts and opportunities (we use <i>Edge Communications</i>).
+      <div class="check">A panel opens under the row, with a blue bar down its left edge and two tabs: <b>Contacts (2)</b> and <b>Opportunities (4)</b>. It opens on the first tab with records.</div></li>
+    <li><b>Look at the deals.</b> Click the <span class="ui">Opportunities</span> tab. The deals have a Total row with the sum of their amounts.</li>
+  </ol>
+</section>
+
+<section id="edit">
+  <div class="sec-head"><span class="sec-num">Use it · Hannah</span><h2>6. Edit in a tab</h2></div>
+  <ol class="tut">
+    <li><b>Fix a title.</b> Back on the <span class="ui">Contacts</span> tab, click a contact's Title once and type a new one (we use <span class="v">SVP, Global Procurement</span> for Rose Gonzalez); what you type replaces the old title. Press <kbd>Enter</kbd>.
+      <div class="check">The tab's own Save bar appears inside the panel. Each tab saves on its own.</div></li>
+    <li><b>Save it.</b> Click that Save bar's <span class="ui">Save</span>.</li>
+    <li><b>Close the account.</b> Click the account's toggle again.</li>
+  </ol>
+</section>
+
+<section id="keys">
+  <div class="sec-head"><span class="sec-num">Use it · Hannah</span><h2>7. The same from the keyboard</h2></div>
+  <ol class="tut">
+    <li>Click any cell of the account grid, then use <kbd>↑</kbd> <kbd>↓</kbd> to reach an account with a toggle, and <kbd>←</kbd> until you reach the toggle itself, at the left of the row. Press <kbd>Enter</kbd> to open it.</li>
+    <li>Press <kbd>↓</kbd> to move onto the panel, then <kbd>Enter</kbd> to go into the tab's grid. Move and edit there as in any grid.</li>
+    <li>Press <kbd>Esc</kbd> to come back out to the panel, and <kbd>↑</kbd> to return to the account's row.</li>
+  </ol>
+</section>
+
+<section id="learned">
+  <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
+  <div class="tiles rv-stagger">
+    <div class="tile teal"><div class="ic">{{ic:tree}}</div><h4>Child tables</h4><p>Grids inside rows, each with its own columns, rules and Save bar.</p></div>
+    <div class="tile"><div class="ic">{{ic:grid}}</div><h4>Reusable grids</h4><p>A configuration can be a page's grid and another grid's tab at once.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:keyboard}}</div><h4>Keys across levels</h4><p>Enter goes in, Esc comes out, and the arrows never get lost.</p></div>
+  </div>
+  <div class="next">
+    <a href="tutorial-service.html"><small>Previous tutorial</small><b>← The morning triage</b></a>
+    <a class="fwd" href="tutorial-cleanup.html"><small>Next tutorial</small><b>The contact clean-up →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

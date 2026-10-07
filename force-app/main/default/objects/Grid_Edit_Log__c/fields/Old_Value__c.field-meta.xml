@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Old_Value__c</fullName>
+    <label>Old Value</label>
+    <type>LongTextArea</type>
+    <length>131072</length>
+    <visibleLines>3</visibleLines>
+    <description>For an Update entry, the value just before the change, as text: dates as YYYY-MM-DD, date/time values in UTC (ISO 8601), numbers in full, and lookups as record Ids.</description>
+    <inlineHelpText>The value before the change.</inlineHelpText>
+</CustomField>

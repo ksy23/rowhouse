@@ -1,0 +1,192 @@
+# Rowhouse by Kugamon
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
+A free, open-source data grid for Salesforce, built as a Lightning Web
+Component. Users edit records in place with spreadsheet keys, group and total
+them, open related records under each row, import and export, and run actions,
+with full keyboard and screen-reader support. Admins build each grid on a
+Grid Admin tab, without code. There is no paid tier.
+
+> **Status: in development. Not installable yet.** Nothing here is a release.
+
+## What it does
+
+**Editing**
+- Inline edit: type on a cell, or press Enter or F2, or double-click. Required
+  fields are checked in the editor, and save errors show on the cell.
+- Editors for every common field type: text, number, currency and percent,
+  date (with its calendar), date/time (in the user's time zone), time,
+  checkbox, picklist, dependent picklist, multi-select picklist, lookup and
+  owner (search as you type, honoring the field's lookup filter, with New
+  record), and long text.
+- Spreadsheet feel: cell ranges, copy and paste with Excel and Google Sheets,
+  fill down, clear, undo and redo of unsaved edits, frozen columns
+  ([docs/spreadsheet.md](docs/spreadsheet.md)).
+- Saves are validated first, then written in chunks of 200 rows, with the
+  results reported per row.
+
+**Seeing the data**
+- Multi-column sort, quick search, and filters: the admin's, which users
+  cannot remove, and each user's own from a column's menu.
+- Grouping up to three levels (dates by day, week, month, quarter, year or
+  fiscal period), with counts and subtotals over every matching record, and a
+  Total row.
+- Child tables: a row opens tabs of related records, each a grid of its own,
+  up to three levels deep, with child-total columns on the parent.
+- Formula columns in the syntax of formula fields, and display rules: fills,
+  text colors, bold, a colored bar per row, icons and data bars, explained in
+  a Display Key.
+- More rows load as you scroll, up to 100,000; past 10,000, the grid sorts and
+  searches on the server.
+- Each user's own layout, kept in Salesforce: widths, wrapping, sort,
+  grouping, and which columns show, in which order.
+- A list view's look, and a card layout on narrow screens.
+
+**Working in bulk**
+- Select rows to update a field on all of them, or delete them (when the
+  grid allows it), with Undo.
+- Import from CSV or Excel: a preview first, then updates by record Id or an
+  External Id and new records for the rest, with Undo import.
+- CSV export, with formula injection neutralised.
+- Actions from each row's menu or on the selected rows: a screen flow, an
+  autolaunched flow, invocable Apex or a quick action.
+
+**For admins**
+- The Grid Admin tab: every grid, searchable, sortable, and listed by object
+  or as archived; build, change, clone and archive grids without Setup. A gear
+  on each grid opens its settings in place.
+- An optional audit trail: one Grid Edit Log entry per change, written with
+  the change or not at all, kept forever or for a period you choose.
+- The Grid Guide tab: the full documentation inside Salesforce, with
+  tutorials, and a ? on every grid that opens the matching page.
+
+**Built in**
+- Every read and write runs as the user, through Salesforce's own object,
+  field and sharing security. No callouts, no third-party JavaScript.
+- A keyboard model and ARIA grid semantics throughout, checked by an
+  automated accessibility suite and a manual screen-reader pass.
+- Works under Lightning Web Security and under Lightning Locker.
+- Benchmarks from 1,000 to 50,000 rows: [docs/benchmarks.md](docs/benchmarks.md).
+
+## Placing a grid
+
+The quickest way: assign yourself the **Rowhouse Grid Admin** permission set
+(as well as **Rowhouse Grid User**), open the **Rowhouse** app from the App
+Launcher (it opens on the **Grid Guide** tab; click **Grid Admin**), and use
+**New grid**: choose the object, then the columns, display rules, filters,
+actions and child tables, and save. Saving deploys the configuration, so it
+also needs Customize Application, which Salesforce admins have. The Grid
+Guide's Get started page walks through it.
+
+To build a grid in Setup instead:
+
+1. Create a **Grid Configuration** custom metadata record (the object, page
+   size, default sort and, if you want them, frozen columns and a height), and
+   a **Grid Column** record for each column. Add **Grid Format Rule** records
+   for display rules, **Grid Filter** records for conditions every row must
+   meet, **Grid Action** records for actions and **Grid Child Table** records
+   for child tables. The Grid Guide's Configuration reference describes every
+   field.
+2. In Lightning App Builder, drag **Rowhouse Grid** onto an App, Record or Home
+   page and enter the configuration's API name in **Grid Configuration**. On
+   a record page the grid is given the page's record by Lightning; there is
+   nothing more to set.
+3. Assign the **Rowhouse Grid User** permission set to the people who use it.
+   It also lets them write the audit log and read their own entries. To let
+   someone read everyone's entries, give them View All on Grid Edit Log in a
+   permission set of your own.
+
+## Repo layout
+
+```
+force-app/main/default/
+  lwc/
+    gridApp/          the component an admin places; hosts one gridView
+    gridView/         one grid: loads, saves, exports; a child table is one too
+    gridTable/        the table: rendering, keyboard, ARIA, windowing, cards
+    gridChildren/     an open row's tabs of child tables
+    gridNest/         child tables: panel rows, heights by level, row offsets
+    gridKeyboard/     keyboard model as pure functions (no DOM)
+    gridFormat/       display, rounding, comparison and link-safety rules
+    gridCsv/          CSV export
+    gridEditState/    draft edits and save results
+    gridClipboard/    what copy writes and paste reads, per column type
+    gridHistory/      undo and redo of unsaved edits
+    gridFields/       lookup names and links, picklist dependencies
+    gridFormatRules/  display rules: which cells a rule colors
+    gridMassUpdate/   the dialog that changes one field on the selected rows
+    gridImport/       CSV reading and the import plan: what each row will do
+    gridXlsx/         our own .xlsx reader: unzip, inflate, worksheets
+    gridImportDialog/ the import dialog: file, preview, batches, result
+    gridActionDialog/ an action's dialog: asks before a server action runs
+    gridFlowRoute/    hands a screen flow to its own page and back
+    rowhouseFlow/     the page a screen-flow action runs on
+    rowhouseGuide/    the Grid Guide tab: the documentation
+    guidePage*/       its pages, built from guide/pages; do not edit
+    guideContent/     which page to show (built); guideCatalog/ the page list (built)
+    guidePageBase/    what every page does: links, sections, copy buttons
+    guideRoute/       addresses of the guide's pages, and opening it in a new tab
+    guideStyles/      the guide's one stylesheet, in Salesforce's look
+    gridGroups/       grouping: keys, group rows, subtotals added up
+    gridTiming/       benchmark timings, only with diagnostics on
+    rowhouseAdmin/    the Grid Admin tab: every grid, and its editor
+    gridAdminRowDialog/ a grid's Clone, Archive, Restore and Delete in Setup
+    gridConfigEditor/ a grid's settings: columns, rules, actions, child tables
+    gridSettings/     the dialog a grid's gear opens
+    gridAdminDraft/   the settings editor's plain logic
+    cell*/            the cell editors
+  classes/            Apex: GridSecurity, GridDescribe, GridDataService,
+                      GridConfig, GridSaveService, GridDeleteService,
+                      GridImportService, GridGroupService, GridLookup,
+                      GridNesting, GridActions, GridActionService,
+                      GridAudit, GridController, GridAdmin,
+                      GridAdminController, ...
+  objects/            configuration metadata types, the save-results object
+                      and the audit log (Grid Edit Log)
+  layouts/            their record pages in Setup, every field shown
+  permissionsets/     Rowhouse Grid User, Diagnostics and Admin
+  customPermissions/  Rowhouse_Diagnostics, Rowhouse_Admin
+  staticresources/    the Rowhouse logo and mark; a tutorial's sample file
+  contentassets/      the Rowhouse app's logo
+  applications/       the Rowhouse app: Grid Guide, Grid Admin, Grid Edit Logs
+  tabs/               the Grid Admin, Grid Edit Logs and Grid Guide tabs
+guide/                the Grid Guide's pages (HTML) and build.js, which makes them components
+test-data/            test objects, sample configurations, seed data, test suites
+dev/                  development-only metadata, never packaged
+eslint-rules/         custom lint rules that enforce the hard rules
+scripts/checks/       hard-rule checks run before every commit and in CI
+docs/                 benchmarks, the spreadsheet keys, and the logo files
+```
+
+## Running the checks
+
+```bash
+npm ci --legacy-peer-deps
+npm run verify    # self-tests, hard-rule checks, ESLint, SLDS Linter, Jest
+```
+
+The same command runs in CI on every push and pull request. The Apex suite runs
+in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Documents
+
+- The Grid Guide, inside Salesforce (the Grid Guide tab); its pages are in
+  [`guide/pages`](guide/pages). Change a page, then run `npm run guide`.
+- [CONTRIBUTING.md](CONTRIBUTING.md): set-up, what a change must include, and
+  the twenty-nine hard rules.
+- [SUPPORT.md](SUPPORT.md): how to get help and report a bug.
+- [`docs/benchmarks.md`](docs/benchmarks.md): the benchmark protocol, how to
+  run it, and the results.
+- [`docs/spreadsheet.md`](docs/spreadsheet.md): ranges, copy, paste, undo and
+  frozen columns, and their keys.
+- [`docs/brand/`](docs/brand/): the Rowhouse logo files.
+
+## License
+
+Apache License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). The name is
+covered by the [trademark policy](TRADEMARKS.md).
+
+Rowhouse is an independent open-source project. It is not affiliated with,
+endorsed by or sponsored by Salesforce, Inc. Salesforce, Lightning and
+AppExchange are trademarks of Salesforce, Inc.

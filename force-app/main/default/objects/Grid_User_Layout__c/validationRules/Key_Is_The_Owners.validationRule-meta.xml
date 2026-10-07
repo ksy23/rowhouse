@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Key_Is_The_Owners</fullName>
+    <active>true</active>
+    <description>A layout's Key starts with its owner's user Id, so no one can create a record with another user's key and stop that user's layout being kept.</description>
+    <errorConditionFormula>NOT(BEGINS(Key__c, CASESAFEID(OwnerId) &amp; &apos;:&apos;))</errorConditionFormula>
+    <errorDisplayField>Key__c</errorDisplayField>
+    <errorMessage>A layout's Key must start with its owner's user Id.</errorMessage>
+</ValidationRule>

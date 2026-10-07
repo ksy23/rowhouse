@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Grid Action</label>
+    <pluralLabel>Grid Actions</pluralLabel>
+    <description>An action users can run from a Rowhouse grid: a screen flow, an autolaunched flow, an invocable Apex action or a quick action. It can be offered in each row's menu, in the bar that appears when rows are selected, or both. The record's Label is the name users see.</description>
+    <visibility>Public</visibility>
+</CustomObject>

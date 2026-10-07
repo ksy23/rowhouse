@@ -1,0 +1,81 @@
+<template>
+    <!-- A field with a lookup filter: Salesforce's own lookup applies it. -->
+    <template lwc:if={useSalesforceLookup}>
+        <div class={formElementClass} onkeydown={handleFormKeyDown}>
+            <lightning-record-edit-form object-api-name={objectApiName} record-id={formRecordId} class="rh-lookup-form">
+                <lightning-input-field field-name={fieldApiName} variant="label-hidden" value={value} onchange={handleFormChange}></lightning-input-field>
+            </lightning-record-edit-form>
+            <template lwc:if={error}>
+                <p class="slds-form-element__help rh-editor-error" role="alert">{error}</p>
+            </template>
+            <div class="slds-assistive-text" aria-live="polite">{status}</div>
+        </div>
+    </template>
+    <template lwc:elseif={useOwnLookup}>
+        <div class={formElementClass} onkeydown={handleKeyDown}>
+            <label class="slds-form-element__label slds-assistive-text" for="lookup-input">{label}</label>
+            <div class="slds-form-element__control">
+                <div class="slds-combobox_container">
+                    <div class={comboboxClass}>
+                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                            <input
+                                type="text"
+                                class="slds-input slds-combobox__input"
+                                id="lookup-input"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-expanded={expanded}
+                                aria-controls={listboxId}
+                                aria-activedescendant={activeDescendant}
+                                aria-required={ariaRequired}
+                                aria-invalid={ariaInvalid}
+                                aria-describedby="lookup-error"
+                                autocomplete="off"
+                                placeholder={placeholder}
+                                value={term}
+                                oninput={handleInput}
+                            />
+                            <span class="slds-icon_container slds-input__icon slds-input__icon_right">
+                                <lightning-icon icon-name="utility:search" size="x-small"></lightning-icon>
+                            </span>
+                        </div>
+                        <div id={listboxId} class={listboxClass} role="listbox" aria-label={label}>
+                            <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                <template for:each={options} for:item="o">
+                                    <li key={o.key} role="presentation" class="slds-listbox__item">
+                                        <div
+                                            id={o.domId}
+                                            class={o.cls}
+                                            role="option"
+                                            aria-selected={o.selected}
+                                            data-index={o.index}
+                                            onmousedown={handleOptionMouseDown}
+                                            onclick={handleOptionClick}
+                                        >
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <lightning-icon icon-name={o.icon} size={o.iconSize} alternative-text={o.kind}></lightning-icon>
+                                            </span>
+                                            <span class="slds-media__body">
+                                                <span class="slds-listbox__option-text slds-listbox__option-text_entity">{o.name}</span>
+                                                <template lwc:if={o.showKind}>
+                                                    <span class="slds-listbox__option-meta slds-listbox__option-meta_entity">{o.kind}</span>
+                                                </template>
+                                            </span>
+                                        </div>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <template lwc:if={error}>
+                <p class="slds-form-element__help rh-editor-error" id="lookup-error" role="alert">{error}</p>
+            </template>
+            <div class="slds-assistive-text" aria-live="polite">{status}</div>
+        </div>
+    </template>
+    <template lwc:else>
+        <span class="slds-truncate" title={text}>{text}</span>
+    </template>
+</template>

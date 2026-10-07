@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Field_API_Name__c</fullName>
+    <label>Field API Name</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>The API name of the field shown in this column, without a namespace prefix.</description>
+    <inlineHelpText>API name of the field to show, such as Amount or My_Field__c, without a namespace prefix.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

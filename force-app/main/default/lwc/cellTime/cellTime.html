@@ -1,0 +1,52 @@
+<template>
+    <template lwc:if={isEdit}>
+        <!-- The box, the cell's width, with a list of times hanging below it (see cellTime.js). -->
+        <div class="rh-time" onkeydown={handleKeyDown}>
+            <div class={formElementClass}>
+                <label class="slds-form-element__label slds-assistive-text" for="time-input">{label}</label>
+                <div class="slds-form-element__control">
+                    <input
+                        type="text"
+                        class="slds-input"
+                        id="time-input"
+                        autocomplete="off"
+                        role="combobox"
+                        aria-autocomplete="none"
+                        aria-expanded="true"
+                        aria-controls="time-list"
+                        value={inputText}
+                        aria-invalid={ariaInvalid}
+                        aria-required={ariaRequired}
+                        aria-describedby="time-error"
+                        oninput={handleInput}
+                        onkeydown={handleInputKeyDown}
+                    />
+                </div>
+                <template lwc:if={error}>
+                    <p class="slds-form-element__help rh-editor-error" id="time-error" role="alert">{error}</p>
+                </template>
+            </div>
+            <div class={dropdownClass} onmousedown={handleListMouseDown}>
+                <ul class="slds-listbox slds-listbox_vertical" role="listbox" id="time-list" aria-label={listLabel} onkeydown={handleListKeyDown}>
+                    <template for:each={options} for:item="o">
+                        <li key={o.value} role="presentation" class="slds-listbox__item">
+                            <div
+                                class={o.cls}
+                                role="option"
+                                aria-selected={o.selected}
+                                tabindex={o.tabIndex}
+                                data-value={o.value}
+                                onclick={handleOptionClick}
+                            >
+                                <span class="slds-media__body"><span class="slds-truncate" title={o.label}>{o.label}</span></span>
+                            </div>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+    </template>
+    <template lwc:else>
+        <span class="slds-truncate" title={text}>{text}</span>
+    </template>
+</template>

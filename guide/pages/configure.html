@@ -1,0 +1,351 @@
+<!--meta {"title": "Configuration reference", "desc": "Every field of the six Rowhouse configuration records: Grid Configuration, Grid Column, Grid Format Rule, Grid Filter, Grid Child Table and Grid Action, with value formats, styles and what happens when a setting is wrong.", "section": "configure", "audience": "admin"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / Admin guide</div>
+    <span class="aud admin">Admin</span>
+    <h1 style="margin-top:14px">Configuration reference</h1>
+    <p class="dek">Every field of the six configuration records, in the order Setup shows them, with defaults and allowed values. The tables are generated from Rowhouse's own metadata, so they match what you see on the record page.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Records</span>
+    <a href="#admin">The Grid Admin tab</a>
+    <a href="#map">How they connect</a>
+    <a href="#config">Grid Configuration</a>
+    <a href="#column">Grid Column</a>
+    <a href="#rule">Grid Format Rule</a>
+    <a href="#filter">Grid Filter</a>
+    <a href="#child">Grid Child Table</a>
+    <a href="#action">Grid Action</a>
+    <span class="s-k">Values</span>
+    <a href="#celltypes">Cell types</a>
+    <a href="#operators">Operators and values</a>
+    <a href="#styles">Styles</a>
+    <a href="#formulas">Formulas</a>
+    <a href="#grouping">Grouping and subtotals</a>
+    <a href="#wrong">When a setting is wrong</a>
+  </aside>
+
+  <main class="content">
+
+<section id="admin">
+  <div class="sec-head"><span class="sec-num">Overview</span><h2>The Grid Admin tab, or Setup</h2>
+  <p class="sec-sub">Every setting on this page but one can be made in two places. The <b>Grid Admin</b> tab, and the gear on each grid, edit a grid and all its records on one screen; Setup edits the records one at a time. Both save the same Custom Metadata records, so you can switch between them. The one exception is a column's <b>Cell Type</b>, which only Setup offers; the tab keeps whatever it is.</p></div>
+  <div class="tbox rv"><table class="ref">
+    <thead><tr><th>Editor tab</th><th>Records it edits</th><th>Add button</th></tr></thead>
+    <tbody>
+      <tr><td>Grid</td><td>The Grid Configuration: title, API name, object, rows per page, sort, record page field, frozen columns, height, and what users can do</td><td>—</td></tr>
+      <tr><td>Columns (<i>n</i>)</td><td>One Grid Column per row, left to right</td><td><b>Add column</b>, <b>Add formula column</b></td></tr>
+      <tr><td>Display rules (<i>n</i>)</td><td>One Grid Format Rule per row, in the order they apply</td><td><b>Add display rule</b></td></tr>
+      <tr><td>Filters (<i>n</i>)</td><td>One Grid Filter per row; every one that is on applies</td><td><b>Add filter</b></td></tr>
+      <tr><td>Actions (<i>n</i>)</td><td>One Grid Action per row, in the menu's order</td><td><b>Add action</b></td></tr>
+      <tr><td>Child tables (<i>n</i>)</td><td>One Grid Child Table per row, in the tabs' order</td><td><b>Add child table</b></td></tr>
+    </tbody></table></div>
+  <figure class="rv" style="margin-top:20px">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Rowhouse_Admin</span></div><div class="stage"><div class="card-m adm">
+      <div class="adm-head"><span class="adm-logo"><svg class="i2" viewBox="0 0 32 32" aria-hidden="true"><path d="M2 11.5 16 3.5 30 11.5z" fill="#0F5C45"/><rect x="2" y="14" width="28" height="4" rx="1" fill="#0F5C45"/><rect x="2" y="20" width="28" height="4" rx="1" fill="#B3431F"/><rect x="2" y="26" width="28" height="4" rx="1" fill="#0F5C45"/></svg>ROWHOUSE</span><div><div class="m-title" style="font-weight:400;font-size:17px">Grid Admin</div><div class="m-meta">Build and change the grids your users see, without going into Setup.</div></div><span class="m-btn adm-help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg>Grid Guide</span></div>
+      <div class="adm-nav"><span class="on">Grids</span><span>Settings</span></div>
+      <div class="adm-ph">
+        <div class="adm-crumb"><span class="m-link">Grid Admin</span> / <span class="m-link">Grids</span> / Account People</div>
+        <div class="adm-title-row"><span class="adm-title">Account People</span><span class="adm-acts"><span class="m-btn">Close</span><span class="m-btn dis">Save</span></span></div>
+        <div class="adm-meta"><span class="adm-chip">Contacts</span><span class="adm-chip code">Account_People</span>On record pages, by Account ID · fills the window</div>
+      </div>
+      <div class="adm-split">
+        <div class="adm-main">
+          <div class="m-tabs ad"><span class="on">Grid</span><span>Columns (6)</span><span>Display rules (1)</span><span>Filters (1)</span><span>Actions (0)</span><span>Child tables (0)</span></div>
+          <div class="adm-form">
+            <div><span class="adm-fl"><b>*</b> Grid Title</span><span class="adm-in">Account People</span></div>
+            <div><span class="adm-fl"><b>*</b> API name</span><span class="adm-in dis">Account_People</span></div>
+            <div><span class="adm-fl">Object</span><span class="adm-txt">Contacts (Contact)</span></div>
+            <div><span class="adm-fl">Rows per page</span><span class="adm-in">200</span></div>
+            <div><span class="adm-fl">Sort by</span><span class="adm-in sel">Last Name (LastName)</span></div>
+            <div><span class="adm-fl">Sort direction</span><span class="adm-in sel">Ascending</span></div>
+            <div><span class="adm-fl">On a record page, show the records whose</span><span class="adm-in sel">Account ID (AccountId), on Account pages</span></div>
+            <div><span class="adm-fl">Frozen columns</span><span class="adm-in">0</span></div>
+            <div><span class="adm-fl">Height in pixels</span><span class="adm-in ph">Fills the window</span></div>
+          </div>
+          <div class="adm-can"><span class="adm-fl" style="font-weight:600;color:var(--m-ink)">What users can do</span><span><span class="mcb on"></span>Edit cells in the grid</span><span><span class="mcb on"></span>Export as CSV</span><span><span class="mcb"></span>Import from a CSV or Excel file</span><span><span class="mcb"></span>Delete selected rows</span><span><span class="mcb"></span>Log every change in Grid Edit Log</span></div>
+        </div>
+        <div class="adm-side">
+          <div class="adm-side-top"><span>Grid Guide</span><span><span class="m-link">Open ↗</span> &nbsp;<span class="m-link">Hide help</span></span></div>
+          <div class="adm-side-h">Grid Configuration</div>
+          <p>One per grid. Its title is what users see above the grid; its API name is what you enter in the Rowhouse Grid component.</p>
+          <p><b>Rows per page</b><br>Blank loads the first 200 rows, then 2,000 at a time up to 10,000, then more as users scroll, up to 100,000.</p>
+          <p><b>On a record page</b><br>Shows only the records whose lookup points to the page's record, like a related list.</p>
+          <p><b>Height in pixels</b><br>Blank fills the window.</p>
+        </div>
+      </div>
+    </div></div></div>
+    <figcaption>The Grid Admin tab, on the Grid tab of the Account People grid. Close and Save are at the top, beside the grid's name; Save stays grey until something changes. Beside the tabs, the Grid Guide says what the open tab's settings do: <b>Open ↗</b> opens that part of this page, and <b>Hide help</b> folds it away.</figcaption>
+  </figure>
+  <h3 style="margin-top:22px">The same setting, in each place</h3>
+  <p>The tables further down use Setup's field names. On the Grid Admin tab they read:</p>
+  <div class="tbox"><table class="ref wrap1">
+    <thead><tr><th>Record</th><th>Setup field</th><th>On the Grid Admin tab</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="6">Grid Configuration</td><td>Label · Grid Configuration Name · Object API Name</td><td>Grid Title · API name · Object</td></tr>
+      <tr><td>Page Size · Default Sort Field · Default Sort Direction</td><td>Rows per page · Sort by · Sort direction</td></tr>
+      <tr><td>Record Page Field</td><td>On a record page, show the records whose</td></tr>
+      <tr><td>Frozen Columns · Height (px)</td><td>Frozen columns · Height in pixels</td></tr>
+      <tr><td>Allow Inline Edit · Allow CSV Export · Allow Import · Allow Mass Delete · Log Changes</td><td>Under <b>What users can do</b>: Edit cells in the grid · Export as CSV · Import from a CSV or Excel file · Delete selected rows · Log every change in Grid Edit Log</td></tr>
+      <tr><td>Archived</td><td><b>Archive</b> and <b>Restore</b>, in the grid's menu on the Grids page</td></tr>
+      <tr><td rowspan="3">Grid Column</td><td>Field API Name · Column Label · Editable · Sortable · Wrap Text · Always Shown · Width (px) · Subtotal · Inactive</td><td>Field · Header · Edit · Sort · Wrap · Always shown · Width · Subtotal · On (the reverse of Inactive)</td></tr>
+      <tr><td>Group Level · Group Date Unit · Sort Order</td><td>Group (None, 1 (outermost), 2, 3, with Day, Month, Quarter or Year beside it for a date) · the ↑ ↓ arrows</td></tr>
+      <tr><td>Formula · Formula Type · Decimal Places</td><td>On a row added with <b>Add formula column</b>: the formula box in the Field column (<i>Such as Amount__c * 0.2</i>), the list under it, and the box beside that (<i>2 places</i>)</td></tr>
+      <tr><td>Grid Format Rule</td><td>Label · Field API Name · Operator · Value · Value To · Compare Field · Formula · Style · Apply To · Active</td><td>Meaning · Field · Condition · Value · the second box (<i>and</i>) · the list under Condition (<i>A value</i>, or <i>Field: …</i>) · Condition <b>Formula is true</b> · Look · Applies to (The cell, The whole row) · On</td></tr>
+      <tr><td>Grid Filter</td><td>Label · Field API Name · Operator · Value · Value To · Inactive</td><td>Name · Field · Condition · Value · the second box (<i>and</i>) · On</td></tr>
+      <tr><td>Grid Action</td><td>Label · Action Type · Action Name · Input Name · Show In · Confirmation · Required Permission · Inactive</td><td>Label · Type · Runs · Input · Offered in · Asks first · Permission · On</td></tr>
+      <tr><td>Grid Child Table</td><td>Child Configuration · Relationship Field · Tab Label · Inactive</td><td>Grid · Linked by · Tab label · On</td></tr>
+      <tr><td>Grid Column</td><td>Cell Type</td><td>Not offered: set it in Setup</td></tr>
+    </tbody></table></div>
+  <ul class="tick" style="margin-top:18px">
+    <li><b>Who.</b> The <b>Rowhouse Grid Admin</b> permission set adds the <b>Grid Admin</b> and <b>Grid Edit Logs</b> tabs to the <b>Rowhouse</b> app, beside its <b>Grid Guide</b> (where it opens and all that users see in it), and shows the gear beside each grid's Refresh button. Saving also needs <b>Customize Application</b>. Without it you can open a grid and try changes, but <b>Save</b> and <b>New grid</b> stay grey, and the editor says why.</li>
+    <li><b>Checked as you go.</b> A moment after each change, the editor checks the grid with the same code the grid itself uses. Problems that would stop it (no title, a field the object does not have, the same field twice) keep Save grey; settings the grid would leave out are listed as warnings.</li>
+    <li><b>Close or Cancel.</b> On the Grid Admin tab, Close and Save sit at the top, beside the grid's name; from the gear, at the bottom. The button beside Save reads <b>Close</b> while nothing has changed and <b>Cancel</b> once something has. Leaving with changes, by that button or by <b>Grid Admin</b> or <b>Grids</b> above the name, asks <i>Discard your changes?</i>, with <b>Keep editing</b> and <b>Discard</b>.</li>
+    <li><b>Saving takes a few seconds.</b> It is a deployment, the same as saving in Setup. Saved from the gear, the grid then loads again with the change.</li>
+    <li><b>Nothing is deleted.</b> A saved column, filter, action or child table has an <b>On</b> switch instead (its <b>Inactive</b> field); a display rule's switch is its <b>Active</b> field. An entry added and not yet saved can be removed. A whole grid is archived instead (its <b>Archived</b> field), from its menu on the Grids page, and <b>Delete in Setup</b> there lists its records to delete in Setup (<a href="features.html#admin-rows">Features › Clone, archive and delete a grid</a>).</li>
+    <li><b>Fixed once saved:</b> a grid's API name and its object. For another object, build another grid.</li>
+    <li><b>Help as you build.</b> On the Grid Admin tab, the Grid Guide sits beside the editor's tabs and follows them: Columns shows the Grid Column, Display rules the Grid Format Rule, and so on. <b>Open ↗</b> opens that record's part of this reference in a new browser tab, so the grid you are building stays as it is. <b>Hide help</b> folds it away, and this browser remembers; <b>Show help</b>, beside Close, brings it back. From the gear, the <b>?</b> beside each tab's introduction opens the same part of this reference. <b>Grid Guide</b>, at the top of the tab, opens Get started in a new browser tab; <b>Get started →</b> on the Grids page opens it in place.</li>
+    <li><b>One setting for Rowhouse as a whole.</b> On the tab's <b>Settings</b> page, <b>Grid Edit Log</b> sets how long the audit trail keeps its entries (<a href="features.html#audit-retention">Features › Audit trail</a>). It is the <b>Log Retention (days)</b> field of the <b>Rowhouse Setting</b> record named <span class="v plain">Default</span>, which Setup also shows, but set it on the tab: saving there is what starts or stops the nightly clean-up. A period saved in Setup only, the tab says, is not acted on until it is saved on the tab.</li>
+  </ul>
+</section>
+
+<section id="map">
+  <div class="sec-head"><span class="sec-num">Overview</span><h2>How the records connect</h2>
+  <p class="sec-sub">Every record except the Grid Configuration has a <b>Grid Configuration</b> field that says which grid it belongs to. Create the Grid Configuration first, then the rest in any order. Where to find them: the Grid Admin tab, or Setup › Custom Metadata Types › <i>type</i> › Manage Records.</p></div>
+  <div class="frame rv">
+    <svg class="dia" viewBox="0 0 900 310" role="img" aria-labelledby="erT erD">
+      <title id="erT">Configuration records and their links</title>
+      <desc id="erD">Grid Configuration has many Grid Columns, many Grid Format Rules, many Grid Filters, many Grid Actions and many Grid Child Tables. Each Grid Child Table also names a Child Configuration, which is another Grid Configuration.</desc>
+      <path class="draw" d="M330,125 C380,125 380,280 420,280" fill="none" stroke="var(--sky-mid)" stroke-width="2"/>
+      <path class="draw" d="M330,125 H420" fill="none" stroke="var(--sky-mid)" stroke-width="2"/>
+      <path class="draw" d="M330,125 C380,125 380,40 420,40" fill="none" stroke="var(--plum-mid)" stroke-width="2"/>
+      <path class="draw" d="M330,125 C380,125 380,210 420,210" fill="none" stroke="var(--rose-mid)" stroke-width="2"/>
+      <path class="draw" d="M150,160 V215 H600 C700,215 700,160 740,160" fill="none" stroke="var(--gold-mid)" stroke-width="2"/>
+      <path class="draw" d="M150,90 V30 H660 C700,30 700,90 740,90" fill="none" stroke="var(--gold-mid)" stroke-width="2" stroke-dasharray="5 5"/>
+      <g class="node a"><rect x="40" y="90" width="290" height="70" rx="12"/><text class="b" x="60" y="118" style="font-size:16px">Grid Configuration</text><text class="s" x="60" y="140">Object API Name · sort · height · what users may do</text></g>
+      <g class="node s"><rect x="420" y="100" width="230" height="50" rx="10"/><text class="b" x="438" y="122">Grid Column</text><text class="s" x="438" y="140">Field API Name · Editable · Sort Order</text></g>
+      <g class="node p"><rect x="420" y="15" width="230" height="50" rx="10"/><text class="b" x="438" y="37">Grid Format Rule</text><text class="s" x="438" y="55">Field · Operator · Value · Style</text></g>
+      <g class="node r"><rect x="420" y="185" width="230" height="50" rx="10"/><text class="b" x="438" y="207">Grid Action</text><text class="s" x="438" y="225">Action Type · Action Name · Show In</text></g>
+      <g class="node s"><rect x="420" y="255" width="230" height="50" rx="10"/><text class="b" x="438" y="277">Grid Filter</text><text class="s" x="438" y="295">Field · Operator · Value</text></g>
+      <g class="node g"><rect x="740" y="70" width="150" height="110" rx="10"/><text class="b" x="756" y="96">Grid Child</text><text class="b" x="756" y="114">Table</text><text class="s" x="756" y="136">Grid Configuration</text><text class="s" x="756" y="152">Child Configuration</text><text class="s" x="756" y="168">Relationship Field</text></g>
+      <text class="s" x="380" y="24" style="fill:var(--gold)">the child grid (dashed)</text>
+    </svg>
+  </div>
+</section>
+
+<section id="config">
+  <div class="sec-head"><span class="sec-num">Record 1 of 6</span><h2>Grid Configuration</h2>
+  <p class="sec-sub">One per grid. Its Label is the grid's title, and its API name (Grid Configuration Name) is what you type into the Rowhouse Grid component.</p></div>
+  {{fields:Grid_Configuration__mdt}}
+  <div class="call" style="margin-top:18px"><span class="k">Defaults worth knowing</span>
+    <p>Page Size blank loads the first 200 rows, then 2,000 at a time up to 10,000 as the grid opens, then more as users scroll, up to 100,000. Height blank fills the window. A Height under 160 is treated as 160. Allow Inline Edit and Allow CSV Export start ticked; Allow Mass Delete, Allow Import and Log Changes start unticked, because each can change many records at once.</p></div>
+  <div class="call s" style="margin-top:12px"><span class="k">On a record page: Record Page Field</span>
+    <p>Placed on a record page, a grid with a <b>Record Page Field</b> shows only the records whose field points to that page's record, like a related list: a Contacts grid with <span class="v plain">AccountId</span>, on Account pages, shows that account's contacts. An import there fills the field in on every record it creates. On the Grid Admin tab the list offers the object's lookups to one object; in Setup any lookup of the grid's object works. The page must be of an object the lookup points to: on another object's page the grid says so instead of showing rows. On App and Home pages, or with the field blank, the grid shows its whole list.</p></div>
+</section>
+
+<section id="column">
+  <div class="sec-head"><span class="sec-num">Record 2 of 6</span><h2>Grid Column</h2>
+  <p class="sec-sub">One per column, left to right by Sort Order. A column the user cannot read (field-level security) is left out for that user, silently.</p></div>
+  {{fields:Grid_Column__mdt}}
+  <div class="split" style="margin-top:18px">
+    <div class="call"><span class="k">Who can edit a column</span><p>All four must be true: the configuration's <b>Allow Inline Edit</b> is ticked; the column's <b>Editable</b> is ticked; the user can edit the object and the field; and the field can be edited at all (formulas, roll-ups, auto-numbers and system fields never can, nor can rich text). Long text is edited in a text area that first reads the whole value, however long.</p></div>
+    <div class="call s"><span class="k">Lookups</span><p>For a lookup or owner field (AccountId, OwnerId), the cell shows the record's name as a link and is edited by searching. Users need read access to the target object's name to edit it. Without a Column Label the column is headed by what it points to, as a record page heads it: "Account", "Owner", not "Account ID". A lookup field with a lookup filter is edited with Salesforce's own lookup, which applies the filter. The list ends with <b>New Account</b> (the target object) for users who may create one.</p></div>
+  </div>
+  <div class="call p" style="margin-top:12px;border-left-color:var(--plum);background:var(--plum-soft)"><span class="k" style="color:var(--plum)">Formula columns</span>
+    <p>Leave <b>Field API Name</b> blank and fill in <b>Formula</b>, <b>Formula Type</b> and <b>Column Label</b>: the grid works the value out for each row as it reads the rows, in the syntax of a formula field (see <a href="#formulas">Formulas</a>). <b>Decimal Places</b> sets the places of a number, currency or percent result (2 when blank). A formula column is read-only and cannot be sorted, grouped, filtered, searched or subtotalled; it exports with the rest. At most 10 formulas a grid, columns and display rules together.</p>
+  </div>
+  <div class="call s" style="margin-top:12px"><span class="k">Child total columns</span>
+    <p>Leave <b>Field API Name</b> blank and fill in <b>Child Table</b> (a Grid Child Table of the same grid), <b>Child Total</b> (sum, average, min, max or count) and, except for a count, <b>Child Field</b> (the child field to total), with a <b>Column Label</b>: each row then shows what its related records add up to, such as an account's number of contacts. It follows the child table's own filters. Read-only, and it cannot be sorted, grouped or filtered. At most five per grid. On the Grid Admin tab, <b>Add child total column</b>.</p>
+  </div>
+</section>
+
+<section id="rule">
+  <div class="sec-head"><span class="sec-num">Record 3 of 6</span><h2>Grid Format Rule</h2>
+  <p class="sec-sub">One per highlight. Rules are tested in the browser against the values the row shows, so once a user keeps an edit, the row's other colors follow it before anything is saved; the edited cell itself stays shaded as unsaved until Save. A rule with a <b>Formula</b> is the exception: it is worked out on the server for the saved record, so it changes after a save.</p></div>
+  {{fields:Grid_Format_Rule__mdt}}
+  <div class="call p" style="margin-top:18px;border-left-color:var(--plum);background:var(--plum-soft)"><span class="k" style="color:var(--plum)">When two rules apply to one cell</span>
+    <p>A style sets one of five things: the <b>fill</b>, the <b>text color</b>, the <b>weight</b> (bold), an <b>icon</b> or a <b>data bar</b>. For each of the five, the first matching rule wins, first meaning the lowest Sort Order. So a red-text rule, a green-fill rule and a warning icon can all show on one cell, but of two fills only the first shows. A Row rule counts for every cell in its row; put a Cell rule before it to let it show through.</p></div>
+  <ul class="tick" style="margin-top:18px">
+    <li><b>Between:</b> Operator Between, Value the low end and <b>Value To</b> the high end, both included. For numbers, dates, date/times and times. On the Grid Admin tab, choosing Between adds a second box, <i>and</i>, under Value.</li>
+    <li><b>Two fields:</b> fill in <b>Compare Field</b> instead of Value, and the rule compares Field with that field of the same record: <span class="v plain">Amount</span> Greater than <span class="v plain">Budget__c</span>. Equals, Does not equal and the four comparisons; both fields of the same kind (two numbers, two dates, two text fields), but not multi-select picklists on the Grid Admin tab. The compare field need not be a column. On the tab, the list under Condition says <i>A value</i>; choose <i>Field: …</i> there instead.</li>
+    <li><b>A formula:</b> fill in <b>Formula</b>, true or false, such as <span class="v plain">Amount &gt; Budget__c * 1.1</span>. Operator and Value are then not used, and Field is only the cell the rule colors; leave it blank, with Apply To Row, for the whole row. On the tab, choose <b>Formula is true</b> in Condition: a formula box takes Value's place, and Field offers <i>None (a row rule)</i>.</li>
+  </ul>
+</section>
+
+<section id="filter">
+  <div class="sec-head"><span class="sec-num">Record 4 of 6</span><h2>Grid Filter</h2>
+  <p class="sec-sub">One per condition every row must meet. The grid shows only the records that meet all its filters that are on; users see them as locked chips above the grid and cannot remove them.</p></div>
+  {{fields:Grid_Filter__mdt}}
+  <ul class="tick" style="margin-top:18px">
+    <li><b>Operators and values</b> are the format rules' (<a href="#operators">below</a>), Between included: a picklist value by label or API name, a date as <span class="v plain">2026-12-31</span> or <span class="v plain">TODAY-30</span>, a lookup as a record Id or <span class="v plain">$User</span> ("my records").</li>
+    <li><b>A filter that cannot work stops the grid</b> with a message naming the filter. It is never skipped, as a display rule is, because skipping it would show records you meant to keep out. A user who cannot read a filter's field cannot open the grid.</li>
+    <li><b>Filters narrow; they are not security.</b> Who can see a record is still decided by sharing and field-level security.</li>
+    <li><b>Users add their own</b> from each column's ▾ menu, for as long as they stay on the page (see the <a href="using.html#find">user guide</a>).</li>
+  </ul>
+</section>
+
+<section id="child">
+  <div class="sec-head"><span class="sec-num">Record 5 of 6</span><h2>Grid Child Table</h2>
+  <p class="sec-sub">One per tab under each row. The tab is a full grid of its own Grid Configuration, limited to the records whose Relationship Field points to that row.</p></div>
+  {{fields:Grid_Child__mdt}}
+  <ul class="tick" style="margin-top:18px">
+    <li><b>Build the child grid first</b>: a Grid Configuration and columns for the child object, like any other grid. It need not be placed on any page.</li>
+    <li><b>Three levels at most</b>: a grid, its child tables, and theirs. The third level has no toggle of its own.</li>
+    <li><b>Height</b> is the most the tab's panel grows to, at least 160 pixels; empty, the panel fits the records up to its level's usual height.</li>
+    <li><b>Everything the child configuration allows</b> works in the tab: editing, sorting, formatting, grouping, mass changes, import and actions. An import into a tab fills in the parent on every new record.</li>
+  </ul>
+</section>
+
+<section id="action">
+  <div class="sec-head"><span class="sec-num">Record 6 of 6</span><h2>Grid Action</h2>
+  <p class="sec-sub">One per action. Rowhouse checks the type and the names when the grid loads; whether the flow or class exists is found out when someone runs it.</p></div>
+  {{fields:Grid_Action__mdt}}
+  <div class="tbox" style="margin-top:18px"><table class="ref">
+    <thead><tr><th>Action Type</th><th>Action Name, for example</th><th>Receives</th><th>Runs</th></tr></thead>
+    <tbody>
+      <tr><td>Screen flow</td><td class="d">Add_Case_Note</td><td>A row: its Id in <code>recordId</code>. Selected rows: their Ids in a text collection named <code>ids</code>.</td><td>On a page of its own, as the user, then back to the grid</td></tr>
+      <tr><td>Autolaunched flow</td><td class="d">Mark_Case_Reviewed</td><td>Each record's Id in <code>recordId</code>, one interview per record</td><td>On the server, 50 records per call</td></tr>
+      <tr><td>Invocable Apex action</td><td class="d">CaseEscalation</td><td>Each record's Id, as text, in the action's only input</td><td>On the server, 50 records per call</td></tr>
+      <tr><td>Quick action</td><td class="d">LogACall, or Object.ActionName</td><td>Each record's Id in <code>contextId</code></td><td>On the server, 50 records per call</td></tr>
+    </tbody></table></div>
+  <div class="call w" style="margin-top:16px"><span class="k">Access</span><p>Rowhouse checks that the user can read the object and the records, and holds the action's Required Permission if it has one. It does not check the user's access to the flow or Apex class itself, and an autolaunched flow runs in system context by default. To limit who can run an action, give it a Required Permission (a custom permission); to make a flow respect field access, set it to run in user context.</p></div>
+</section>
+
+<section id="celltypes">
+  <div class="sec-head"><span class="sec-num">Values</span><h2>Cell types</h2>
+  <p class="sec-sub">Leave <b>Cell Type</b> blank: Rowhouse picks it from the field. These are the values it uses, should you ever need to override one. Cell Type is set in Setup only; the Grid Admin tab keeps it as it is. An unknown value stops the grid with an error naming the column.</p></div>
+  <div class="pill-row rv-stagger">
+    <span class="ptag">text</span><span class="ptag">textarea</span><span class="ptag">email</span><span class="ptag">phone</span><span class="ptag">url</span><span class="ptag">number</span><span class="ptag">currency</span><span class="ptag">percent</span><span class="ptag">date</span><span class="ptag">datetime</span><span class="ptag">time</span><span class="ptag">checkbox</span><span class="ptag">picklist</span><span class="ptag">multipicklist</span><span class="ptag">reference</span><span class="ptag">owner</span><span class="ptag">id</span>
+  </div>
+  <p class="note">Numbers, currency and percent align right; checkboxes are centred; everything else aligns left. These can be edited in the grid: text, textarea, email, phone, url, number, currency, percent, date, datetime, time, checkbox, picklist, multipicklist, reference and owner. Rich text and Ids are shown read-only.</p>
+</section>
+
+<section id="operators">
+  <div class="sec-head"><span class="sec-num">Values</span><h2>Operators and values for rules and filters</h2></div>
+  <div class="tbox rv"><table class="ref wrap1">
+    <thead><tr><th>Operator</th><th>Works with</th><th>Value, for example</th></tr></thead>
+    <tbody>
+      <tr><td>Equals · Does not equal</td><td>every type</td><td><span class="v plain">Closed Won</span> <span class="v plain">true</span> <span class="v plain">$User</span></td></tr>
+      <tr><td>Greater than · Greater than or equal to · Less than · Less than or equal to</td><td>numbers, currency, percent, dates, date/times, times</td><td><span class="v plain">250000</span> <span class="v plain">TODAY</span> <span class="v plain">TODAY+7</span> <span class="v plain">2026-12-31</span> <span class="v plain">17:30</span></td></tr>
+      <tr><td>Between</td><td>numbers, currency, percent, dates, date/times, times</td><td>Value <span class="v plain">10</span> and Value To <span class="v plain">50</span>, both included</td></tr>
+      <tr><td>Contains · Does not contain</td><td>text, picklists, multi-select picklists</td><td><span class="v plain">urgent</span></td></tr>
+      <tr><td>Starts with</td><td>text, picklists</td><td><span class="v plain">Closed</span></td></tr>
+      <tr><td>Is blank · Is not blank</td><td>every type except checkbox (a checkbox is never blank)</td><td>leave Value blank</td></tr>
+    </tbody></table></div>
+  <ul class="tick" style="margin-top:18px">
+    <li><b>Numbers</b> plainly: <span class="v plain">1234.5</span>, no currency symbol or thousands separator.</li>
+    <li><b>Dates</b> as <span class="v plain">2026-12-31</span>, or relative to today: <span class="v plain">TODAY</span>, <span class="v plain">TODAY+7</span>, <span class="v plain">TODAY-30</span>. Today is the user's today, in their time zone, worked out when the grid loads.</li>
+    <li><b>Checkboxes</b> as <span class="v plain">true</span> or <span class="v plain">false</span>. <b>Picklists</b> by label or API name, in any case.</li>
+    <li><b>Lookups and owners</b> by record Id, or <span class="v plain">$User</span> for the person looking at the grid ("my records").</li>
+    <li><b>Text</b> comparisons ignore case. A blank value meets only Does not equal and Does not contain, as in a list view filter.</li>
+  </ul>
+</section>
+
+<section id="styles">
+  <div class="sec-head"><span class="sec-num">Values</span><h2>Styles</h2>
+  <p class="sec-sub">Colors from Salesforce's own palette, chosen to stay readable with every text color. There is no blue fill and no yellow: Salesforce uses light blue for a selected row and pale yellow for an unsaved edit.</p></div>
+  <div class="swatches rv-stagger">
+    <div class="sw"><div class="chip" style="background:var(--f-green)">$420,000</div><div class="nm">Green fill</div></div>
+    <div class="sw"><div class="chip" style="background:var(--f-amber)">10/2/2026</div><div class="nm">Amber fill</div></div>
+    <div class="sw"><div class="chip" style="background:var(--f-red)">High</div><div class="nm">Red fill</div></div>
+    <div class="sw"><div class="chip" style="background:var(--f-purple)">Escalated</div><div class="nm">Purple fill</div></div>
+    <div class="sw"><div class="chip" style="background:var(--f-grey)">Closed</div><div class="nm">Grey fill</div></div>
+    <div class="sw"><div class="chip" style="background:#fff;color:var(--b-red);font-weight:600">9/28/2026</div><div class="nm">Red text</div></div>
+    <div class="sw"><div class="chip" style="background:#fff;color:var(--b-green);font-weight:600">+12%</div><div class="nm">Green text</div></div>
+    <div class="sw"><div class="chip" style="background:#fff;color:#747474">Inactive</div><div class="nm">Grey text</div></div>
+    <div class="sw"><div class="chip" style="background:#fff;font-weight:700">Key account</div><div class="nm">Bold</div></div>
+  </div>
+  <h3>Icons and data bars</h3>
+  <p>An icon goes before the cell's value: <b>Warning icon</b>, <b>Error icon</b>, <b>Success icon</b>, <b>Info icon</b>, <b>Up arrow</b> and <b>Down arrow</b>. On a Row rule it goes before the row's first value. The rule's Label is what the icon means, for screen readers and in its tooltip. A <b>Data bar</b> draws a bar behind a number, as long as the value's place between the lowest and the highest loaded value, on a scale that always includes zero; Cell rules on number, currency and percent columns only. The rule's condition decides which cells have a bar, so <span class="v plain">Is not blank</span> gives every number one.</p>
+  <div class="swatches rv-stagger">
+    <div class="sw"><div class="chip" style="background:#fff"><span style="color:#dd7a01">⚠</span> 9/28/2026</div><div class="nm">Warning icon</div></div>
+    <div class="sw"><div class="chip" style="background:#fff"><span style="color:#2e844a">✔</span> Won</div><div class="nm">Success icon</div></div>
+    <div class="sw"><div class="chip" style="background:#fff">↑ 12%</div><div class="nm">Up arrow</div></div>
+    <div class="sw"><div class="chip" style="background:linear-gradient(to right,#acf3e4 60%,#fff 60%);text-align:right">$250,000</div><div class="nm">Data bar</div></div>
+  </div>
+  <h3>On a whole row</h3>
+  <p>With <b>Apply To</b> set to Row, a fill shows as a 4-pixel bar at the row's left edge instead of coloring every cell, so it never hides the row's hover, selected or unsaved colors. Text colors and bold apply to every cell of the row.</p>
+  <div class="swatches rv-stagger">
+    <div class="sw"><div class="chip bar" style="--bc:var(--b-green)">Row · Green</div><div class="nm">Green fill, Row</div></div>
+    <div class="sw"><div class="chip bar" style="--bc:var(--b-amber)">Row · Amber</div><div class="nm">Amber fill, Row</div></div>
+    <div class="sw"><div class="chip bar" style="--bc:var(--b-red)">Row · Red</div><div class="nm">Red fill, Row</div></div>
+    <div class="sw"><div class="chip bar" style="--bc:var(--b-purple)">Row · Purple</div><div class="nm">Purple fill, Row</div></div>
+    <div class="sw"><div class="chip bar" style="--bc:var(--b-grey)">Row · Grey</div><div class="nm">Grey fill, Row</div></div>
+  </div>
+</section>
+
+<section id="formulas">
+  <div class="sec-head"><span class="sec-num">Values</span><h2>Formulas</h2>
+  <p class="sec-sub">Formula columns and formula display rules use the syntax of a Salesforce formula field: the same functions, operators and field names, checked as you type on the Grid Admin tab.</p></div>
+  <div class="tbox rv"><table class="ref">
+    <thead><tr><th>Formula</th><th>Formula Type</th><th>Gives</th></tr></thead>
+    <tbody>
+      <tr><td><code>FirstName &amp; " " &amp; LastName</code></td><td>Text</td><td>A contact's full name</td></tr>
+      <tr><td><code>Amount * Probability</code></td><td>Currency</td><td>An opportunity's weighted amount (a percent field is a fraction in a formula: 10% is 0.1)</td></tr>
+      <tr><td><code>Account.Name</code></td><td>Text</td><td>A field through a lookup</td></tr>
+      <tr><td><code>CloseDate - TODAY()</code></td><td>Number</td><td>Days until the close date</td></tr>
+      <tr><td><code>Amount &gt; 250000</code></td><td>(a display rule)</td><td>True or false: whether the rule applies</td></tr>
+    </tbody></table></div>
+  <ul class="tick" style="margin-top:18px">
+    <li><b>Worked out on the server</b> as the rows are read, so the values are the saved record's: after a save, the rows read back show the new results.</li>
+    <li><b>A field through a lookup</b> works (<code>Account.Name</code>), but not through a lookup that can point to more than one object, such as the owner of a record a queue can own (a case, a lead, a custom object) or a task's Related To: use the lookup's Id instead.</li>
+    <li><b>A user who cannot read a field the formula uses</b> does not get the column or the rule, as with a column on a field they cannot read.</li>
+    <li><b>A row the formula cannot work out</b> (a division by zero, say) shows a blank cell.</li>
+    <li><b>A Percent result is a fraction</b>, as in a formula field: <code>Won__c / Total__c</code> of 0.25 shows as 25%.</li>
+    <li><b>A formula can read <code>$User</code>, <code>$Organization</code> and custom settings (<code>$Setup</code>)</b>, which no field check covers: as with a formula field, put nothing in a grid formula its users should not see.</li>
+  </ul>
+</section>
+
+<section id="grouping">
+  <div class="sec-head"><span class="sec-num">Values</span><h2>Grouping and subtotals</h2></div>
+  <div class="tbox rv"><table class="ref">
+    <thead><tr><th>Field type</th><th>Users can group by it</th><th>Sum, Average</th><th>Min, Max</th><th>Count</th></tr></thead>
+    <tbody>
+      <tr><td>Picklist</td><td class="tick">✓</td><td>—</td><td>—</td><td class="tick">✓</td></tr>
+      <tr><td>Checkbox</td><td class="tick">✓</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>Lookup, owner</td><td class="tick">✓ by name</td><td>—</td><td>—</td><td class="tick">✓</td></tr>
+      <tr><td>Date, date/time</td><td class="tick">✓ by day, week, month, quarter, year, fiscal quarter or fiscal year</td><td>—</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+      <tr><td>Number, currency, percent</td><td>—</td><td class="tick">✓</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+      <tr><td>Text, email, phone, URL</td><td>only with a Group Level or Allow Grouping</td><td>—</td><td>—</td><td class="tick">✓</td></tr>
+      <tr><td>Long text, multi-select picklist, record Id, formulas</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    </tbody></table></div>
+  <p class="note" style="margin-top:10px">Count counts the values that are not blank. Subtotals and counts cover every record that matches, not only the rows loaded. A Total row under the grid shows the whole list's subtotals, grouped or not. A week starts on each user's first day of the week; fiscal quarters and years follow the org's fiscal year settings, custom fiscal years included.</p>
+</section>
+
+<section id="wrong">
+  <div class="sec-head"><span class="sec-num">Values</span><h2>When a setting is wrong</h2>
+  <p class="sec-sub">One typo should not take a grid away from everyone, so a setting that cannot work is skipped and the grid still opens. People with the Rowhouse Grid Diagnostics permission set see why, in a line above the grid that opens into the full list.</p></div>
+  <figure class="rv">
+    <div class="screen"><div class="stage"><div class="card-m">
+      <div class="m-head"><div class="m-ico opp"><svg viewBox="0 0 24 24"><path d="M4 18h16v2H4zM6 10h3v6H6zm5-4h3v10h-3zm5 6h3v4h-3z"/></svg></div><div><div class="m-title">Pipeline Review</div><div class="m-meta">31 items • Sorted by Close Date • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Grid settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div style="padding:0 14px 12px"><div class="m-warn">3 configuration warnings (shown with Rowhouse Grid Diagnostics only) <span class="m-link" style="margin-left:6px">Hide</span>
+        <ul>
+          <li>Format rule Pipeline_Big_Deal was skipped: Value "250,000" is not a number. Write it as 1234.5, without separators or symbols.</li>
+          <li>Grid Column Pipeline_Name: a sum subtotal does not apply to Opportunity Name, a text field, so it is not shown.</li>
+          <li>Grid Column Pipeline_Close: Group Level must be 1, 2 or 3.</li>
+        </ul></div></div>
+    </div></div></div>
+    <figcaption>What an admin with Rowhouse Grid Diagnostics sees when settings cannot work: a line under the grid's title that opens into the list. Users without it see the grid, minus the parts that were skipped.</figcaption>
+  </figure>
+  <div class="tbox"><table class="ref wrap1">
+    <thead><tr><th>Mistake</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>Object API Name or a Field API Name that does not exist, an unknown Cell Type, or a Record Page Field that is not a lookup</td><td>The grid shows an error naming the field, object or column. Check the spelling and use API names.</td></tr>
+      <tr><td>A format rule that cannot work</td><td>That rule is skipped, with the reason: an unknown field, an operator that does not suit the type, a value that is not a number or a date, a picklist value that does not exist, or a Cell rule on a field that is not a column.</td></tr>
+      <tr><td>A grouping or subtotal that does not fit</td><td>Skipped, with the reason: a level other than 1 to 3, a level used twice, a field that cannot be grouped, a subtotal that does not suit the type. An unknown date unit is replaced by month, with a warning.</td></tr>
+      <tr><td>A child table or action that cannot work</td><td>That tab or action is left out, with the reason.</td></tr>
+      <tr><td>A formula that does not work</td><td>The Grid Admin tab shows Salesforce's own message and keeps Save grey. Saved in Setup, the column or rule is left out, with the reason.</td></tr>
+      <tr><td>A Grid Filter that cannot work</td><td>The grid shows an error naming the filter, for everyone: a filter is never skipped.</td></tr>
+      <tr><td>A rule on a field the user cannot read</td><td>Left out for that user, with no warning: a colored row would otherwise reveal a value they are not allowed to see.</td></tr>
+    </tbody></table></div>
+  <div class="next">
+    <a href="start.html"><small>Back</small><b>← Get started</b></a>
+    <a class="fwd" href="features.html"><small>Next</small><b>Features in depth →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Cell_Type__c</fullName>
+    <label>Cell Type</label>
+    <type>Text</type>
+    <length>40</length>
+    <required>false</required>
+    <description>How the column shows and edits its values, for example text, number, currency, percent, date, checkbox or picklist. If blank, it is set from the field's type, which is right for almost every field.</description>
+    <inlineHelpText>Leave blank in almost all cases: the type is taken from the field. Enter a type such as text, number, currency, percent, date, checkbox or picklist only to override it.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

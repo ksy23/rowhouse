@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Operator__c</fullName>
+    <label>Operator</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>How the field is compared with Value. Greater than, less than and Between work with numbers, dates and times; Contains and Starts with work with text, picklists and multi-select picklists.</description>
+    <inlineHelpText>How the field is compared with Value.</inlineHelpText>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>equals</fullName>
+                <default>true</default>
+                <label>Equals</label>
+            </value>
+            <value>
+                <fullName>not_equals</fullName>
+                <default>false</default>
+                <label>Does not equal</label>
+            </value>
+            <value>
+                <fullName>greater_than</fullName>
+                <default>false</default>
+                <label>Greater than</label>
+            </value>
+            <value>
+                <fullName>greater_or_equal</fullName>
+                <default>false</default>
+                <label>Greater than or equal to</label>
+            </value>
+            <value>
+                <fullName>less_than</fullName>
+                <default>false</default>
+                <label>Less than</label>
+            </value>
+            <value>
+                <fullName>less_or_equal</fullName>
+                <default>false</default>
+                <label>Less than or equal to</label>
+            </value>
+            <value>
+                <fullName>between</fullName>
+                <default>false</default>
+                <label>Between</label>
+            </value>
+            <value>
+                <fullName>contains</fullName>
+                <default>false</default>
+                <label>Contains</label>
+            </value>
+            <value>
+                <fullName>not_contains</fullName>
+                <default>false</default>
+                <label>Does not contain</label>
+            </value>
+            <value>
+                <fullName>starts_with</fullName>
+                <default>false</default>
+                <label>Starts with</label>
+            </value>
+            <value>
+                <fullName>is_blank</fullName>
+                <default>false</default>
+                <label>Is blank</label>
+            </value>
+            <value>
+                <fullName>is_not_blank</fullName>
+                <default>false</default>
+                <label>Is not blank</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

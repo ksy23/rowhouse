@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Rollup_Total__c</fullName>
+    <label>Rollup Total</label>
+    <summarizedField>Rowhouse_Test_Child__c.Amount__c</summarizedField>
+    <summaryForeignKey>Rowhouse_Test_Child__c.Parent__c</summaryForeignKey>
+    <summaryOperation>sum</summaryOperation>
+    <type>Summary</type>
+    <description>DEVELOPMENT ONLY. Read-only by type. Requires the child object's master-detail relationship, which is why the child object exists.</description>
+</CustomField>

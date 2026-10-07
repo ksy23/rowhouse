@@ -1,0 +1,170 @@
+<!--meta {"title": "Tutorial: the morning triage", "desc": "Build a Rowhouse grid of cases on the Home page, with new cases flagged on the row, high priority in red, a Log a Call action, and a batch status change.", "section": "tutorials", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Morning triage</div>
+    <span class="aud both">Customer service · about 20 minutes</span>
+    <h1 style="margin-top:14px">The morning triage</h1>
+    <p class="dek">Kevin leads a support team of six. Each morning he sorts the overnight cases: who takes what, which are urgent, which customers need a call back. He wants it on his Home page, above everything else, without opening each case.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Build it · admin</span>
+    <a href="#goal">What you will build</a>
+    <a href="#config">1. The configuration</a>
+    <a href="#columns">2. Eight columns</a>
+    <a href="#rules">3. Three rules</a>
+    <a href="#action">4. A Log a Call action</a>
+    <a href="#page">5. The Home page</a>
+    <span class="s-k">Use it · Kevin</span>
+    <a href="#triage">6. Triage the queue</a>
+    <a href="#call">7. Log a call</a>
+    <a href="#learned">What you learned</a>
+  </aside>
+
+  <main class="content">
+
+<section id="goal">
+  <div class="persona"><span class="avatar b">KC</span><div><b>Kevin Callahan, Support Team Lead</b><span>Starts each day with the new cases. Needs urgent ones to jump out, and to move a batch of cases to Working at once.</span></div></div>
+  <div class="sec-head"><span class="sec-num">The goal</span><h2>What you will build</h2></div>
+  <figure class="rv mt0">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/page/home</span></div><div class="stage"><div class="card-m">
+      <div class="m-head"><div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div><div><div class="m-title">Service Triage</div><div class="m-meta">38 items • Sorted by Opened • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <table class="mt"><colgroup><col style="width:4%"><col style="width:11%"><col style="width:31%"><col style="width:11%"><col style="width:11%"><col style="width:9%"><col style="width:17%"><col style="width:6%"></colgroup>
+        <thead><tr><th class="cb"><span class="mcb"></span></th><th class="dd">Case</th><th class="dd">Subject</th><th class="dd">Status</th><th class="dd">Priority</th><th class="dd">Origin</th><th class="dd">Opened <span class="srt">↓</span></th><th></th></tr></thead>
+        <tbody>
+          <tr class="bar amber"><td class="cb"><span class="mcb"></span></td><td class="lnk">00001041</td><td>Generator GC1060 trips on start-up</td><td>New</td><td class="f-red">High</td><td>Phone</td><td>10/1/2026, 8:12 AM</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr class="bar amber"><td class="cb"><span class="mcb"></span></td><td class="lnk">00001040</td><td>Portal login loops back to sign-in</td><td>New</td><td>Medium</td><td>Web</td><td>10/1/2026, 7:55 AM</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr class="t-bold"><td class="cb"><span class="mcb"></span></td><td class="lnk">00001039</td><td>Refinery sensor readings drift overnight</td><td>Escalated</td><td class="f-red">High</td><td>Email</td><td>9/30/2026, 10:03 PM</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr><td class="cb"><span class="mcb"></span></td><td class="lnk">00001038</td><td>Invoice shows the wrong tax rate</td><td>Working</td><td>Low</td><td>Email</td><td>9/30/2026, 4:40 PM</td><td class="c"><span class="m-rm"></span></td></tr>
+        </tbody></table>
+    </div></div></div>
+    <figcaption>New cases carry an amber bar, high priority is red, escalated cases are bold, and each row's menu has Log a call.</figcaption>
+  </figure>
+  <div class="call"><span class="k">You need</span><p>The Rowhouse Grid User permission set, permission to customize the application and to edit the Home page, and some cases. Our org has a few dozen, a dozen of them open.</p></div>
+</section>
+
+<section id="config">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>1. The Grid Configuration</h2>
+  <p class="sec-sub">This grid shares the Home page with other components, so it gets a fixed Height.</p></div>
+  <ol class="tut">
+    <li><b>Open the records.</b> In Setup, open <span class="ui">Custom Metadata Types</span>, and beside <span class="ui">Grid Configuration</span> click <span class="ui">Manage Records</span>, then <span class="ui">New</span>.</li>
+    <li><b>Fill in:</b>
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Label</td><td><span class="v">Service Triage</span><button class="copy" data-copy="Service Triage">Copy</button></td></tr>
+        <tr><td>Grid Configuration Name</td><td><span class="v">Service_Triage</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object API Name</td><td><span class="v">Case</span><button class="copy" data-copy="Case">Copy</button></td></tr>
+        <tr><td>Default Sort Field</td><td><span class="v">CreatedDate</span><button class="copy" data-copy="CreatedDate">Copy</button></td></tr>
+        <tr><td>Default Sort Direction</td><td><span class="v">Descending</span> <span class="note">newest first</span></td></tr>
+        <tr><td>Height (px)</td><td><span class="v">480</span></td></tr>
+      </tbody></table></li>
+    <li><b>Save.</b></li>
+  </ol>
+</section>
+
+<section id="columns">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. Eight columns</h2></div>
+  <ol class="tut">
+    <li><b>Create these Grid Column records</b>, each with <span class="v">Service Triage</span> in <span class="ui">Grid Configuration</span> (Custom Metadata Types › Grid Column › Manage Records › New; <span class="ui">Save &amp; New</span> between them):
+      <div class="tbox" style="margin-top:12px"><table class="ref">
+        <thead><tr><th>Label · Name</th><th>Field API Name</th><th>Column Label</th><th>Sort Order</th><th>Editable</th><th>More</th></tr></thead>
+        <tbody>
+          <tr><td>Triage Number<br><span class="d">Triage_Number</span></td><td class="d">CaseNumber</td><td>Case</td><td class="d">10</td><td>—</td><td></td></tr>
+          <tr><td>Triage Subject<br><span class="d">Triage_Subject</span></td><td class="d">Subject</td><td></td><td class="d">20</td><td class="tick">✓</td><td>Wrap Text <span class="tick">✓</span></td></tr>
+          <tr><td>Triage Account<br><span class="d">Triage_Account</span></td><td class="d">AccountId</td><td>Account</td><td class="d">30</td><td>—</td><td></td></tr>
+          <tr><td>Triage Status<br><span class="d">Triage_Status</span></td><td class="d">Status</td><td></td><td class="d">40</td><td class="tick">✓</td><td></td></tr>
+          <tr><td>Triage Priority<br><span class="d">Triage_Priority</span></td><td class="d">Priority</td><td></td><td class="d">50</td><td class="tick">✓</td><td></td></tr>
+          <tr><td>Triage Origin<br><span class="d">Triage_Origin</span></td><td class="d">Origin</td><td>Origin</td><td class="d">60</td><td>—</td><td></td></tr>
+          <tr><td>Triage Owner<br><span class="d">Triage_Owner</span></td><td class="d">OwnerId</td><td>Owner</td><td class="d">70</td><td class="tick">✓</td><td></td></tr>
+          <tr><td>Triage Opened<br><span class="d">Triage_Opened</span></td><td class="d">CreatedDate</td><td>Opened</td><td class="d">80</td><td>—</td><td></td></tr>
+        </tbody></table></div></li>
+  </ol>
+</section>
+
+<section id="rules">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>3. Three rules</h2></div>
+  <ol class="tut">
+    <li><b>Create these Grid Format Rule records</b> (Custom Metadata Types › Grid Format Rule › Manage Records › New). In each, type the Label, then replace the <span class="ui">Grid Format Rule Name</span> that fills in with the name in the table. Type <span class="v">Service Triage</span> in <span class="ui">Grid Configuration</span> and leave <span class="ui">Active</span> ticked:
+      <div class="tbox" style="margin-top:12px"><table class="ref">
+        <thead><tr><th>Label · Name</th><th>Field API Name</th><th>Operator</th><th>Value</th><th>Style</th><th>Apply To</th><th>Sort Order</th></tr></thead>
+        <tbody>
+          <tr><td>High priority<br><span class="d">Triage_High</span></td><td class="d">Priority</td><td>Equals</td><td class="d">High</td><td><span style="background:var(--f-red);padding:1px 5px;border-radius:3px;color:#181818">Red fill</span></td><td>Cell</td><td class="d">10</td></tr>
+          <tr><td>Needs triage<br><span class="d">Triage_New</span></td><td class="d">Status</td><td>Equals</td><td class="d">New</td><td><span style="box-shadow:inset 4px 0 0 var(--b-amber);padding:1px 5px 1px 9px">Amber fill</span></td><td>Row</td><td class="d">20</td></tr>
+          <tr><td>Escalated<br><span class="d">Triage_Escalated</span></td><td class="d">IsEscalated</td><td>Equals</td><td class="d">true</td><td><b>Bold</b></td><td>Row</td><td class="d">30</td></tr>
+        </tbody></table></div></li>
+  </ol>
+  <div class="check why">Escalated is not a column, and does not need to be: a Row rule can test any field the user can read. The grid reads it with the rows but never shows it.</div>
+</section>
+
+<section id="action">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>4. A Log a Call action</h2>
+  <p class="sec-sub">Log a Call is a global quick action that every org has. Run on a case, it records a completed call on that case's activity timeline.</p></div>
+  <ol class="tut">
+    <li><b>Open Grid Action records.</b> In <span class="ui">Custom Metadata Types</span>, beside <span class="ui">Grid Action</span>, click <span class="ui">Manage Records</span>, then <span class="ui">New</span>.</li>
+    <li><b>Fill in:</b>
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Label</td><td><span class="v">Log a call</span><button class="copy" data-copy="Log a call">Copy</button> <span class="note">what the menu says</span></td></tr>
+        <tr><td>Grid Action Name</td><td><span class="v">Triage_Log_Call</span><button class="copy" data-copy="Triage_Log_Call">Copy</button></td></tr>
+        <tr><td>Grid Configuration</td><td><span class="v">Service Triage</span></td></tr>
+        <tr><td>Action Type</td><td><span class="v">Quick action</span></td></tr>
+        <tr><td>Action Name</td><td><span class="v">LogACall</span><button class="copy" data-copy="LogACall">Copy</button></td></tr>
+        <tr><td>Show In</td><td><span class="v">Row menu</span></td></tr>
+        <tr><td>Sort Order</td><td><span class="v">10</span></td></tr>
+      </tbody></table></li>
+    <li><b>Save.</b></li>
+  </ol>
+</section>
+
+<section id="page">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>5. Put it on the Home page</h2></div>
+  <ol class="tut">
+    <li><b>Edit the Home page.</b> Open the <span class="ui">Home</span> tab, click the gear icon at the top right, and choose <span class="ui">Edit Page</span>.</li>
+    <li><b>Add the grid at the top.</b> Drag <span class="ui">Rowhouse Grid</span> from the <span class="ui">Custom</span> components to the top of the page's main region, and enter <span class="v">Service_Triage</span><button class="copy" data-copy="Service_Triage">Copy</button> in <span class="ui">Grid Configuration</span>.</li>
+    <li><b>Save and activate.</b> Click <span class="ui">Save</span>. If you are asked to activate the page, click <span class="ui">Activate</span>, choose <span class="ui">Org Default</span>, and follow the prompts to assign it for desktop; then click <span class="ui">Back</span> (the arrow at the top left) to leave the builder.</li>
+  </ol>
+  <div class="call w"><span class="k">Changing the Home page changes it for everyone</span><p>The org default Home page is what everyone sees, unless an app or profile has its own. In a production org, consider assigning the page to the support team's app or profile instead.</p></div>
+</section>
+
+<section id="triage">
+  <div class="sec-head"><span class="sec-num">Use it · Kevin</span><h2>6. Triage the queue</h2></div>
+  <ol class="tut">
+    <li><b>Open Home.</b>
+      <div class="check">The Service Triage grid at the top, 480 pixels tall, newest cases first, with the rest of the Home page below it. New cases have an amber bar at their left edge, High priorities are red, and escalated cases are bold.</div></li>
+    <li><b>See the queue by status.</b> Open the ▾ menu on the <span class="ui">Status</span> header and choose <span class="ui">Group by Status</span>. Each status becomes a group with its count.
+      <div class="check">The groups follow the order of the Status picklist, as in a Salesforce report: <span class="ui">Status: New</span> at the top, then Working, Escalated and Closed.</div></li>
+    <li><b>Take three new cases.</b> In the <span class="ui">New</span> group, tick the box at the start of three cases. A bar floats over the top of the grid: "3 selected", with <span class="ui">Update field</span> and <span class="ui">Clear</span>.</li>
+    <li><b>Move them to Working.</b> Click <span class="ui">Update field</span>. Choose <span class="ui">Status</span>, choose <span class="ui">Working</span>, and click <span class="ui">Apply</span>.
+      <div class="check">The Status cells of the ticked cases turn yellow with "Working", their amber bars go (rules follow your unsaved values), and the Save bar says "3 unsaved changes". Nothing is saved yet.</div></li>
+    <li><b>Raise one priority.</b> Click the Priority of one of those cases, press <kbd>Enter</kbd>, choose <span class="ui">High</span> and press <kbd>Enter</kbd>.</li>
+    <li><b>Save.</b> Click <span class="ui">Save</span> on the Save bar.
+      <div class="check">The cases move to the Working group, and the raised priority turns red. The selection stays ("3 selected"), in case you want to do more to the same cases.</div></li>
+    <li><b>Clear up.</b> Click <span class="ui">Clear</span> in the selection bar, then open the <span class="ui">Status</span> menu again and choose <span class="ui">Stop grouping by Status</span>.</li>
+  </ol>
+</section>
+
+<section id="call">
+  <div class="sec-head"><span class="sec-num">Use it · Kevin</span><h2>7. Log a call from the row</h2></div>
+  <ol class="tut">
+    <li><b>Run the action.</b> On any case, click the ▾ at the right end of its row and choose <span class="ui">Log a call</span>.
+      <div class="check">A message: "Log a call: done on 1 record."</div></li>
+    <li><b>Check it.</b> Click the case's number to open the case (<kbd>Cmd</kbd>-click or <kbd>Ctrl</kbd>-click opens it in a new browser tab). The call is on its activity timeline, marked completed.</li>
+  </ol>
+</section>
+
+<section id="learned">
+  <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
+  <div class="tiles rv-stagger">
+    <div class="tile"><div class="ic">{{ic:page}}</div><h4>Height</h4><p>A fixed height lets a grid share a page with other components.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:palette}}</div><h4>Row rules</h4><p>A bar on the row, or bold across it, from a field that is not even a column.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:check}}</div><h4>Update field</h4><p>One value onto many records, reviewed as unsaved edits before Save.</p></div>
+    <div class="tile rose"><div class="ic">{{ic:bolt}}</div><h4>Actions</h4><p>A quick action in every row's menu, with no code.</p></div>
+  </div>
+  <div class="next">
+    <a href="tutorial-pipeline.html"><small>Previous tutorial</small><b>← The weekly pipeline review</b></a>
+    <a class="fwd" href="tutorial-accounts.html"><small>Next tutorial</small><b>Key accounts →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

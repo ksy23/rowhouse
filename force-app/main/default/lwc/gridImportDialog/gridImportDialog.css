@@ -1,0 +1,32 @@
+/*
+ * The dialog keeps its size while its content changes step to step, and the
+ * preview table scrolls sideways inside it. Rowhouse classes only
+ * (HR-15).
+ */
+.rh-import-body {
+    min-height: 16rem;
+}
+
+.rh-import-rules {
+    list-style: none;
+}
+
+/* A large drop zone: the whole width, room to aim a dragged file at. */
+.rh-import-drop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 8rem;
+}
+
+/* An update's changed value, old → new. */
+.rh-import-changed {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+/* The sheet and match choices: as wide as their longest choice needs, not the dialog. */
+.rh-import-sheet,
+.rh-import-match {
+    max-width: 24rem;
+}

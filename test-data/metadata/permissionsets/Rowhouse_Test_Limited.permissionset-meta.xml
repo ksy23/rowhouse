@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Rowhouse Test — Limited Access</label>
+    <description>DEVELOPMENT ONLY. Deliberately restricted access, used by the FLS and CRUD tests. Assign this to a test user, NOT to a System Administrator — an admin sees everything and every access test passes vacuously.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+
+    <objectPermissions>
+        <object>Rowhouse_Test_Record__c</object>
+        <allowCreate>true</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>true</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+
+    <!-- Readable and editable: the happy path. -->
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Text_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Number_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Currency_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Date_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Checkbox_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Picklist_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Test_Case__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+
+    <!-- Readable but NOT editable: the grid must render this with no edit
+         affordance even though the field type allows editing, and a save that
+         includes it must be rejected or stripped rather than silently applied. -->
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Read_Only_Text__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Decimal_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+
+    <!-- Omitted entirely, and that omission is the test: Long_Text__c,
+         Expected__c, DateTime_Field__c, Percent_Field__c, Email_Field__c,
+         Phone_Field__c, URL_Field__c, Multi_Picklist__c,
+         Controlling_Picklist__c, Dependent_Picklist__c, Lookup_Field__c and
+         Geolocation__c are invisible to this user. None may appear in a query
+         result, a rendered cell, a CSV export or a save payload. A field that
+         leaks here is a security-review failure, not a cosmetic bug. -->
+</PermissionSet>

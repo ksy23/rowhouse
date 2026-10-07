@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Group_Level__c</fullName>
+    <label>Group Level</label>
+    <type>Number</type>
+    <precision>1</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <description>Groups the grid by this column when it opens: 1 for the outermost grouping, 2 and 3 for groupings inside it. Leave blank not to group by this column. Users can change the grouping from the column menu; the grid keeps each user's choice until they click Reset layout.</description>
+    <inlineHelpText>To group the grid by this column when it opens, enter 1 for the outer grouping, or 2 or 3 for groupings inside it. Otherwise leave blank.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

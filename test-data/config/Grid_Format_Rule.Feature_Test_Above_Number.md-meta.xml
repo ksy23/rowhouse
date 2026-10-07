@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Currency above number</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Feature_Test</value></values>
+    <values><field>Field_API_Name__c</field><value xsi:type="xsd:string">Currency_Field__c</value></values>
+    <values><field>Operator__c</field><value xsi:type="xsd:string">greater_than</value></values>
+    <values><field>Compare_Field__c</field><value xsi:type="xsd:string">Number_Field__c</value></values>
+    <values><field>Style__c</field><value xsi:type="xsd:string">text_red</value></values>
+    <values><field>Apply_To__c</field><value xsi:type="xsd:string">cell</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">20</value></values>
+    <values><field>Active__c</field><value xsi:type="xsd:boolean">true</value></values>
+</CustomMetadata>

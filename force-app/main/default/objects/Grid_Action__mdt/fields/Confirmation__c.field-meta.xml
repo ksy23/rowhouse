@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Confirmation__c</fullName>
+    <label>Confirmation</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>A question to ask before the action runs, such as "Send the renewal quote?". If blank, an action on selected rows still asks for confirmation and names the rows, and an action on one row runs straight away unless the row has unsaved changes. Screen flows never ask, because they open in their own dialog.</description>
+    <inlineHelpText>Optional question shown before the action runs, such as "Send the renewal quote?". Leave blank to use the standard confirmation.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>

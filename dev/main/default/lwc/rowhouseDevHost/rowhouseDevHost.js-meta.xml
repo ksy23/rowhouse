@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <!-- Exposed on purpose: this is the dev-only host, outside force-app, never packaged. -->
+    <isExposed>true</isExposed>
+    <masterLabel>Rowhouse (dev host)</masterLabel>
+    <description>DEVELOPMENT ONLY. Hosts gridApp so it can be tried in Lightning Experience.</description>
+    <targets>
+        <!-- UrlAddressable: open it at /lightning/cmp/c__rowhouseDevHost, no tab needed. -->
+        <target>lightning__UrlAddressable</target>
+        <target>lightning__Tab</target>
+        <target>lightning__AppPage</target>
+    </targets>
+</LightningComponentBundle>

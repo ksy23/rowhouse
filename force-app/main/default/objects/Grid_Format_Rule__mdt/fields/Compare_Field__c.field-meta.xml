@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Compare_Field__c</fullName>
+    <label>Compare Field</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+    <description>Compare the field with this field of the same record instead of with Value, such as Close Date greater than Due Date. Equals and Does not equal work for any two fields of the same kind; greater and less than for numbers, dates and times. Leave Value blank.</description>
+    <inlineHelpText>API name of another field to compare with, instead of a Value.</inlineHelpText>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>
