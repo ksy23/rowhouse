@@ -191,7 +191,7 @@ import countChildren from '@salesforce/apex/GridController.countChildren';
 import runAction from '@salesforce/apex/GridController.runAction';
 import saveLayout from '@salesforce/apex/GridController.saveLayout';
 import resetLayout from '@salesforce/apex/GridController.resetLayout';
-import { legendFor } from 'c/gridFormatRules';
+import { legendFor, dateIn } from 'c/gridFormatRules';
 import { normalizeGrouping, sameGrouping, levelParam, rollUp } from 'c/gridGroups';
 import {
     applyEdit,
@@ -411,6 +411,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
     childCounts = {};
     /** The counts could not be fetched: rows without one then offer their toggle. */
     childCountsFailed = false;
+    /**
+     * The day TODAY stands for in display rules, as YYYY-MM-DD in the user's
+     * time zone. Null until a Refresh: the rules then take the day the grid
+     * opened. A Refresh sets it to today, so a grid left open past midnight
+     * catches up.
+     */
+    formatToday = null;
     /** The search box's text, so an empty list's "Clear search" can empty it. */
     searchValue = '';
     /** When the rows were last loaded, for "Updated a minute ago". */
@@ -1013,6 +1020,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
             objectApiName: d.objectApiName || null,
             // Conditional formats, checked on the server.
             formatRules: d.formatRules || [],
+            // The day TODAY stands for; null for the day the rules were first read.
+            formatToday: this.formatToday,
             // Grouping, and the server's counts and subtotals.
             grouping: this.grouping,
             groupSummary: this.groupSummary,
@@ -1289,10 +1298,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.initialise();
     }
 
-    /** Load the rows again, and their counts and subtotals. Not over unsaved changes. */
+    /**
+     * Load the rows again, and their counts and subtotals. Not over unsaved
+     * changes. Display rules work TODAY out again too.
+     */
     handleRefresh() {
         if (this.refreshDisabled) return;
         this.announce('Refreshing the list.');
+        this.formatToday = dateIn(new Date());
         this.childCounts = {};
         this.childCountsFailed = false;
         this._runtime.countToken++; // an answer still on its way is for the old list

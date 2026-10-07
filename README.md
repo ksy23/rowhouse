@@ -8,8 +8,8 @@
 A free, open-source data grid for Salesforce, built as a Lightning Web
 Component. Users edit records in place with spreadsheet keys, group and total
 them, open related records under each row, import and export, and run actions,
-with full keyboard and screen-reader support. Admins build each grid on a
-Grid Admin tab, without code. There is no paid tier.
+from the keyboard as well as the mouse, built for screen readers. Admins build
+each grid on a Grid Admin tab, without code. There is no paid tier.
 
 ![Editing in a Rowhouse grid: double-click a cell or just type, and each change waits in the Save bar with Undo, Redo, Cancel and Save](docs/images/rowhouse-editing.gif)
 
@@ -44,8 +44,8 @@ Grid Admin tab, without code. There is no paid tier.
 - Formula columns in the syntax of formula fields, and display rules: fills,
   text colors, bold, a colored bar per row, icons and data bars, explained in
   a Display Key.
-- More rows load as you scroll, up to 100,000; past 10,000, the grid sorts and
-  searches on the server.
+- More rows load as you scroll, up to 100,000. Search always runs on the
+  server; past 10,000 rows, so does sorting.
 - Each user's own layout, kept in Salesforce: widths, wrapping, sort,
   grouping, and which columns show, in which order.
 - A list view's look, and a card layout on narrow screens.

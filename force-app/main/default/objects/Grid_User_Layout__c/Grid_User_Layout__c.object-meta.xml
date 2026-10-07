@@ -12,5 +12,5 @@
     <enableSearch>false</enableSearch>
     <enableActivities>false</enableActivities>
     <enableHistory>false</enableHistory>
-    <description>How one user left one Rowhouse grid: the column widths, wrapping, sort, grouping and open rows the grid restores next time. One record per user per grid, owned by the user and private to them. Reset layout on the grid deletes it.</description>
+    <description>How one user left one Rowhouse grid: the columns shown and their order, widths, wrapping, sort, grouping and open rows, restored next time. One record per user per grid, owned by the user and private to them. Reset layout on the grid deletes it.</description>
 </CustomObject>

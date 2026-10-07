@@ -29,6 +29,8 @@
  *     refNames:    { [recordId]: name } for lookup and owner cells
  *     configName:  the grid configuration, which lookup editors search through
  *     formatRules: conditional formats from the server, in order
+ *     formatToday: the day TODAY stands for in them (YYYY-MM-DD), or null
+ *                  for the day they were first read
  *     grouping:    [{ field, unit }] the grouping, outermost first
  *     groupSummary: { status: 'loading' | 'ready' | 'unavailable', totals }
  *                    counts and subtotals from the server (c/gridGroups rollUp)
@@ -1576,13 +1578,19 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         return this._config.objectApiName || null;
     }
 
-    /** The format rules as tests, compiled once per rules array. */
+    /**
+     * The format rules as tests, compiled once per rules array and day. TODAY
+     * is fixed when they compile, so a new formatToday (a Refresh) compiles
+     * them again; without one, they take the day they were first read.
+     */
     get formatRules() {
         const rules = this._config.formatRules;
+        const today = this._config.formatToday || null;
         const m = this._memo;
-        if (!m.formatRules || m.formatSource !== rules) {
+        if (!m.formatRules || m.formatSource !== rules || m.formatToday !== today) {
             m.formatSource = rules;
-            m.formatRules = compileRules(rules);
+            m.formatToday = today;
+            m.formatRules = compileRules(rules, today ? { today } : {});
         }
         return m.formatRules;
     }

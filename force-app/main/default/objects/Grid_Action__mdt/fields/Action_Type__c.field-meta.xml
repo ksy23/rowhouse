@@ -4,8 +4,8 @@
     <label>Action Type</label>
     <type>Picklist</type>
     <required>false</required>
-    <description>What kind of action this is. A screen flow opens in a dialog. Autolaunched flows, Apex actions and quick actions run on the server, one record at a time, with the permissions they are built with.</description>
-    <inlineHelpText>Screen flows open in a dialog. Autolaunched flows, Apex actions and quick actions run on the server, one record at a time.</inlineHelpText>
+    <description>What kind of action this is. A screen flow opens on a page of its own, then returns to the grid. Autolaunched flows, Apex actions and quick actions run on the server for each record, 50 records per call, with the permissions they are built with.</description>
+    <inlineHelpText>A screen flow opens on a page of its own. Autolaunched flows, Apex actions and quick actions run on the server for each record.</inlineHelpText>
     <valueSet>
         <restricted>true</restricted>
         <valueSetDefinition>

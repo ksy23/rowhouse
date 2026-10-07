@@ -83,7 +83,7 @@
           <div class="rh-split">
             <div>
               <h4 class="rh-mt0">Search</h4>
-              <p>Type in <b>Search this list</b>. The grid searches every record it can show, not only the rows on screen: the text, email, phone, web address and picklist fields it reads (its columns, and any field a display rule needs), and the names in lookup columns, anywhere in the value. Numbers and dates are not searched. Clear the box to see everything again.</p>
+              <p>Type in <b>Search this list</b>. The grid searches every record it can show, not only the rows on screen: the text, email, phone, web address and picklist fields it reads (its columns, and any field a display rule needs), and the names in lookup columns, anywhere in the value. Numbers, dates, long text and multi-select picklists are not searched. Clear the box to see everything again.</p>
               <h4>Sort</h4>
               <p>Click a column's header to sort by it; click again to reverse. <b>Shift-click</b> another header to sort by it as well, as a tie-breaker. Each column's ▾ menu also has <b>Sort ascending</b> and <b>Sort descending</b>. A picklist sorts in the order of its values, as Salesforce lists them, not alphabetically.</p>
               <h4>Filter</h4>
@@ -92,7 +92,7 @@
             </div>
             <div>
               <h4 class="rh-mt0">Big lists</h4>
-              <p>The grid loads the first 10,000 records straight away, so sorting them is instant. Past that, more load as you scroll toward the end, 2,000 at a time, up to 100,000; a <b>Load more</b> button below the grid does the same. In a list that big, sorting asks Salesforce for the records in the new order, which takes a few seconds.</p>
+              <p>The grid loads the first 10,000 records straight away, so sorting them is instant. Past that, more load as you scroll toward the end, 2,000 at a time, up to 100,000; a <b>Load more</b> button below the grid does the same. In a list that big, sorting asks Salesforce for the records in the new order, which takes a few seconds. Salesforce orders them by the first column you sorted; a tie-breaker then orders the rows that are loaded.</p>
               <div class="rh-lims" style="grid-template-columns:1fr">
                 <div class="rh-lim"><span class="rh-t">Loaded when the grid opens</span><span class="rh-n">10,000 rows</span><div class="rh-meter"><i style="--rh-w:10%"></i></div></div>
                 <div class="rh-lim rh-sky"><span class="rh-t">Reachable by scrolling</span><span class="rh-n">100,000 rows</span><div class="rh-meter"><i style="--rh-w:100%"></i></div></div>
@@ -137,7 +137,7 @@
               <tr><td>Time</td><td>Pick from the list of times every half hour, or type <span class="rh-v rh-plain">17:30</span>, <span class="rh-v rh-plain">5:30 PM</span> or <span class="rh-v rh-plain">5pm</span> and press <kbd>Enter</kbd>.</td></tr>
               <tr><td>Long text</td><td>A text area opens under the cell, with a count of characters against the field's limit. <kbd>Enter</kbd> starts a new line; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (<kbd>⌘</kbd>+<kbd>Enter</kbd> on a Mac), <kbd>Tab</kbd> or <b>Done</b> keeps it. A very long value is read whole first, so what you save is never a shortened copy.</td></tr>
               <tr><td>Date</td><td>A calendar opens with the editor. Click a day, or type the date in the box and press <kbd>Enter</kbd>. <kbd>↓</kbd> moves into the calendar: arrows by day and week, <kbd>Page Up</kbd>/<kbd>Page Down</kbd> by month (with <kbd>Shift</kbd>, by year), <kbd>Enter</kbd> picks. <b>Today</b> picks today.</td></tr>
-              <tr><td>Checkbox</td><td><kbd>Space</kbd> ticks or unticks; <kbd>Enter</kbd> keeps it.</td></tr>
+              <tr><td>Checkbox</td><td><kbd>Space</kbd> or a click ticks or unticks it, and the change is kept at once.</td></tr>
               <tr><td>Picklist</td><td>Choose from the list. A dependent picklist offers only the values its controlling field allows; changing the controlling value clears a value it no longer allows, and says so.</td></tr>
               <tr><td>Multi-select picklist</td><td>Move values between Available and Chosen, then click <b>Done</b>.</td></tr>
               <tr><td>Lookup and owner</td><td>Type part of a name; matches appear after a moment. Arrow to one and press <kbd>Enter</kbd>. Empty the box to clear the field. An owner can be a user or a queue. <b>New Account</b> (or the lookup's object) at the end of the list opens Salesforce's own form; the record you save goes in the cell. A lookup your admin limited with a lookup filter opens Salesforce's own lookup, which offers only the records the filter allows.</td></tr>
@@ -158,7 +158,7 @@
 
         <section id="keys" data-anchor="keys">
           <div class="rh-sec-head"><span class="rh-sec-num">Basics</span><h2>Keys</h2>
-          <p class="rh-sec-sub">One <kbd>Tab</kbd> takes you into the grid, and one more takes you out. Inside, the arrow keys move. On a Mac, <kbd>Cmd</kbd> where this says Ctrl.</p></div>
+          <p class="rh-sec-sub">One <kbd>Tab</kbd> takes you into the grid, and one more takes you out. Inside, the arrow keys move. On a Mac, <kbd>Cmd</kbd> where this says Ctrl; redo is <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>.</p></div>
           <div class="rh-frame rh-rv">
             <div class="rh-split" style="align-items:center">
               <div class="rh-kdemo" aria-hidden="true">
@@ -245,7 +245,7 @@
             <li><b>Update field</b> sets one column to one value on every selected row. The changes wait as unsaved edits; check them, then <b>Save</b>.</li>
             <li><b>Delete</b>, when your admin allows it, asks first, naming the rows. Deleted records go to the Recycle Bin, and a bar under the grid's header offers <b>Undo</b>, which puts them back.</li>
             <li><b>Actions</b> your admin added for selections show as buttons, or in an Actions menu.</li>
-            <li><b>Select all</b> (the box in the header) takes up to 10,000 rows in the current order. When more records match than are loaded, the bar offers <b>Select all N matching records</b>: Delete then deletes every record the search and filters match. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more, so if a large delete was a mistake, click Undo straight away. <b>Clear</b> unselects everything. A search or a reload clears the selection; a sort or a save keeps it.</li>
+            <li><b>Select all</b> (the box in the header) takes up to 10,000 rows in the current order. When more records match than are loaded, the bar offers <b>Select all N matching records</b>: Delete then deletes every record the search and filters match. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more, so if a large delete was a mistake, click Undo straight away. <b>Clear</b> unselects everything. A search or a reload clears the selection, and a save keeps it. A sort keeps it too when every matching record is loaded; when more match, a sort, a filter or a change of grouping loads the rows again and clears it.</li>
           </ul>
         </section>
 

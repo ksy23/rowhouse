@@ -4,7 +4,7 @@
     <label>Operator</label>
     <type>Picklist</type>
     <required>false</required>
-    <description>How the field is compared with Value. Greater than, less than and Between work with numbers, dates and times; Contains and Starts with work with text, picklists and multi-select picklists.</description>
+    <description>How the field is compared with Value. Greater than, less than and Between work with numbers, dates and times; Contains with text, picklists and multi-select picklists; Starts with with text and picklists.</description>
     <inlineHelpText>How the field is compared with Value.</inlineHelpText>
     <valueSet>
         <restricted>true</restricted>

@@ -6,6 +6,6 @@
     <length>32768</length>
     <visibleLines>5</visibleLines>
     <required>false</required>
-    <description>What the grid restores, as JSON: column widths, wrapping, sort, grouping and the rows whose related records are open.</description>
+    <description>What the grid restores, as JSON: which columns show and in what order, their widths and wrapping, the sort, the grouping and the rows whose related records are open.</description>
     <inlineHelpText>What the grid restores for this user.</inlineHelpText>
 </CustomField>

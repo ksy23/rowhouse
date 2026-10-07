@@ -25,6 +25,7 @@ import summarizeGroups from '@salesforce/apex/GridController.summarizeGroups';
 import countChildren from '@salesforce/apex/GridController.countChildren';
 import { toCsv, downloadCsv } from 'c/gridCsv';
 import { REFUSED_BY_PERMISSION } from 'c/gridEditState';
+import { dateIn } from 'c/gridFormatRules';
 
 jest.mock('@salesforce/apex/GridController.getGridConfig', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.openGrid', () => ({ default: jest.fn() }), { virtual: true });
@@ -1910,6 +1911,16 @@ describe('list view details', () => {
             await settle();
             expect(fetchRows.mock.calls.length).toBe(before + 1);
             expect(live(el)).toBe('3 rows loaded.');
+        });
+
+        it('has Refresh work TODAY out again for the display rules', async () => {
+            const el = mount();
+            await settle();
+            // Until a Refresh, the rules keep the day they were first read.
+            expect(table(el).config.formatToday).toBeNull();
+            $(el, '.rh-refresh').click();
+            await settle();
+            expect(table(el).config.formatToday).toBe(dateIn(new Date()));
         });
 
         it('folds the actions into one menu when narrow, measured on its own root (HR-24)', async () => {

@@ -104,7 +104,7 @@
     </ul>
     <ul class="tick">
       <li><b>Order matters.</b> For the fill, the text color, bold, the icon and the data bar separately, the rule with the lowest Sort Order wins on a cell.</li>
-      <li><b>TODAY is worked out when the grid opens</b>, in the user's time zone. A grid left open past midnight needs a Refresh.</li>
+      <li><b>TODAY is worked out when the grid opens</b>, in the user's time zone, and again on <b>Refresh</b>: a grid left open past midnight needs a Refresh.</li>
       <li><b>More than a value:</b> Between two values; one field against another of the same record (Amount greater than Budget); or a formula, true or false. An icon goes before the value, a data bar behind a number. See the <a href="configure.html#rule">configuration reference</a>.</li>
     </ul>
   </div>
@@ -246,7 +246,7 @@
   <div class="tiles rv-stagger">
     <div class="tile"><div class="ic">{{ic:page}}</div><h4>Screen flow</h4><p>Opens on a page of its own, then comes back to the grid. One row: its Id in <code>recordId</code>. Selected rows: a text collection named <code>ids</code>, as list views pass them.</p></div>
     <div class="tile sky"><div class="ic">{{ic:bolt}}</div><h4>Autolaunched flow</h4><p>Runs on the server, one interview per record, with the record's Id in <code>recordId</code>.</p></div>
-    <div class="tile plum"><div class="ic">{{ic:gear}}</div><h4>Invocable Apex</h4><p>Runs on the server with each record's Id. If one record throws, the others are run again one by one so they still succeed.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:gear}}</div><h4>Invocable Apex</h4><p>Runs on the server with each record's Id. If one record throws, the others are run again one by one, while Salesforce's limits leave room, so they can still succeed; a record not run again keeps the error.</p></div>
     <div class="tile gold"><div class="ic">{{ic:check}}</div><h4>Quick action</h4><p>A global action such as LogACall, or one of the grid's object as Object.ActionName. It must suit the grid's object.</p></div>
   </div>
   <div class="split" style="margin-top:22px">
@@ -255,7 +255,7 @@
       <li><b>Afterwards</b> the rows are read again, with counts and subtotals. A record the action could not run on shows the reason on its row; a message says how many succeeded and failed. The selection stays, ready for the next action.</li>
     </ul>
     <ul class="tick">
-      <li><b>Three buttons, then a menu.</b> Up to three selection actions show as buttons; more fold into one Actions menu.</li>
+      <li><b>Buttons, or one menu.</b> With up to three selection actions, each is a button; with four or more, they are all in one Actions menu.</li>
       <li><b>Limit who can run it</b> with a Required Permission. Rowhouse checks that the user can read the object and the records; it does not check access to the flow or class itself.</li>
       <li><b>Large selections</b> run 50 records per call, one call after another.</li>
     </ul>
@@ -293,12 +293,12 @@
     <div class="tile sky"><div class="ic">{{ic:edit}}</div><h4>Update field</h4><p>With rows selected, <b>Update field</b> sets one editable column to one value on all of them. The dialog says what the rows hold now ("Currently: New (5), Working (2)"). The changes become unsaved edits, so the user sees every one before clicking Save, and one Undo takes them all back. Needs at least one editable column.</p></div>
     <div class="tile rose"><div class="ic">{{ic:lock}}</div><h4>Delete</h4><p>Off unless you tick <b>Allow Mass Delete</b> (<i>Delete selected rows</i> on the Grid Admin tab), and only for users who may delete the object. The dialog names the rows, says they go to the Recycle Bin, and starts on Cancel. Deletes run in batches of 200; a record that cannot be deleted stays, with the reason on its row. Afterwards <b>Undo</b>, under the grid's header, puts the deleted records back.</p></div>
   </div>
-  <p class="note" style="margin-top:12px">One selection holds up to 10,000 rows. Select all takes the first 10,000 in the current order, including rows in collapsed groups. When more records match than are loaded, <b>Select all N matching records</b> (up to 50,000) lets Delete delete every record the search and filters match. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more: a delete that big can push out what others deleted earlier.</p>
+  <p class="note" style="margin-top:12px">One selection holds up to 10,000 rows. Select all takes the first 10,000 in the current order, including rows in collapsed groups. When more records match than are loaded, and no more than 50,000 do, <b>Select all N matching records</b> lets Delete delete every record the search and filters match. While it is chosen, Update field and actions wait: they work on loaded rows. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more: a delete that big can push out what others deleted earlier.</p>
 </section>
 
 <section id="audit">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Audit trail</h2>
-  <p class="sec-sub">Tick <b>Log Changes</b> on a Grid Configuration (<i>Log every change in Grid Edit Log</i> on the Grid Admin tab) and every change that grid makes is written to <b>Grid Edit Log</b>: one entry per field changed, per record created or deleted, and per record an action ran on.</p></div>
+  <p class="sec-sub">Tick <b>Log Changes</b> on a Grid Configuration (<i>Log every change in Grid Edit Log</i> on the Grid Admin tab) and every change that grid makes is written to <b>Grid Edit Log</b>: one entry per field changed, per record created, deleted or put back by Undo, and per record an action ran on.</p></div>
   <div class="split">
     <figure class="mt0 rv">
       <div class="logstack" aria-hidden="true">
@@ -312,10 +312,10 @@
     </figure>
     <div>
       <ul class="tick">
-        <li><b>Who and when</b> are the entry's Created By and Created Date, which nobody can set.</li>
+        <li><b>Who and when</b> are the entry's Created By and Created Date, which Salesforce sets, not the grid.</li>
         <li><b>Values as text</b>: dates as 2026-09-30, date/times in UTC, numbers in full, lookups as record Ids. A field encrypted with Shield Platform Encryption is logged without its values, marked Values Not Recorded.</li>
         <li><b>All or nothing.</b> If an entry cannot be written, the change is not made either, and the user is told why. A grid that logs never changes something silently.</li>
-        <li><b>Users read only their own entries</b> and can never edit or delete one. To let an auditor read everyone's, give them View All on Grid Edit Log, and the Grid Edit Logs tab, in a permission set of your own.</li>
+        <li><b>Users read their own entries</b> and can never edit or delete one. The log is private, so anyone else reads an entry only as your org's sharing allows (a manager above its author in the role hierarchy, for example). To let an auditor read everyone's, give them View All on Grid Edit Log, and the Grid Edit Logs tab, in a permission set of your own.</li>
         <li><b>Not logged:</b> screen flows (they run in the browser), and changes made outside the grid.</li>
       </ul>
     </div>
@@ -460,8 +460,9 @@
       </ul>
     </div>
     <pre><code>[rowhouse] {"source":"rowhouse","event":"page",
-  "grid":"Pipeline_Review","ms":412,"serverMs":188,
-  "cpuMs":61,"rows":200,"loaded":200,"total":31}</code></pre>
+  "grid":"Pipeline_Review","at":"2026-10-07T14:05:12.381Z",
+  "ms":412,"serverMs":188,"cpuMs":61,
+  "rows":31,"loaded":31,"total":31}</code></pre>
   </div>
 </section>
 

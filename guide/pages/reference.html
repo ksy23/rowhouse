@@ -132,7 +132,7 @@
   <details class="faq"><summary>Do my company's validation rules, triggers and flows still run?</summary><div class="a"><p>Yes. A save from the grid is an ordinary save. If a rule refuses a record, its cell shows the rule's message and the other records still save.</p></div></details>
   <details class="faq"><summary>Does any data leave Salesforce?</summary><div class="a"><p>No. Rowhouse makes no callouts and loads no outside code. Export creates a file in your own browser.</p></div></details>
   <details class="faq"><summary>Does it work in Salesforce Classic or the mobile app?</summary><div class="a"><p>It runs on Lightning pages in Lightning Experience, and in a narrow space it switches to record cards. It does not run in Classic or in Experience Cloud sites, and it has not yet been tested in the Salesforce mobile app.</p></div></details>
-  <details class="faq"><summary>Why is a lookup filter not applied when I search?</summary><div class="a"><p>The search offers every record you can see. If the field's lookup filter rejects the one you choose, Salesforce refuses it when you save, and the cell says why.</p></div></details>
+  <details class="faq"><summary>Does a field's lookup filter apply in the grid?</summary><div class="a"><p>Yes, when you edit the cell: a lookup with a lookup filter opens Salesforce's own lookup, which offers only the records the filter allows. A paste or an import matches a record by its Id, or by the name of a record shown in the grid; if a required lookup filter rejects that record, Salesforce refuses it when you save, and the cell says why.</p></div></details>
 </section>
 
 <section id="glossary">
