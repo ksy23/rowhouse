@@ -1757,8 +1757,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * none offers no toggle. Asked for in batches of COUNT_BATCH, one after
      * another, for rows not already known; a new configuration makes an older
      * answer stale. A row offers no toggle until its count arrives, so rows
-     * with none do not flash one (found in Lightning Experience, 29 Sep
-     * 2026). If the counts cannot be fetched, every row offers it instead.
+     * with none do not flash one (found in Lightning Experience). If the
+     * counts cannot be fetched, every row offers it instead.
      */
     async loadChildCounts(ids) {
         if (!this.hasChildTabs) return;

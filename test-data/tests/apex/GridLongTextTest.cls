@@ -1,8 +1,8 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
  * A long text the grid shows shortened (TC-055: its first 1,000 characters and
- * "…") is never written back as if it were the whole text (review, 1 Oct
- * 2026): not by a save (a shortened cell pasted elsewhere), not by an import
+ * "…") is never written back as if it were the whole text: not by a save
+ * (a shortened cell pasted elsewhere), not by an import
  * (an exported file imported again). Security_Test (test-data/config) has
  * Long_Text__c as an editable column and allows import.
  */

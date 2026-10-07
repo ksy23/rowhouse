@@ -1,5 +1,5 @@
 /**
- * The Grid Guide's pages (D-53): every page renders, every link between pages
+ * The Grid Guide's pages: every page renders, every link between pages
  * leads to a page and a section that exist, links move within the tab,
  * section links scroll, a page opens at the section it is asked for, and
  * copy buttons copy.

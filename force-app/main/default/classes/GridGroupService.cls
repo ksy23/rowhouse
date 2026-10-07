@@ -427,8 +427,8 @@ public with sharing class GridGroupService {
             List<String> labels = new List<String>();
             // A blank travels as '', never null: Lightning drops null elements
             // from a list on its way to the browser, which shifted every later
-            // key into the wrong level (found in Lightning Experience, 28 Sep
-            // 2026). '' cannot be a real key: Salesforce stores empty text as null.
+            // key into the wrong level (found in Lightning Experience). ''
+            // cannot be a real key: Salesforce stores empty text as null.
             for (Integer i = 0; i < levels.size(); i++) {
                 String key = keyOf(levels[i], ar, i);
                 keys.add(key == null ? '' : key);

@@ -451,7 +451,7 @@
 .rh-subtotal-share,
 .rh-group-share {
     color: var(--slds-g-color-neutral-base-50, rgb(116, 116, 116));
-    font-weight: var(--slds-g-font-weight-regular, 400);
+    font-weight: var(--slds-g-font-weight-4, 400);
 }
 
 .rh-subtotal-share {

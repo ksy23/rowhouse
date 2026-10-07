@@ -27,8 +27,8 @@
 /*
  * The entry tables fit their space: fixed widths for the small columns, the
  * rest shared. A table that scrolled sideways clipped every field list that
- * opened in it to the table's height (found in Lightning Experience, 1 Oct
- * 2026), so it scrolls sideways only where there is truly no room. A field
+ * opened in it to the table's height (found in Lightning Experience), so it
+ * scrolls sideways only where there is truly no room. A field
  * list is as wide as its box, so the Field column takes what is left over.
  */
 .rh-editor-table {

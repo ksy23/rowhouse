@@ -137,8 +137,8 @@
  * classes of the rules it matches: a fill, a text color, bold. The colors
  * are rh- classes on SLDS palette hooks. A cell with an unsaved edit or an
  * error takes no format, so it shows as unsaved or in error until it is saved
- * (a fill outranked SLDS's unsaved color, found in Lightning Experience, 28
- * Sep 2026); the selected range tints over a fill.
+ * (a fill outranked SLDS's unsaved color, found in Lightning Experience);
+ * the selected range tints over a fill.
  *
  * SPREADSHEET FEEL (docs/spreadsheet.md)
  * A range is the rectangle between an anchor cell and the focused cell, in

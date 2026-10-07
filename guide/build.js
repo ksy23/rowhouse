@@ -125,7 +125,7 @@ const LABEL_ROWS = {
         'Unique across all Grid Column records.'
     ],
     Grid_Format_Rule__mdt: [
-        "What the color means, in your words. Users see it in the Color Key, in the cell's tooltip, and screen readers read it.",
+        "What the color means, in your words. Users see it in the Display Key, in the cell's tooltip, and screen readers read it.",
         'Grid Format Rule Name',
         'Unique across all Grid Format Rule records.'
     ],

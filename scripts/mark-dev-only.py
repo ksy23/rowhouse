@@ -9,8 +9,8 @@ an org's Setup. Apex classes have no description, so their header comment
 starts with it instead. Custom Metadata records have no description at all.
 
 Run from the repo root: python3 scripts/mark-dev-only.py
-It changes only files that need it and prints them. The static check
-scripts/checks/dev-only.js fails when one is missing.
+It changes only files that need it and prints them. The hard-rule checks
+(scripts/checks/run-all.js) fail when one is missing.
 """
 import os
 import re
