@@ -11,6 +11,8 @@ them, open related records under each row, import and export, and run actions,
 with full keyboard and screen-reader support. Admins build each grid on a
 Grid Admin tab, without code. There is no paid tier.
 
+![Editing in a Rowhouse grid: double-click a cell or just type, and each change waits in the Save bar with Undo, Redo, Cancel and Save](docs/images/rowhouse-editing.gif)
+
 > **Status: in development, not installable yet.** When it is released,
 > Rowhouse installs as a managed package, linked from
 > [rowhouse.app](https://rowhouse.app). Nothing here is a release.
@@ -161,7 +163,7 @@ test-data/            test objects, sample configurations, seed data, test suite
 dev/                  development-only metadata, never packaged
 eslint-rules/         custom lint rules that enforce the hard rules
 scripts/checks/       hard-rule checks run before every commit and in CI
-docs/                 benchmarks, the spreadsheet keys, and the logo files
+docs/                 benchmarks, the spreadsheet keys, the logo files and README images
 ```
 
 ## Running the checks
