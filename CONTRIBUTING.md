@@ -53,7 +53,9 @@ npm run verify
 with Prettier, so formatting never comes up in review. `npm run format`
 formats everything. Formatting Apex uses a parser that comes built for
 Windows (x64), Linux (x64) and macOS; anywhere else it needs Java 17 or
-later. Metadata XML is left as Salesforce writes it.
+later. Metadata XML is left as Salesforce writes it, and component templates
+(`.html`) as you write them: the LWC compiler drops whitespace that contains a
+line break, so keep words and the inline tag beside them on one line.
 
 The Apex tests run in a Salesforce org. Every test builds the users and rows it
 needs (`test-data/tests/apex/GridTestUsers.cls`), so the suite does not depend

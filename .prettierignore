@@ -1,7 +1,12 @@
-# Prettier formats the code: Apex, JavaScript, LWC templates, CSS and the
-# workflow YAML. Metadata XML is left as Salesforce writes it: the XML
-# formatter breaks long descriptions across two lines in an odd way, and the
-# hard-rule checks read those descriptions. These stay as they are too:
+# Prettier formats the code: Apex, JavaScript, CSS and the workflow YAML.
+# Metadata XML is left as Salesforce writes it: the XML formatter breaks long
+# descriptions across two lines in an odd way, and the hard-rule checks read
+# those descriptions. These stay as they are too:
+
+# Component templates. Prettier moves text onto its own line next to a tag,
+# which is harmless on a web page, but the LWC compiler drops whitespace that
+# contains a line break, so "Updated <time>" renders as "Updatedtime".
+**/lwc/**/*.html
 
 # Built by `npm run guide` from guide/pages; the build check compares them
 # byte for byte with what the generator writes.

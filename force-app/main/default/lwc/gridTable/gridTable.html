@@ -21,33 +21,19 @@
         <!-- The filters, as chips: the admin's first, locked; each of the
              user's with a button that removes it. -->
         <template lwc:if={filterChips}>
-            <div
-                class="slds-grid slds-grid_vertical-align-center slds-wrap slds-p-horizontal_small slds-p-bottom_x-small rh-filter-chips"
-                role="group"
-                aria-label="Filters"
-            >
+            <div class="slds-grid slds-grid_vertical-align-center slds-wrap slds-p-horizontal_small slds-p-bottom_x-small rh-filter-chips" role="group" aria-label="Filters">
                 <span class="slds-text-body_small slds-text-color_weak slds-m-right_x-small">Filtered by</span>
                 <template for:each={filterChips} for:item="f">
                     <span key={f.key} class={f.cls}>
                         <template lwc:if={f.locked}>
-                            <lightning-icon
-                                icon-name="utility:lock"
-                                size="xx-small"
-                                class="slds-m-right_xx-small rh-filter-lock"
-                                aria-hidden="true"
-                            ></lightning-icon>
+                            <lightning-icon icon-name="utility:lock" size="xx-small" class="slds-m-right_xx-small rh-filter-lock" aria-hidden="true"></lightning-icon>
                         </template>
                         <span class="slds-pill__label" title={f.title}>{f.label}</span>
                         <template lwc:if={f.locked}>
                             <span class="slds-assistive-text">, set by your Salesforce admin</span>
                         </template>
                         <template lwc:else>
-                            <button
-                                class="slds-button slds-button_icon slds-pill__remove"
-                                title={f.removeLabel}
-                                data-field={f.field}
-                                onclick={handleFilterChipRemove}
-                            >
+                            <button class="slds-button slds-button_icon slds-pill__remove" title={f.removeLabel} data-field={f.field} onclick={handleFilterChipRemove}>
                                 <lightning-icon icon-name="utility:close" size="xx-small"></lightning-icon>
                                 <span class="slds-assistive-text">{f.removeLabel}</span>
                             </button>
@@ -55,59 +41,35 @@
                     </span>
                 </template>
                 <template lwc:if={hasUserFilters}>
-                    <button class="slds-button slds-m-left_small rh-filter-clear" onclick={handleClearFilters}>
-                        Clear filters
-                    </button>
+                    <button class="slds-button slds-m-left_small rh-filter-clear" onclick={handleClearFilters}>Clear filters</button>
                 </template>
             </div>
         </template>
         <!-- The grouping, as chips: each level's column, with a button that
              stops grouping by it. -->
         <template lwc:if={groupChips}>
-            <div
-                class="slds-grid slds-grid_vertical-align-center slds-wrap slds-p-horizontal_small slds-p-bottom_x-small rh-group-chips"
-                role="group"
-                aria-label="Grouping"
-            >
+            <div class="slds-grid slds-grid_vertical-align-center slds-wrap slds-p-horizontal_small slds-p-bottom_x-small rh-group-chips" role="group" aria-label="Grouping">
                 <span class="slds-text-body_small slds-text-color_weak slds-m-right_x-small">Grouped by</span>
                 <template for:each={groupChips} for:item="g">
                     <span key={g.key} class="slds-grid slds-grid_vertical-align-center">
                         <template lwc:if={g.showArrow}>
-                            <lightning-icon
-                                icon-name="utility:chevronright"
-                                size="xx-small"
-                                class="slds-m-horizontal_xx-small"
-                                aria-hidden="true"
-                            ></lightning-icon>
+                            <lightning-icon icon-name="utility:chevronright" size="xx-small" class="slds-m-horizontal_xx-small" aria-hidden="true"></lightning-icon>
                         </template>
                         <span class="slds-pill rh-group-chip">
                             <span class="slds-pill__label" title={g.label}>{g.label}</span>
-                            <button
-                                class="slds-button slds-button_icon slds-pill__remove"
-                                title={g.removeLabel}
-                                data-field={g.field}
-                                onclick={handleChipRemove}
-                            >
+                            <button class="slds-button slds-button_icon slds-pill__remove" title={g.removeLabel} data-field={g.field} onclick={handleChipRemove}>
                                 <lightning-icon icon-name="utility:close" size="xx-small"></lightning-icon>
                                 <span class="slds-assistive-text">{g.removeLabel}</span>
                             </button>
                         </span>
                     </span>
                 </template>
-                <button class="slds-button slds-m-left_small rh-group-clear" onclick={handleClearGrouping}>
-                    Stop grouping
-                </button>
+                <button class="slds-button slds-m-left_small rh-group-clear" onclick={handleClearGrouping}>Stop grouping</button>
             </div>
         </template>
         <!-- While a header the grid can group by is dragged: drop it here to group by it. Mouse only; the column menu does the same from the keyboard. -->
         <template lwc:if={groupDropZone}>
-            <div
-                class={groupDropZone.cls}
-                aria-hidden="true"
-                ondragover={handleGroupZoneDragOver}
-                ondragleave={handleGroupZoneDragLeave}
-                ondrop={handleGroupZoneDrop}
-            >
+            <div class={groupDropZone.cls} aria-hidden="true" ondragover={handleGroupZoneDragOver} ondragleave={handleGroupZoneDragLeave} ondrop={handleGroupZoneDrop}>
                 <lightning-icon icon-name="utility:add" size="x-small" class="slds-m-right_x-small"></lightning-icon>
                 <span class="slds-text-body_small">{groupDropZone.label}</span>
             </div>
@@ -127,371 +89,185 @@
                             </div>
                         </div>
                     </div>
-                    <button
-                        class="slds-button slds-button_neutral slds-m-left_x-small rh-card-direction"
-                        disabled={cardSortDisabled}
-                        onclick={handleCardSortDirection}
-                    >
+                    <button class="slds-button slds-button_neutral slds-m-left_x-small rh-card-direction" disabled={cardSortDisabled} onclick={handleCardSortDirection}>
                         <span class="slds-assistive-text">Sort direction: </span>{cardSortDirectionLabel}
                     </button>
                 </div>
-                <p class="slds-text-body_small slds-text-color_weak slds-p-horizontal_small rh-card-count">
-                    {cardCountText}
-                </p>
+                <p class="slds-text-body_small slds-text-color_weak slds-p-horizontal_small rh-card-count">{cardCountText}</p>
                 <ul class="slds-has-dividers_bottom-space" aria-label={ariaLabel}>
                     <template for:each={cardRows} for:item="card">
                         <li key={card.key} class={card.cls} data-row-id={card.id}>
                             <!-- A group: its toggle, name and count, then its subtotals. -->
                             <template lwc:if={card.isRecord}>
-                                <article aria-labelledby={card.headingId}>
-                                    <div class="slds-grid slds-grid_vertical-align-center">
-                                        <template lwc:if={hasSelection}>
-                                            <div class="slds-checkbox slds-m-right_x-small">
-                                                <input
-                                                    type="checkbox"
-                                                    id={card.selectId}
-                                                    checked={card.isSelected}
-                                                    data-row-id={card.id}
-                                                    onclick={handleSelectClick}
-                                                />
-                                                <label class="slds-checkbox__label" for={card.selectId}>
-                                                    <span class="slds-checkbox_faux"></span>
-                                                    <span class="slds-form-element__label slds-assistive-text"
-                                                        >{card.selectLabel}</span
-                                                    >
-                                                </label>
-                                            </div>
-                                        </template>
-                                        <h3
-                                            class="slds-text-heading_small slds-truncate"
-                                            id={card.headingId}
-                                            tabindex="-1"
-                                            data-card-heading={card.position}
-                                        >
-                                            <template lwc:if={card.titleHref}>
-                                                <a
-                                                    href={card.titleHref}
-                                                    data-record-id={card.titleRecordId}
-                                                    onclick={handleLinkClick}
-                                                    >{card.title}</a
-                                                >
-                                            </template>
-                                            <template lwc:else>{card.title}</template>
-                                        </h3>
-                                        <!-- The record's actions, as each table row's menu. -->
-                                        <template lwc:if={hasRowActions}>
-                                            <lightning-button-menu
-                                                class="slds-col_bump-left slds-m-left_x-small rh-card-actions"
-                                                alternative-text={card.actionsLabel}
-                                                icon-name="utility:down"
-                                                icon-size="x-small"
-                                                menu-alignment="right"
-                                                disabled={isSaving}
+                            <article aria-labelledby={card.headingId}>
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <template lwc:if={hasSelection}>
+                                        <div class="slds-checkbox slds-m-right_x-small">
+                                            <input
+                                                type="checkbox"
+                                                id={card.selectId}
+                                                checked={card.isSelected}
                                                 data-row-id={card.id}
-                                                onselect={handleCardAction}
-                                            >
-                                                <template for:each={rowMenuItems} for:item="m">
-                                                    <lightning-menu-item
-                                                        key={m.key}
-                                                        value={m.name}
-                                                        label={m.label}
-                                                    ></lightning-menu-item>
-                                                </template>
-                                            </lightning-button-menu>
-                                        </template>
-                                    </div>
-                                    <template lwc:if={card.rowError}>
-                                        <p class="slds-text-color_error slds-m-top_xx-small rh-card-row-error">
-                                            Error: {card.rowError}
-                                        </p>
+                                                onclick={handleSelectClick}
+                                            />
+                                            <label class="slds-checkbox__label" for={card.selectId}>
+                                                <span class="slds-checkbox_faux"></span>
+                                                <span class="slds-form-element__label slds-assistive-text">{card.selectLabel}</span>
+                                            </label>
+                                        </div>
                                     </template>
-                                    <dl class="slds-list_horizontal slds-wrap slds-m-top_x-small" id={card.fieldsId}>
-                                        <template for:each={card.fields} for:item="f">
-                                            <dt
-                                                key={f.labelKey}
-                                                class="slds-item_label slds-text-color_weak slds-truncate"
-                                                title={f.label}
-                                            >
-                                                {f.label}
-                                            </dt>
-                                            <dd key={f.valueKey} class="slds-item_detail">
-                                                <template lwc:if={f.editOnValue}>
-                                                    <!-- Tap the value to edit it. -->
-                                                    <button
-                                                        class="slds-button rh-card-value-button"
-                                                        aria-describedby={f.errorId}
-                                                        data-card-edit
-                                                        data-row-id={card.id}
-                                                        data-field={f.field}
-                                                        onclick={handleCardEdit}
-                                                    >
-                                                        <span class={f.valueCls} style={f.valueStyle}>
-                                                            <template lwc:if={f.hasFormatIcon}>
-                                                                <lightning-icon
-                                                                    icon-name={f.formatIcon}
-                                                                    variant={f.formatIconVariant}
-                                                                    size="xx-small"
-                                                                    alternative-text={f.formatIconLabel}
-                                                                    title={f.formatIconLabel}
-                                                                    class="slds-m-right_xx-small rh-format-icon"
-                                                                ></lightning-icon>
-                                                            </template>
-                                                            <template lwc:if={f.isCheckbox}
-                                                                ><span>{f.text}</span></template
-                                                            >
-                                                            <template lwc:elseif={f.isBlank}
-                                                                ><span aria-hidden="true">&mdash;</span
-                                                                ><span class="slds-assistive-text"
-                                                                    >No value</span
-                                                                ></template
-                                                            >
-                                                            <template lwc:else
-                                                                ><span class="rh-card-text">{f.text}</span></template
-                                                            >
-                                                        </span>
-                                                        <lightning-icon
-                                                            icon-name="utility:edit"
-                                                            size="xx-small"
-                                                            class="slds-m-left_x-small rh-card-pencil"
-                                                        ></lightning-icon>
-                                                        <span class="slds-assistive-text">{f.editLabel}</span>
-                                                    </button>
-                                                </template>
-                                                <template lwc:else>
-                                                    <div class={f.valueCls} style={f.valueStyle}>
+                                    <h3 class="slds-text-heading_small slds-truncate" id={card.headingId} tabindex="-1" data-card-heading={card.position}>
+                                        <template lwc:if={card.titleHref}>
+                                            <a href={card.titleHref} data-record-id={card.titleRecordId} onclick={handleLinkClick}>{card.title}</a>
+                                        </template>
+                                        <template lwc:else>{card.title}</template>
+                                    </h3>
+                                    <!-- The record's actions, as each table row's menu. -->
+                                    <template lwc:if={hasRowActions}>
+                                        <lightning-button-menu
+                                            class="slds-col_bump-left slds-m-left_x-small rh-card-actions"
+                                            alternative-text={card.actionsLabel}
+                                            icon-name="utility:down"
+                                            icon-size="x-small"
+                                            menu-alignment="right"
+                                            disabled={isSaving}
+                                            data-row-id={card.id}
+                                            onselect={handleCardAction}
+                                        >
+                                            <template for:each={rowMenuItems} for:item="m">
+                                                <lightning-menu-item key={m.key} value={m.name} label={m.label}></lightning-menu-item>
+                                            </template>
+                                        </lightning-button-menu>
+                                    </template>
+                                </div>
+                                <template lwc:if={card.rowError}>
+                                    <p class="slds-text-color_error slds-m-top_xx-small rh-card-row-error">Error: {card.rowError}</p>
+                                </template>
+                                <dl class="slds-list_horizontal slds-wrap slds-m-top_x-small" id={card.fieldsId}>
+                                    <template for:each={card.fields} for:item="f">
+                                        <dt key={f.labelKey} class="slds-item_label slds-text-color_weak slds-truncate" title={f.label}>{f.label}</dt>
+                                        <dd key={f.valueKey} class="slds-item_detail">
+                                            <template lwc:if={f.editOnValue}>
+                                                <!-- Tap the value to edit it. -->
+                                                <button
+                                                    class="slds-button rh-card-value-button"
+                                                    aria-describedby={f.errorId}
+                                                    data-card-edit
+                                                    data-row-id={card.id}
+                                                    data-field={f.field}
+                                                    onclick={handleCardEdit}
+                                                >
+                                                    <span class={f.valueCls} style={f.valueStyle}>
                                                         <template lwc:if={f.hasFormatIcon}>
-                                                            <lightning-icon
-                                                                icon-name={f.formatIcon}
-                                                                variant={f.formatIconVariant}
-                                                                size="xx-small"
-                                                                alternative-text={f.formatIconLabel}
-                                                                title={f.formatIconLabel}
-                                                                class="slds-m-right_xx-small rh-format-icon"
-                                                            ></lightning-icon>
+                                                            <lightning-icon icon-name={f.formatIcon} variant={f.formatIconVariant} size="xx-small" alternative-text={f.formatIconLabel} title={f.formatIconLabel} class="slds-m-right_xx-small rh-format-icon"></lightning-icon>
                                                         </template>
-                                                        <template lwc:if={f.isCheckbox}>
-                                                            <span>{f.text}</span>
-                                                        </template>
-                                                        <template lwc:elseif={f.href}>
-                                                            <a
-                                                                class="rh-card-text"
-                                                                href={f.href}
-                                                                target={f.linkTarget}
-                                                                rel="noopener noreferrer"
-                                                                data-record-id={f.recordLink}
-                                                                onclick={handleLinkClick}
-                                                                >{f.text}</a
-                                                            >
-                                                        </template>
-                                                        <template lwc:elseif={f.isBlank}>
-                                                            <span aria-hidden="true">&mdash;</span>
-                                                            <span class="slds-assistive-text">No value</span>
-                                                        </template>
-                                                        <template lwc:else>
-                                                            <span class="rh-card-text">{f.text}</span>
-                                                        </template>
-                                                        <template lwc:if={f.editButton}>
-                                                            <button
-                                                                class="slds-button slds-button_icon slds-m-left_x-small rh-card-edit"
-                                                                title={f.editLabel}
-                                                                aria-describedby={f.errorId}
-                                                                data-card-edit
-                                                                data-row-id={card.id}
-                                                                data-field={f.field}
-                                                                onclick={handleCardEdit}
-                                                            >
-                                                                <lightning-icon
-                                                                    icon-name="utility:edit"
-                                                                    size="xx-small"
-                                                                ></lightning-icon>
-                                                                <span class="slds-assistive-text">{f.editLabel}</span>
-                                                            </button>
-                                                        </template>
-                                                    </div>
-                                                </template>
-                                                <template lwc:if={f.hasDraft}>
-                                                    <span class="slds-badge slds-badge_lightest slds-m-top_xx-small"
-                                                        >Unsaved</span
-                                                    >
-                                                </template>
-                                                <template lwc:if={f.isEditing}>
-                                                    <div
-                                                        class="slds-m-top_xx-small rh-card-editor"
-                                                        onfocusout={handleEditorFocusOut}
-                                                    >
-                                                        <template lwc:if={f.editorText}>
-                                                            <c-cell-text
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                type={f.editType}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-text>
-                                                        </template>
-                                                        <template lwc:if={f.editorNumber}>
-                                                            <c-cell-number
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                type={f.editType}
-                                                                scale={f.scale}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-number>
-                                                        </template>
-                                                        <template lwc:if={f.editorDate}>
-                                                            <c-cell-date
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-date>
-                                                        </template>
-                                                        <template lwc:if={f.editorCheckbox}>
-                                                            <c-cell-checkbox
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                label={f.editorLabel}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-checkbox>
-                                                        </template>
-                                                        <template lwc:if={f.editorPicklist}>
-                                                            <c-cell-picklist
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                options={f.options}
-                                                                dependent-on={f.dependentOn}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-picklist>
-                                                        </template>
-                                                        <template lwc:if={f.editorLookup}>
-                                                            <c-cell-lookup
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                value-label={f.editValueLabel}
-                                                                icons={f.lookupIcons}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                config-name={configName}
-                                                                field={f.field}
-                                                                filtered={f.filteredLookup}
-                                                                field-api-name={f.fieldApiName}
-                                                                object-api-name={objectApiName}
-                                                                record-id={card.id}
-                                                                new-targets={f.newTargets}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                                onnewrecord={handleEditorNewRecord}
-                                                            ></c-cell-lookup>
-                                                        </template>
-                                                        <template lwc:if={f.editorMultiPicklist}>
-                                                            <c-cell-multi-picklist
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                options={f.options}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-multi-picklist>
-                                                        </template>
-                                                        <template lwc:if={f.editorDateTime}>
-                                                            <c-cell-date-time
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-date-time>
-                                                        </template>
-                                                        <template lwc:if={f.editorTime}>
-                                                            <c-cell-time
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-time>
-                                                        </template>
-                                                        <template lwc:if={f.editorTextarea}>
-                                                            <c-cell-textarea
-                                                                data-editor
-                                                                mode="edit"
-                                                                value={f.editValue}
-                                                                label={f.editorLabel}
-                                                                required={f.required}
-                                                                max-length={f.maxLength}
-                                                                cut={f.cut}
-                                                                config-name={configName}
-                                                                record-id={card.id}
-                                                                field={f.field}
-                                                                oncommit={handleEditorCommit}
-                                                                oncancel={handleEditorCancel}
-                                                            ></c-cell-textarea>
-                                                        </template>
-                                                    </div>
-                                                </template>
-                                                <template lwc:if={f.hasError}>
-                                                    <div
-                                                        class="slds-form-element__help slds-text-color_error"
-                                                        id={f.errorId}
-                                                    >
-                                                        {f.errorMessage}
-                                                    </div>
-                                                </template>
-                                            </dd>
-                                        </template>
-                                    </dl>
-                                    <template lwc:if={card.hasMoreFields}>
-                                        <button
-                                            class="slds-button slds-m-top_xx-small rh-card-more"
-                                            aria-expanded={card.moreFieldsExpanded}
-                                            aria-controls={card.fieldsId}
-                                            data-row-id={card.id}
-                                            onclick={handleCardFields}
-                                        >
-                                            {card.moreFieldsLabel}<span class="slds-assistive-text">
-                                                of {card.title}</span
-                                            >
-                                        </button>
+                                                        <template lwc:if={f.isCheckbox}><span>{f.text}</span></template>
+                                                        <template lwc:elseif={f.isBlank}><span aria-hidden="true">&mdash;</span><span class="slds-assistive-text">No value</span></template>
+                                                        <template lwc:else><span class="rh-card-text">{f.text}</span></template>
+                                                    </span>
+                                                    <lightning-icon icon-name="utility:edit" size="xx-small" class="slds-m-left_x-small rh-card-pencil"></lightning-icon>
+                                                    <span class="slds-assistive-text">{f.editLabel}</span>
+                                                </button>
+                                            </template>
+                                            <template lwc:else>
+                                                <div class={f.valueCls} style={f.valueStyle}>
+                                                    <template lwc:if={f.hasFormatIcon}>
+                                                        <lightning-icon icon-name={f.formatIcon} variant={f.formatIconVariant} size="xx-small" alternative-text={f.formatIconLabel} title={f.formatIconLabel} class="slds-m-right_xx-small rh-format-icon"></lightning-icon>
+                                                    </template>
+                                                    <template lwc:if={f.isCheckbox}>
+                                                        <span>{f.text}</span>
+                                                    </template>
+                                                    <template lwc:elseif={f.href}>
+                                                        <a class="rh-card-text" href={f.href} target={f.linkTarget} rel="noopener noreferrer" data-record-id={f.recordLink} onclick={handleLinkClick}>{f.text}</a>
+                                                    </template>
+                                                    <template lwc:elseif={f.isBlank}>
+                                                        <span aria-hidden="true">&mdash;</span>
+                                                        <span class="slds-assistive-text">No value</span>
+                                                    </template>
+                                                    <template lwc:else>
+                                                        <span class="rh-card-text">{f.text}</span>
+                                                    </template>
+                                                    <template lwc:if={f.editButton}>
+                                                        <button
+                                                            class="slds-button slds-button_icon slds-m-left_x-small rh-card-edit"
+                                                            title={f.editLabel}
+                                                            aria-describedby={f.errorId}
+                                                            data-card-edit
+                                                            data-row-id={card.id}
+                                                            data-field={f.field}
+                                                            onclick={handleCardEdit}
+                                                        >
+                                                            <lightning-icon icon-name="utility:edit" size="xx-small"></lightning-icon>
+                                                            <span class="slds-assistive-text">{f.editLabel}</span>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <template lwc:if={f.hasDraft}>
+                                                <span class="slds-badge slds-badge_lightest slds-m-top_xx-small">Unsaved</span>
+                                            </template>
+                                            <template lwc:if={f.isEditing}>
+                                                <div class="slds-m-top_xx-small rh-card-editor" onfocusout={handleEditorFocusOut}>
+                                                    <template lwc:if={f.editorText}>
+                                                        <c-cell-text data-editor mode="edit" value={f.editValue} type={f.editType} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-text>
+                                                    </template>
+                                                    <template lwc:if={f.editorNumber}>
+                                                        <c-cell-number data-editor mode="edit" value={f.editValue} type={f.editType} scale={f.scale} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-number>
+                                                    </template>
+                                                    <template lwc:if={f.editorDate}>
+                                                        <c-cell-date data-editor mode="edit" value={f.editValue} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-date>
+                                                    </template>
+                                                    <template lwc:if={f.editorCheckbox}>
+                                                        <c-cell-checkbox data-editor mode="edit" value={f.editValue} label={f.editorLabel} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-checkbox>
+                                                    </template>
+                                                    <template lwc:if={f.editorPicklist}>
+                                                        <c-cell-picklist data-editor mode="edit" value={f.editValue} options={f.options} dependent-on={f.dependentOn} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-picklist>
+                                                    </template>
+                                                    <template lwc:if={f.editorLookup}>
+                                                        <c-cell-lookup data-editor mode="edit" value={f.editValue} value-label={f.editValueLabel} icons={f.lookupIcons} label={f.editorLabel} required={f.required} config-name={configName} field={f.field} filtered={f.filteredLookup} field-api-name={f.fieldApiName} object-api-name={objectApiName} record-id={card.id} new-targets={f.newTargets} oncommit={handleEditorCommit} oncancel={handleEditorCancel} onnewrecord={handleEditorNewRecord}></c-cell-lookup>
+                                                    </template>
+                                                    <template lwc:if={f.editorMultiPicklist}>
+                                                        <c-cell-multi-picklist data-editor mode="edit" value={f.editValue} options={f.options} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-multi-picklist>
+                                                    </template>
+                                                    <template lwc:if={f.editorDateTime}>
+                                                        <c-cell-date-time data-editor mode="edit" value={f.editValue} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-date-time>
+                                                    </template>
+                                                    <template lwc:if={f.editorTime}>
+                                                        <c-cell-time data-editor mode="edit" value={f.editValue} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-time>
+                                                    </template>
+                                                    <template lwc:if={f.editorTextarea}>
+                                                        <c-cell-textarea data-editor mode="edit" value={f.editValue} label={f.editorLabel} required={f.required} max-length={f.maxLength} cut={f.cut} config-name={configName} record-id={card.id} field={f.field} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-textarea>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <template lwc:if={f.hasError}>
+                                                <div class="slds-form-element__help slds-text-color_error" id={f.errorId}>{f.errorMessage}</div>
+                                            </template>
+                                        </dd>
                                     </template>
-                                    <template lwc:if={card.expandable}>
-                                        <button
-                                            class="slds-button slds-m-top_x-small rh-card-expand"
-                                            aria-expanded={card.expandedAttr}
-                                            aria-controls={card.panelId}
-                                            data-row-id={card.id}
-                                            onclick={handleExpandClick}
-                                        >
-                                            <lightning-icon
-                                                icon-name={card.expandIcon}
-                                                size="xx-small"
-                                                class="slds-m-right_xx-small"
-                                            ></lightning-icon>
-                                            {card.expandText}<span class="slds-assistive-text"> for {card.title}</span>
-                                        </button>
-                                    </template>
-                                </article>
+                                </dl>
+                                <template lwc:if={card.hasMoreFields}>
+                                    <button
+                                        class="slds-button slds-m-top_xx-small rh-card-more"
+                                        aria-expanded={card.moreFieldsExpanded}
+                                        aria-controls={card.fieldsId}
+                                        data-row-id={card.id}
+                                        onclick={handleCardFields}
+                                    >{card.moreFieldsLabel}<span class="slds-assistive-text"> of {card.title}</span></button>
+                                </template>
+                                <template lwc:if={card.expandable}>
+                                    <button
+                                        class="slds-button slds-m-top_x-small rh-card-expand"
+                                        aria-expanded={card.expandedAttr}
+                                        aria-controls={card.panelId}
+                                        data-row-id={card.id}
+                                        onclick={handleExpandClick}
+                                    >
+                                        <lightning-icon icon-name={card.expandIcon} size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                        {card.expandText}<span class="slds-assistive-text"> for {card.title}</span>
+                                    </button>
+                                </template>
+                            </article>
                             </template>
                             <!-- An open record's child tables, under its card. -->
                             <template lwc:elseif={card.isDetail}>
@@ -515,22 +291,14 @@
                                         data-row-id={card.id}
                                         onclick={handleGroupToggle}
                                     >
-                                        <lightning-icon
-                                            icon-name={card.toggleIcon}
-                                            size="x-small"
-                                            class="slds-m-right_x-small"
-                                        ></lightning-icon>
+                                        <lightning-icon icon-name={card.toggleIcon} size="x-small" class="slds-m-right_x-small"></lightning-icon>
                                         <span class="slds-text-heading_small">{card.label}</span>
                                         <template lwc:if={card.countText}>
-                                            <span class="slds-text-color_weak slds-m-left_x-small"
-                                                >{card.countText}</span
-                                            >
+                                            <span class="slds-text-color_weak slds-m-left_x-small">{card.countText}</span>
                                         </template>
                                     </button>
                                     <template lwc:if={card.subtotals}>
-                                        <p class="slds-text-body_small slds-m-top_xx-small rh-card-subtotals">
-                                            {card.subtotals}
-                                        </p>
+                                        <p class="slds-text-body_small slds-m-top_xx-small rh-card-subtotals">{card.subtotals}</p>
                                     </template>
                                 </div>
                             </template>
@@ -539,33 +307,19 @@
                 </ul>
                 <template lwc:if={emptyState}>
                     <div class="slds-p-around_large slds-text-align_center rh-empty" role="status">
-                        <lightning-icon
-                            icon-name={emptyState.icon}
-                            size="small"
-                            class="slds-m-bottom_x-small"
-                        ></lightning-icon>
+                        <lightning-icon icon-name={emptyState.icon} size="small" class="slds-m-bottom_x-small"></lightning-icon>
                         <p class="slds-text-heading_small rh-empty-title">{emptyState.title}</p>
                         <template lwc:if={emptyState.message}>
                             <p class="slds-text-color_weak slds-m-top_xx-small">{emptyState.message}</p>
                         </template>
                         <template lwc:if={emptyState.actionLabel}>
-                            <button
-                                class="slds-button slds-button_neutral slds-m-top_small rh-empty-action"
-                                onclick={handleEmptyAction}
-                            >
-                                {emptyState.actionLabel}
-                            </button>
+                            <button class="slds-button slds-button_neutral slds-m-top_small rh-empty-action" onclick={handleEmptyAction}>{emptyState.actionLabel}</button>
                         </template>
                     </div>
                 </template>
                 <template lwc:if={hasMoreCards}>
                     <div class="slds-p-around_small">
-                        <button
-                            class="slds-button slds-button_neutral slds-button_stretch rh-show-more"
-                            onclick={handleShowMore}
-                        >
-                            {showMoreLabel}
-                        </button>
+                        <button class="slds-button slds-button_neutral slds-button_stretch rh-show-more" onclick={handleShowMore}>{showMoreLabel}</button>
                     </div>
                 </template>
             </div>
@@ -624,9 +378,7 @@
                                                 />
                                                 <label class="slds-checkbox__label" for="select-all">
                                                     <span class="slds-checkbox_faux"></span>
-                                                    <span class="slds-form-element__label slds-assistive-text"
-                                                        >Select all</span
-                                                    >
+                                                    <span class="slds-form-element__label slds-assistive-text">Select all</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -656,10 +408,7 @@
                                             aria-pressed={expandHeader.allPressed}
                                             onclick={handleExpandAll}
                                         >
-                                            <lightning-icon
-                                                icon-name={expandHeader.allIcon}
-                                                size="xx-small"
-                                            ></lightning-icon>
+                                            <lightning-icon icon-name={expandHeader.allIcon} size="xx-small"></lightning-icon>
                                             <span class="slds-assistive-text">{expandHeader.allLabel}</span>
                                         </button>
                                     </template>
@@ -699,65 +448,33 @@
                                             <span class="slds-assistive-text">Sort by: </span>
                                             <div class={h.labelGridCls}>
                                                 <template lwc:if={h.iconFirst}>
-                                                    <span
-                                                        class="slds-icon_container slds-icon-utility-arrowdown slds-m-right_xx-small"
-                                                    >
-                                                        <lightning-icon
-                                                            icon-name={h.sortIcon}
-                                                            size="xx-small"
-                                                            class="slds-is-sortable__icon"
-                                                        ></lightning-icon>
+                                                    <span class="slds-icon_container slds-icon-utility-arrowdown slds-m-right_xx-small">
+                                                        <lightning-icon icon-name={h.sortIcon} size="xx-small" class="slds-is-sortable__icon"></lightning-icon>
                                                     </span>
                                                 </template>
                                                 <span class="slds-truncate" title={h.title}>{h.label}</span>
                                                 <template lwc:if={h.filtered}>
-                                                    <lightning-icon
-                                                        icon-name="utility:filterList"
-                                                        size="xx-small"
-                                                        class="slds-m-left_xx-small rh-header-filter"
-                                                        aria-hidden="true"
-                                                    ></lightning-icon>
+                                                    <lightning-icon icon-name="utility:filterList" size="xx-small" class="slds-m-left_xx-small rh-header-filter" aria-hidden="true"></lightning-icon>
                                                 </template>
                                                 <template lwc:if={h.secondaryBadge}>
-                                                    <span
-                                                        class="slds-badge slds-badge_lightest slds-m-left_xx-small"
-                                                        aria-hidden="true"
-                                                        >{h.secondaryBadge}</span
-                                                    >
+                                                    <span class="slds-badge slds-badge_lightest slds-m-left_xx-small" aria-hidden="true">{h.secondaryBadge}</span>
                                                 </template>
                                                 <template lwc:if={h.iconLast}>
                                                     <span class="slds-icon_container slds-icon-utility-arrowdown">
-                                                        <lightning-icon
-                                                            icon-name={h.sortIcon}
-                                                            size="xx-small"
-                                                            class="slds-is-sortable__icon"
-                                                        ></lightning-icon>
+                                                        <lightning-icon icon-name={h.sortIcon} size="xx-small" class="slds-is-sortable__icon"></lightning-icon>
                                                     </span>
                                                 </template>
                                             </div>
                                         </a>
                                         <template lwc:if={h.sortAnnouncement}>
-                                            <span aria-atomic="true" aria-live="polite" class="slds-assistive-text"
-                                                >{h.sortAnnouncement}</span
-                                            >
+                                            <span aria-atomic="true" aria-live="polite" class="slds-assistive-text">{h.sortAnnouncement}</span>
                                         </template>
                                     </template>
                                     <template lwc:else>
-                                        <div
-                                            class={h.staticActionCls}
-                                            data-field={h.field}
-                                            draggable={h.draggable}
-                                            ondragstart={handleHeaderDragStart}
-                                            ondragend={handleHeaderDragEnd}
-                                        >
+                                        <div class={h.staticActionCls} data-field={h.field} draggable={h.draggable} ondragstart={handleHeaderDragStart} ondragend={handleHeaderDragEnd}>
                                             <span class="slds-truncate" title={h.title}>{h.label}</span>
                                             <template lwc:if={h.filtered}>
-                                                <lightning-icon
-                                                    icon-name="utility:filterList"
-                                                    size="xx-small"
-                                                    class="slds-m-left_xx-small rh-header-filter"
-                                                    aria-hidden="true"
-                                                ></lightning-icon>
+                                                <lightning-icon icon-name="utility:filterList" size="xx-small" class="slds-m-left_xx-small rh-header-filter" aria-hidden="true"></lightning-icon>
                                             </template>
                                         </div>
                                     </template>
@@ -773,22 +490,13 @@
                                             onclick={handleMenuButton}
                                             onkeydown={handleMenuButtonKeyDown}
                                         >
-                                            <lightning-icon
-                                                icon-name="utility:chevrondown"
-                                                size="xx-small"
-                                            ></lightning-icon>
+                                            <lightning-icon icon-name="utility:chevrondown" size="xx-small"></lightning-icon>
                                             <span class="slds-assistive-text">{h.menuLabel}</span>
                                         </button>
                                         <template lwc:if={h.menuOpen}>
                                             <div class="slds-dropdown-trigger_click slds-is-open">
                                                 <div class={h.menuCls}>
-                                                    <ul
-                                                        class="slds-dropdown__list"
-                                                        role="menu"
-                                                        aria-label={h.menuListLabel}
-                                                        onkeydown={handleMenuKeyDown}
-                                                        onfocusout={handleMenuFocusOut}
-                                                    >
+                                                    <ul class="slds-dropdown__list" role="menu" aria-label={h.menuListLabel} onkeydown={handleMenuKeyDown} onfocusout={handleMenuFocusOut}>
                                                         <template for:each={h.menuItems} for:item="m">
                                                             <li key={m.key} class={m.cls} role="presentation">
                                                                 <a
@@ -805,15 +513,7 @@
                                                                     data-hide={m.hide}
                                                                     onclick={handleMenuChoice}
                                                                 >
-                                                                    <span class="slds-truncate" title={m.label}
-                                                                        ><template lwc:if={m.isRadio}
-                                                                            ><lightning-icon
-                                                                                icon-name="utility:check"
-                                                                                size="x-small"
-                                                                                class="slds-icon_selected slds-m-right_x-small"
-                                                                            ></lightning-icon></template
-                                                                        >{m.label}</span
-                                                                    >
+                                                                    <span class="slds-truncate" title={m.label}><template lwc:if={m.isRadio}><lightning-icon icon-name="utility:check" size="x-small" class="slds-icon_selected slds-m-right_x-small"></lightning-icon></template>{m.label}</span>
                                                                 </a>
                                                             </li>
                                                         </template>
@@ -823,17 +523,8 @@
                                         </template>
                                         <!-- The column's filter, under its header. -->
                                         <template lwc:if={h.filterOpen}>
-                                            <div
-                                                class="slds-dropdown-trigger_click slds-is-open rh-filter-trigger"
-                                                onfocusout={handleFilterFocusOut}
-                                            >
-                                                <c-grid-filter-panel
-                                                    column={h.filterColumn}
-                                                    filter={h.filterValue}
-                                                    onapply={handleFilterApply}
-                                                    onremove={handleFilterRemove}
-                                                    oncancel={handleFilterCancel}
-                                                ></c-grid-filter-panel>
+                                            <div class="slds-dropdown-trigger_click slds-is-open rh-filter-trigger" onfocusout={handleFilterFocusOut}>
+                                                <c-grid-filter-panel column={h.filterColumn} filter={h.filterValue} onapply={handleFilterApply} onremove={handleFilterRemove} oncancel={handleFilterCancel}></c-grid-filter-panel>
                                             </div>
                                         </template>
                                     </template>
@@ -850,13 +541,7 @@
                                             onfocus={handleResizeFocus}
                                             oninput={handleResizeInput}
                                         />
-                                        <span
-                                            class="slds-resizable__handle"
-                                            data-field={h.field}
-                                            onpointerdown={handleResizeStart}
-                                            ondblclick={handleResizeDblClick}
-                                            title="Drag to resize; double-click to fit"
-                                        >
+                                        <span class="slds-resizable__handle" data-field={h.field} onpointerdown={handleResizeStart} ondblclick={handleResizeDblClick} title="Drag to resize; double-click to fit">
                                             <span class="slds-resizable__divider rh-resize-divider"></span>
                                         </span>
                                     </div>
@@ -931,533 +616,306 @@
                                     </td>
                                 </template>
                                 <template lwc:else>
-                                    <template lwc:if={row.statusCell}>
-                                        <td
-                                            role="gridcell"
-                                            class={row.statusCell.cls}
-                                            style={row.statusCell.style}
-                                            tabindex={row.statusCell.tabindex}
-                                            aria-colindex={row.statusCell.colIndex}
-                                            data-row-id={row.id}
-                                            data-field="__status"
-                                            data-row-index={row.rowIndex}
-                                            data-col-index={row.statusCell.colIndex}
-                                        >
-                                            <template lwc:if={row.isRecord}>
-                                                <button
-                                                    class={row.statusCell.buttonCls}
-                                                    tabindex={row.statusCell.controlTabindex}
-                                                    title={row.statusCell.message}
-                                                    aria-hidden="true"
-                                                >
-                                                    <lightning-icon
-                                                        icon-name="utility:error"
-                                                        size="xx-small"
-                                                        variant="error"
-                                                    ></lightning-icon>
-                                                </button>
-                                                <span class="slds-assistive-text">{row.statusCell.message}</span>
+                                <template lwc:if={row.statusCell}>
+                                    <td
+                                        role="gridcell"
+                                        class={row.statusCell.cls}
+                                        style={row.statusCell.style}
+                                        tabindex={row.statusCell.tabindex}
+                                        aria-colindex={row.statusCell.colIndex}
+                                        data-row-id={row.id}
+                                        data-field="__status"
+                                        data-row-index={row.rowIndex}
+                                        data-col-index={row.statusCell.colIndex}
+                                    >
+                                        <template lwc:if={row.isRecord}>
+                                            <button
+                                                class={row.statusCell.buttonCls}
+                                                tabindex={row.statusCell.controlTabindex}
+                                                title={row.statusCell.message}
+                                                aria-hidden="true"
+                                            >
+                                                <lightning-icon icon-name="utility:error" size="xx-small" variant="error"></lightning-icon>
+                                            </button>
+                                            <span class="slds-assistive-text">{row.statusCell.message}</span>
+                                        </template>
+                                    </td>
+                                </template>
+                                <template lwc:if={row.selectCell}>
+                                    <td
+                                        role="gridcell"
+                                        class={row.selectCell.cls}
+                                        style={row.selectCell.style}
+                                        tabindex={row.selectCell.tabindex}
+                                        aria-colindex={row.selectCell.colIndex}
+                                        data-row-id={row.id}
+                                        data-field="__select"
+                                        data-row-index={row.rowIndex}
+                                        data-col-index={row.selectCell.colIndex}
+                                    >
+                                        <template lwc:if={row.isRecord}>
+                                            <div class="slds-checkbox">
+                                                <input
+                                                    type={row.selectCell.inputType}
+                                                    id={row.selectCell.inputId}
+                                                    name="rowhouse-select"
+                                                    checked={row.selectCell.checked}
+                                                    disabled={row.selectCell.disabled}
+                                                    tabindex={row.selectCell.controlTabindex}
+                                                    data-row-id={row.id}
+                                                    onclick={handleSelectClick}
+                                                />
+                                                <label class="slds-checkbox__label" for={row.selectCell.inputId}>
+                                                    <span class="slds-checkbox_faux"></span>
+                                                    <span class="slds-form-element__label slds-assistive-text">{row.selectCell.label}</span>
+                                                </label>
+                                            </div>
+                                        </template>
+                                    </td>
+                                </template>
+                                <!-- The toggle for a row's child tables; empty on a group's row. -->
+                                <template lwc:if={row.expandCell}>
+                                    <td
+                                        role="gridcell"
+                                        class={row.expandCell.cls}
+                                        style={row.expandCell.style}
+                                        tabindex={row.expandCell.tabindex}
+                                        aria-colindex={row.expandCell.colIndex}
+                                        data-row-id={row.id}
+                                        data-field="__expand"
+                                        data-row-index={row.rowIndex}
+                                        data-col-index={row.expandCell.colIndex}
+                                    >
+                                        <template lwc:if={row.expandCell.showToggle}>
+                                            <button
+                                                class="slds-button slds-button_icon slds-button_icon-x-small rh-expand-toggle"
+                                                tabindex={row.expandCell.controlTabindex}
+                                                aria-expanded={row.expandCell.expandedAttr}
+                                                aria-controls={row.expandCell.controls}
+                                                data-row-id={row.id}
+                                                onclick={handleExpandClick}
+                                            >
+                                                <lightning-icon icon-name={row.expandCell.toggleIcon} size="xx-small"></lightning-icon>
+                                                <span class="slds-assistive-text">{row.expandCell.toggleLabel}</span>
+                                            </button>
+                                            <template lwc:if={row.expandCell.countText}>
+                                                <span class="rh-expand-count" aria-hidden="true">{row.expandCell.countText}</span>
                                             </template>
-                                        </td>
-                                    </template>
-                                    <template lwc:if={row.selectCell}>
-                                        <td
-                                            role="gridcell"
-                                            class={row.selectCell.cls}
-                                            style={row.selectCell.style}
-                                            tabindex={row.selectCell.tabindex}
-                                            aria-colindex={row.selectCell.colIndex}
-                                            data-row-id={row.id}
-                                            data-field="__select"
-                                            data-row-index={row.rowIndex}
-                                            data-col-index={row.selectCell.colIndex}
-                                        >
-                                            <template lwc:if={row.isRecord}>
-                                                <div class="slds-checkbox">
-                                                    <input
-                                                        type={row.selectCell.inputType}
-                                                        id={row.selectCell.inputId}
-                                                        name="rowhouse-select"
-                                                        checked={row.selectCell.checked}
-                                                        disabled={row.selectCell.disabled}
-                                                        tabindex={row.selectCell.controlTabindex}
+                                        </template>
+                                    </td>
+                                </template>
+                                <!-- The Group column: a group's toggle, name and count; empty for a record. -->
+                                <template lwc:if={row.groupCell}>
+                                    <td
+                                        role="gridcell"
+                                        class={row.groupCell.cls}
+                                        style={row.groupCell.style}
+                                        tabindex={row.groupCell.tabindex}
+                                        aria-colindex={row.groupCell.colIndex}
+                                        data-row-id={row.id}
+                                        data-field="__group"
+                                        data-row-index={row.rowIndex}
+                                        data-col-index={row.groupCell.colIndex}
+                                    >
+                                        <template lwc:if={row.isGroup}>
+                                            <span class="slds-grid slds-grid_vertical-align-center rh-group-content" style={row.groupCell.contentStyle}>
+                                                <!-- The button carries the group's name, count and state for a screen
+                                                     reader; the visible name and count are not read a second time. -->
+                                                <button
+                                                    class="slds-button slds-button_icon slds-button_icon-x-small slds-m-right_x-small rh-group-toggle"
+                                                    tabindex={row.groupCell.controlTabindex}
+                                                    aria-expanded={row.groupCell.expandedAttr}
+                                                    data-row-id={row.id}
+                                                    onclick={handleGroupToggle}
+                                                >
+                                                    <lightning-icon icon-name={row.groupCell.toggleIcon} size="xx-small"></lightning-icon>
+                                                    <span class="slds-assistive-text">{row.groupCell.spokenName}</span>
+                                                </button>
+                                                <span class="slds-truncate rh-group-label" title={row.groupCell.label} aria-hidden="true">{row.groupCell.label}</span>
+                                                <template lwc:if={row.groupCell.countText}>
+                                                    <span class="slds-m-left_xx-small slds-text-color_weak rh-group-count" aria-hidden="true">{row.groupCell.countText}</span>
+                                                </template>
+                                                <template lwc:if={row.groupCell.shareText}>
+                                                    <span class="slds-m-left_xx-small slds-text-color_weak rh-group-share" aria-hidden="true">{row.groupCell.shareText}</span>
+                                                </template>
+                                            </span>
+                                        </template>
+                                    </td>
+                                </template>
+                                <template for:each={row.cells} for:item="cell">
+                                    <td
+                                        key={cell.field}
+                                        role="gridcell"
+                                        class={cell.cls}
+                                        style={cell.style}
+                                        tabindex={cell.tabindex}
+                                        aria-colindex={cell.colIndex}
+                                        aria-readonly={cell.ariaReadonly}
+                                        aria-selected={cell.ariaSelected}
+                                        aria-describedby={cell.errorId}
+                                        data-row-id={row.id}
+                                        data-field={cell.field}
+                                        data-row-index={row.rowIndex}
+                                        data-col-index={cell.colIndex}
+                                    >
+                                        <!-- A group row shows each column's subtotal. -->
+                                        <template lwc:if={cell.isSubtotal}>
+                                            <template lwc:if={cell.hasSubtotal}>
+                                                <span class="slds-truncate rh-subtotal" title={cell.title} aria-hidden="true"><span class="rh-subtotal-kind">{cell.subtotalKind}</span>{cell.text}<template lwc:if={cell.shareText}><span class="rh-subtotal-share">{cell.shareText}</span></template></span>
+                                                <span class="slds-assistive-text">{cell.spoken}</span>
+                                            </template>
+                                        </template>
+                                        <template lwc:else>
+                                            <span class="slds-grid slds-grid_align-spread rh-cell-content">
+                                                <!-- A display rule's icon, its meaning in formatLabel: inside the
+                                                     value's span, so it stays beside a right-aligned number. -->
+                                                <template lwc:if={cell.isCheckbox}>
+                                                    <span class={cell.textCls}>
+                                                        <template lwc:if={cell.hasFormatIcon}>
+                                                            <lightning-icon icon-name={cell.formatIcon} variant={cell.formatIconVariant} size="xx-small" title={cell.formatIconLabel} class="slds-m-right_xx-small slds-shrink-none rh-format-icon" aria-hidden="true"></lightning-icon>
+                                                        </template>
+                                                        <template lwc:if={cell.checked}>
+                                                            <lightning-icon icon-name="utility:check" size="xx-small" alternative-text="Checked"></lightning-icon>
+                                                        </template>
+                                                        <template lwc:else>
+                                                            <span class="slds-assistive-text">Not checked</span>
+                                                        </template>
+                                                    </span>
+                                                </template>
+                                                <template lwc:elseif={cell.href}>
+                                                    <template lwc:if={cell.hasFormatIcon}>
+                                                        <lightning-icon icon-name={cell.formatIcon} variant={cell.formatIconVariant} size="xx-small" title={cell.formatIconLabel} class="slds-m-right_xx-small slds-shrink-none rh-format-icon" aria-hidden="true"></lightning-icon>
+                                                    </template>
+                                                    <a class={cell.textCls} href={cell.href} target={cell.linkTarget} rel="noopener noreferrer" title={cell.titleText} tabindex={cell.controlTabindex} data-record-id={cell.recordLink} onclick={handleLinkClick}>{cell.text}</a>
+                                                </template>
+                                                <template lwc:else>
+                                                    <span class={cell.textCls} title={cell.titleText}><template lwc:if={cell.hasFormatIcon}><lightning-icon icon-name={cell.formatIcon} variant={cell.formatIconVariant} size="xx-small" title={cell.formatIconLabel} class="slds-m-right_xx-small slds-shrink-none rh-format-icon" aria-hidden="true"></lightning-icon></template>{cell.text}</span>
+                                                </template>
+                                                <template lwc:if={cell.formatLabel}>
+                                                    <span class="slds-assistive-text">, {cell.formatLabel}</span>
+                                                </template>
+                                                <template lwc:if={cell.showEditButton}>
+                                                    <button
+                                                        class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small"
+                                                        tabindex={cell.controlTabindex}
+                                                        title={cell.editLabel}
+                                                        disabled={cell.editDisabled}
                                                         data-row-id={row.id}
-                                                        onclick={handleSelectClick}
-                                                    />
-                                                    <label class="slds-checkbox__label" for={row.selectCell.inputId}>
-                                                        <span class="slds-checkbox_faux"></span>
-                                                        <span class="slds-form-element__label slds-assistive-text"
-                                                            >{row.selectCell.label}</span
-                                                        >
-                                                    </label>
+                                                        data-field={cell.field}
+                                                        onclick={handleEditClick}
+                                                    >
+                                                        <lightning-icon icon-name={cell.editIcon} size="xx-small"></lightning-icon>
+                                                        <span class="slds-assistive-text">{cell.editLabel}</span>
+                                                    </button>
+                                                </template>
+                                            </span>
+                                            <template lwc:if={cell.showErrorPopover}>
+                                                <div class="slds-popover slds-popover_error slds-nubbin_top-left rh-error-popover" role="tooltip" aria-hidden="true">
+                                                    <div class="slds-popover__body">{cell.errorMessage}</div>
                                                 </div>
                                             </template>
-                                        </td>
-                                    </template>
-                                    <!-- The toggle for a row's child tables; empty on a group's row. -->
-                                    <template lwc:if={row.expandCell}>
-                                        <td
-                                            role="gridcell"
-                                            class={row.expandCell.cls}
-                                            style={row.expandCell.style}
-                                            tabindex={row.expandCell.tabindex}
-                                            aria-colindex={row.expandCell.colIndex}
-                                            data-row-id={row.id}
-                                            data-field="__expand"
-                                            data-row-index={row.rowIndex}
-                                            data-col-index={row.expandCell.colIndex}
-                                        >
-                                            <template lwc:if={row.expandCell.showToggle}>
-                                                <button
-                                                    class="slds-button slds-button_icon slds-button_icon-x-small rh-expand-toggle"
-                                                    tabindex={row.expandCell.controlTabindex}
-                                                    aria-expanded={row.expandCell.expandedAttr}
-                                                    aria-controls={row.expandCell.controls}
-                                                    data-row-id={row.id}
-                                                    onclick={handleExpandClick}
+                                            <template lwc:if={cell.isEditing}>
+                                                <section
+                                                    class="slds-popover slds-popover_edit rh-edit-popover"
+                                                    role="dialog"
+                                                    aria-label={cell.editLabel}
+                                                    onfocusout={handleEditorFocusOut}
                                                 >
-                                                    <lightning-icon
-                                                        icon-name={row.expandCell.toggleIcon}
-                                                        size="xx-small"
-                                                    ></lightning-icon>
-                                                    <span class="slds-assistive-text"
-                                                        >{row.expandCell.toggleLabel}</span
-                                                    >
-                                                </button>
-                                                <template lwc:if={row.expandCell.countText}>
-                                                    <span class="rh-expand-count" aria-hidden="true"
-                                                        >{row.expandCell.countText}</span
-                                                    >
-                                                </template>
-                                            </template>
-                                        </td>
-                                    </template>
-                                    <!-- The Group column: a group's toggle, name and count; empty for a record. -->
-                                    <template lwc:if={row.groupCell}>
-                                        <td
-                                            role="gridcell"
-                                            class={row.groupCell.cls}
-                                            style={row.groupCell.style}
-                                            tabindex={row.groupCell.tabindex}
-                                            aria-colindex={row.groupCell.colIndex}
-                                            data-row-id={row.id}
-                                            data-field="__group"
-                                            data-row-index={row.rowIndex}
-                                            data-col-index={row.groupCell.colIndex}
-                                        >
-                                            <template lwc:if={row.isGroup}>
-                                                <span
-                                                    class="slds-grid slds-grid_vertical-align-center rh-group-content"
-                                                    style={row.groupCell.contentStyle}
-                                                >
-                                                    <!-- The button carries the group's name, count and state for a screen
-                                                     reader; the visible name and count are not read a second time. -->
-                                                    <button
-                                                        class="slds-button slds-button_icon slds-button_icon-x-small slds-m-right_x-small rh-group-toggle"
-                                                        tabindex={row.groupCell.controlTabindex}
-                                                        aria-expanded={row.groupCell.expandedAttr}
-                                                        data-row-id={row.id}
-                                                        onclick={handleGroupToggle}
-                                                    >
-                                                        <lightning-icon
-                                                            icon-name={row.groupCell.toggleIcon}
-                                                            size="xx-small"
-                                                        ></lightning-icon>
-                                                        <span class="slds-assistive-text"
-                                                            >{row.groupCell.spokenName}</span
-                                                        >
-                                                    </button>
-                                                    <span
-                                                        class="slds-truncate rh-group-label"
-                                                        title={row.groupCell.label}
-                                                        aria-hidden="true"
-                                                        >{row.groupCell.label}</span
-                                                    >
-                                                    <template lwc:if={row.groupCell.countText}>
-                                                        <span
-                                                            class="slds-m-left_xx-small slds-text-color_weak rh-group-count"
-                                                            aria-hidden="true"
-                                                            >{row.groupCell.countText}</span
-                                                        >
-                                                    </template>
-                                                    <template lwc:if={row.groupCell.shareText}>
-                                                        <span
-                                                            class="slds-m-left_xx-small slds-text-color_weak rh-group-share"
-                                                            aria-hidden="true"
-                                                            >{row.groupCell.shareText}</span
-                                                        >
-                                                    </template>
-                                                </span>
-                                            </template>
-                                        </td>
-                                    </template>
-                                    <template for:each={row.cells} for:item="cell">
-                                        <td
-                                            key={cell.field}
-                                            role="gridcell"
-                                            class={cell.cls}
-                                            style={cell.style}
-                                            tabindex={cell.tabindex}
-                                            aria-colindex={cell.colIndex}
-                                            aria-readonly={cell.ariaReadonly}
-                                            aria-selected={cell.ariaSelected}
-                                            aria-describedby={cell.errorId}
-                                            data-row-id={row.id}
-                                            data-field={cell.field}
-                                            data-row-index={row.rowIndex}
-                                            data-col-index={cell.colIndex}
-                                        >
-                                            <!-- A group row shows each column's subtotal. -->
-                                            <template lwc:if={cell.isSubtotal}>
-                                                <template lwc:if={cell.hasSubtotal}>
-                                                    <span
-                                                        class="slds-truncate rh-subtotal"
-                                                        title={cell.title}
-                                                        aria-hidden="true"
-                                                        ><span class="rh-subtotal-kind">{cell.subtotalKind}</span
-                                                        >{cell.text}<template lwc:if={cell.shareText}
-                                                            ><span class="rh-subtotal-share"
-                                                                >{cell.shareText}</span
-                                                            ></template
-                                                        ></span
-                                                    >
-                                                    <span class="slds-assistive-text">{cell.spoken}</span>
-                                                </template>
-                                            </template>
-                                            <template lwc:else>
-                                                <span class="slds-grid slds-grid_align-spread rh-cell-content">
-                                                    <!-- A display rule's icon, its meaning in formatLabel: inside the
-                                                     value's span, so it stays beside a right-aligned number. -->
-                                                    <template lwc:if={cell.isCheckbox}>
-                                                        <span class={cell.textCls}>
-                                                            <template lwc:if={cell.hasFormatIcon}>
-                                                                <lightning-icon
-                                                                    icon-name={cell.formatIcon}
-                                                                    variant={cell.formatIconVariant}
-                                                                    size="xx-small"
-                                                                    title={cell.formatIconLabel}
-                                                                    class="slds-m-right_xx-small slds-shrink-none rh-format-icon"
-                                                                    aria-hidden="true"
-                                                                ></lightning-icon>
-                                                            </template>
-                                                            <template lwc:if={cell.checked}>
-                                                                <lightning-icon
-                                                                    icon-name="utility:check"
-                                                                    size="xx-small"
-                                                                    alternative-text="Checked"
-                                                                ></lightning-icon>
-                                                            </template>
-                                                            <template lwc:else>
-                                                                <span class="slds-assistive-text">Not checked</span>
-                                                            </template>
-                                                        </span>
-                                                    </template>
-                                                    <template lwc:elseif={cell.href}>
-                                                        <template lwc:if={cell.hasFormatIcon}>
-                                                            <lightning-icon
-                                                                icon-name={cell.formatIcon}
-                                                                variant={cell.formatIconVariant}
-                                                                size="xx-small"
-                                                                title={cell.formatIconLabel}
-                                                                class="slds-m-right_xx-small slds-shrink-none rh-format-icon"
-                                                                aria-hidden="true"
-                                                            ></lightning-icon>
+                                                    <div class="slds-popover__body">
+                                                        <template lwc:if={cell.editorText}>
+                                                            <c-cell-text data-editor mode="edit" value={cell.editValue} seed={cell.editSeed} type={cell.editType} label={cell.editorLabel} required={cell.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-text>
                                                         </template>
-                                                        <a
-                                                            class={cell.textCls}
-                                                            href={cell.href}
-                                                            target={cell.linkTarget}
-                                                            rel="noopener noreferrer"
-                                                            title={cell.titleText}
-                                                            tabindex={cell.controlTabindex}
-                                                            data-record-id={cell.recordLink}
-                                                            onclick={handleLinkClick}
-                                                            >{cell.text}</a
-                                                        >
-                                                    </template>
-                                                    <template lwc:else>
-                                                        <span class={cell.textCls} title={cell.titleText}
-                                                            ><template lwc:if={cell.hasFormatIcon}
-                                                                ><lightning-icon
-                                                                    icon-name={cell.formatIcon}
-                                                                    variant={cell.formatIconVariant}
-                                                                    size="xx-small"
-                                                                    title={cell.formatIconLabel}
-                                                                    class="slds-m-right_xx-small slds-shrink-none rh-format-icon"
-                                                                    aria-hidden="true"
-                                                                ></lightning-icon></template
-                                                            >{cell.text}</span
-                                                        >
-                                                    </template>
-                                                    <template lwc:if={cell.formatLabel}>
-                                                        <span class="slds-assistive-text">, {cell.formatLabel}</span>
-                                                    </template>
-                                                    <template lwc:if={cell.showEditButton}>
-                                                        <button
-                                                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small"
-                                                            tabindex={cell.controlTabindex}
-                                                            title={cell.editLabel}
-                                                            disabled={cell.editDisabled}
-                                                            data-row-id={row.id}
-                                                            data-field={cell.field}
-                                                            onclick={handleEditClick}
-                                                        >
-                                                            <lightning-icon
-                                                                icon-name={cell.editIcon}
-                                                                size="xx-small"
-                                                            ></lightning-icon>
-                                                            <span class="slds-assistive-text">{cell.editLabel}</span>
-                                                        </button>
-                                                    </template>
-                                                </span>
-                                                <template lwc:if={cell.showErrorPopover}>
-                                                    <div
-                                                        class="slds-popover slds-popover_error slds-nubbin_top-left rh-error-popover"
-                                                        role="tooltip"
-                                                        aria-hidden="true"
-                                                    >
-                                                        <div class="slds-popover__body">{cell.errorMessage}</div>
+                                                        <template lwc:if={cell.editorNumber}>
+                                                            <c-cell-number data-editor mode="edit" value={cell.editValue} seed={cell.editSeed} type={cell.editType} scale={cell.scale} label={cell.editorLabel} required={cell.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-number>
+                                                        </template>
+                                                        <template lwc:if={cell.editorDate}>
+                                                            <c-cell-date data-editor mode="edit" value={cell.editValue} label={cell.editorLabel} required={cell.required} dropdown-align={cell.dropdownAlign} dropdown-up={cell.dropdownUp} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-date>
+                                                        </template>
+                                                        <template lwc:if={cell.editorCheckbox}>
+                                                            <c-cell-checkbox data-editor mode="edit" value={cell.editValue} label={cell.editorLabel} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-checkbox>
+                                                        </template>
+                                                        <template lwc:if={cell.editorPicklist}>
+                                                            <c-cell-picklist data-editor mode="edit" value={cell.editValue} options={cell.options} dependent-on={cell.dependentOn} label={cell.editorLabel} required={cell.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-picklist>
+                                                        </template>
+                                                        <template lwc:if={cell.editorLookup}>
+                                                            <c-cell-lookup data-editor mode="edit" value={cell.editValue} value-label={cell.editValueLabel} icons={cell.lookupIcons} seed={cell.editSeed} label={cell.editorLabel} required={cell.required} config-name={configName} field={cell.field} filtered={cell.filteredLookup} field-api-name={cell.fieldApiName} object-api-name={objectApiName} record-id={row.id} new-targets={cell.newTargets} dropdown-align={cell.dropdownAlign} dropdown-up={cell.dropdownUp} oncommit={handleEditorCommit} oncancel={handleEditorCancel} onnewrecord={handleEditorNewRecord}></c-cell-lookup>
+                                                        </template>
+                                                        <template lwc:if={cell.editorMultiPicklist}>
+                                                            <c-cell-multi-picklist data-editor mode="edit" value={cell.editValue} options={cell.options} label={cell.editorLabel} required={cell.required} dropdown-align={cell.dropdownAlign} dropdown-up={cell.dropdownUp} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-multi-picklist>
+                                                        </template>
+                                                        <template lwc:if={cell.editorDateTime}>
+                                                            <c-cell-date-time data-editor mode="edit" value={cell.editValue} label={cell.editorLabel} required={cell.required} dropdown-align={cell.dropdownAlign} dropdown-up={cell.dropdownUp} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-date-time>
+                                                        </template>
+                                                        <template lwc:if={cell.editorTime}>
+                                                            <c-cell-time data-editor mode="edit" value={cell.editValue} label={cell.editorLabel} required={cell.required} dropdown-align={cell.dropdownAlign} dropdown-up={cell.dropdownUp} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-time>
+                                                        </template>
+                                                        <template lwc:if={cell.editorTextarea}>
+                                                            <c-cell-textarea data-editor mode="edit" value={cell.editValue} label={cell.editorLabel} required={cell.required} max-length={cell.maxLength} cut={cell.cut} config-name={configName} record-id={row.id} field={cell.field} dropdown-align={cell.dropdownAlign} dropdown-up={cell.dropdownUp} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-textarea>
+                                                        </template>
+                                                        <template lwc:if={cell.hasError}>
+                                                            <div class="slds-form-element__help slds-text-color_error">{cell.errorMessage}</div>
+                                                        </template>
+                                                    </div>
+                                                </section>
+                                            </template>
+                                        </template>
+                                    </td>
+                                </template>
+                                <!-- The row's actions: a menu button; the menu only on the row it is
+                                     open on. Empty on a group's row. -->
+                                <template lwc:if={row.actionsCell}>
+                                    <td
+                                        role="gridcell"
+                                        class={row.actionsCell.cls}
+                                        style={row.actionsCell.style}
+                                        tabindex={row.actionsCell.tabindex}
+                                        aria-colindex={row.actionsCell.colIndex}
+                                        data-row-id={row.id}
+                                        data-field="__actions"
+                                        data-row-index={row.rowIndex}
+                                        data-col-index={row.actionsCell.colIndex}
+                                    >
+                                        <template lwc:if={row.isRecord}>
+                                            <div class={row.actionsCell.triggerCls}>
+                                                <button
+                                                    class="slds-button slds-button_icon slds-button_icon-border-filled slds-button_icon-x-small rh-row-menu-button"
+                                                    aria-haspopup="true"
+                                                    aria-expanded={row.actionsCell.menuExpanded}
+                                                    title={row.actionsCell.label}
+                                                    tabindex={row.actionsCell.controlTabindex}
+                                                    disabled={row.actionsCell.disabled}
+                                                    data-row-menu-button
+                                                    data-row-id={row.id}
+                                                    onclick={handleRowMenuButton}
+                                                    onkeydown={handleRowMenuButtonKeyDown}
+                                                >
+                                                    <lightning-icon icon-name="utility:down" size="xx-small"></lightning-icon>
+                                                    <span class="slds-assistive-text">{row.actionsCell.label}</span>
+                                                </button>
+                                                <template lwc:if={row.actionsCell.menuOpen}>
+                                                    <div class={row.actionsCell.dropdownCls}>
+                                                        <ul class="slds-dropdown__list" role="menu" aria-label={row.actionsCell.label} onkeydown={handleRowMenuKeyDown} onfocusout={handleRowMenuFocusOut}>
+                                                            <template for:each={row.actionsCell.menuItems} for:item="m">
+                                                                <li key={m.key} class="slds-dropdown__item" role="presentation">
+                                                                    <a
+                                                                        href="#"
+                                                                        role="menuitem"
+                                                                        tabindex="-1"
+                                                                        data-row-id={row.id}
+                                                                        data-action={m.name}
+                                                                        onclick={handleRowMenuChoice}
+                                                                    >
+                                                                        <span class="slds-truncate" title={m.label}>{m.label}</span>
+                                                                    </a>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
                                                     </div>
                                                 </template>
-                                                <template lwc:if={cell.isEditing}>
-                                                    <section
-                                                        class="slds-popover slds-popover_edit rh-edit-popover"
-                                                        role="dialog"
-                                                        aria-label={cell.editLabel}
-                                                        onfocusout={handleEditorFocusOut}
-                                                    >
-                                                        <div class="slds-popover__body">
-                                                            <template lwc:if={cell.editorText}>
-                                                                <c-cell-text
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    seed={cell.editSeed}
-                                                                    type={cell.editType}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-text>
-                                                            </template>
-                                                            <template lwc:if={cell.editorNumber}>
-                                                                <c-cell-number
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    seed={cell.editSeed}
-                                                                    type={cell.editType}
-                                                                    scale={cell.scale}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-number>
-                                                            </template>
-                                                            <template lwc:if={cell.editorDate}>
-                                                                <c-cell-date
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    dropdown-align={cell.dropdownAlign}
-                                                                    dropdown-up={cell.dropdownUp}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-date>
-                                                            </template>
-                                                            <template lwc:if={cell.editorCheckbox}>
-                                                                <c-cell-checkbox
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    label={cell.editorLabel}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-checkbox>
-                                                            </template>
-                                                            <template lwc:if={cell.editorPicklist}>
-                                                                <c-cell-picklist
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    options={cell.options}
-                                                                    dependent-on={cell.dependentOn}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-picklist>
-                                                            </template>
-                                                            <template lwc:if={cell.editorLookup}>
-                                                                <c-cell-lookup
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    value-label={cell.editValueLabel}
-                                                                    icons={cell.lookupIcons}
-                                                                    seed={cell.editSeed}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    config-name={configName}
-                                                                    field={cell.field}
-                                                                    filtered={cell.filteredLookup}
-                                                                    field-api-name={cell.fieldApiName}
-                                                                    object-api-name={objectApiName}
-                                                                    record-id={row.id}
-                                                                    new-targets={cell.newTargets}
-                                                                    dropdown-align={cell.dropdownAlign}
-                                                                    dropdown-up={cell.dropdownUp}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                    onnewrecord={handleEditorNewRecord}
-                                                                ></c-cell-lookup>
-                                                            </template>
-                                                            <template lwc:if={cell.editorMultiPicklist}>
-                                                                <c-cell-multi-picklist
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    options={cell.options}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    dropdown-align={cell.dropdownAlign}
-                                                                    dropdown-up={cell.dropdownUp}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-multi-picklist>
-                                                            </template>
-                                                            <template lwc:if={cell.editorDateTime}>
-                                                                <c-cell-date-time
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    dropdown-align={cell.dropdownAlign}
-                                                                    dropdown-up={cell.dropdownUp}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-date-time>
-                                                            </template>
-                                                            <template lwc:if={cell.editorTime}>
-                                                                <c-cell-time
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    dropdown-align={cell.dropdownAlign}
-                                                                    dropdown-up={cell.dropdownUp}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-time>
-                                                            </template>
-                                                            <template lwc:if={cell.editorTextarea}>
-                                                                <c-cell-textarea
-                                                                    data-editor
-                                                                    mode="edit"
-                                                                    value={cell.editValue}
-                                                                    label={cell.editorLabel}
-                                                                    required={cell.required}
-                                                                    max-length={cell.maxLength}
-                                                                    cut={cell.cut}
-                                                                    config-name={configName}
-                                                                    record-id={row.id}
-                                                                    field={cell.field}
-                                                                    dropdown-align={cell.dropdownAlign}
-                                                                    dropdown-up={cell.dropdownUp}
-                                                                    oncommit={handleEditorCommit}
-                                                                    oncancel={handleEditorCancel}
-                                                                ></c-cell-textarea>
-                                                            </template>
-                                                            <template lwc:if={cell.hasError}>
-                                                                <div
-                                                                    class="slds-form-element__help slds-text-color_error"
-                                                                >
-                                                                    {cell.errorMessage}
-                                                                </div>
-                                                            </template>
-                                                        </div>
-                                                    </section>
-                                                </template>
-                                            </template>
-                                        </td>
-                                    </template>
-                                    <!-- The row's actions: a menu button; the menu only on the row it is
-                                     open on. Empty on a group's row. -->
-                                    <template lwc:if={row.actionsCell}>
-                                        <td
-                                            role="gridcell"
-                                            class={row.actionsCell.cls}
-                                            style={row.actionsCell.style}
-                                            tabindex={row.actionsCell.tabindex}
-                                            aria-colindex={row.actionsCell.colIndex}
-                                            data-row-id={row.id}
-                                            data-field="__actions"
-                                            data-row-index={row.rowIndex}
-                                            data-col-index={row.actionsCell.colIndex}
-                                        >
-                                            <template lwc:if={row.isRecord}>
-                                                <div class={row.actionsCell.triggerCls}>
-                                                    <button
-                                                        class="slds-button slds-button_icon slds-button_icon-border-filled slds-button_icon-x-small rh-row-menu-button"
-                                                        aria-haspopup="true"
-                                                        aria-expanded={row.actionsCell.menuExpanded}
-                                                        title={row.actionsCell.label}
-                                                        tabindex={row.actionsCell.controlTabindex}
-                                                        disabled={row.actionsCell.disabled}
-                                                        data-row-menu-button
-                                                        data-row-id={row.id}
-                                                        onclick={handleRowMenuButton}
-                                                        onkeydown={handleRowMenuButtonKeyDown}
-                                                    >
-                                                        <lightning-icon
-                                                            icon-name="utility:down"
-                                                            size="xx-small"
-                                                        ></lightning-icon>
-                                                        <span class="slds-assistive-text">{row.actionsCell.label}</span>
-                                                    </button>
-                                                    <template lwc:if={row.actionsCell.menuOpen}>
-                                                        <div class={row.actionsCell.dropdownCls}>
-                                                            <ul
-                                                                class="slds-dropdown__list"
-                                                                role="menu"
-                                                                aria-label={row.actionsCell.label}
-                                                                onkeydown={handleRowMenuKeyDown}
-                                                                onfocusout={handleRowMenuFocusOut}
-                                                            >
-                                                                <template
-                                                                    for:each={row.actionsCell.menuItems}
-                                                                    for:item="m"
-                                                                >
-                                                                    <li
-                                                                        key={m.key}
-                                                                        class="slds-dropdown__item"
-                                                                        role="presentation"
-                                                                    >
-                                                                        <a
-                                                                            href="#"
-                                                                            role="menuitem"
-                                                                            tabindex="-1"
-                                                                            data-row-id={row.id}
-                                                                            data-action={m.name}
-                                                                            onclick={handleRowMenuChoice}
-                                                                        >
-                                                                            <span class="slds-truncate" title={m.label}
-                                                                                >{m.label}</span
-                                                                            >
-                                                                        </a>
-                                                                    </li>
-                                                                </template>
-                                                            </ul>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </template>
-                                        </td>
-                                    </template>
+                                            </div>
+                                        </template>
+                                    </td>
+                                </template>
                                 </template>
                             </tr>
                         </template>
@@ -1471,46 +929,29 @@
                 <!-- An empty list says so: a search that matched nothing, or no records. -->
                 <template lwc:if={emptyState}>
                     <div class="slds-p-around_large slds-text-align_center rh-empty" role="status">
-                        <lightning-icon
-                            icon-name={emptyState.icon}
-                            size="small"
-                            class="slds-m-bottom_x-small"
-                        ></lightning-icon>
+                        <lightning-icon icon-name={emptyState.icon} size="small" class="slds-m-bottom_x-small"></lightning-icon>
                         <p class="slds-text-heading_small rh-empty-title">{emptyState.title}</p>
                         <template lwc:if={emptyState.message}>
                             <p class="slds-text-color_weak slds-m-top_xx-small">{emptyState.message}</p>
                         </template>
                         <template lwc:if={emptyState.actionLabel}>
-                            <button
-                                class="slds-button slds-button_neutral slds-m-top_small rh-empty-action"
-                                onclick={handleEmptyAction}
-                            >
-                                {emptyState.actionLabel}
-                            </button>
+                            <button class="slds-button slds-button_neutral slds-m-top_small rh-empty-action" onclick={handleEmptyAction}>{emptyState.actionLabel}</button>
                         </template>
                     </div>
                 </template>
                 <!-- The Total row: the whole list's subtotals, stuck to the bottom of
                      the scroller. A table of its own, not a row of the grid: see totalCells. -->
                 <template lwc:if={totalCells}>
-                    <table
-                        class="slds-table slds-table_bordered slds-table_fixed-layout rh-totals"
-                        style={tableStyle}
-                        aria-label={totalsLabel}
-                    >
+                    <table class="slds-table slds-table_bordered slds-table_fixed-layout rh-totals" style={tableStyle} aria-label={totalsLabel}>
                         <tbody>
                             <tr>
                                 <template for:each={totalCells} for:item="t">
                                     <td key={t.key} class={t.cls} style={t.style}>
                                         <template lwc:if={t.isLabel}>
-                                            <span class="slds-truncate rh-total-label"
-                                                ><span class="rh-total-word">Total</span>{t.countText}</span
-                                            >
+                                            <span class="slds-truncate rh-total-label"><span class="rh-total-word">Total</span>{t.countText}</span>
                                         </template>
                                         <template lwc:if={t.hasSubtotal}>
-                                            <span class="slds-truncate rh-subtotal" title={t.spoken} aria-hidden="true"
-                                                ><span class="rh-subtotal-kind">{t.kind}</span>{t.text}</span
-                                            >
+                                            <span class="slds-truncate rh-subtotal" title={t.spoken} aria-hidden="true"><span class="rh-subtotal-kind">{t.kind}</span>{t.text}</span>
                                             <span class="slds-assistive-text">{t.spoken}</span>
                                         </template>
                                     </td>
@@ -1526,20 +967,11 @@
                     <div class="slds-p-around_small slds-text-align_center rh-load-more">
                         <template lwc:if={isLoadingMore}>
                             <div class="slds-is-relative slds-p-vertical_large rh-load-more-spinner">
-                                <lightning-spinner
-                                    alternative-text="Loading more rows"
-                                    variant="brand"
-                                    size="medium"
-                                ></lightning-spinner>
+                                <lightning-spinner alternative-text="Loading more rows" variant="brand" size="medium"></lightning-spinner>
                             </div>
                         </template>
                         <template lwc:else>
-                            <button
-                                class="slds-button slds-button_neutral rh-load-more-button"
-                                onclick={handleLoadMoreClick}
-                            >
-                                {loadMoreLabel}
-                            </button>
+                            <button class="slds-button slds-button_neutral rh-load-more-button" onclick={handleLoadMoreClick}>{loadMoreLabel}</button>
                         </template>
                     </div>
                 </template>
@@ -1561,41 +993,15 @@
                     <!-- Undo and Redo beside the changes they undo. -->
                     <template lwc:if={hasHistory}>
                         <span class="slds-grid slds-m-right_medium rh-footer-history">
-                            <button
-                                class="slds-button slds-button_neutral rh-footer-undo"
-                                title={undoTitle}
-                                onclick={handleUndoClick}
-                                disabled={undoDisabled}
-                            >
-                                <lightning-icon
-                                    icon-name="utility:undo"
-                                    size="xx-small"
-                                    class="slds-m-right_xx-small"
-                                ></lightning-icon
-                                >Undo
+                            <button class="slds-button slds-button_neutral rh-footer-undo" title={undoTitle} onclick={handleUndoClick} disabled={undoDisabled}>
+                                <lightning-icon icon-name="utility:undo" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>Undo
                             </button>
-                            <button
-                                class="slds-button slds-button_neutral rh-footer-redo"
-                                title={redoTitle}
-                                onclick={handleRedoClick}
-                                disabled={redoDisabled}
-                            >
-                                <lightning-icon
-                                    icon-name="utility:redo"
-                                    size="xx-small"
-                                    class="slds-m-right_xx-small"
-                                ></lightning-icon
-                                >Redo
+                            <button class="slds-button slds-button_neutral rh-footer-redo" title={redoTitle} onclick={handleRedoClick} disabled={redoDisabled}>
+                                <lightning-icon icon-name="utility:redo" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>Redo
                             </button>
                         </span>
                     </template>
-                    <button
-                        class="slds-button slds-button_neutral rh-footer-cancel"
-                        onclick={handleCancel}
-                        disabled={saveDisabled}
-                    >
-                        Cancel
-                    </button>
+                    <button class="slds-button slds-button_neutral rh-footer-cancel" onclick={handleCancel} disabled={saveDisabled}>Cancel</button>
                     <!-- While the edits save, Save keeps its blue and turns "Saving…" with a
                          spinner; it does nothing more until the save is done. -->
                     <button
@@ -1605,13 +1011,10 @@
                         aria-disabled={saveAriaDisabled}
                     >
                         <template lwc:if={isSavingEdits}>
-                            <span
-                                class="slds-spinner slds-spinner_inverse slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-save-spinner"
-                                aria-hidden="true"
-                            >
+                            <span class="slds-spinner slds-spinner_inverse slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-save-spinner" aria-hidden="true">
                                 <span class="slds-spinner__dot-a"></span>
-                                <span class="slds-spinner__dot-b"></span> </span
-                            >Saving…
+                                <span class="slds-spinner__dot-b"></span>
+                            </span>Saving…
                         </template>
                         <template lwc:else>Save</template>
                     </button>

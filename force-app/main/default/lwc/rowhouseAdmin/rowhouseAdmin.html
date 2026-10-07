@@ -6,9 +6,7 @@
                 <img class="rh-admin-logo" src={logoUrl} alt="Rowhouse" width="177" height="32" />
                 <div class="slds-col slds-m-left_medium rh-admin-title">
                     <h1 class="slds-text-heading_medium">Grid Admin</h1>
-                    <p class="slds-text-body_small slds-text-color_weak">
-                        Build and change the grids your users see, without going into Setup.
-                    </p>
+                    <p class="slds-text-body_small slds-text-color_weak">Build and change the grids your users see, without going into Setup.</p>
                 </div>
                 <!-- The documentation: Get started, in the Grid Guide, in a new browser
                      tab, so a grid half built here stays as it is. -->
@@ -24,14 +22,7 @@
                 <ul class="rh-admin-nav-list">
                     <template for:each={navItems} for:item="item">
                         <li key={item.id} class={item.className}>
-                            <a
-                                class="rh-admin-nav-link"
-                                href="#"
-                                aria-current={item.current}
-                                data-view={item.id}
-                                onclick={handleNav}
-                                >{item.label}</a
-                            >
+                            <a class="rh-admin-nav-link" href="#" aria-current={item.current} data-view={item.id} onclick={handleNav}>{item.label}</a>
                         </li>
                     </template>
                 </ul>
@@ -41,22 +32,13 @@
         <div class="rh-admin-body">
             <template lwc:if={loading}>
                 <div class="rh-admin-loading" role="status">
-                    <lightning-spinner
-                        alternative-text="Loading the grids"
-                        size="medium"
-                        variant="brand"
-                    ></lightning-spinner>
+                    <lightning-spinner alternative-text="Loading the grids" size="medium" variant="brand"></lightning-spinner>
                 </div>
             </template>
             <template lwc:elseif={loadError}>
-                <div
-                    class="slds-scoped-notification slds-scoped-notification_light slds-m-around_medium rh-admin-error"
-                    role="alert"
-                >
+                <div class="slds-scoped-notification slds-scoped-notification_light slds-m-around_medium rh-admin-error" role="alert">
                     <p>{loadError}</p>
-                    <p class="slds-m-top_x-small slds-text-body_small">
-                        Ask a Salesforce admin to assign you the Rowhouse Grid Admin permission set.
-                    </p>
+                    <p class="slds-m-top_x-small slds-text-body_small">Ask a Salesforce admin to assign you the Rowhouse Grid Admin permission set.</p>
                 </div>
             </template>
 
@@ -71,16 +53,7 @@
                                 <ul class="rh-admin-side-list">
                                     <template for:each={group.items} for:item="item">
                                         <li key={item.key}>
-                                            <a
-                                                class={item.className}
-                                                href="#"
-                                                aria-current={item.current}
-                                                aria-label={item.ariaLabel}
-                                                data-value={item.value}
-                                                onclick={handleSideNav}
-                                                ><span class="rh-admin-side-label">{item.label}</span
-                                                ><span class="rh-admin-side-count">{item.count}</span></a
-                                            >
+                                            <a class={item.className} href="#" aria-current={item.current} aria-label={item.ariaLabel} data-value={item.value} onclick={handleSideNav}><span class="rh-admin-side-label">{item.label}</span><span class="rh-admin-side-count">{item.count}</span></a>
                                         </li>
                                     </template>
                                 </ul>
@@ -92,8 +65,8 @@
                             <span class="rh-eyebrow">Grid Admin</span>
                             <h2 class="rh-display" id="rh-admin-grids-heading">Your grids</h2>
                             <p class="rh-lede">
-                                Open a grid to change it, or build a new one. To show a grid, add the Rowhouse Grid
-                                component to a Lightning page and enter the grid's API name.
+                                Open a grid to change it, or build a new one. To show a grid, add the Rowhouse Grid component to a Lightning page and enter the
+                                grid's API name.
                             </p>
                             <div class="rh-admin-cta">
                                 <lightning-button
@@ -105,9 +78,7 @@
                                     disabled={newDisabled}
                                     onclick={handleNew}
                                 ></lightning-button>
-                                <a class="rh-link-button rh-admin-guide-link" href={startUrl} onclick={handleGuideLink}
-                                    >Get started →</a
-                                >
+                                <a class="rh-link-button rh-admin-guide-link" href={startUrl} onclick={handleGuideLink}>Get started →</a>
                             </div>
                             <div class="rh-stats rh-admin-stats">
                                 <div class="rh-stat rh-admin-stat-grids">
@@ -129,14 +100,7 @@
                                 <div class="rh-stat rh-stat_teal rh-admin-stat-retention">
                                     <span class="rh-stat-n">{retentionLabel}</span>
                                     <span class="rh-stat-l">
-                                        the edit log keeps its entries ·
-                                        <a
-                                            class="rh-more rh-admin-to-settings"
-                                            href="#"
-                                            data-view="settings"
-                                            onclick={handleNav}
-                                            >Settings →</a
-                                        >
+                                        the edit log keeps its entries · <a class="rh-more rh-admin-to-settings" href="#" data-view="settings" onclick={handleNav}>Settings →</a>
                                     </span>
                                 </div>
                             </div>
@@ -160,13 +124,10 @@
                                     ></lightning-input>
                                 </div>
                             </div>
-                            <span class="slds-assistive-text rh-admin-sort-status" aria-live="polite" aria-atomic="true"
-                                >{sortAnnouncement}</span
-                            >
+                            <span class="slds-assistive-text rh-admin-sort-status" aria-live="polite" aria-atomic="true">{sortAnnouncement}</span>
                             <template lwc:if={showArchivedNote}>
                                 <p class="rh-sub rh-admin-archived-note">
-                                    Archived grids are out of use: pages that show them say so. Restore one to use it
-                                    again, or delete it for good in Setup.
+                                    Archived grids are out of use: pages that show them say so. Restore one to use it again, or delete it for good in Setup.
                                 </p>
                             </template>
                             <template lwc:if={hasRows}>
@@ -176,32 +137,14 @@
                                             <tr>
                                                 <!-- Each heading sorts the list by its column; again, the other way. -->
                                                 <template for:each={columnHeads} for:item="h">
-                                                    <th
-                                                        key={h.key}
-                                                        scope="col"
-                                                        class={h.className}
-                                                        aria-sort={h.ariaSort}
-                                                    >
-                                                        <button
-                                                            class="rh-admin-sort"
-                                                            type="button"
-                                                            title={h.title}
-                                                            aria-label={h.sortLabel}
-                                                            data-key={h.key}
-                                                            onclick={handleSort}
-                                                        >
+                                                    <th key={h.key} scope="col" class={h.className} aria-sort={h.ariaSort}>
+                                                        <button class="rh-admin-sort" type="button" title={h.title} aria-label={h.sortLabel} data-key={h.key} onclick={handleSort}>
                                                             <span class="rh-admin-sort-label">{h.label}</span>
-                                                            <lightning-icon
-                                                                class="rh-admin-sort-icon"
-                                                                icon-name={h.iconName}
-                                                                size="xx-small"
-                                                            ></lightning-icon>
+                                                            <lightning-icon class="rh-admin-sort-icon" icon-name={h.iconName} size="xx-small"></lightning-icon>
                                                         </button>
                                                     </th>
                                                 </template>
-                                                <th scope="col" class="rh-admin-actions">
-                                                    <span class="slds-assistive-text">Actions</span>
-                                                </th>
+                                                <th scope="col" class="rh-admin-actions"><span class="slds-assistive-text">Actions</span></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -212,14 +155,7 @@
                                                             <span class="rh-admin-archived-title">{r.label}</span>
                                                         </template>
                                                         <template lwc:else>
-                                                            <button
-                                                                class="slds-button rh-admin-open"
-                                                                title={r.editLabel}
-                                                                data-name={r.name}
-                                                                onclick={handleOpen}
-                                                            >
-                                                                {r.label}
-                                                            </button>
+                                                            <button class="slds-button rh-admin-open" title={r.editLabel} data-name={r.name} onclick={handleOpen}>{r.label}</button>
                                                         </template>
                                                     </th>
                                                     <td class="rh-admin-name">{r.name}</td>
@@ -236,36 +172,13 @@
                                                             onselect={handleRowAction}
                                                         >
                                                             <template lwc:if={r.archived}>
-                                                                <lightning-menu-item
-                                                                    value="restore"
-                                                                    label="Restore"
-                                                                    prefix-icon-name="utility:undo"
-                                                                    disabled={deployDisabled}
-                                                                ></lightning-menu-item>
-                                                                <lightning-menu-item
-                                                                    value="setup"
-                                                                    label="Delete in Setup"
-                                                                    prefix-icon-name="utility:delete"
-                                                                ></lightning-menu-item>
+                                                                <lightning-menu-item value="restore" label="Restore" prefix-icon-name="utility:undo" disabled={deployDisabled}></lightning-menu-item>
+                                                                <lightning-menu-item value="setup" label="Delete in Setup" prefix-icon-name="utility:delete"></lightning-menu-item>
                                                             </template>
                                                             <template lwc:else>
-                                                                <lightning-menu-item
-                                                                    value="edit"
-                                                                    label="Edit"
-                                                                    prefix-icon-name="utility:edit"
-                                                                ></lightning-menu-item>
-                                                                <lightning-menu-item
-                                                                    value="clone"
-                                                                    label="Clone"
-                                                                    prefix-icon-name="utility:copy"
-                                                                    disabled={deployDisabled}
-                                                                ></lightning-menu-item>
-                                                                <lightning-menu-item
-                                                                    value="archive"
-                                                                    label="Archive"
-                                                                    prefix-icon-name="utility:archive"
-                                                                    disabled={deployDisabled}
-                                                                ></lightning-menu-item>
+                                                                <lightning-menu-item value="edit" label="Edit" prefix-icon-name="utility:edit"></lightning-menu-item>
+                                                                <lightning-menu-item value="clone" label="Clone" prefix-icon-name="utility:copy" disabled={deployDisabled}></lightning-menu-item>
+                                                                <lightning-menu-item value="archive" label="Archive" prefix-icon-name="utility:archive" disabled={deployDisabled}></lightning-menu-item>
                                                             </template>
                                                         </lightning-button-menu>
                                                     </td>
@@ -279,13 +192,9 @@
                                 <p class="rh-sub rh-admin-no-match">No grids match. Clear the search.</p>
                             </template>
                             <template lwc:elseif={showingArchived}>
-                                <div
-                                    class="slds-text-align_center slds-p-around_large rh-admin-empty rh-admin-no-archived"
-                                >
+                                <div class="slds-text-align_center slds-p-around_large rh-admin-empty rh-admin-no-archived">
                                     <p class="slds-text-heading_small">No archived grids</p>
-                                    <p class="slds-m-top_x-small slds-text-color_weak">
-                                        Archive a grid from its menu, ▾, to take it out of use without deleting it.
-                                    </p>
+                                    <p class="slds-m-top_x-small slds-text-color_weak">Archive a grid from its menu, ▾, to take it out of use without deleting it.</p>
                                 </div>
                             </template>
                             <template lwc:else>
@@ -314,12 +223,7 @@
 
             <!-- ============================================================ a grid -->
             <template lwc:elseif={showEditor}>
-                <c-grid-config-editor
-                    layout="page"
-                    config-name={editing}
-                    onsaved={handleSaved}
-                    onclose={handleEditorClose}
-                ></c-grid-config-editor>
+                <c-grid-config-editor layout="page" config-name={editing} onsaved={handleSaved} onclose={handleEditorClose}></c-grid-config-editor>
             </template>
         </div>
 

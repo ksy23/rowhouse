@@ -13,6 +13,9 @@
     <span class="s-k">Features</span>
     <a href="#save">Editing and saving</a>
     <a href="#format">Conditional formatting</a>
+    <a href="#filters">Filters</a>
+    <a href="#recordpage">On a record page</a>
+    <a href="#layout">Each user's layout</a>
     <a href="#group">Grouping and subtotals</a>
     <a href="#child">Child tables</a>
     <a href="#actions">Actions</a>
@@ -341,6 +344,50 @@
 <section id="settings">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Grid settings, without Setup</h2>
   <p class="sec-sub">For the people who build grids: the <b>Grid Admin</b> tab lists every grid and builds new ones, and a gear on each grid opens that grid's settings where it is.</p></div>
+  <figure class="rv">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Rowhouse_Admin</span></div><div class="stage"><div class="card-m adm">
+      <div class="adm-head"><span class="adm-logo"><svg class="i2" viewBox="0 0 32 32" aria-hidden="true"><path d="M2 11.5 16 3.5 30 11.5z" fill="#0F5C45"/><rect x="2" y="14" width="28" height="4" rx="1" fill="#0F5C45"/><rect x="2" y="20" width="28" height="4" rx="1" fill="#B3431F"/><rect x="2" y="26" width="28" height="4" rx="1" fill="#0F5C45"/></svg>ROWHOUSE</span><div><div class="m-title" style="font-weight:400;font-size:17px">Grid Admin</div><div class="m-meta">Build and change the grids your users see, without going into Setup.</div></div><span class="m-btn adm-help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg>Grid Guide</span></div>
+      <div class="adm-nav"><span class="on">Grids</span><span>Settings</span></div>
+      <div class="adm-gp">
+        <div class="adm-gside">
+          <span class="adm-gk">Grids</span>
+          <span class="adm-gl on">Available grids<em>8</em></span>
+          <span class="adm-gl">Archived grids<em>0</em></span>
+          <span class="adm-gk">By object</span>
+          <span class="adm-gl">Accounts<em>2</em></span>
+          <span class="adm-gl">Cases<em>1</em></span>
+          <span class="adm-gl">Contacts<em>3</em></span>
+          <span class="adm-gl">Opportunities<em>2</em></span>
+        </div>
+        <div class="adm-gmain">
+          <span class="adm-eyebrow">Grid Admin</span>
+          <div class="adm-h">Your grids</div>
+          <p class="adm-lede">Open a grid to change it, or build a new one. To show a grid, add the Rowhouse Grid component to a Lightning page and enter the grid's API name.</p>
+          <div class="adm-cta"><span class="m-btn p">+ New grid</span><span class="m-btn">Get started →</span></div>
+          <div class="adm-cards">
+            <div class="adm-card"><b>8</b>grids</div>
+            <div class="adm-card sky"><b>4</b>objects</div>
+            <div class="adm-card plum"><b>1</b>grid logs every change</div>
+            <div class="adm-card gold"><b>1</b>grid with child tables</div>
+            <div class="adm-card teal"><b>1 year</b>the edit log keeps its entries · <span class="m-link">Settings →</span></div>
+          </div>
+          <div class="adm-lh"><div><span class="adm-gk">Available grids</span><div class="adm-count">8 grids</div></div><span class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search grids</span></div>
+          <div class="adm-gt">
+            <div class="adm-gr hd"><span>Grid Title ↑</span><span class="gcode">API name</span><span>Object</span><span class="gnum">Columns</span><span></span></div>
+            <div class="adm-gr"><span class="m-link">Account Directory</span><span class="gcode">Account_Directory</span><span>Accounts</span><span class="gnum">4</span><span class="m-rm"></span></div>
+            <div class="adm-gr"><span class="m-link">Account People</span><span class="gcode">Account_People</span><span>Contacts</span><span class="gnum">6</span><span class="m-rm"></span></div>
+            <div class="adm-gr"><span class="m-link">Contact Cleanup</span><span class="gcode">Contact_Cleanup</span><span>Contacts</span><span class="gnum">8</span><span class="m-rm"></span></div>
+            <div class="adm-gr"><span class="m-link">Key Account Contacts</span><span class="gcode">Key_Account_Contacts</span><span>Contacts</span><span class="gnum">4</span><span class="m-rm"></span></div>
+            <div class="adm-gr"><span class="m-link">Key Account Deals</span><span class="gcode">Key_Account_Deals</span><span>Opportunities</span><span class="gnum">4</span><span class="m-rm"></span></div>
+            <div class="adm-gr"><span class="m-link">Key Accounts</span><span class="gcode">Key_Accounts</span><span>Accounts</span><span class="gnum">6</span><span class="m-rm"></span></div>
+            <div class="adm-gr"><span class="m-link">Pipeline Review</span><span class="gcode">Pipeline_Review</span><span>Opportunities</span><span class="gnum">8</span><span class="m-rm"></span></div>
+            <div class="adm-gr"><span class="m-link">Service Triage</span><span class="gcode">Service_Triage</span><span>Cases</span><span class="gnum">8</span><span class="m-rm"></span></div>
+          </div>
+        </div>
+      </div>
+    </div></div></div>
+    <figcaption>The Grids page, with the eight grids that Get started and the tutorials build. On the left, what the list shows, each with how many; above the list, <b>New grid</b> and cards that sum up the org. Click a heading to sort the list by it; the <b>▾</b> at the end of a row is that grid's menu.</figcaption>
+  </figure>
   <div class="split">
     <div>
       <h4 class="mt0">The Grid Admin tab</h4>
