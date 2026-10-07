@@ -5,6 +5,20 @@
     display: block;
 }
 
+/*
+ * The editor fits itself to its own width, not the window's: it is a page on
+ * the Grid Admin tab, a dialog from a grid's gear, and either can sit beside
+ * Lightning's own panels. rh-editor is the whole editor; rh-ed-main is the
+ * part the tabs and their tables have.
+ */
+.rh-editor {
+    container: rh-editor / inline-size;
+}
+
+.rh-ed-main {
+    container: rh-ed-main / inline-size;
+}
+
 .rh-editor-loading {
     position: relative;
     min-height: 8rem;
@@ -66,13 +80,28 @@
     white-space: nowrap;
 }
 
-@media (max-width: 52em) {
+/*
+ * Where the tabs have less room than a table needs, that table scrolls
+ * sideways instead of running over what is beside it. The columns table needs
+ * 55rem for its fixed columns and 12rem or more for Field; the others, 60rem.
+ */
+@container rh-ed-main (width < 67rem) {
+    .rh-columns-wrap {
+        overflow-x: auto;
+    }
+
+    .rh-columns {
+        min-width: 67rem;
+    }
+}
+
+@container rh-ed-main (width < 60rem) {
     .rh-editor-table-wrap {
         overflow-x: auto;
     }
 
-    .rh-editor-table {
-        min-width: 63rem;
+    .rh-editor-table:not(.rh-columns) {
+        min-width: 60rem;
     }
 }
 
@@ -188,8 +217,12 @@
     display: none;
 }
 
-/* Narrower than a laptop, the Grid Guide follows the tabs instead of sitting beside them. */
-@media (max-width: 64em) {
+/*
+ * The Grid Guide sits beside the tabs only while the columns table still fits
+ * next to it (67rem, the tabs' padding and the Guide's 20rem); with less room
+ * it follows the tabs.
+ */
+@container rh-editor (width < 91rem) {
     .rh-ed-body_page {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -200,7 +233,8 @@
     }
 }
 
-@media (max-width: 30em) {
+/* On a phone, less padding around the heading and the tabs. */
+@container rh-editor (width < 30rem) {
     .rh-ed-head,
     .rh-ed-body_page .rh-ed-main {
         padding-left: var(--slds-g-spacing-4, 1rem);
