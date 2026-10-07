@@ -10,6 +10,10 @@ module.exports = {
     testMatch: ['<rootDir>/force-app/**/__tests__/**/*.test.js', '<rootDir>/test-data/tests/jest/**/*.test.js'],
     setupFilesAfterEnv: [...(jestConfig.setupFilesAfterEnv || []), '<rootDir>/jest.setup.js'],
     modulePathIgnorePatterns: ['<rootDir>/.localdevserver'],
+    // The accessibility checks (axe) take a few seconds each on a laptop and
+    // can take several times longer on a shared CI runner, past Jest's 5-second
+    // default. A test that needs longer still sets its own limit.
+    testTimeout: 30000,
     // A CSS-only module (the Grid Guide's stylesheet, and the Grid Admin
     // tab's) has no .js for Jest's resolver to find; point each
     // @import at the file itself.
