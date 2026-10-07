@@ -443,7 +443,7 @@ describe('sorting the list', () => {
 });
 
 describe('Settings', () => {
-    it('shows the Grid Edit Log setting, from the header or the retention card', async () => {
+    it('shows the Grid Edit Log Retention setting, from the header or the retention card', async () => {
         const el = await mount();
         $$(el, '.rh-admin-nav-link')[1].click();
         await settle();
