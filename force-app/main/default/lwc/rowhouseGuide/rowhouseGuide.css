@@ -71,6 +71,49 @@
     min-height: var(--slds-g-sizing-15, 20rem);
 }
 
+/*
+ * Back to top. The dock sits at the end of the body and sticks to the bottom
+ * of the window, so the button floats over the page while the body runs on
+ * below, and comes to rest above the footer at the end. The dock takes no
+ * height; the button hangs from its bottom edge. Hidden, it is invisible to
+ * the mouse, the keyboard and screen readers alike.
+ */
+.rh-guide-top-dock {
+    position: sticky;
+    bottom: var(--slds-g-spacing-4, 1rem);
+    z-index: 45;
+    height: 0;
+}
+
+.rh-guide-top {
+    position: absolute;
+    right: var(--slds-g-spacing-4, 1rem);
+    bottom: 0;
+    display: inline-flex;
+    border-radius: var(--slds-g-radius-border-circle, 50%);
+    box-shadow: var(--slds-g-shadow-2, 0 2px 4px rgba(0, 0, 0, 0.16));
+    visibility: hidden;
+    opacity: 0;
+    translate: 0 var(--slds-g-spacing-2, 0.5rem);
+    transition:
+        opacity 0.2s ease,
+        translate 0.2s ease,
+        visibility 0.2s;
+}
+
+.rh-guide-top_shown {
+    visibility: visible;
+    opacity: 1;
+    translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rh-guide-top {
+        translate: none;
+        transition: none;
+    }
+}
+
 .rh-guide-admin-only {
     max-width: var(--slds-g-sizing-content-3, 60ch);
 }

@@ -12,6 +12,14 @@
  * Admin permission set). Anyone else who follows a link to one is told so.
  * The pages are not secret; this keeps the guide to what each reader can use.
  *
+ * BACK TO TOP
+ * Once the guide's header (its logo and sections) has scrolled out of view, a
+ * round arrow button floats at the bottom right of the page. It scrolls back to
+ * the header, smoothly unless the reader prefers reduced motion, and moves focus
+ * to the "Grid Guide" heading, so the next Tab reaches the sections. Hidden, it
+ * is neither seen, focused nor announced. The header is watched with
+ * IntersectionObserver, or, where Locker has none (HR-23), on scroll.
+ *
  * NO PUBLIC INPUTS
  * It is exposed only so it can be a Lightning tab (lightning__Tab). It has no
  * @api members, so it adds nothing permanent to the package (HR-2).
@@ -38,9 +46,11 @@ const SECTION_LABELS = {
 export default class RowhouseGuide extends NavigationMixin(LightningElement) {
     page = HOME_PAGE;
     section = '';
+    /** True once the header has scrolled out of view: Back to top shows. */
+    showTop = false;
 
     // Non-reactive (HR-20).
-    _layout = { toTop: false };
+    _layout = { toTop: false, watching: false, observer: null, onScroll: null };
 
     get isAdmin() {
         return Boolean(IS_ADMIN);
@@ -63,10 +73,71 @@ export default class RowhouseGuide extends NavigationMixin(LightningElement) {
     }
 
     renderedCallback() {
+        if (!this._layout.watching) this.watchHeader();
         if (!this._layout.toTop) return;
         this._layout.toTop = false;
         const top = this.template.querySelector('.rh-guide');
         if (top && typeof top.scrollIntoView === 'function') top.scrollIntoView({ block: 'start' });
+    }
+
+    disconnectedCallback() {
+        if (this._layout.observer) this._layout.observer.disconnect();
+        if (this._layout.onScroll) window.removeEventListener('scroll', this._layout.onScroll, true);
+        this._layout.observer = null;
+        this._layout.onScroll = null;
+        this._layout.watching = false;
+    }
+
+    /**
+     * Back to top shows while the header is above the top of the window, and
+     * not while it is in view or below it. Our own header is observed, never a
+     * shared element (HR-24).
+     */
+    watchHeader() {
+        const header = this.template.querySelector('.rh-guide-header');
+        if (!header) return;
+        this._layout.watching = true;
+        const show = above => {
+            if (above !== this.showTop) this.showTop = above;
+        };
+        if (typeof IntersectionObserver === 'function') {
+            this._layout.observer = new IntersectionObserver(entries => {
+                const entry = entries[entries.length - 1];
+                show(!entry.isIntersecting && entry.boundingClientRect.bottom <= 0);
+            });
+            this._layout.observer.observe(header);
+        } else if (typeof window !== 'undefined') {
+            let queued = false;
+            this._layout.onScroll = () => {
+                if (queued) return;
+                queued = true;
+                // eslint-disable-next-line @lwc/lwc/no-async-operation -- one measurement per frame, however fast the scroll
+                requestAnimationFrame(() => {
+                    queued = false;
+                    show(header.getBoundingClientRect().bottom <= 0);
+                });
+            };
+            // Capture: the page may scroll inside a container rather than the window.
+            window.addEventListener('scroll', this._layout.onScroll, { capture: true, passive: true });
+        }
+    }
+
+    get topClass() {
+        return 'rh-guide-top' + (this.showTop ? ' rh-guide-top_shown' : '');
+    }
+
+    /** Back to top: to the header, and focus on the guide's heading. */
+    handleTop() {
+        const reduce =
+            typeof window !== 'undefined' &&
+            typeof window.matchMedia === 'function' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const top = this.template.querySelector('.rh-guide');
+        if (top && typeof top.scrollIntoView === 'function') {
+            top.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+        }
+        const heading = this.template.querySelector('.rh-guide-heading');
+        if (heading) heading.focus({ preventScroll: true });
     }
 
     /** The header's sections: the top-level pages this reader may read. */

@@ -4,7 +4,7 @@
             <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
                 <img class="rh-guide-logo" src={logoUrl} alt="Rowhouse" width="177" height="32" />
                 <div class="slds-col slds-m-left_medium rh-guide-title">
-                    <h1 class="slds-text-heading_medium">Grid Guide</h1>
+                    <h1 class="slds-text-heading_medium rh-guide-heading" tabindex="-1">Grid Guide</h1>
                     <p class="slds-text-body_small slds-text-color_weak">
                         How to set up Rowhouse grids, and how to work in them.
                     </p>
@@ -41,6 +41,12 @@
                     </p>
                 </div>
             </template>
+            <!-- Back to top: floats at the bottom right once the header has scrolled away. -->
+            <div class="rh-guide-top-dock">
+                <span class={topClass}>
+                    <lightning-button-icon icon-name="utility:arrowup" variant="border-filled" alternative-text="Back to top" title="Back to top" onclick={handleTop}></lightning-button-icon>
+                </span>
+            </div>
         </div>
 
         <footer class="slds-card__footer rh-guide-footer">
