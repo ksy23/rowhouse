@@ -1,6 +1,6 @@
-# Contributing to Rowhouse
+# Contributing to Rowhouse by Kugamon
 
-Rowhouse is a free, open-source data grid for Salesforce. Contributions are
+Rowhouse by Kugamon is a free, open-source data grid for Salesforce. Contributions are
 welcome: bug reports, fixes, tests, documentation and features on the roadmap.
 This page covers how to set up, what every change must pass, and the
 twenty-nine hard rules the project is built on.
@@ -55,7 +55,7 @@ an org with the test objects.
 - **Development-only components say so.** Nothing under `test-data/` or `dev/`
   is packaged. Every component there that has a description
   starts it with `DEVELOPMENT ONLY.`, and every Apex class there starts its
-  header comment with it, so nobody mistakes it for part of Rowhouse in an
+  header comment with it, so nobody mistakes it for part of Rowhouse by Kugamon in an
   org's Setup (`python3 scripts/mark-dev-only.py` adds the words;
   `run-all.js` fails without them). A component nobody needs any more is
   deleted rather than left behind.
@@ -70,7 +70,7 @@ Salesforce fixes most of these:
 | Lightning web component folders | camelCase (must start lowercase) | `gridTable` |
 | The class inside a component | PascalCase | `class GridTable` |
 | Components in markup | kebab-case with a namespace | `<c-grid-table>` |
-| Rowhouse CSS classes | `rh-` prefix, kebab-case | `rh-wrap-text` |
+| Rowhouse by Kugamon CSS classes | `rh-` prefix, kebab-case | `rh-wrap-text` |
 | Custom objects and fields | Salesforce API names | `Grid_Column__mdt.Wrap_Text__c` |
 
 ## The hard rules

@@ -51,7 +51,7 @@ corner left behind earlier.
   (the same `neutralise` function). A value beginning with `= + - @` pasted
   into Excel runs as a formula, so it is copied with a leading apostrophe,
   which spreadsheets treat as "this is text". Pasting such a value back into
-  Rowhouse removes that one apostrophe again, so a copy within the grid
+  Rowhouse by Kugamon removes that one apostrophe again, so a copy within the grid
   round-trips exactly.
 - Values containing a tab, a line break or a double quote are quoted the way
   Excel quotes them, so multi-line text stays in one cell.

@@ -1,6 +1,6 @@
 # Getting help
 
-Rowhouse is free, and so is help: there is no paid tier.
+Rowhouse by Kugamon is free, and so is help: there is no paid tier.
 
 ## Before you ask
 

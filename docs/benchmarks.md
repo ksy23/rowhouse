@@ -1,6 +1,6 @@
 # Benchmarks
 
-How fast Rowhouse is at 1,000, 5,000 and 10,000 rows, with 5 and 20 columns,
+How fast Rowhouse by Kugamon is at 1,000, 5,000 and 10,000 rows, with 5 and 20 columns,
 and at 50,000 rows, past the grid's 10,000-row ceiling, and how anyone can
 check.
 

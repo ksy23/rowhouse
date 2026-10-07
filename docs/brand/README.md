@@ -1,6 +1,6 @@
-# Rowhouse — the mark
+# Rowhouse by Kugamon — the mark
 
-> The technical reference for the Rowhouse logo files.
+> The technical reference for the Rowhouse by Kugamon logo files.
 
 ![Rowhouse](logo/rowhouse-lockup.svg)
 

@@ -20,6 +20,6 @@ CONTRIBUTING.md).
   `Account_Contacts` grid on it, for the record page tests. It is not
   activated; activate it in Lightning App Builder to use it.
 - `permissionsets/Rowhouse_Dev_Tabs` (Rowhouse Dev — Tabs): the two dev tabs, for the
-  admin who builds and demos Rowhouse. It gives no field access, which comes from
+  admin who builds and demos Rowhouse by Kugamon. It gives no field access, which comes from
   `test-data/metadata/permissionsets/Rowhouse_Test_Full`, assigned alongside;
   that is also what the Apex suite's `fullUser()` holds.

@@ -147,7 +147,7 @@ force-app/main/default/
   layouts/            their record pages in Setup, every field shown
   permissionsets/     Rowhouse Grid User, Diagnostics and Admin
   customPermissions/  Rowhouse_Diagnostics, Rowhouse_Admin
-  staticresources/    the Rowhouse logo and mark; a tutorial's sample file
+  staticresources/    the Rowhouse by Kugamon logo and mark; a tutorial's sample file
   contentassets/      the Rowhouse app's logo
   applications/       the Rowhouse app: Grid Guide, Grid Admin, Grid Edit Logs
   tabs/               the Grid Admin, Grid Edit Logs and Grid Guide tabs
@@ -180,13 +180,13 @@ in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
   run it, and the results.
 - [`docs/spreadsheet.md`](docs/spreadsheet.md): ranges, copy, paste, undo and
   frozen columns, and their keys.
-- [`docs/brand/`](docs/brand/): the Rowhouse logo files.
+- [`docs/brand/`](docs/brand/): the Rowhouse by Kugamon logo files.
 
 ## License
 
 Apache License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). The name is
 covered by the [trademark policy](TRADEMARKS.md).
 
-Rowhouse is an independent open-source project. It is not affiliated with,
+Rowhouse by Kugamon is an independent open-source project. It is not affiliated with,
 endorsed by or sponsored by Salesforce, Inc. Salesforce, Lightning and
 AppExchange are trademarks of Salesforce, Inc.
