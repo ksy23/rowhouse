@@ -295,7 +295,7 @@ describe('panel details', () => {
         await mount({ selection: 'multi' });
         await open(id(1));
         const panel = detailCell(id(1)).querySelector('.rh-detail-panel');
-        expect(panel.style.getPropertyValue('--rh-panel-indent')).toBe(`${52 + 12}px`);
+        expect(panel.style.getPropertyValue('--rh-panel-indent')).toBe(`${32 + 12}px`); // the checkbox column, then to the toggle's middle
     });
 
     it("passes a child table's new count up, with the row it belongs to", async () => {

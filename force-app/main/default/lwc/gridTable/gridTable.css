@@ -760,9 +760,24 @@
     background-color: var(--slds-g-color-palette-yellow-95, rgb(251, 243, 224));
 }
 
-/* A row's number down the left edge, as a list view shows it: digits of one width, lined up on the right. */
+/*
+ * A row's number down the left edge, where a list view puts it, 28px in: SLDS
+ * gives the error cell no left padding, so 8px of our own, then a 20px place
+ * for the row's error button, then digits of one width, from the left.
+ */
+.rh-row-status {
+    display: flex;
+    align-items: center;
+    padding-left: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-row-status-error {
+    flex: 0 0 var(--slds-g-sizing-6, 1.25rem);
+    display: flex;
+    align-items: center;
+}
+
 .rh-row-number {
-    display: block;
-    text-align: right;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }

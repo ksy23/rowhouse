@@ -73,9 +73,12 @@ describe('row numbers', () => {
         expect(numberOf(id(1))).toBe('3');
     });
 
-    it('shows the error button in place of the number on a row with errors, naming the row by number', async () => {
+    it('shows the error button before the number on a row with errors, naming the row by number', async () => {
         await mount({ errors: { [id(3)]: { row: 'Amount is required.', fields: {} } } });
-        expect(numberOf(id(3))).toBeNull();
+        expect(numberOf(id(3))).toBe('3');
+        // The button sits in its own place before the number, as in a list view.
+        expect(statusCell(id(3)).querySelector('.rh-row-status-error button')).not.toBeNull();
+        expect(statusCell(id(4)).querySelector('button')).toBeNull();
         const button = statusCell(id(3)).querySelector('button');
         expect(button.className).not.toContain('slds-hidden');
         expect(button.getAttribute('title')).toBe('Row 3 has errors: Amount is required.');
@@ -85,13 +88,29 @@ describe('row numbers', () => {
         expect(numberOf(id(4))).toBe('4');
     });
 
-    it('keeps SLDS width, and widens for six-digit numbers', async () => {
+    it("keeps a list view's width up to three digits, and widens for more", async () => {
         await mount();
-        expect(statusHeader().getAttribute('style')).toContain('width:60px');
-        const many = Array.from({ length: 100000 }, (_, i) => ({ Id: 'r' + i, Name: 'Row ' + i }));
-        el.config = { ...el.config, rows: many, totalRows: many.length };
-        await flush();
+        expect(statusHeader().getAttribute('style')).toContain('width:52px');
+        const rows = n => Array.from({ length: n }, (_, i) => ({ Id: 'r' + i, Name: 'Row ' + i }));
+        const widthFor = async n => {
+            el.config = { ...el.config, rows: rows(n), totalRows: n };
+            await flush();
+            return statusHeader().getAttribute('style');
+        };
+        expect(await widthFor(999)).toContain('width:52px');
+        expect(await widthFor(1000)).toContain('width:60px');
+        expect(await widthFor(100000)).toContain('width:76px');
+    });
+
+    it('is sized for every matching row from the start, so columns do not shift as more load', async () => {
+        await mount({ totalRows: 25000 }); // four rows loaded of 25,000
         expect(statusHeader().getAttribute('style')).toContain('width:68px');
+        el.config = { ...el.config, totalRows: 2000000 }; // more than a grid loads: 100,000
+        await flush();
+        expect(statusHeader().getAttribute('style')).toContain('width:76px');
+        el.config = { ...el.config, totalRows: -1 }; // still counting
+        await flush();
+        expect(statusHeader().getAttribute('style')).toContain('width:52px');
     });
 
     it('has no row-number column when the grid hides them, and the error column only for errors', async () => {

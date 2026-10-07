@@ -306,19 +306,22 @@ const DEFAULT_VIEWPORT = 480; // px; JSDOM and first render have no layout
 const MIN_WIDTH = 20;
 const MAX_WIDTH = 1000;
 const DEFAULT_WIDTH = 150; // px: a column with no admin width, once widths are pinned
-// Utility columns have fixed widths, the ones SLDS's own datatable examples use:
-// 3.25rem for the checkbox column, 3.75rem for the row-number/error column.
-const SELECT_WIDTH = 52;
+// Utility columns have fixed widths, the ones a Salesforce list view uses
+// (measured in Lightning Experience): 2rem for the checkbox column, 3.25rem for
+// the row-number/error column.
+const SELECT_WIDTH = 32;
 // px: the table's own left and right borders, 1px each in SLDS 2's bordered
 // table. Room shared out to
 // the columns leaves them out, or the table is 2px wider than its box.
 const TABLE_BORDERS = 2;
-const STATUS_WIDTH = 60;
-// The row-number column widens for numbers of more digits than it holds: px
-// per digit (small text, tabular figures, with room to spare), plus the cell's
-// padding.
+const STATUS_WIDTH = 52;
+// A row's number starts where a list view's does, 28px in: 8px, then a 20px
+// place for the row's error button. The column widens for numbers of more
+// digits than it holds: px per digit (small text, tabular figures; measured
+// 7.6px in Lightning Experience).
+const NUMBER_LEFT = 28;
 const NUMBER_DIGIT = 8;
-const NUMBER_PAD = 20;
+const MAX_NUMBERED = 100000; // the most rows a grid loads (gridView MAX_LOADED_ROWS)
 const NARROW_WIDTH = 480; // px: the SLDS "small" breakpoint (30em)
 // Height, in px.
 const MIN_FIXED_HEIGHT = 160; // an admin Height below this still shows a few rows
@@ -767,13 +770,17 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     /**
-     * px: the row-number/error column's width. SLDS's 3.75rem holds an error
-     * button or up to five digits; 100,000 rows need six.
+     * px: the row-number/error column's width. A list view's 3.25rem holds an
+     * error button and numbers of up to three digits; more digits widen it.
+     * Sized for every matching row the grid will load, not just those loaded
+     * so far, so the columns don't shift right as more rows arrive.
      */
     get statusWidth() {
         if (!this.showRowNumbers) return STATUS_WIDTH;
-        const rows = Array.isArray(this._config.rows) ? this._config.rows.length : 0;
-        return Math.max(STATUS_WIDTH, NUMBER_PAD + NUMBER_DIGIT * String(rows).length);
+        const loaded = Array.isArray(this._config.rows) ? this._config.rows.length : 0;
+        const total = Math.min(Math.max(Number(this._config.totalRows) || 0, 0), MAX_NUMBERED);
+        const last = Math.max(loaded, total);
+        return Math.max(STATUS_WIDTH, NUMBER_LEFT + NUMBER_DIGIT * String(last).length);
     }
 
     /** An editable grid keeps room for the edit button in every cell. */
@@ -2547,13 +2554,15 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             };
         }
         if (c.field === STATUS_FIELD) {
-            // The row's number, or in its place the button for its errors.
+            // The row's number, with the button for its errors before it, as a
+            // list view has them; without numbers, the button alone.
             const number = layout.numbers ? layout.numbers.get(id) : undefined;
             return {
                 ...base,
                 isStatus: true,
                 hasError: Boolean(rowErrors.row),
-                number: number && !rowErrors.row ? String(number) : '',
+                numbered: Boolean(layout.numbers),
+                number: number ? String(number) : '',
                 message: rowErrors.row ? 'Row ' + (number || rowIndex) + ' has errors: ' + rowErrors.row : 'No errors',
                 cls: 'slds-cell-edit slds-cell-error' + focusCls,
                 buttonCls:

@@ -182,7 +182,7 @@ describe('column widths after a resize', () => {
     describe('before a resize, room over goes to the data columns only', () => {
         // Found in Lightning Experience: in a child table of two
         // columns, the fixed-layout table stretched the checkbox column from
-        // 52px to 248px along with the rest.
+        // 52px (as it then was) to 248px along with the rest.
         const frame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
         const TWO = [
             { field: 'Name', label: 'Name', type: 'text', width: 220 },
@@ -207,13 +207,13 @@ describe('column widths after a resize', () => {
             return el;
         };
 
-        it('keeps the checkbox column at 52px and shares the rest in proportion', async () => {
+        it("keeps the checkbox column at a list view's 32px and shares the rest in proportion", async () => {
             const el = await mountTwo(TWO);
-            expect(th(el, '__select').style.width).toBe('52px');
+            expect(th(el, '__select').style.width).toBe('32px');
             // 1,000px less the checkbox column and the table's 2px of border:
-            // 946px of room, shared 220 : 140, rounded down.
-            expect(th(el, 'Name').style.width).toBe('578px');
-            expect(th(el, 'Amount__c').style.width).toBe('367px');
+            // 966px of room, shared 220 : 140, rounded down.
+            expect(th(el, 'Name').style.width).toBe('590px');
+            expect(th(el, 'Amount__c').style.width).toBe('375px');
             expect(el.shadowRoot.querySelector('table').style.width).toBe(''); // still not pinned
         });
 
@@ -234,8 +234,8 @@ describe('column widths after a resize', () => {
             const amount = parseInt(th(el, 'Amount__c').style.width, 10);
             expect(amount).toBeGreaterThanOrEqual(130); // a currency column is never narrower (gridSizing)
             expect(name).toBeGreaterThan(220);
-            expect(name + amount).toBeGreaterThanOrEqual(944); // 946px of room, each share rounded down
-            expect(name + amount).toBeLessThanOrEqual(946);
+            expect(name + amount).toBeGreaterThanOrEqual(964); // 966px of room, each share rounded down
+            expect(name + amount).toBeLessThanOrEqual(966);
         });
     });
 
@@ -338,12 +338,12 @@ describe('column widths after a resize', () => {
 
     it('counts the selection column at its fixed width', async () => {
         const el = await mount({ selection: 'multi' });
-        expect(th(el, '__select').style.width).toBe('52px');
+        expect(th(el, '__select').style.width).toBe('32px');
         const range = th(el, 'Text_Field__c').querySelector('input[type="range"]');
         range.value = '300';
         range.dispatchEvent(new CustomEvent('input'));
         await flush();
         const dataCells = el.shadowRoot.querySelectorAll('thead th[data-field]').length - 1;
-        expect(el.shadowRoot.querySelector('table').style.width).toBe(52 + (dataCells - 1) * 200 + 300 + 'px');
+        expect(el.shadowRoot.querySelector('table').style.width).toBe(32 + (dataCells - 1) * 200 + 300 + 'px');
     });
 });

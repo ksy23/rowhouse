@@ -629,8 +629,25 @@
                                         data-col-index={row.statusCell.colIndex}
                                     >
                                         <template lwc:if={row.isRecord}>
-                                            <template lwc:if={row.statusCell.number}>
-                                                <span class="slds-text-body_small slds-text-color_weak rh-row-number">{row.statusCell.number}</span>
+                                            <template lwc:if={row.statusCell.numbered}>
+                                                <span class="rh-row-status">
+                                                    <span class="rh-row-status-error">
+                                                        <template lwc:if={row.statusCell.hasError}>
+                                                            <button
+                                                                class={row.statusCell.buttonCls}
+                                                                tabindex={row.statusCell.controlTabindex}
+                                                                title={row.statusCell.message}
+                                                                aria-hidden="true"
+                                                            >
+                                                                <lightning-icon icon-name="utility:error" size="xx-small" variant="error"></lightning-icon>
+                                                            </button>
+                                                        </template>
+                                                    </span>
+                                                    <span class="slds-text-body_small slds-text-color_weak rh-row-number">{row.statusCell.number}</span>
+                                                </span>
+                                                <template lwc:if={row.statusCell.hasError}>
+                                                    <span class="slds-assistive-text">{row.statusCell.message}</span>
+                                                </template>
                                             </template>
                                             <template lwc:else>
                                                 <button

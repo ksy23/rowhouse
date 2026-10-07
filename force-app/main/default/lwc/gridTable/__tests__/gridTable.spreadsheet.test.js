@@ -287,13 +287,13 @@ describe('frozen columns', () => {
         await flush();
         const th = f => el.shadowRoot.querySelector(`th[data-field="${f}"]`);
         const td = f => el.shadowRoot.querySelector(`td[data-row-id="${ROWS[0].Id}"][data-field="${f}"]`);
-        // The selection column (52px) is frozen with them, first.
+        // The selection column (32px) is frozen with them, first.
         expect(th('__select').classList).toContain('rh-frozen');
-        expect(th('Name').style.left).toBe('52px');
-        expect(th('Test_Case__c').style.left).toBe('202px');
+        expect(th('Name').style.left).toBe('32px');
+        expect(th('Test_Case__c').style.left).toBe('182px');
         expect(th('Test_Case__c').classList).toContain('rh-frozen_last');
         expect(Number(th('Name').style.zIndex)).toBeGreaterThan(Number(th('Test_Case__c').style.zIndex));
-        expect(td('Name').style.left).toBe('52px');
+        expect(td('Name').style.left).toBe('32px');
         expect(td('Name').classList).toContain('rh-frozen');
         expect(th('Text_Field__c').classList).not.toContain('rh-frozen');
         expect(td('Text_Field__c').style.left).toBe('');

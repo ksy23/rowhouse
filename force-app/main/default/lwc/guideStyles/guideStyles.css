@@ -1367,11 +1367,11 @@ table.rh-mt td.rh-cb {
     padding: 0;
 }
 
-/* The row numbers down a grid's left edge, as a list view shows them. */
+/* The row numbers down a grid's left edge, where a list view puts them: after room for an error icon, from the left. */
 table.rh-mt th.rh-rn,
 table.rh-mt td.rh-rn {
-    text-align: right;
-    padding: 0 var(--slds-g-spacing-2, 0.5rem) 0 0;
+    text-align: left;
+    padding: 0 0 0 calc(var(--slds-g-spacing-4, 1rem) + var(--slds-g-spacing-2, 0.5rem));
     color: var(--slds-g-color-on-surface-1, #5c5c5c);
     font-variant-numeric: tabular-nums;
 }
