@@ -6,7 +6,6 @@
  * clean-up after a day (GridSaveChunk).
  */
 public with sharing class GridAdminDeploy implements Metadata.DeployCallback {
-
     private final Id ownerId;
 
     public GridAdminDeploy(Id ownerId) {
@@ -19,8 +18,13 @@ public with sharing class GridAdminDeploy implements Metadata.DeployCallback {
 
     /** The row for one deployment: Succeeded, or Failed with what went wrong, record by record. */
     @TestVisible
-    private static Grid_Save_Result__c report(Metadata.DeployResult result, Metadata.DeployCallbackContext context, Id ownerId) {
-        String jobId = result != null && String.isNotBlank(result.id) ? result.id
+    private static Grid_Save_Result__c report(
+        Metadata.DeployResult result,
+        Metadata.DeployCallbackContext context,
+        Id ownerId
+    ) {
+        String jobId = result != null && String.isNotBlank(result.id)
+            ? result.id
             : (context == null ? null : String.valueOf(context.getCallbackJobId()));
         Boolean succeeded = result != null && result.status == Metadata.DeployStatus.Succeeded;
         List<String> messages = new List<String>();
@@ -31,8 +35,11 @@ public with sharing class GridAdminDeploy implements Metadata.DeployCallback {
                 }
             }
             if (messages.isEmpty()) {
-                messages.add(result == null || String.isBlank(result.errorMessage)
-                    ? 'The save did not go through. Try again.' : result.errorMessage);
+                messages.add(
+                    result == null || String.isBlank(result.errorMessage)
+                        ? 'The save did not go through. Try again.'
+                        : result.errorMessage
+                );
             }
         }
         return new Grid_Save_Result__c(

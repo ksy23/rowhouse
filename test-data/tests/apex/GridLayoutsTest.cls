@@ -5,7 +5,6 @@
  */
 @IsTest
 private class GridLayoutsTest {
-
     private static final String LAYOUT = '{"v":1,"widths":{"Name":180},"wrap":{"Text_Field__c":true}}';
 
     @IsTest
@@ -18,7 +17,11 @@ private class GridLayoutsTest {
             String changed = '{"v":1,"sort":[{"field":"Name","direction":"desc"}]}';
             GridController.saveLayout('Test_Records', changed);
             System.assertEquals(changed, GridLayouts.read('Test_Records'));
-            System.assertEquals(1, [SELECT COUNT() FROM Grid_User_Layout__c], 'One record per user per grid: the save upserts.');
+            System.assertEquals(
+                1,
+                [SELECT COUNT() FROM Grid_User_Layout__c],
+                'One record per user per grid: the save upserts.'
+            );
             Grid_User_Layout__c kept = [SELECT Name, Key__c, OwnerId FROM Grid_User_Layout__c];
             System.assertEquals('Test_Records', kept.Name);
             System.assertEquals(UserInfo.getUserId(), kept.OwnerId, 'The user owns it.');
@@ -53,7 +56,11 @@ private class GridLayoutsTest {
         User b = GridTestUsers.limitedUser();
         System.runAs(b) {
             try {
-                insert new Grid_User_Layout__c(Name = 'Test_Records', Key__c = a.Id + ':Test_Records', Layout__c = '{"v":1}');
+                insert new Grid_User_Layout__c(
+                    Name = 'Test_Records',
+                    Key__c = a.Id + ':Test_Records',
+                    Layout__c = '{"v":1}'
+                );
                 System.assert(false, 'A Key must start with its owner\'s Id.');
             } catch (DmlException e) {
                 System.assert(e.getMessage().contains('owner\'s user Id'), e.getMessage());
@@ -69,12 +76,15 @@ private class GridLayoutsTest {
     static void onlyALayoutOfAGridThatExistsIsKept() {
         System.runAs(GridTestUsers.fullUser()) {
             List<String> refusals = new List<String>();
-            for (List<String> bad : new List<List<String>>{
+            for (
+                List<String> bad : new List<List<String>>{
                     new List<String>{ 'No_Such_Grid', LAYOUT },
                     new List<String>{ 'Test_Records', 'not json' },
                     new List<String>{ 'Test_Records', '[1,2]' },
                     new List<String>{ 'Test_Records', '' },
-                    new List<String>{ 'Test_Records', '{"x":"' + 'a'.repeat(GridLayouts.MAX_LENGTH) + '"}' } }) {
+                    new List<String>{ 'Test_Records', '{"x":"' + 'a'.repeat(GridLayouts.MAX_LENGTH) + '"}' }
+                }
+            ) {
                 try {
                     GridLayouts.save(bad[0], bad[1]);
                     refusals.add('kept');
@@ -118,48 +128,108 @@ private class GridLayoutsTest {
     }
 
     private static Map<String, Object> start(String sortField, String sortDirection, List<String> groupBy) {
-        return new Map<String, Object>{ 'sortField' => sortField, 'sortDirection' => sortDirection, 'groupBy' => groupBy };
+        return new Map<String, Object>{
+            'sortField' => sortField,
+            'sortDirection' => sortDirection,
+            'groupBy' => groupBy
+        };
     }
 
     @IsTest
     static void withoutALayoutTheGridOpensAsTheAdminSetIt() {
         Map<String, Object> admin = start('Name', 'asc', new List<String>{ 'Stage__c' });
-        for (String none : new List<String>{ null, '', 'not json', '[1,2]', '"text"', '{"v":1}', '{"sort":"Name","grouping":{}}' }) {
+        for (
+            String none : new List<String>{
+                null,
+                '',
+                'not json',
+                '[1,2]',
+                '"text"',
+                '{"v":1}',
+                '{"sort":"Name","grouping":{}}'
+            }
+        ) {
             System.assertEquals(admin, GridLayouts.startOf(grid(), none), 'Layout: ' + none);
         }
         GridConfig.Definition unsorted = grid();
         unsorted.sortField = null;
-        System.assertEquals(start(null, null, new List<String>{ 'Stage__c' }), GridLayouts.startOf(unsorted, null),
-            'No sort anywhere: none, as fetchRows then has none.');
+        System.assertEquals(
+            start(null, null, new List<String>{ 'Stage__c' }),
+            GridLayouts.startOf(unsorted, null),
+            'No sort anywhere: none, as fetchRows then has none.'
+        );
     }
 
     @IsTest
     static void theLayoutsSortIsItsFirstKeyThatStillFits() {
         GridConfig.Definition d = grid();
-        System.assertEquals('Close__c', GridLayouts.startOf(d, '{"sort":[{"field":"Close__c","direction":"desc"},{"field":"Name"}]}').get('sortField'));
-        System.assertEquals('desc', GridLayouts.startOf(d, '{"sort":[{"field":"Close__c","direction":"desc"}]}').get('sortDirection'));
-        System.assertEquals('asc', GridLayouts.startOf(d, '{"sort":[{"field":"Close__c","direction":"DESC"}]}').get('sortDirection'),
-            'Only "desc" is descending, as in the browser.');
-        Map<String, Object> passedOver = GridLayouts.startOf(d,
-            '{"sort":[{"field":"Gone__c","direction":"desc"},{"field":"Notes__c","direction":"desc"},{"field":"name"},5,{"field":"Done__c","direction":"desc"}]}');
-        System.assertEquals('Done__c', passedOver.get('sortField'), 'Unknown, unsortable, wrongly spelt and not keys are passed over.');
-        System.assertEquals('Name', GridLayouts.startOf(d, '{"sort":[{"field":"Gone__c"}]}').get('sortField'), 'None left: the admin\'s.');
-        System.assertEquals('Name', GridLayouts.startOf(d, '{"sort":[]}').get('sortField'), 'No sort: the server\'s, the admin\'s.');
+        System.assertEquals(
+            'Close__c',
+            GridLayouts.startOf(d, '{"sort":[{"field":"Close__c","direction":"desc"},{"field":"Name"}]}')
+                .get('sortField')
+        );
+        System.assertEquals(
+            'desc',
+            GridLayouts.startOf(d, '{"sort":[{"field":"Close__c","direction":"desc"}]}').get('sortDirection')
+        );
+        System.assertEquals(
+            'asc',
+            GridLayouts.startOf(d, '{"sort":[{"field":"Close__c","direction":"DESC"}]}').get('sortDirection'),
+            'Only "desc" is descending, as in the browser.'
+        );
+        Map<String, Object> passedOver = GridLayouts.startOf(
+            d,
+            '{"sort":[{"field":"Gone__c","direction":"desc"},{"field":"Notes__c","direction":"desc"},{"field":"name"},5,{"field":"Done__c","direction":"desc"}]}'
+        );
+        System.assertEquals(
+            'Done__c',
+            passedOver.get('sortField'),
+            'Unknown, unsortable, wrongly spelt and not keys are passed over.'
+        );
+        System.assertEquals(
+            'Name',
+            GridLayouts.startOf(d, '{"sort":[{"field":"Gone__c"}]}').get('sortField'),
+            'None left: the admin\'s.'
+        );
+        System.assertEquals(
+            'Name',
+            GridLayouts.startOf(d, '{"sort":[]}').get('sortField'),
+            'No sort: the server\'s, the admin\'s.'
+        );
     }
 
     @IsTest
     static void theLayoutsGroupingIsWhatStillFits() {
         GridConfig.Definition d = grid();
-        System.assertEquals(new List<String>(), GridLayouts.startOf(d, '{"grouping":[]}').get('groupBy'), 'An empty grouping is none.');
-        System.assertEquals(new List<String>{ 'Stage__c' }, GridLayouts.startOf(d, '{"grouping":[{"field":"Notes__c"}]}').get('groupBy'),
-            'None of its levels left: the admin\'s.');
-        System.assertEquals(new List<String>{ 'Close__c:quarter', 'Owner__c', 'Done__c' },
-            GridLayouts.startOf(d, '{"grouping":[{"field":"Close__c","unit":"quarter"},{"field":"Notes__c"},{"field":"Owner__c","unit":"year"},'
-                + '{"field":"Close__c"},{"field":"Done__c"},{"field":"Stage__c"}]}').get('groupBy'),
-            'Ungroupable and repeated levels passed over, a unit only for a date, three levels at most.');
-        System.assertEquals(new List<String>{ 'Close__c:month' }, GridLayouts.startOf(d, '{"grouping":[{"field":"Close__c","unit":"decade"}]}').get('groupBy'),
-            'A date by an unknown unit is by month.');
-        System.assertEquals(new List<String>{ 'Close__c:month' }, GridLayouts.startOf(d, '{"grouping":[{"field":"Close__c"}]}').get('groupBy'));
+        System.assertEquals(
+            new List<String>(),
+            GridLayouts.startOf(d, '{"grouping":[]}').get('groupBy'),
+            'An empty grouping is none.'
+        );
+        System.assertEquals(
+            new List<String>{ 'Stage__c' },
+            GridLayouts.startOf(d, '{"grouping":[{"field":"Notes__c"}]}').get('groupBy'),
+            'None of its levels left: the admin\'s.'
+        );
+        System.assertEquals(
+            new List<String>{ 'Close__c:quarter', 'Owner__c', 'Done__c' },
+            GridLayouts.startOf(
+                    d,
+                    '{"grouping":[{"field":"Close__c","unit":"quarter"},{"field":"Notes__c"},{"field":"Owner__c","unit":"year"},' +
+                    '{"field":"Close__c"},{"field":"Done__c"},{"field":"Stage__c"}]}'
+                )
+                .get('groupBy'),
+            'Ungroupable and repeated levels passed over, a unit only for a date, three levels at most.'
+        );
+        System.assertEquals(
+            new List<String>{ 'Close__c:month' },
+            GridLayouts.startOf(d, '{"grouping":[{"field":"Close__c","unit":"decade"}]}').get('groupBy'),
+            'A date by an unknown unit is by month.'
+        );
+        System.assertEquals(
+            new List<String>{ 'Close__c:month' },
+            GridLayouts.startOf(d, '{"grouping":[{"field":"Close__c"}]}').get('groupBy')
+        );
     }
 
     @IsTest

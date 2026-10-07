@@ -60,7 +60,13 @@
                         </div>
                     </div>
                 </div>
-                <table class="slds-datepicker__month" role="grid" aria-label={gridLabel} tabindex="-1" onkeydown={handleGridKeyDown}>
+                <table
+                    class="slds-datepicker__month"
+                    role="grid"
+                    aria-label={gridLabel}
+                    tabindex="-1"
+                    onkeydown={handleGridKeyDown}
+                >
                     <thead>
                         <tr>
                             <template for:each={weekdays} for:item="d">
@@ -82,13 +88,20 @@
                                         tabindex={d.tabIndex}
                                         data-iso={d.iso}
                                         onclick={handleDayClick}
-                                    ><span class="slds-day">{d.day}</span></td>
+                                    >
+                                        <span class="slds-day">{d.day}</span>
+                                    </td>
                                 </template>
                             </tr>
                         </template>
                         <tr>
                             <td colspan="7" role="gridcell">
-                                <button class="slds-button slds-align_absolute-center slds-text-link rh-today" onclick={handleToday}>Today</button>
+                                <button
+                                    class="slds-button slds-align_absolute-center slds-text-link rh-today"
+                                    onclick={handleToday}
+                                >
+                                    Today
+                                </button>
                             </td>
                         </tr>
                     </tbody>

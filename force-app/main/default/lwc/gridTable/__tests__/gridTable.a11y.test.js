@@ -10,7 +10,9 @@ import { seedRows, columns } from '../../../../../../test-data/tests/jest/fixtur
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 describe('accessibility smoke', () => {
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('passes axe in its default state', async () => {
         const el = createElement('rowhouse-grid-table', { is: GridTable });
@@ -24,7 +26,10 @@ describe('accessibility smoke', () => {
         const el = createElement('rowhouse-grid-table', { is: GridTable });
         const id = seedRows[1].Id;
         el.config = {
-            columns, rows: seedRows.slice(0, 12), ariaLabel: 'Test records', selection: 'multi',
+            columns,
+            rows: seedRows.slice(0, 12),
+            ariaLabel: 'Test records',
+            selection: 'multi',
             drafts: { [id]: { Text_Field__c: 'x' } },
             errors: { [id]: { row: 'Locked', fields: { Text_Field__c: 'Too long' } } }
         };

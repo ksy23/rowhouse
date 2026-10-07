@@ -5,16 +5,23 @@
  */
 @IsTest
 private class GridControllerTest {
-
     @TestSetup
     static void setup() {
         // At API 67 plain DML runs in user mode, so the seed rows are written by
         // a user with field access, not by whoever runs the suite.
         System.runAs(GridTestUsers.fullUser()) {
             insert new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Name = 'TC-024 large number', Number_Field__c = Decimal.valueOf('999999999999999999')),
-                new Rowhouse_Test_Record__c(Name = 'TC-055 long text', Text_Field__c = 'x',
-                    Long_Text__c = 'Paragraph of filler text for the long text area boundary test. '.repeat(600).left(32000))
+                new Rowhouse_Test_Record__c(
+                    Name = 'TC-024 large number',
+                    Number_Field__c = Decimal.valueOf('999999999999999999')
+                ),
+                new Rowhouse_Test_Record__c(
+                    Name = 'TC-055 long text',
+                    Text_Field__c = 'x',
+                    Long_Text__c = 'Paragraph of filler text for the long text area boundary test. '
+                        .repeat(600)
+                        .left(32000)
+                )
             };
         }
     }
@@ -32,7 +39,8 @@ private class GridControllerTest {
     @IsTest
     static void configCarriesIconsAndTheNameColumn() {
         System.runAs(GridTestUsers.fullUser()) {
-            GridConfig.Definition def = (GridConfig.Definition) GridController.getGridConfig('Test_Records').get('definition');
+            GridConfig.Definition def = (GridConfig.Definition) GridController.getGridConfig('Test_Records')
+                .get('definition');
             // The object's tab icon, or the record icon for an object with no tab.
             System.assert(Pattern.matches('(standard|custom):[a-z0-9_]+', def.objectIcon), def.objectIcon);
             Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
@@ -45,7 +53,11 @@ private class GridControllerTest {
             System.assert(lookup.referenceIcons.containsKey('Account'), String.valueOf(lookup.referenceIcons));
             GridConfig.Column owner = byField.get('OwnerId');
             if (owner != null) {
-                System.assertEquals(GridIcons.QUEUE, owner.referenceIcons.get('Group'), 'An owner\'s queues show the queue icon.');
+                System.assertEquals(
+                    GridIcons.QUEUE,
+                    owner.referenceIcons.get('Group'),
+                    'An owner\'s queues show the queue icon.'
+                );
             }
             System.assertEquals(null, byField.get('Text_Field__c').referenceIcons, 'Only lookups have target icons.');
         }
@@ -67,8 +79,10 @@ private class GridControllerTest {
                 new Rowhouse_Test_Child__c(Name = 'c1', Parent__c = parents[0].Id),
                 new Rowhouse_Test_Child__c(Name = 'c2', Parent__c = parents[0].Id)
             };
-            Map<String, Object> counts = GridController.countChildren('Test_Records',
-                new List<String>{ parents[0].Id, parents[1].Id, UserInfo.getUserId(), 'not an id', null });
+            Map<String, Object> counts = GridController.countChildren(
+                'Test_Records',
+                new List<String>{ parents[0].Id, parents[1].Id, UserInfo.getUserId(), 'not an id', null }
+            );
             System.assertEquals(2, counts.size(), 'Only records of the grid\'s object are counted: ' + counts);
             Map<String, Object> first = (Map<String, Object>) counts.get(String.valueOf(parents[0].Id));
             System.assertEquals(2, first.get('total'));
@@ -102,7 +116,20 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             // TC-024: through REST this value comes back as 1.0E18. It must reach the
             // browser as the exact digits.
-            Map<String, Object> result = GridController.fetchRows('Test_Records', 'TC-024', null, null, null, null, null, null, null, null, null, null);
+            Map<String, Object> result = GridController.fetchRows(
+                'Test_Records',
+                'TC-024',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) result.get('rows');
             System.assertEquals(1, rows.size());
             System.assertEquals('999999999999999999', rows[0].get('Number_Field__c'));
@@ -113,12 +140,28 @@ private class GridControllerTest {
     @IsTest
     static void longTextIsTruncatedForTheGrid() {
         System.runAs(GridTestUsers.fullUser()) {
-            Map<String, Object> result = GridController.fetchRows('Security_Test', null, null, null, null, null, null, null, null, null, null, null);
+            Map<String, Object> result = GridController.fetchRows(
+                'Security_Test',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
             Integer marked = 0;
             for (Map<String, Object> row : (List<Map<String, Object>>) result.get('rows')) {
                 String text = (String) row.get('Long_Text__c');
                 if (text != null) {
-                    System.assert(text.length() <= 1001, 'TC-055: ' + text.length() + ' characters shipped to a grid cell.');
+                    System.assert(
+                        text.length() <= 1001,
+                        'TC-055: ' + text.length() + ' characters shipped to a grid cell.'
+                    );
                 }
                 if (row.containsKey('_cut')) {
                     // A shortened value says so, for its editor.
@@ -133,14 +176,21 @@ private class GridControllerTest {
     @IsTest
     static void theEditorReadsTheWholeLongText() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = [SELECT Id, Long_Text__c FROM Rowhouse_Test_Record__c WHERE Name = 'TC-055 long text'];
+            Rowhouse_Test_Record__c rec = [
+                SELECT Id, Long_Text__c
+                FROM Rowhouse_Test_Record__c
+                WHERE Name = 'TC-055 long text'
+            ];
             String whole = GridController.fetchFullText('Security_Test', rec.Id, 'long_text__c');
             System.assertEquals(rec.Long_Text__c, whole, 'The whole text, not the shortened copy.');
             List<String> refusals = new List<String>();
-            for (List<String> bad : new List<List<String>>{
+            for (
+                List<String> bad : new List<List<String>>{
                     new List<String>{ 'Security_Test', rec.Id, 'Text_Field__c' },
                     new List<String>{ 'Security_Test', rec.Id, 'Currency_Field__c' },
-                    new List<String>{ 'Security_Test', UserInfo.getUserId(), 'Long_Text__c' } }) {
+                    new List<String>{ 'Security_Test', UserInfo.getUserId(), 'Long_Text__c' }
+                }
+            ) {
                 try {
                     GridController.fetchFullText(bad[0], bad[1], bad[2]);
                     refusals.add('read');
@@ -149,7 +199,10 @@ private class GridControllerTest {
                 }
             }
             System.assert(refusals[0].contains('Not a long text column'), refusals[0]);
-            System.assert(refusals[1].contains('Not a long text column'), 'HR-6: only the grid\'s own columns. ' + refusals[1]);
+            System.assert(
+                refusals[1].contains('Not a long text column'),
+                'HR-6: only the grid\'s own columns. ' + refusals[1]
+            );
             System.assert(refusals[2].contains('is not a'), refusals[2]);
         }
     }
@@ -160,9 +213,17 @@ private class GridControllerTest {
             Rowhouse_Test_Record__c rec = [SELECT Id FROM Rowhouse_Test_Record__c WHERE Name = 'TC-055 long text'];
             rec.Time_Field__c = Time.newInstance(17, 30, 5, 7);
             update rec;
-            GridRequest request = new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Time_Field__c' }, null, 10);
+            GridRequest request = new GridRequest(
+                'Rowhouse_Test_Record__c',
+                new List<String>{ 'Name', 'Time_Field__c' },
+                null,
+                10
+            );
             request.onlyIds(new List<Id>{ rec.Id });
-            List<Map<String, Object>> rows = GridController.toClientRows(GridDataService.fetchPage(request), 'Rowhouse_Test_Record__c');
+            List<Map<String, Object>> rows = GridController.toClientRows(
+                GridDataService.fetchPage(request),
+                'Rowhouse_Test_Record__c'
+            );
             // Not milliseconds after midnight, which is how Apex hands a Time to the browser.
             System.assertEquals('17:30:05.007Z', rows[0].get('Time_Field__c'));
             System.assertEquals('00:00:00.000Z', GridController.timeText(Time.newInstance(0, 0, 0, 0)));
@@ -174,9 +235,10 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             Rowhouse_Test_Record__c rec = [SELECT Id FROM Rowhouse_Test_Record__c WHERE Name = 'TC-055 long text'];
             Test.startTest();
-            GridSaveResult ticket = GridController.save('Security_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => rec.Id, 'Text_Field__c' => 'saved' }
-            });
+            GridSaveResult ticket = GridController.save(
+                'Security_Test',
+                new List<Map<String, Object>>{ new Map<String, Object>{ 'Id' => rec.Id, 'Text_Field__c' => 'saved' } }
+            );
             System.assertEquals(false, ticket.done, 'A queued save is not done yet.');
             Test.stopTest();
             GridSaveResult done = GridController.saveStatus(ticket.saveId);
@@ -190,15 +252,34 @@ private class GridControllerTest {
     @IsTest
     static void groupSubtotalsComeThroughAndTheirErrorsReadPlainly() {
         System.runAs(GridTestUsers.fullUser()) {
-            GridGroupService.Result result = GridController.summarizeGroups('Group_Test', null,
-                new List<String>{ 'Picklist_Field__c' }, null, null, null, null, null, null);
+            GridGroupService.Result result = GridController.summarizeGroups(
+                'Group_Test',
+                null,
+                new List<String>{ 'Picklist_Field__c' },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
             Integer records = 0;
             for (Map<String, Object> g : result.groups) {
                 records += (Integer) g.get('n');
             }
             System.assertEquals(2, records, 'Both seed rows, in the blank Stage group.');
             try {
-                GridController.summarizeGroups('Group_Test', null, new List<String>{ 'Number_Field__c' }, null, null, null, null, null, null);
+                GridController.summarizeGroups(
+                    'Group_Test',
+                    null,
+                    new List<String>{ 'Number_Field__c' },
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                );
                 System.assert(false, 'Expected a refusal.');
             } catch (AuraHandledException e) {
                 System.assertEquals('Cannot group by Number_Field__c.', e.getMessage());
@@ -214,7 +295,10 @@ private class GridControllerTest {
             Map<String, Object> result = GridController.openGrid('Test_Records', null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
             System.assertEquals('Rowhouse_Test_Record__c', def.objectApiName);
-            System.assert(Pattern.matches('(standard|custom):[a-z0-9_]+', def.objectIcon), 'Icons, as getGridConfig has them.');
+            System.assert(
+                Pattern.matches('(standard|custom):[a-z0-9_]+', def.objectIcon),
+                'Icons, as getGridConfig has them.'
+            );
             System.assertEquals(false, result.get('diagnostics'));
             System.assert(result.containsKey('canConfigure'));
             System.assertEquals(null, result.get('layout'), 'No layout kept yet.');
@@ -236,7 +320,14 @@ private class GridControllerTest {
     @IsTest
     static void openGridSearchesAsFetchRowsDoes() {
         System.runAs(GridTestUsers.fullUser()) {
-            Map<String, Object> page = (Map<String, Object>) GridController.openGrid('Test_Records', 'TC-055', null, null, null).get('page');
+            Map<String, Object> page = (Map<String, Object>) GridController.openGrid(
+                    'Test_Records',
+                    'TC-055',
+                    null,
+                    null,
+                    null
+                )
+                .get('page');
             System.assertEquals(1, page.get('totalRows'));
             System.assertEquals('TC-055 long text', ((List<Map<String, Object>>) page.get('rows'))[0].get('Name'));
         }
@@ -253,8 +344,13 @@ private class GridControllerTest {
             System.assertEquals('Name', start.get('sortField'));
             System.assertEquals('desc', start.get('sortDirection'));
             System.assertEquals(new List<String>{ 'Picklist_Field__c' }, start.get('groupBy'));
-            List<Map<String, Object>> rows = (List<Map<String, Object>>) ((Map<String, Object>) result.get('page')).get('rows');
-            System.assertEquals('TC-055 long text', rows[0].get('Name'), 'One group (no picklist value), Name descending.');
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) ((Map<String, Object>) result.get('page'))
+                .get('rows');
+            System.assertEquals(
+                'TC-055 long text',
+                rows[0].get('Name'),
+                'One group (no picklist value), Name descending.'
+            );
         }
     }
 
@@ -263,24 +359,56 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             // A column the grid no longer has is passed over; a grouping with no
             // level left is the admin's (none here).
-            GridLayouts.save('Test_Records', '{"v":1,"sort":[{"field":"Gone__c","direction":"desc"},'
-                + '{"field":"Text_Field__c","direction":"desc"}],"grouping":[{"field":"Text_Field__c"}]}');
-            Map<String, Object> start = (Map<String, Object>) GridController.openGrid('Test_Records', null, null, null, null).get('start');
+            GridLayouts.save(
+                'Test_Records',
+                '{"v":1,"sort":[{"field":"Gone__c","direction":"desc"},' +
+                '{"field":"Text_Field__c","direction":"desc"}],"grouping":[{"field":"Text_Field__c"}]}'
+            );
+            Map<String, Object> start = (Map<String, Object>) GridController.openGrid(
+                    'Test_Records',
+                    null,
+                    null,
+                    null,
+                    null
+                )
+                .get('start');
             System.assertEquals('Text_Field__c', start.get('sortField'), 'The first sort key left.');
             System.assertEquals('desc', start.get('sortDirection'));
-            System.assertEquals(new List<String>(), start.get('groupBy'), 'Text cannot be grouped by: the admin\'s grouping.');
+            System.assertEquals(
+                new List<String>(),
+                start.get('groupBy'),
+                'Text cannot be grouped by: the admin\'s grouping.'
+            );
         }
     }
 
     @IsTest
     static void aChildGridOpensWithoutALayout() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c parent = [SELECT Id FROM Rowhouse_Test_Record__c WHERE Name = 'TC-024 large number'];
+            Rowhouse_Test_Record__c parent = [
+                SELECT Id
+                FROM Rowhouse_Test_Record__c
+                WHERE Name = 'TC-024 large number'
+            ];
             GridLayouts.save('Test_Children', '{"v":1,"sort":[{"field":"Name","direction":"desc"}]}');
-            Map<String, Object> result = GridController.openGrid('Test_Children', null, 'Test_Records_Children', parent.Id, null);
+            Map<String, Object> result = GridController.openGrid(
+                'Test_Children',
+                null,
+                'Test_Records_Children',
+                parent.Id,
+                null
+            );
             System.assertEquals(null, result.get('layout'), 'A child table keeps no layout.');
-            System.assertEquals('asc', ((Map<String, Object>) result.get('start')).get('sortDirection'), 'So the admin\'s sort.');
-            System.assertEquals(0, ((Map<String, Object>) result.get('page')).get('totalRows'), 'Only the parent\'s records: none.');
+            System.assertEquals(
+                'asc',
+                ((Map<String, Object>) result.get('start')).get('sortDirection'),
+                'So the admin\'s sort.'
+            );
+            System.assertEquals(
+                0,
+                ((Map<String, Object>) result.get('page')).get('totalRows'),
+                'Only the parent\'s records: none.'
+            );
         }
     }
 
@@ -289,7 +417,13 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             // A child tab the grid does not have: the configuration still comes,
             // and the grid asks for the rows itself, which shows why.
-            Map<String, Object> result = GridController.openGrid('Test_Children', null, 'Nope', UserInfo.getUserId(), null);
+            Map<String, Object> result = GridController.openGrid(
+                'Test_Children',
+                null,
+                'Nope',
+                UserInfo.getUserId(),
+                null
+            );
             System.assertNotEquals(null, result.get('definition'));
             System.assertEquals(null, result.get('page'));
             System.assert(String.isNotBlank((String) result.get('pageError')), 'Says why.');

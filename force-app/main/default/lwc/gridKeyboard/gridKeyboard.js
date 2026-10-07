@@ -23,10 +23,7 @@
 export const MODE_NAVIGATION = 'navigation';
 export const MODE_ACTION = 'action';
 
-const NAV_KEYS = new Set([
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-    'Home', 'End', 'PageUp', 'PageDown'
-]);
+const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown']);
 
 /** True when the key moves focus in navigation mode. */
 export function isNavigationKey(key) {
@@ -99,7 +96,19 @@ export function nextPosition(from, key, modifiers = {}, bounds = {}) {
  * What a key means in the current mode, as a verb gridTable can act on.
  * Returning a verb rather than doing the work keeps this module DOM-free.
  */
-export function actionFor(key, mode, { isHeader = false, shiftKey = false, editable = false, hasLink = false, ctrlKey = false, metaKey = false, altKey = false } = {}) {
+export function actionFor(
+    key,
+    mode,
+    {
+        isHeader = false,
+        shiftKey = false,
+        editable = false,
+        hasLink = false,
+        ctrlKey = false,
+        metaKey = false,
+        altKey = false
+    } = {}
+) {
     if (mode === MODE_ACTION) {
         if (key === 'Escape') return 'exitAction';
         return null; // Everything else belongs to the in-cell control.

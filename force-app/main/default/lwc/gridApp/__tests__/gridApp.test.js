@@ -15,7 +15,9 @@ jest.mock('@salesforce/apex/GridController.getGridConfig', () => ({ default: jes
 jest.mock('@salesforce/apex/GridController.openGrid', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.fetchRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn(() => Promise.resolve(null)) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn(() => Promise.resolve(null)) }), {
+    virtual: true
+});
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -62,7 +64,7 @@ describe('gridApp', () => {
             return el;
         };
 
-        it('hands its grid the page\'s record, trimmed', async () => {
+        it("hands its grid the page's record, trimmed", async () => {
             getGridConfig.mockReturnValue(new Promise(() => {}));
             const el = mount({ recordId: ` ${RECORD} ` });
             await flush();
@@ -78,17 +80,31 @@ describe('gridApp', () => {
             expect(el.shadowRoot.querySelector('c-grid-view').recordId).toBe('');
         });
 
-        it('passes a new record on, and its grid asks for that record\'s rows', async () => {
+        it("passes a new record on, and its grid asks for that record's rows", async () => {
             getGridConfig.mockResolvedValue({
-                definition: { name: 'Account_Deals', label: 'Deals', sortField: 'Name', sortDirection: 'asc', recordPageField: 'Account__c',
-                    columns: [{ field: 'Name', label: 'Name', type: 'text', sortable: true }] },
+                definition: {
+                    name: 'Account_Deals',
+                    label: 'Deals',
+                    sortField: 'Name',
+                    sortDirection: 'asc',
+                    recordPageField: 'Account__c',
+                    columns: [{ field: 'Name', label: 'Name', type: 'text', sortable: true }]
+                },
                 diagnostics: false
             });
-            fetchRows.mockResolvedValue({ rows: [], hasMore: false, cursorLocator: null, cursorToken: null, totalRows: 0 });
+            fetchRows.mockResolvedValue({
+                rows: [],
+                hasMore: false,
+                cursorLocator: null,
+                cursorToken: null,
+                totalRows: 0
+            });
             const el = mount({ recordId: RECORD });
             await flush();
             expect(getLayout).toHaveBeenCalledWith({ configName: 'Account_Deals' });
-            expect(fetchRows).toHaveBeenCalledWith(expect.objectContaining({ configName: 'Account_Deals', recordId: RECORD }));
+            expect(fetchRows).toHaveBeenCalledWith(
+                expect.objectContaining({ configName: 'Account_Deals', recordId: RECORD })
+            );
 
             el.recordId = '001000000000002AAA';
             await flush();

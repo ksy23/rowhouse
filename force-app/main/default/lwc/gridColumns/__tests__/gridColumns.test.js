@@ -1,16 +1,20 @@
-import { readChoice, shownColumns, hiddenFields, canHide, hideColumn, moveColumn, chooseColumns, sameChoice } from 'c/gridColumns';
+import {
+    readChoice,
+    shownColumns,
+    hiddenFields,
+    canHide,
+    hideColumn,
+    moveColumn,
+    chooseColumns,
+    sameChoice
+} from 'c/gridColumns';
 
 // The admin's columns, in the admin's order; Name is Always Shown.
-const COLS = [
-    { field: 'Name', alwaysShown: true },
-    { field: 'Stage' },
-    { field: 'Amount' },
-    { field: 'CloseDate' }
-];
+const COLS = [{ field: 'Name', alwaysShown: true }, { field: 'Stage' }, { field: 'Amount' }, { field: 'CloseDate' }];
 const fields = list => list.map(c => c.field);
 
 describe('reading a kept choice back', () => {
-    it('is null for the admin\'s columns, and for nothing kept', () => {
+    it("is null for the admin's columns, and for nothing kept", () => {
         expect(readChoice(null, COLS)).toBeNull();
         expect(readChoice('nonsense', COLS)).toBeNull();
         expect(readChoice({ order: ['Name', 'Stage', 'Amount', 'CloseDate'], hidden: [] }, COLS)).toBeNull();
@@ -37,7 +41,12 @@ describe('reading a kept choice back', () => {
     });
 
     it('ignores what is not a key, and duplicates', () => {
-        expect(readChoice({ order: ['CloseDate', 7, '', 'CloseDate', null, 'Name', 'Stage', 'Amount'], hidden: [{}] }, COLS)).toEqual({
+        expect(
+            readChoice(
+                { order: ['CloseDate', 7, '', 'CloseDate', null, 'Name', 'Stage', 'Amount'], hidden: [{}] },
+                COLS
+            )
+        ).toEqual({
             order: ['CloseDate', 'Name', 'Stage', 'Amount'],
             hidden: []
         });
@@ -45,12 +54,12 @@ describe('reading a kept choice back', () => {
 });
 
 describe('the columns drawn', () => {
-    it('are the admin\'s without a choice', () => {
+    it("are the admin's without a choice", () => {
         expect(shownColumns(COLS, null)).toBe(COLS);
         expect(hiddenFields(COLS, null)).toEqual([]);
     });
 
-    it('follow the user\'s order, without the hidden ones', () => {
+    it("follow the user's order, without the hidden ones", () => {
         const choice = { order: ['Amount', 'Name', 'Stage', 'CloseDate'], hidden: ['Stage'] };
         expect(fields(shownColumns(COLS, choice))).toEqual(['Amount', 'Name', 'CloseDate']);
         expect(hiddenFields(COLS, choice)).toEqual(['Stage']);
@@ -80,7 +89,12 @@ describe('hiding a column', () => {
 
 describe('moving a column', () => {
     it('puts it before or after another', () => {
-        expect(moveColumn(COLS, null, 'CloseDate', 'Stage', false).order).toEqual(['Name', 'CloseDate', 'Stage', 'Amount']);
+        expect(moveColumn(COLS, null, 'CloseDate', 'Stage', false).order).toEqual([
+            'Name',
+            'CloseDate',
+            'Stage',
+            'Amount'
+        ]);
         expect(moveColumn(COLS, null, 'Name', 'Amount', true).order).toEqual(['Stage', 'Amount', 'Name', 'CloseDate']);
     });
 

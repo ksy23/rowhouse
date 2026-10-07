@@ -292,7 +292,11 @@ export function messageOf(error) {
     if (!error) return 'Unknown error.';
     const body = error.body;
     if (body && typeof body.message === 'string' && body.message) return body.message;
-    if (Array.isArray(body)) return body.map(e => e && e.message).filter(Boolean).join(' ');
+    if (Array.isArray(body))
+        return body
+            .map(e => e && e.message)
+            .filter(Boolean)
+            .join(' ');
     return error.message || String(error);
 }
 
@@ -329,9 +333,10 @@ export function readLayout(json, columns) {
         // The user's own columns: null for the admin's.
         columns: readChoice(saved.columns, cols),
         // The groups' order and percentages; the table checks the order against its columns.
-        groupView: saved.groups && typeof saved.groups === 'object' && !Array.isArray(saved.groups)
-            ? { order: saved.groups.order || null, percent: saved.groups.percent === true }
-            : null
+        groupView:
+            saved.groups && typeof saved.groups === 'object' && !Array.isArray(saved.groups)
+                ? { order: saved.groups.order || null, percent: saved.groups.percent === true }
+                : null
     };
 }
 
@@ -435,7 +440,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
     columnsOpen = false;
 
     // ---- non-reactive containers (mutated, never reassigned) ----
-    _runtime = { token: 0, summaryToken: 0, countToken: 0, searchTimer: null, connected: false, next: { locator: null, cursorToken: null } };
+    _runtime = {
+        token: 0,
+        summaryToken: 0,
+        countToken: 0,
+        searchTimer: null,
+        connected: false,
+        next: { locator: null, cursorToken: null }
+    };
     _memo = {};
     /** Non-reactive (HR-20): the width observer, and the last count told to the tab. */
     _layout = { observer: null, onResize: null, started: false };
@@ -455,7 +467,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * handed to the table, and whether keeping is off (it failed, or the user
      * has no access).
      */
-    _saved = { table: { widths: null, wrap: {}, expanded: [] }, timer: null, pending: false, name: null, lastJson: null, key: 0, off: false, inFlight: null };
+    _saved = {
+        table: { widths: null, wrap: {}, expanded: [] },
+        timer: null,
+        pending: false,
+        name: null,
+        lastJson: null,
+        key: 0,
+        off: false,
+        inFlight: null
+    };
 
     @api
     get configName() {
@@ -477,13 +498,24 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
     set parent(value) {
         const height = value && Number(value.height) > 0 ? Number(value.height) : null; // the tab's Height
-        const next = value && value.link && value.id
-            ? { link: String(value.link), id: String(value.id), name: value.name ? String(value.name) : '', level: Math.max(2, Number(value.level) || 2), height }
-            : null;
+        const next =
+            value && value.link && value.id
+                ? {
+                      link: String(value.link),
+                      id: String(value.id),
+                      name: value.name ? String(value.name) : '',
+                      level: Math.max(2, Number(value.level) || 2),
+                      height
+                  }
+                : null;
         const before = this._parent;
         const sameRecord = before && next ? before.link === next.link && before.id === next.id : before === next;
         // Unchanged: keep the same object, so the table is not handed a new config (HR-17).
-        if (sameRecord && (!next || (before.name === next.name && before.level === next.level && before.height === next.height))) return;
+        if (
+            sameRecord &&
+            (!next || (before.name === next.name && before.level === next.level && before.height === next.height))
+        )
+            return;
         this._parent = next;
         // Another record, or another link: its rows are other rows. A new name alone is only a label.
         if (!sameRecord && this._runtime.connected) this.initialise();
@@ -659,7 +691,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
             this.columnChoice = saved ? saved.columns : null;
             this.definition = d;
             const first = this.firstPageOf(opened, openMs);
-            this.telemetry('config', { ms: openMs, columns: d.columns.length, layout: Boolean(saved), firstPage: Boolean(first) });
+            this.telemetry('config', {
+                ms: openMs,
+                columns: d.columns.length,
+                layout: Boolean(saved),
+                firstPage: Boolean(first)
+            });
             this.loadSummary(); // alongside the rows, not after them
             if (first && first.error) {
                 // The server read the layout as the grid does, and could not read
@@ -704,13 +741,21 @@ export default class GridView extends NavigationMixin(LightningElement) {
         const d = this.definition || {};
         const primary = this.sort[0];
         const sortField = primary ? primary.field : d.sortField || null;
-        const sortDirection = primary ? primary.direction : sortField ? (d.sortDirection === 'desc' ? 'desc' : 'asc') : null;
+        const sortDirection = primary
+            ? primary.direction
+            : sortField
+              ? d.sortDirection === 'desc'
+                  ? 'desc'
+                  : 'asc'
+              : null;
         const groupBy = this.grouping.map(levelParam);
         const theirs = Array.isArray(start.groupBy) ? start.groupBy : [];
-        return (start.sortField || null) === sortField
-            && (start.sortDirection || null) === sortDirection
-            && theirs.length === groupBy.length
-            && theirs.every((g, i) => g === groupBy[i]);
+        return (
+            (start.sortField || null) === sortField &&
+            (start.sortDirection || null) === sortDirection &&
+            theirs.length === groupBy.length &&
+            theirs.every((g, i) => g === groupBy[i])
+        );
     }
 
     reload() {
@@ -892,10 +937,35 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * change hands it a NEW one (HR-17).
      */
     get tableConfig() {
-        const deps = [this.definition, this.rows, this.drafts, this.errors, this.saving, this.loading, this.diagnostics,
-            this.hasMore, this.loadingMore, this.totalRows, this.refNames, this.selectionKey, this.deleting,
-            this.grouping, this.groupSummary, this._parent, this.childCounts, this.childCountsFailed, this.history, this.searchTerm,
-            this.acting, this.filters, this.startSort, this.userLayout, this.columnChoice, this.saveProgress, this.fiscal];
+        const deps = [
+            this.definition,
+            this.rows,
+            this.drafts,
+            this.errors,
+            this.saving,
+            this.loading,
+            this.diagnostics,
+            this.hasMore,
+            this.loadingMore,
+            this.totalRows,
+            this.refNames,
+            this.selectionKey,
+            this.deleting,
+            this.grouping,
+            this.groupSummary,
+            this._parent,
+            this.childCounts,
+            this.childCountsFailed,
+            this.history,
+            this.searchTerm,
+            this.acting,
+            this.filters,
+            this.startSort,
+            this.userLayout,
+            this.columnChoice,
+            this.saveProgress,
+            this.fiscal
+        ];
         const memo = this._memo;
         if (memo.deps && memo.deps.every((d, i) => d === deps[i])) return memo.value;
         const d = this.definition || { columns: [] };
@@ -992,9 +1062,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (this.adminFilters.length) {
             // The admin's filters are why it is empty, not that there are no records.
             return {
-                title: this.isNested ? 'No related records match this grid’s filters' : 'No records match this grid’s filters',
-                message: 'Your Salesforce admin set this grid to show only some records.'
-                    + (this.canImport ? ' Import a CSV or Excel file to add records.' : ''),
+                title: this.isNested
+                    ? 'No related records match this grid’s filters'
+                    : 'No records match this grid’s filters',
+                message:
+                    'Your Salesforce admin set this grid to show only some records.' +
+                    (this.canImport ? ' Import a CSV or Excel file to add records.' : ''),
                 actionLabel: this.canImport ? 'Import' : null,
                 icon: 'utility:filterList'
             };
@@ -1081,7 +1154,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     get placeholderRows() {
-        return Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => ({ key: 'p' + i, cls: 'rh-placeholder-row rh-placeholder-row_' + (i % 3) }));
+        return Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => ({
+            key: 'p' + i,
+            cls: 'rh-placeholder-row rh-placeholder-row_' + (i % 3)
+        }));
     }
 
     /** The object's icon, as a list view shows it. */
@@ -1138,12 +1214,22 @@ export default class GridView extends NavigationMixin(LightningElement) {
     /** The actions of the compact toolbar's menu. */
     get menuItems() {
         const items = [{ key: 'refresh', value: 'refresh', label: 'Refresh', disabled: this.refreshDisabled }];
-        if (this.canChooseColumns) items.push({ key: 'columns', value: 'columns', label: 'Choose columns', disabled: false });
-        if (this.canImport) items.push({ key: 'import', value: 'import', label: 'Import', disabled: this.importDisabled });
-        if (this.canExport) items.push({ key: 'export', value: 'export', label: 'Export as CSV', disabled: this.exportDisabled });
-        if (this.hasLegend) items.push({ key: 'legend', value: 'legend', label: this.legendOpen ? 'Hide Display Key' : 'Display Key', disabled: false });
+        if (this.canChooseColumns)
+            items.push({ key: 'columns', value: 'columns', label: 'Choose columns', disabled: false });
+        if (this.canImport)
+            items.push({ key: 'import', value: 'import', label: 'Import', disabled: this.importDisabled });
+        if (this.canExport)
+            items.push({ key: 'export', value: 'export', label: 'Export as CSV', disabled: this.exportDisabled });
+        if (this.hasLegend)
+            items.push({
+                key: 'legend',
+                value: 'legend',
+                label: this.legendOpen ? 'Hide Display Key' : 'Display Key',
+                disabled: false
+            });
         if (this.canResetLayout) items.push({ key: 'reset', value: 'reset', label: 'Reset layout', disabled: false });
-        if (this.canConfigure) items.push({ key: 'settings', value: 'settings', label: 'Grid settings', disabled: this.settingsDisabled });
+        if (this.canConfigure)
+            items.push({ key: 'settings', value: 'settings', label: 'Grid settings', disabled: this.settingsDisabled });
         // A child table's grid is inside one that already has Help.
         if (!this.isNested) items.push({ key: 'help', value: 'help', label: 'Help', disabled: false });
         return items;
@@ -1168,7 +1254,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
     handleHelp() {
         openGuide(this, this.namespace, 'using').catch(() => {
             this.dispatchEvent(
-                new ShowToastEvent({ title: 'The Grid Guide did not open', message: 'Open it from the App Launcher: search for Grid Guide.', variant: 'warning' })
+                new ShowToastEvent({
+                    title: 'The Grid Guide did not open',
+                    message: 'Open it from the App Launcher: search for Grid Guide.',
+                    variant: 'warning'
+                })
             );
         });
     }
@@ -1224,8 +1314,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
     get legendItems() {
         return this.legend.map(l => ({
             ...l,
-            swatchCls: ['rh-legend-swatch', l.bar ? 'rh-legend-swatch_bar ' + l.bar : 'rh-legend-swatch_cell', l.bar ? '' : l.cls,
-                l.kind === 'databar' ? 'rh-legend-swatch_databar' : ''].filter(Boolean).join(' '),
+            swatchCls: [
+                'rh-legend-swatch',
+                l.bar ? 'rh-legend-swatch_bar ' + l.bar : 'rh-legend-swatch_cell',
+                l.bar ? '' : l.cls,
+                l.kind === 'databar' ? 'rh-legend-swatch_databar' : ''
+            ]
+                .filter(Boolean)
+                .join(' '),
             // An icon rule's sample is its icon.
             hasIcon: Boolean(l.icon),
             where: l.row ? 'Row' : 'Cell'
@@ -1306,7 +1402,6 @@ export default class GridView extends NavigationMixin(LightningElement) {
         return this._parent ? null : this._recordId || null;
     }
 
-
     get loadedMessage() {
         if (this.hasMore) {
             return `Showing the first ${this.format(this.rows.length)} of ${this.format(this.totalRows)} rows.`;
@@ -1383,7 +1478,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (!next.length && !this.filters.length) return;
         // Plain objects, so what goes to the server is exactly what the panel built.
         this.filters = next.length
-            ? next.map(f => ({ field: f.field, operator: f.operator, value: f.value === undefined ? null : f.value, valueTo: f.valueTo === undefined ? null : f.valueTo }))
+            ? next.map(f => ({
+                  field: f.field,
+                  operator: f.operator,
+                  value: f.value === undefined ? null : f.value,
+                  valueTo: f.valueTo === undefined ? null : f.valueTo
+              }))
             : NO_FILTERS;
         this.telemetry('filter', { filters: this.filters.length });
         this.reload();
@@ -1614,18 +1714,25 @@ export default class GridView extends NavigationMixin(LightningElement) {
             // Slices are sequential by design: each is its own transaction, and
             // stopping early (too many groups) saves the rest.
             for (let i = 0; i < starts.length && !tooMany; i++) {
+                const range = { ...params, fromId: starts[i], toId: starts[i + 1] || null };
                 // eslint-disable-next-line no-await-in-loop
-                const slice = (await summarizeGroups({ ...params, fromId: starts[i], toId: starts[i + 1] || null })) || {};
+                const slice = (await summarizeGroups(range)) || {};
                 if (token !== this._runtime.summaryToken) return;
                 groups = groups.concat(slice.groups || []);
                 tooMany = slice.tooManyGroups === true;
             }
-            this.telemetry('summary', { ms: Math.round(now() - started), slices: starts.length + 1, groups: groups.length, tooMany });
+            this.telemetry('summary', {
+                ms: Math.round(now() - started),
+                slices: starts.length + 1,
+                groups: groups.length,
+                tooMany
+            });
             if (tooMany) {
                 this.groupSummary = { status: 'unavailable' };
                 this.notice = {
                     variant: 'warning',
-                    message: 'This list has too many groups to count. Group by fewer columns, a date by a longer period, or search to narrow the list.'
+                    message:
+                        'This list has too many groups to count. Group by fewer columns, a date by a longer period, or search to narrow the list.'
                 };
                 return;
             }
@@ -1663,7 +1770,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 // Sequential by design: each is a transaction of its own, and a
                 // stale answer stops the rest.
                 // eslint-disable-next-line no-await-in-loop
-                const counts = await countChildren({ configName: this._configName, parentIds: wanted.slice(i, i + COUNT_BATCH) });
+                const counts = await countChildren({
+                    configName: this._configName,
+                    parentIds: wanted.slice(i, i + COUNT_BATCH)
+                });
                 if (token !== this._runtime.countToken) return;
                 this.childCounts = { ...this.childCounts, ...(counts || {}) };
             }
@@ -1742,9 +1852,20 @@ export default class GridView extends NavigationMixin(LightningElement) {
         }
         const row = this.rows.find(r => r.Id === pending.recordId);
         this.handleCellChange({
-            detail: { recordId: pending.recordId, field: pending.field, value: id, originalValue: row ? row[pending.field] : null, valueLabel: name }
+            detail: {
+                recordId: pending.recordId,
+                field: pending.field,
+                value: id,
+                originalValue: row ? row[pending.field] : null,
+                valueLabel: name
+            }
         });
-        this.announce(`${pending.objectLabel || 'Record'} ${name || ''} created and put in ${this.newRecordFieldLabelFor(pending.field)}. Save to keep the change.`.replace(/\s+/g, ' '));
+        this.announce(
+            `${pending.objectLabel || 'Record'} ${name || ''} created and put in ${this.newRecordFieldLabelFor(pending.field)}. Save to keep the change.`.replace(
+                /\s+/g,
+                ' '
+            )
+        );
         Promise.resolve().then(() => this.focus());
     }
 
@@ -1856,7 +1977,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         const blanks = Object.values(missing).reduce((n, e) => n + Object.keys(e.fields).length, 0);
         if (blanks) {
             this.errors = mergeErrors(this.errors, missing);
-            this.announce(`${blanks} required ${blanks === 1 ? 'field is' : 'fields are'} blank. Complete ${blanks === 1 ? 'it' : 'them'}, then save.`);
+            this.announce(
+                `${blanks} required ${blanks === 1 ? 'field is' : 'fields are'} blank. Complete ${blanks === 1 ? 'it' : 'them'}, then save.`
+            );
             return;
         }
         const sent = this.drafts;
@@ -1904,7 +2027,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         let status = ticket;
         while (!status.done) {
             if (now() > deadline) {
-                throw new Error('The save is still running on the server. Reload the list in a minute to see the result.');
+                throw new Error(
+                    'The save is still running on the server. Reload the list in a minute to see the result.'
+                );
             }
             // eslint-disable-next-line no-await-in-loop
             await delay(POLL_DELAYS_MS[Math.min(attempt, POLL_DELAYS_MS.length - 1)]);
@@ -1927,7 +2052,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         try {
             for (let i = 0; i < ids.length; i += REREAD_BATCH) {
                 // eslint-disable-next-line no-await-in-loop
-                const batch = await fetchRowsById({ configName: this._configName, recordIds: ids.slice(i, i + REREAD_BATCH) });
+                const batch = await fetchRowsById({
+                    configName: this._configName,
+                    recordIds: ids.slice(i, i + REREAD_BATCH)
+                });
                 (batch || []).forEach(r => {
                     fresh[r.Id] = r;
                 });
@@ -1952,7 +2080,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
         let message = saved
             ? `Saved ${this.format(saved)} ${saved === 1 ? 'record' : 'records'}.`
             : 'Nothing was saved.';
-        if (failedRecords) message += ` ${failedRecords} ${failedRecords === 1 ? 'record has' : 'records have'} errors.`;
+        if (failedRecords)
+            message += ` ${failedRecords} ${failedRecords === 1 ? 'record has' : 'records have'} errors.`;
         if (refused) message += ' Some fields were not saved; see the marked cells.';
         this.announce(message);
         let title = 'Saved';
@@ -1992,7 +2121,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     get massDisabled() {
-        return !this.selectedIds.length || this.saving || this.deleting || this.acting || this.loading || this.restoring;
+        return (
+            !this.selectedIds.length || this.saving || this.deleting || this.acting || this.loading || this.restoring
+        );
     }
 
     /** Update field and the actions work on loaded rows only: not with every match selected. */
@@ -2006,9 +2137,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
      */
     get canSelectAllMatching() {
         const n = this.selectedIds.length;
-        return this.canMassDelete && !this.allMatching && n > 0
-            && n >= Math.min(this.rows.length, MAX_SELECTED)
-            && this.totalRows > n && this.totalRows <= MAX_DELETE_ALL;
+        return (
+            this.canMassDelete &&
+            !this.allMatching &&
+            n > 0 &&
+            n >= Math.min(this.rows.length, MAX_SELECTED) &&
+            this.totalRows > n &&
+            this.totalRows <= MAX_DELETE_ALL
+        );
     }
 
     get selectAllMatchingLabel() {
@@ -2017,7 +2153,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     handleSelectAllMatching() {
         this.allMatching = true;
-        this.announce(`All ${this.format(this.totalRows)} matching records selected. Delete deletes every one; Update field and actions work on loaded rows.`);
+        this.announce(
+            `All ${this.format(this.totalRows)} matching records selected. Delete deletes every one; Update field and actions work on loaded rows.`
+        );
     }
 
     /** The bar that appears with a selection. */
@@ -2035,8 +2173,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * Experience).
      */
     get headerClass() {
-        return 'slds-card__header slds-grid slds-wrap slds-grid_vertical-align-center rh-header'
-            + (this.narrow && !this.isNested ? ' rh-header_narrow' : '');
+        return (
+            'slds-card__header slds-grid slds-wrap slds-grid_vertical-align-center rh-header' +
+            (this.narrow && !this.isNested ? ' rh-header_narrow' : '')
+        );
     }
 
     get selectedText() {
@@ -2047,7 +2187,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
     /** The selected rows as they are now, unsaved edits included, for the mass update dialog. */
     get selectedRows() {
         const wanted = new Set(this.selectedIds);
-        return this.rows.filter(r => wanted.has(r.Id)).map(r => (this.drafts[r.Id] ? { ...r, ...this.drafts[r.Id] } : r));
+        return this.rows
+            .filter(r => wanted.has(r.Id))
+            .map(r => (this.drafts[r.Id] ? { ...r, ...this.drafts[r.Id] } : r));
     }
 
     handleClearSelection() {
@@ -2087,7 +2229,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.learnName(value, valueLabel);
         const rowById = new Map(this.rows.map(r => [r.Id, r]));
         const { changes, errors, cleared } = massChanges({
-            ids: this.selectedIds, column, value, rowById, drafts: this.drafts, columns: d.columns
+            ids: this.selectedIds,
+            column,
+            value,
+            rowById,
+            drafts: this.drafts,
+            columns: d.columns
         });
         this.applyChanges('mass update', changes, errors);
         const set = changes.length - cleared.length;
@@ -2096,7 +2243,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
             message += ` ${this.format(errors.length)} ${errors.length === 1 ? 'row keeps its' : 'rows keep their'} value; see the marked cells.`;
         }
         if (cleared.length) {
-            const fields = [...new Set(cleared.map(c => (d.columns.find(x => x.field === c.field) || {}).label || c.field))];
+            const fields = [
+                ...new Set(cleared.map(c => (d.columns.find(x => x.field === c.field) || {}).label || c.field))
+            ];
             message += ` ${fields.join(', ')} cleared on ${this.format(cleared.length)} ${cleared.length === 1 ? 'row' : 'rows'}: the old value does not go with the new ${column.label}.`;
         }
         this.announce(message);
@@ -2176,14 +2325,18 @@ export default class GridView extends NavigationMixin(LightningElement) {
             try {
                 // Batches are sequential by design: each is its own transaction.
                 // eslint-disable-next-line no-await-in-loop
-                const result = await deleteRows({ configName: this._configName, recordIds: ids.slice(i, i + DELETE_BATCH) });
+                const result = await deleteRows({
+                    configName: this._configName,
+                    recordIds: ids.slice(i, i + DELETE_BATCH)
+                });
                 deleted.push(...((result && result.deletedIds) || []));
                 failed.push(...((result && result.errors) || []));
             } catch (e) {
                 stopped = messageOf(e);
                 break;
             }
-            if (n > DELETE_BATCH) this.saveProgress = `Deleting… ${this.format(Math.min(i + DELETE_BATCH, n))} of ${this.format(n)}`;
+            if (n > DELETE_BATCH)
+                this.saveProgress = `Deleting… ${this.format(Math.min(i + DELETE_BATCH, n))} of ${this.format(n)}`;
         }
         this.removeRows(deleted);
         if (failed.length) {
@@ -2219,7 +2372,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.deleting = true;
         this.notice = null;
         this.announce(`Deleting ${noun}…`);
-        const base = { configName: this._configName, searchTerm: this.searchTerm || null, ...this.parentParams, ...this.filterParams };
+        const base = {
+            configName: this._configName,
+            searchTerm: this.searchTerm || null,
+            ...this.parentParams,
+            ...this.filterParams
+        };
         const deleted = [];
         const failed = [];
         let stopped = null;
@@ -2237,7 +2395,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 try {
                     // Batches are sequential by design: each is its own transaction.
                     // eslint-disable-next-line no-await-in-loop
-                    const result = await deleteRows({ configName: this._configName, recordIds: ids.slice(i, i + DELETE_BATCH) });
+                    const result = await deleteRows({
+                        configName: this._configName,
+                        recordIds: ids.slice(i, i + DELETE_BATCH)
+                    });
                     deleted.push(...((result && result.deletedIds) || []));
                     failed.push(...((result && result.errors) || []));
                 } catch (e) {
@@ -2251,8 +2412,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.deleting = false;
         this.saveProgress = '';
         this.undoDelete = deleted.length ? { ids: deleted } : null;
-        this.reportDelete(deleted.length, failed.length, stopped, Math.round(now() - started),
-            failed.length ? failed[0].message : null);
+        this.reportDelete(
+            deleted.length,
+            failed.length,
+            stopped,
+            Math.round(now() - started),
+            failed.length ? failed[0].message : null
+        );
         this.reload();
         if (deleted.length) this.loadSummary();
         Promise.resolve().then(() => this.focus());
@@ -2286,7 +2452,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         for (let i = 0; i < ids.length; i += DELETE_BATCH) {
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const result = await restoreRows({ configName: this._configName, recordIds: ids.slice(i, i + DELETE_BATCH) });
+                const result = await restoreRows({
+                    configName: this._configName,
+                    recordIds: ids.slice(i, i + DELETE_BATCH)
+                });
                 restored.push(...((result && result.restoredIds) || []));
                 failed.push(...((result && result.errors) || []));
             } catch (e) {
@@ -2303,7 +2472,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (stopped) message += ` ${restored.length ? 'The rest were not put back: ' : ''}${stopped}`;
         const variant = !restored.length ? 'error' : failed.length || stopped ? 'warning' : 'success';
         this.announce(message);
-        this.dispatchEvent(new ShowToastEvent({ title: variant === 'success' ? 'Undone' : 'Undo incomplete', message, variant }));
+        this.dispatchEvent(
+            new ShowToastEvent({ title: variant === 'success' ? 'Undone' : 'Undo incomplete', message, variant })
+        );
         this.telemetry('restore', { restored: restored.length, failed: failed.length, stopped: Boolean(stopped) });
         if (restored.length) {
             this.reload();
@@ -2334,7 +2505,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         else if (stopped && !failed) message = `Nothing was deleted: ${stopped}`;
         else message = 'Nothing was deleted.';
         // Every match: the rows are not all loaded to be marked, so the first reason is said.
-        if (failed) message += why ? ` ${this.format(failed)} could not be deleted: ${why}` : ` ${this.format(failed)} could not be deleted; see the marked rows.`;
+        if (failed)
+            message += why
+                ? ` ${this.format(failed)} could not be deleted: ${why}`
+                : ` ${this.format(failed)} could not be deleted; see the marked rows.`;
         if (stopped && (deleted || failed)) message += ` The rest were not deleted: ${stopped}`;
         let title = 'Deleted';
         let variant = 'success';
@@ -2426,8 +2600,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this._pendingAction = { action, ids, source };
         const unsaved = ids.some(id => this.drafts[id]);
         if (source === 'selection' || action.confirmation || unsaved) {
-            this.actionDialog = { label: action.label, question: action.confirmation || '',
-                names: this.namesOf(ids), count: ids.length, hasDrafts: unsaved };
+            this.actionDialog = {
+                label: action.label,
+                question: action.confirmation || '',
+                names: this.namesOf(ids),
+                count: ids.length,
+                hasDrafts: unsaved
+            };
             return;
         }
         this.runServerAction();
@@ -2470,7 +2649,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
         } catch {
             store = null;
         }
-        const ref = flowPageRef(ns, { grid: this._configName, action: action.name, on: source, ids, back: backRef(this._flow.page, ns), token }, store);
+        const ref = flowPageRef(
+            ns,
+            { grid: this._configName, action: action.name, on: source, ids, back: backRef(this._flow.page, ns), token },
+            store
+        );
         if (!ref) {
             const message = `${action.label} cannot take so many rows in this browser. Select fewer and run it again.`;
             this.announce(message);
@@ -2526,14 +2709,19 @@ export default class GridView extends NavigationMixin(LightningElement) {
             try {
                 // Batches are sequential by design: each is its own transaction.
                 // eslint-disable-next-line no-await-in-loop
-                const result = await runAction({ configName: this._configName, actionName: action.name, recordIds: ids.slice(i, i + ACTION_BATCH) });
+                const result = await runAction({
+                    configName: this._configName,
+                    actionName: action.name,
+                    recordIds: ids.slice(i, i + ACTION_BATCH)
+                });
                 done.push(...((result && result.succeededIds) || []));
                 failed.push(...((result && result.errors) || []));
             } catch (e) {
                 stopped = messageOf(e);
                 break;
             }
-            if (n > ACTION_BATCH) this.saveProgress = `${action.label}… ${this.format(Math.min(i + ACTION_BATCH, n))} of ${this.format(n)}`;
+            if (n > ACTION_BATCH)
+                this.saveProgress = `${action.label}… ${this.format(Math.min(i + ACTION_BATCH, n))} of ${this.format(n)}`;
         }
         // A record that ran now has no error from an earlier run; one that did not, says why.
         const errors = { ...this.errors };
@@ -2627,7 +2815,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.loadSummary();
         const token = this._runtime.token + 1; // the token reload() takes
         this.reload().then(() => {
-            if (token === this._runtime.token && !this.loading && !this.template.activeElement) this.focusButton('.rh-import');
+            if (token === this._runtime.token && !this.loading && !this.template.activeElement)
+                this.focusButton('.rh-import');
         });
     }
 
@@ -2654,14 +2843,21 @@ export default class GridView extends NavigationMixin(LightningElement) {
         // A picklist sorts in its own order, as on screen.
         const keys = this.sort.map(k => {
             const c = byField[k.field] || {};
-            return { field: k.field, direction: k.direction, type: c.type, ranks: c.type === 'picklist' ? picklistRanks(c.options) : null };
+            return {
+                field: k.field,
+                direction: k.direction,
+                type: c.type,
+                ranks: c.type === 'picklist' ? picklistRanks(c.options) : null
+            };
         });
         // The configuration holds only columns this user can read (forUser), and
         // toCsv writes only the columns it is given.
         // The record Id comes first, so the file can come back in as an import.
         // The columns this user sees, in their order: export writes what is on screen.
         const shown = shownColumns(d.columns, this.columnChoice);
-        const columns = [{ field: 'Id', label: 'Id', type: 'id' }].concat(shown.map(c => ({ field: c.field, label: c.label, type: c.type })));
+        const columns = [{ field: 'Id', label: 'Id', type: 'id' }].concat(
+            shown.map(c => ({ field: c.field, label: c.label, type: c.type }))
+        );
         const csv = toCsv(sortRows(this.rows, keys), columns);
         downloadCsv(csv, this.exportFileName, this.template.querySelector('.rh-download'));
         let message = `Exported ${this.format(this.rows.length)} rows.`;
@@ -2671,7 +2867,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     get exportFileName() {
-        const base = String(this.title).replace(/[^A-Za-z0-9 _-]+/g, '').trim().replace(/\s+/g, '-') || 'export';
+        const base =
+            String(this.title)
+                .replace(/[^A-Za-z0-9 _-]+/g, '')
+                .trim()
+                .replace(/\s+/g, '-') || 'export';
         return `${base}-${new Date().toISOString().slice(0, 10)}.csv`;
     }
 

@@ -38,8 +38,13 @@ describe('asking first', () => {
         expect($('lightning-flow')).toBeNull();
     });
 
-    it('asks the admin\'s own question when there is one', async () => {
-        await mount({ label: 'Stamp with Apex', question: 'Stamp these records with Apex?', names: ['A', 'B'], count: 2 });
+    it("asks the admin's own question when there is one", async () => {
+        await mount({
+            label: 'Stamp with Apex',
+            question: 'Stamp these records with Apex?',
+            names: ['A', 'B'],
+            count: 2
+        });
         expect($('h1').textContent).toBe('Stamp these records with Apex?');
         expect($('.rh-action-runs-on').textContent).toBe('It runs on 2 records:');
     });

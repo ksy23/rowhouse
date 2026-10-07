@@ -39,7 +39,14 @@ const layout = (boxes, scrollerClientHeight) => {
 
 const mount = async (config = {}) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
-    el.config = { columns: COLUMNS, rows: ROWS, totalRows: ROWS.length, rowActions: ACTIONS, configName: 'Test_Records', ...config };
+    el.config = {
+        columns: COLUMNS,
+        rows: ROWS,
+        totalRows: ROWS.length,
+        rowActions: ACTIONS,
+        configName: 'Test_Records',
+        ...config
+    };
     document.body.appendChild(el);
     await flush();
 };
@@ -109,17 +116,22 @@ describe('room for an open column menu', () => {
 describe('room for an open row menu', () => {
     it('opens downwards on a one-row grid, where the header leaves no room above, and grows the grid', async () => {
         await mount({ height: 600 });
-        layout({
-            '[data-scroller]': { top: 100, bottom: 170 },
-            thead: { top: 100, bottom: 133 },
-            'td[data-field="__actions"]': { top: 133, bottom: 166 },
-            '.rh-row-menu': { top: 166, bottom: 290 }
-        }, 70);
+        layout(
+            {
+                '[data-scroller]': { top: 100, bottom: 170 },
+                thead: { top: 100, bottom: 133 },
+                'td[data-field="__actions"]': { top: 133, bottom: 166 },
+                '.rh-row-menu': { top: 166, bottom: 290 }
+            },
+            70
+        );
         await openRowMenu();
         expect(rowMenu().classList).not.toContain('slds-dropdown_bottom');
         expect(scroller().style.minHeight).toBe(`${290 - 100 + 4}px`);
         const item = el.shadowRoot.querySelector(`[role="menuitem"][data-row-id="${ROW_ID}"]`);
-        item.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true, cancelable: true }));
+        item.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true, cancelable: true })
+        );
         await flush();
         expect(rowMenu()).toBeNull();
         expect(scroller().style.minHeight).toBe('');
@@ -127,12 +139,15 @@ describe('room for an open row menu', () => {
 
     it('opens upwards when it does not fit below the row but fits between the row and the header', async () => {
         await mount({ height: 600 });
-        layout({
-            '[data-scroller]': { top: 100, bottom: 700 },
-            thead: { top: 100, bottom: 133 },
-            'td[data-field="__actions"]': { top: 650, bottom: 683 },
-            '.rh-row-menu': { top: 534, bottom: 650 }
-        }, 600);
+        layout(
+            {
+                '[data-scroller]': { top: 100, bottom: 700 },
+                thead: { top: 100, bottom: 133 },
+                'td[data-field="__actions"]': { top: 650, bottom: 683 },
+                '.rh-row-menu': { top: 534, bottom: 650 }
+            },
+            600
+        );
         await openRowMenu();
         expect(rowMenu().classList).toContain('slds-dropdown_bottom');
         expect(scroller().style.minHeight).toBe('');
@@ -141,12 +156,15 @@ describe('room for an open row menu', () => {
     it('does not open upwards under the header, even with more room above than below', async () => {
         await mount({ height: 600 });
         // Three actions need 116px. Below the row: 67px; above it, under the header: 67px.
-        layout({
-            '[data-scroller]': { top: 100, bottom: 300 },
-            thead: { top: 100, bottom: 133 },
-            'td[data-field="__actions"]': { top: 200, bottom: 233 },
-            '.rh-row-menu': { top: 233, bottom: 349 }
-        }, 200);
+        layout(
+            {
+                '[data-scroller]': { top: 100, bottom: 300 },
+                thead: { top: 100, bottom: 133 },
+                'td[data-field="__actions"]': { top: 200, bottom: 233 },
+                '.rh-row-menu': { top: 233, bottom: 349 }
+            },
+            200
+        );
         await openRowMenu();
         expect(rowMenu().classList).not.toContain('slds-dropdown_bottom');
         expect(scroller().style.minHeight).toBe(`${349 - 100 + 4}px`);

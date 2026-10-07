@@ -11,7 +11,6 @@
  * the client cannot widen it (HR-6).
  */
 public with sharing class GridController {
-
     /** A long text's characters a row carries (TC-055); a longer one ends in "…" after them. */
     public static final Integer LONG_TEXT_PREVIEW = 1000;
 
@@ -79,16 +78,38 @@ public with sharing class GridController {
      * on. GridFilters checks both; the admin's filters always apply.
      */
     @AuraEnabled
-    public static Map<String, Object> fetchRows(String configName, String searchTerm, String sortField,
-                                                String sortDirection, String cursorLocator, Integer pageSize,
-                                                String cursorToken, List<String> groupBy,
-                                                String parentLink, String parentId,
-                                                List<Map<String, Object>> filters, String recordId) {
+    public static Map<String, Object> fetchRows(
+        String configName,
+        String searchTerm,
+        String sortField,
+        String sortDirection,
+        String cursorLocator,
+        Integer pageSize,
+        String cursorToken,
+        List<String> groupBy,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId
+    ) {
         try {
             Long started = System.now().getTime();
             GridConfig.Definition def = GridConfig.forUser(configName);
-            return page(def, searchTerm, sortField, sortDirection, cursorLocator, pageSize, cursorToken, groupBy,
-                parentLink, parentId, filters, recordId, started);
+            return page(
+                def,
+                searchTerm,
+                sortField,
+                sortDirection,
+                cursorLocator,
+                pageSize,
+                cursorToken,
+                groupBy,
+                parentLink,
+                parentId,
+                filters,
+                recordId,
+                started
+            );
         } catch (Exception e) {
             throw auraError(e);
         }
@@ -116,8 +137,13 @@ public with sharing class GridController {
      * is the configuration in it.
      */
     @AuraEnabled
-    public static Map<String, Object> openGrid(String configName, String searchTerm, String parentLink, String parentId,
-                                               String recordId) {
+    public static Map<String, Object> openGrid(
+        String configName,
+        String searchTerm,
+        String parentLink,
+        String parentId,
+        String recordId
+    ) {
         try {
             Long started = System.now().getTime();
             Map<String, Object> out = gridConfig(configName);
@@ -134,8 +160,24 @@ public with sharing class GridController {
             Map<String, Object> start = GridLayouts.startOf(def, layout);
             out.put('start', start);
             try {
-                out.put('page', page(def, searchTerm, (String) start.get('sortField'), (String) start.get('sortDirection'),
-                    null, null, null, (List<String>) start.get('groupBy'), parentLink, parentId, null, recordId, started));
+                out.put(
+                    'page',
+                    page(
+                        def,
+                        searchTerm,
+                        (String) start.get('sortField'),
+                        (String) start.get('sortDirection'),
+                        null,
+                        null,
+                        null,
+                        (List<String>) start.get('groupBy'),
+                        parentLink,
+                        parentId,
+                        null,
+                        recordId,
+                        started
+                    )
+                );
             } catch (Exception e) {
                 out.put('pageError', messageOf(e));
             }
@@ -146,12 +188,27 @@ public with sharing class GridController {
     }
 
     /** One page of rows for a configuration already worked out: fetchRows' and openGrid's. */
-    private static Map<String, Object> page(GridConfig.Definition def, String searchTerm, String sortField,
-                                            String sortDirection, String cursorLocator, Integer pageSize,
-                                            String cursorToken, List<String> groupBy, String parentLink, String parentId,
-                                            List<Map<String, Object>> filters, String recordId, Long started) {
-        GridRequest request = new GridRequest(def.objectApiName, def.fieldNames(), cursorLocator,
-            pageSize == null ? def.pageSize : pageSize);
+    private static Map<String, Object> page(
+        GridConfig.Definition def,
+        String searchTerm,
+        String sortField,
+        String sortDirection,
+        String cursorLocator,
+        Integer pageSize,
+        String cursorToken,
+        List<String> groupBy,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId,
+        Long started
+    ) {
+        GridRequest request = new GridRequest(
+            def.objectApiName,
+            def.fieldNames(),
+            cursorLocator,
+            pageSize == null ? def.pageSize : pageSize
+        );
         GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
         request.underParent(scope);
         request.narrowedBy(GridFilters.forRequest(def, filters, recordId, scope != null));
@@ -210,7 +267,12 @@ public with sharing class GridController {
     public static List<Map<String, Object>> fetchRowsById(String configName, List<Id> recordIds) {
         try {
             GridConfig.Definition def = GridConfig.forUser(configName);
-            GridRequest request = new GridRequest(def.objectApiName, def.fieldNames(), null, GridDataService.MAX_PAGE_SIZE);
+            GridRequest request = new GridRequest(
+                def.objectApiName,
+                def.fieldNames(),
+                null,
+                GridDataService.MAX_PAGE_SIZE
+            );
             request.onlyIds(recordIds);
             request.reading(def.formulaPaths());
             return toClientRows(GridDataService.fetchPage(request), def);
@@ -297,8 +359,15 @@ public with sharing class GridController {
      * them. { ids }. Only for a grid that allows deleting.
      */
     @AuraEnabled
-    public static Map<String, Object> matchingIds(String configName, String searchTerm, String parentLink, String parentId,
-                                                  List<Map<String, Object>> filters, String recordId, String afterId) {
+    public static Map<String, Object> matchingIds(
+        String configName,
+        String searchTerm,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId,
+        String afterId
+    ) {
         try {
             GridConfig.Definition def = GridConfig.forUser(configName);
             GridRequest request = new GridRequest(def.objectApiName, def.fieldNames(), null, null);
@@ -334,8 +403,14 @@ public with sharing class GridController {
      * of the grid matches the records instead of the Id.
      */
     @AuraEnabled
-    public static GridImportService.Result importRows(String configName, List<Map<String, Object>> rows,
-                                                      String parentLink, String parentId, String recordId, String matchField) {
+    public static GridImportService.Result importRows(
+        String configName,
+        List<Map<String, Object>> rows,
+        String parentLink,
+        String parentId,
+        String recordId,
+        String matchField
+    ) {
         try {
             return GridImportService.importRows(configName, rows, parentLink, parentId, recordId, matchField);
         } catch (Exception e) {
@@ -362,12 +437,29 @@ public with sharing class GridController {
      * then asks for each slice by fromId and toId and adds the answers up.
      */
     @AuraEnabled
-    public static GridGroupService.Result summarizeGroups(String configName, String searchTerm, List<String> grouping,
-                                                          String fromId, String toId, String parentLink, String parentId,
-                                                          List<Map<String, Object>> filters, String recordId) {
+    public static GridGroupService.Result summarizeGroups(
+        String configName,
+        String searchTerm,
+        List<String> grouping,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId
+    ) {
         try {
-            return GridGroupService.summarize(configName, searchTerm, grouping, fromId, toId, parentLink, parentId,
-                filters, recordId);
+            return GridGroupService.summarize(
+                configName,
+                searchTerm,
+                grouping,
+                fromId,
+                toId,
+                parentLink,
+                parentId,
+                filters,
+                recordId
+            );
         } catch (Exception e) {
             throw auraError(e);
         }
@@ -406,8 +498,10 @@ public with sharing class GridController {
                 }
             }
             Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-            if (column == null
-                    || GridDescribe.field(objectType, column.field).getDescribe().getType() != Schema.DisplayType.TEXTAREA) {
+            if (
+                column == null ||
+                GridDescribe.field(objectType, column.field).getDescribe().getType() != Schema.DisplayType.TEXTAREA
+            ) {
                 throw new GridException('Not a long text column of this grid: ' + field);
             }
             Id rowId;
@@ -420,8 +514,14 @@ public with sharing class GridController {
                 throw new GridException('Record ' + recordId + ' is not a ' + def.objectApiName + '.');
             }
             Schema.SObjectField f = GridDescribe.field(objectType, column.field);
-            List<SObject> rows = GridSecurity.query('SELECT ' + GridDescribe.apiName(f) + ' FROM '
-                + GridDescribe.apiName(objectType) + ' WHERE Id = :rowId', new Map<String, Object>{ 'rowId' => rowId });
+            List<SObject> rows = GridSecurity.query(
+                'SELECT ' +
+                    GridDescribe.apiName(f) +
+                    ' FROM ' +
+                    GridDescribe.apiName(objectType) +
+                    ' WHERE Id = :rowId',
+                new Map<String, Object>{ 'rowId' => rowId }
+            );
             if (rows.isEmpty()) {
                 throw new GridException('The record could not be found. It may have been deleted.');
             }
@@ -545,7 +645,9 @@ public with sharing class GridController {
                 Map<String, String> labels = new Map<String, String>();
                 for (String local : page.namePaths.keySet()) {
                     String path = page.namePaths.get(local);
-                    SObject related = populated.containsKey(path.substringBefore('.')) ? row.getSObject(path.substringBefore('.')) : null;
+                    SObject related = populated.containsKey(path.substringBefore('.'))
+                        ? row.getSObject(path.substringBefore('.'))
+                        : null;
                     Object name = related == null ? null : related.get(path.substringAfter('.'));
                     if (name != null) {
                         labels.put(local, String.valueOf(name));
@@ -572,7 +674,11 @@ public with sharing class GridController {
             Schema.DescribeFieldResult d = f.getDescribe();
             String text = (String) value;
             // TC-055: never ship a 32,000-character value into a grid cell.
-            if (d.getType() == Schema.DisplayType.TEXTAREA && d.getLength() > 255 && text.length() > LONG_TEXT_PREVIEW) {
+            if (
+                d.getType() == Schema.DisplayType.TEXTAREA &&
+                d.getLength() > 255 &&
+                text.length() > LONG_TEXT_PREVIEW
+            ) {
                 return text.left(LONG_TEXT_PREVIEW) + '…';
             }
         }
@@ -582,8 +688,14 @@ public with sharing class GridController {
     /** A Time as "HH:mm:ss.SSSZ", the form the grid's editors and the save path read. */
     @TestVisible
     private static String timeText(Time t) {
-        return String.valueOf(t.hour()).leftPad(2, '0') + ':' + String.valueOf(t.minute()).leftPad(2, '0') + ':'
-            + String.valueOf(t.second()).leftPad(2, '0') + '.' + String.valueOf(t.millisecond()).leftPad(3, '0') + 'Z';
+        return String.valueOf(t.hour()).leftPad(2, '0') +
+            ':' +
+            String.valueOf(t.minute()).leftPad(2, '0') +
+            ':' +
+            String.valueOf(t.second()).leftPad(2, '0') +
+            '.' +
+            String.valueOf(t.millisecond()).leftPad(3, '0') +
+            'Z';
     }
 
     /** What a failure says: a GridException's own words, anything else with its type. */

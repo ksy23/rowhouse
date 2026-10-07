@@ -40,10 +40,46 @@ jest.mock('lightning/navigation', () => {
 });
 
 const FIELDS = [
-    { name: 'Name', label: 'Name', type: 'text', sortable: true, groupable: true, editable: true, isName: true, subtotals: ['count'] },
-    { name: 'Amount__c', label: 'Amount', type: 'currency', sortable: true, groupable: false, editable: true, isName: false, subtotals: ['sum', 'average', 'min', 'max', 'count'] },
-    { name: 'Close__c', label: 'Close Date', type: 'date', sortable: true, groupable: true, editable: true, isName: false, subtotals: ['min', 'max', 'count'] },
-    { name: 'Score__c', label: 'Score', type: 'number', sortable: true, groupable: false, editable: false, isName: false, subtotals: ['sum'] }
+    {
+        name: 'Name',
+        label: 'Name',
+        type: 'text',
+        sortable: true,
+        groupable: true,
+        editable: true,
+        isName: true,
+        subtotals: ['count']
+    },
+    {
+        name: 'Amount__c',
+        label: 'Amount',
+        type: 'currency',
+        sortable: true,
+        groupable: false,
+        editable: true,
+        isName: false,
+        subtotals: ['sum', 'average', 'min', 'max', 'count']
+    },
+    {
+        name: 'Close__c',
+        label: 'Close Date',
+        type: 'date',
+        sortable: true,
+        groupable: true,
+        editable: true,
+        isName: false,
+        subtotals: ['min', 'max', 'count']
+    },
+    {
+        name: 'Score__c',
+        label: 'Score',
+        type: 'number',
+        sortable: true,
+        groupable: false,
+        editable: false,
+        isName: false,
+        subtotals: ['sum']
+    }
 ];
 const DESCRIBED = {
     name: 'Deal__c',
@@ -53,15 +89,51 @@ const DESCRIBED = {
     children: [{ config: 'Deal_Notes', label: 'Deal Notes', fields: ['Deal__c', 'Other_Deal__c'] }]
 };
 const DRAFT = {
-    config: { name: 'Deals', label: 'Deals', isNew: false, objectApiName: 'Deal__c', sortField: 'Name', sortDirection: 'asc', allowInlineEdit: true, allowCsvExport: true },
+    config: {
+        name: 'Deals',
+        label: 'Deals',
+        isNew: false,
+        objectApiName: 'Deal__c',
+        sortField: 'Name',
+        sortDirection: 'asc',
+        allowInlineEdit: true,
+        allowCsvExport: true
+    },
     columns: [
         { name: 'Deals_Name', field: 'Name', columnLabel: null, editable: true, sortable: true, inactive: false },
-        { name: 'Deals_Amount', field: 'Amount__c', columnLabel: 'Value', editable: true, sortable: true, subtotal: 'sum', inactive: false },
+        {
+            name: 'Deals_Amount',
+            field: 'Amount__c',
+            columnLabel: 'Value',
+            editable: true,
+            sortable: true,
+            subtotal: 'sum',
+            inactive: false
+        },
         { name: 'Deals_Old', field: 'Score__c', columnLabel: null, editable: false, sortable: true, inactive: true }
     ],
-    rules: [{ name: 'Deals_Big', label: 'Big', field: 'Amount__c', operator: 'greater_than', value: '1000', style: 'fill_green', applyTo: 'row', active: true }],
+    rules: [
+        {
+            name: 'Deals_Big',
+            label: 'Big',
+            field: 'Amount__c',
+            operator: 'greater_than',
+            value: '1000',
+            style: 'fill_green',
+            applyTo: 'row',
+            active: true
+        }
+    ],
     actions: [],
-    children: [{ name: 'Deals_Notes', childConfig: 'Deal_Notes', relationshipField: 'Deal__c', tabLabel: 'Notes', inactive: false }]
+    children: [
+        {
+            name: 'Deals_Notes',
+            childConfig: 'Deal_Notes',
+            relationshipField: 'Deal__c',
+            tabLabel: 'Notes',
+            inactive: false
+        }
+    ]
 };
 
 const settle = async () => {
@@ -84,7 +156,9 @@ async function mount(configName = 'Deals') {
     const el = createElement('c-grid-config-editor', { is: GridConfigEditor });
     el.configName = configName;
     events = [];
-    ['saved', 'close', 'lightning__showtoast'].forEach(type => el.addEventListener(type, e => events.push({ type, detail: e.detail })));
+    ['saved', 'close', 'lightning__showtoast'].forEach(type =>
+        el.addEventListener(type, e => events.push({ type, detail: e.detail }))
+    );
     document.body.appendChild(el);
     await settle();
     return el;
@@ -98,7 +172,10 @@ beforeEach(() => {
     jest.useFakeTimers();
     readConfig.mockResolvedValue({ draft: DRAFT, warnings: ['Grid Column Deals_Old: something'], canSave: true });
     describeObject.mockResolvedValue(DESCRIBED);
-    listObjects.mockResolvedValue([{ name: 'Account', label: 'Account' }, { name: 'Deal__c', label: 'Deal' }]);
+    listObjects.mockResolvedValue([
+        { name: 'Account', label: 'Account' },
+        { name: 'Deal__c', label: 'Deal' }
+    ]);
     canSave.mockResolvedValue(true);
     checkDraft.mockResolvedValue({ errors: [], warnings: [] });
 });
@@ -121,7 +198,14 @@ describe('reading a grid', () => {
         expect($$(el, '.rh-column-on').map(t => t.checked)).toEqual([true, true, false]);
         expect($(el, '.rh-editor-warnings').textContent).toContain('Deals_Old');
         const tabs = $$(el, 'lightning-tab').map(t => t.label);
-        expect(tabs).toEqual(['Grid', 'Columns (2)', 'Display rules (1)', 'Filters (0)', 'Actions (0)', 'Child tables (1)']);
+        expect(tabs).toEqual([
+            'Grid',
+            'Columns (2)',
+            'Display rules (1)',
+            'Filters (0)',
+            'Actions (0)',
+            'Child tables (1)'
+        ]);
     });
 
     it('lets a field be edited or sorted only where it can be', async () => {
@@ -162,7 +246,7 @@ describe('reading a grid', () => {
 });
 
 describe('editing', () => {
-    it('checks the draft a moment after a change, with the grid\'s own code', async () => {
+    it("checks the draft a moment after a change, with the grid's own code", async () => {
         const el = await mount();
         expect($(el, '.rh-editor-save').disabled).toBe(true); // nothing changed yet
         change($$(el, '.rh-column-label')[0], 'Deal');
@@ -195,7 +279,11 @@ describe('editing', () => {
         change($$(el, '.rh-column-on')[0], false);
         await afterCheck();
         const sent = lastDraft();
-        expect(sent.columns.map(c => [c.field, c.inactive])).toEqual([['Amount__c', true], ['Name', false], ['Score__c', true]]);
+        expect(sent.columns.map(c => [c.field, c.inactive])).toEqual([
+            ['Amount__c', true],
+            ['Name', false],
+            ['Score__c', true]
+        ]);
     });
 
     it('keeps a column on screen for every user with Always shown', async () => {
@@ -208,7 +296,7 @@ describe('editing', () => {
         expect(lastDraft().columns.map(c => c.alwaysShown === true)).toEqual([true, false, false]);
     });
 
-    it('clears what a column\'s new field cannot take', async () => {
+    it("clears what a column's new field cannot take", async () => {
         const el = await mount();
         change($$(el, '.rh-column-field')[1], 'Score__c'); // a formula: not editable, sum still fits
         await afterCheck();
@@ -256,7 +344,9 @@ describe('saving', () => {
 
     it('deploys the draft, waits for it, then reads the grid again', async () => {
         saveDraft.mockResolvedValue('0Af000000000001');
-        saveStatus.mockResolvedValueOnce({ status: 'pending', messages: [] }).mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
+        saveStatus
+            .mockResolvedValueOnce({ status: 'pending', messages: [] })
+            .mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
         const el = await mount();
         await changeAndSave(el);
         expect(JSON.parse(saveDraft.mock.calls[0][0].draftJson).config.label).toBe('Big Deals');
@@ -298,8 +388,12 @@ describe('saving', () => {
         expect($(el, '.rh-editor-save').disabled).toBe(false);
     });
 
-    it('shows the server\'s refusal', async () => {
-        saveDraft.mockRejectedValue({ body: { message: 'Saving a grid needs the Customize Application permission as well as Rowhouse Grid Admin.' } });
+    it("shows the server's refusal", async () => {
+        saveDraft.mockRejectedValue({
+            body: {
+                message: 'Saving a grid needs the Customize Application permission as well as Rowhouse Grid Admin.'
+            }
+        });
         const el = await mount();
         await changeAndSave(el);
         expect($(el, '.rh-editor-errors').textContent).toContain('Customize Application');
@@ -321,7 +415,12 @@ describe('a new grid', () => {
         expect(describeObject).toHaveBeenCalledWith({ objectApiName: 'Deal__c' });
         expect($$(el, '.rh-column-field').map(c => c.value)).toEqual(['Name']);
         const sent = lastDraft();
-        expect(sent.config).toMatchObject({ name: 'Open_deals', label: 'Open deals', isNew: true, objectApiName: 'Deal__c' });
+        expect(sent.config).toMatchObject({
+            name: 'Open_deals',
+            label: 'Open deals',
+            isNew: true,
+            objectApiName: 'Deal__c'
+        });
     });
 
     it('keeps an API name typed by hand', async () => {
@@ -365,10 +464,21 @@ describe('help', () => {
         const el = await mount();
         const helps = $$(el, '.rh-editor-help');
         expect(helps.map(h => h.dataset.section)).toEqual(['config', 'column', 'rule', 'filter', 'action', 'child']);
-        expect(helps.map(h => h.alternativeText)).toEqual(['Help for Grid', 'Help for Columns', 'Help for Display rules', 'Help for Filters', 'Help for Actions', 'Help for Child tables']);
+        expect(helps.map(h => h.alternativeText)).toEqual([
+            'Help for Grid',
+            'Help for Columns',
+            'Help for Display rules',
+            'Help for Filters',
+            'Help for Actions',
+            'Help for Child tables'
+        ]);
         helps[2].dispatchEvent(new CustomEvent('click'));
         await settle();
-        expect(mockGenerateUrl).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'configure', c__section: 'rule' } });
+        expect(mockGenerateUrl).toHaveBeenCalledWith({
+            type: 'standard__navItemPage',
+            attributes: { apiName: 'Rowhouse_Guide' },
+            state: { c__page: 'configure', c__section: 'rule' }
+        });
         expect(open).toHaveBeenCalledWith('/generated?{"c__page":"configure","c__section":"rule"}', '_blank');
         open.mockRestore();
     });

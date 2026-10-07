@@ -118,7 +118,11 @@ function messageOf(error) {
     if (!error) return 'Unknown error.';
     const body = error.body;
     if (body && typeof body.message === 'string' && body.message) return body.message;
-    if (Array.isArray(body)) return body.map(e => e && e.message).filter(Boolean).join(' ');
+    if (Array.isArray(body))
+        return body
+            .map(e => e && e.message)
+            .filter(Boolean)
+            .join(' ');
     return error.message || String(error);
 }
 
@@ -351,7 +355,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         this.fields.forEach(f => {
             if (!filter || filter(f)) options.push({ value: f.name, label: `${f.label} (${f.name})` });
         });
-        if (current && !this.fieldOf(current)) options.unshift({ value: current, label: `${current} (not on this object)` });
+        if (current && !this.fieldOf(current))
+            options.unshift({ value: current, label: `${current} (not on this object)` });
         return options;
     }
 
@@ -369,11 +374,13 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
      * the page's record.
      */
     get recordPageOptions() {
-        const options = this.fieldOptions(this.config.recordPageField, f => f.type === 'reference' && (f.referenceTo || []).length === 1)
-            .map(o => {
-                const f = this.fieldOf(o.value);
-                return f ? { value: o.value, label: `${f.label} (${f.name}), on ${f.referenceTo[0]} pages` } : o;
-            });
+        const options = this.fieldOptions(
+            this.config.recordPageField,
+            f => f.type === 'reference' && (f.referenceTo || []).length === 1
+        ).map(o => {
+            const f = this.fieldOf(o.value);
+            return f ? { value: o.value, label: `${f.label} (${f.name}), on ${f.referenceTo[0]} pages` } : o;
+        });
         return [{ value: '', label: 'None: every record, on any page' }, ...options];
     }
 
@@ -424,7 +431,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         const section = event.currentTarget.dataset.section;
         openGuide(this, namespaceOf(this.template.host), 'configure', section).catch(() => {
             this.dispatchEvent(
-                new ShowToastEvent({ title: 'The Grid Guide did not open', message: 'Open it from the App Launcher: search for Grid Guide.', variant: 'warning' })
+                new ShowToastEvent({
+                    title: 'The Grid Guide did not open',
+                    message: 'Open it from the App Launcher: search for Grid Guide.',
+                    variant: 'warning'
+                })
             );
         });
     }
@@ -441,7 +452,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             const childTotal = !formula && isChildTotalColumn(c);
             const f = formula || childTotal ? null : this.fieldOf(c.field);
             const subtotals = f ? f.subtotals || [] : [];
-            let name = formula ? c.columnLabel || `formula column ${i + 1}` : f ? f.label : c.field || `column ${i + 1}`;
+            let name = formula
+                ? c.columnLabel || `formula column ${i + 1}`
+                : f
+                  ? f.label
+                  : c.field || `column ${i + 1}`;
             if (childTotal) name = c.columnLabel || `child total column ${i + 1}`;
             return {
                 key: c._key,
@@ -463,7 +478,13 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 columnLabel: c.columnLabel || '',
                 headerLabel: `Header for ${name}`,
                 // A lookup is headed by what it points to, not "Account ID".
-                headerPlaceholder: formula ? 'Required' : childTotal ? this.childTotalPlaceholder(c) : f ? f.heading || f.label : '',
+                headerPlaceholder: formula
+                    ? 'Required'
+                    : childTotal
+                      ? this.childTotalPlaceholder(c)
+                      : f
+                        ? f.heading || f.label
+                        : '',
                 headerRequired: formula,
                 editable: !formula && c.editable === true,
                 editableDisabled: !f || !f.editable,
@@ -517,7 +538,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             .filter(ch => ch.name && !ch.inactive)
             .map(ch => {
                 const choice = this.childChoices.find(x => x.config === ch.childConfig);
-                return { name: ch.name, label: ch.tabLabel || (choice ? choice.label : ch.childConfig), object: choice ? choice.objectApiName : null };
+                return {
+                    name: ch.name,
+                    label: ch.tabLabel || (choice ? choice.label : ch.childConfig),
+                    object: choice ? choice.objectApiName : null
+                };
             });
     }
 
@@ -532,7 +557,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
     childTotalModel(c, name) {
         const children = this.savedChildren;
         const options = children.map(ch => ({ value: ch.name, label: `${ch.label} (${ch.name})` }));
-        if (c.childTable && !children.some(ch => ch.name === c.childTable)) options.unshift({ value: c.childTable, label: `${c.childTable} (not a child table that is on)` });
+        if (c.childTable && !children.some(ch => ch.name === c.childTable))
+            options.unshift({ value: c.childTable, label: `${c.childTable} (not a child table that is on)` });
         const child = children.find(ch => ch.name === c.childTable);
         const fields = (child && child.object && this.childFields[child.object]) || [];
         const kind = c.childTotal || 'count';
@@ -540,7 +566,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             .filter(fl => (fl.subtotals || []).includes(kind))
             .map(fl => ({ value: fl.name, label: `${fl.label} (${fl.name})` }));
         if (kind === 'count') fieldOptions.unshift({ value: '', label: 'Records' });
-        if (c.childField && !fieldOptions.some(o => o.value === c.childField)) fieldOptions.unshift({ value: c.childField, label: c.childField });
+        if (c.childField && !fieldOptions.some(o => o.value === c.childField))
+            fieldOptions.unshift({ value: c.childField, label: c.childField });
         return {
             childTable: c.childTable,
             childTableOptions: options,
@@ -594,8 +621,10 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
     /** Formulas in the grid, columns and rules that are on: at most MAX_FORMULAS. */
     get formulaCount() {
         if (!this.draft) return 0;
-        return this.draft.columns.filter(c => isFormulaColumn(c) && !c.inactive).length
-            + this.draft.rules.filter(r => isFormulaRule(r) && r.active !== false).length;
+        return (
+            this.draft.columns.filter(c => isFormulaColumn(c) && !c.inactive).length +
+            this.draft.rules.filter(r => isFormulaRule(r) && r.active !== false).length
+        );
     }
 
     get formulaHint() {
@@ -625,14 +654,19 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 meaningLabel: `Meaning of rule ${i + 1}`,
                 field: r.field,
                 // A formula rule's Field is only the cell it colors: none colors the row.
-                fieldOptions: formula ? [{ value: '', label: 'None (a row rule)' }, ...this.fieldOptions(r.field)] : this.fieldOptions(r.field),
+                fieldOptions: formula
+                    ? [{ value: '', label: 'None (a row rule)' }, ...this.fieldOptions(r.field)]
+                    : this.fieldOptions(r.field),
                 fieldLabel: formula ? `Cell ${name} colors` : `Field ${name} tests`,
                 fieldPlaceholder: formula ? 'The cell it colors' : 'Choose a field',
                 isFormula: formula,
                 formula: r.formula || '',
                 formulaLabel: `Formula of ${name}, true or false`,
                 operator: formula ? FORMULA_OPERATOR : operator,
-                operatorOptions: [...(f ? operatorsFor(f.type) : operatorsFor('text')), { value: FORMULA_OPERATOR, label: 'Formula is true' }],
+                operatorOptions: [
+                    ...(f ? operatorsFor(f.type) : operatorsFor('text')),
+                    { value: FORMULA_OPERATOR, label: 'Formula is true' }
+                ],
                 operatorLabel: `How ${name} compares`,
                 canCompare,
                 compareField: comparing ? r.compareField : '',
@@ -670,7 +704,10 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
     compareOptions(rule) {
         const f = this.fieldOf(rule.field);
         const kind = f ? compareKind(f.type) : null;
-        const fields = this.fieldOptions(rule.compareField, x => x.name !== (f && f.name) && compareKind(x.type) === kind);
+        const fields = this.fieldOptions(
+            rule.compareField,
+            x => x.name !== (f && f.name) && compareKind(x.type) === kind
+        );
         return [{ value: '', label: 'A value' }, ...fields.map(o => ({ ...o, label: `Field: ${o.label}` }))];
     }
 
@@ -737,7 +774,12 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 typeLabel: `Type of ${name}`,
                 actionName: a.actionName || '',
                 actionNameLabel: `What ${name} runs`,
-                actionNameHint: a.type === 'QuickAction' ? 'Object.ActionName, or a global action' : a.type === 'Apex' ? 'Apex class name' : 'Flow API name',
+                actionNameHint:
+                    a.type === 'QuickAction'
+                        ? 'Object.ActionName, or a global action'
+                        : a.type === 'Apex'
+                          ? 'Apex class name'
+                          : 'Flow API name',
                 inputName: a.inputName || '',
                 inputLabel: `Input of ${name}`,
                 inputHint: screen ? 'recordId' : 'Found automatically',
@@ -781,7 +823,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         return list.map((c, i) => {
             const choice = choices.find(x => x.config === c.childConfig);
             const configOptions = choices.map(x => ({ value: x.config, label: `${x.label} (${x.config})` }));
-            if (c.childConfig && !choice) configOptions.unshift({ value: c.childConfig, label: `${c.childConfig} (no lookup to this object)` });
+            if (c.childConfig && !choice)
+                configOptions.unshift({ value: c.childConfig, label: `${c.childConfig} (no lookup to this object)` });
             const relationshipOptions = (choice ? choice.fields : []).map(f => ({ value: f, label: f }));
             if (c.relationshipField && !relationshipOptions.some(o => o.value === c.relationshipField)) {
                 relationshipOptions.unshift({ value: c.relationshipField, label: c.relationshipField });
@@ -853,7 +896,10 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 out.push(`${r.label || `Rule ${i + 1}`}: write its formula.`);
             }
         });
-        if (this.formulaCount > MAX_FORMULAS) out.push(`A grid has at most ${MAX_FORMULAS} formulas, columns and rules together; this one has ${this.formulaCount}.`);
+        if (this.formulaCount > MAX_FORMULAS)
+            out.push(
+                `A grid has at most ${MAX_FORMULAS} formulas, columns and rules together; this one has ${this.formulaCount}.`
+            );
         return out;
     }
 
@@ -903,7 +949,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         const { list, key, prop, kind } = event.target.dataset;
         let value;
         if (kind === 'checkbox') value = event.target.checked === true;
-        else if (kind === 'on') value = event.target.checked !== true; // the switch shows On; the field is Inactive
+        else if (kind === 'on')
+            value = event.target.checked !== true; // the switch shows On; the field is Inactive
         else if (kind === 'number') value = toInteger(event.detail ? event.detail.value : event.target.value);
         else value = event.detail ? event.detail.value : event.target.value;
         if (list === 'config') this.changeConfig(prop, value);
@@ -983,12 +1030,15 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 else changed.compareField = null;
             }
             // Value To belongs to Between alone; another condition drops it.
-            if ((list === 'rules' || list === 'filters') && prop === 'operator' && changed.operator !== 'between') changed.valueTo = '';
+            if ((list === 'rules' || list === 'filters') && prop === 'operator' && changed.operator !== 'between')
+                changed.valueTo = '';
             if (list === 'columns' && prop === 'formulaType' && !NUMBER_RESULTS.has(next)) changed.decimalPlaces = null;
             // A new kind of total keeps its field only where the field fits it.
             if (list === 'columns' && prop === 'childTotal' && changed.childField) {
                 const child = this.savedChildren.find(ch => ch.name === changed.childTable);
-                const fl = ((child && child.object && this.childFields[child.object]) || []).find(x => x.name === changed.childField);
+                const fl = ((child && child.object && this.childFields[child.object]) || []).find(
+                    x => x.name === changed.childField
+                );
                 if (!fl || !(fl.subtotals || []).includes(next)) changed.childField = null;
             }
             if (list === 'columns' && prop === 'childTable') changed.childField = null;
@@ -1009,12 +1059,17 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         if ('childTotal' in event.target.dataset) {
             // A child total column, on the first child table to start with.
             const first = this.savedChildren[0];
-            this.draft = { ...this.draft, columns: [...this.draft.columns, newChildTotalColumn(first ? first.name : null)] };
+            this.draft = {
+                ...this.draft,
+                columns: [...this.draft.columns, newChildTotalColumn(first ? first.name : null)]
+            };
             this.loadChildFields();
             this.scheduleCheck();
             return;
         }
-        const make = formula ? newFormulaColumn : { columns: newColumn, rules: newRule, actions: newAction, children: newChild, filters: newFilter }[list];
+        const make = formula
+            ? newFormulaColumn
+            : { columns: newColumn, rules: newRule, actions: newAction, children: newChild, filters: newFilter }[list];
         if (!make) return;
         this.draft = { ...this.draft, [list]: [...this.draft[list], make()] };
         this.scheduleCheck();
@@ -1084,11 +1139,13 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             if (!outcome) return;
             if (outcome.status === 'Succeeded') {
                 this.status = '';
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Grid saved',
-                    message: `${label || name} is saved. Grids show it the next time they load.`,
-                    variant: 'success'
-                }));
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Grid saved',
+                        message: `${label || name} is saved. Grids show it the next time they load.`,
+                        variant: 'success'
+                    })
+                );
                 this.dispatchEvent(new CustomEvent('saved', { detail: { configName: name } }));
                 // Read it again: new entries now have the API names the server gave them.
                 this._configName = name;
@@ -1096,9 +1153,13 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 this.load();
             } else if (outcome.status === 'Failed') {
                 this.status = '';
-                this.saveErrors = outcome.messages && outcome.messages.length ? outcome.messages : ['The save did not go through. Try again.'];
+                this.saveErrors =
+                    outcome.messages && outcome.messages.length
+                        ? outcome.messages
+                        : ['The save did not go through. Try again.'];
             } else {
-                this.status = 'The save is taking longer than usual. It may still go through: open this grid again in a minute to see.';
+                this.status =
+                    'The save is taking longer than usual. It may still go through: open this grid again in a minute to see.';
             }
         } catch (e) {
             if (token === this._runtime.token) {

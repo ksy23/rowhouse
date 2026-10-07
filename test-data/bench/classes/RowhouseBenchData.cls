@@ -22,21 +22,68 @@
  * differently.
  */
 public with sharing class RowhouseBenchData {
-
     public static final Long SEED = 20260918L;
     public static final Long MODULUS = 2147483647L;
     public static final Long MULTIPLIER = 48271L;
     public static final Integer DRAWS_PER_ROW = 24;
     public static final Integer MAX_PER_CALL = 2000;
 
-    private static final List<String> FIRST = new List<String>{ 'Ada', 'Bea', 'Cyrus', 'Dara', 'Emil',
-        'Fiona', 'Gus', 'Hana', 'Ivo', 'Jun', 'Kira', 'Luc', 'Mara', 'Nils', 'Oona', 'Pim', 'Quinn',
-        'Rhea', 'Sol', 'Tam' };
-    private static final List<String> LAST = new List<String>{ 'Ashworth', 'Brandt', 'Calloway', 'Duarte',
-        'Ellery', 'Fairbanks', 'Ghosh', 'Halloran', 'Ishikawa', 'Jarrett', 'Kowalski', 'Lindqvist',
-        'Mbeki', 'Novak', 'Okonkwo', 'Pereira', 'Quintana', 'Rasmussen', 'Sandoval', 'Trevino' };
-    private static final List<String> STREET = new List<String>{ 'Maple', 'Bellwether', 'Kiln', 'Foundry',
-        'Cobble', 'Lantern', 'Rowan', 'Pitch', 'Garrick', 'Sable' };
+    private static final List<String> FIRST = new List<String>{
+        'Ada',
+        'Bea',
+        'Cyrus',
+        'Dara',
+        'Emil',
+        'Fiona',
+        'Gus',
+        'Hana',
+        'Ivo',
+        'Jun',
+        'Kira',
+        'Luc',
+        'Mara',
+        'Nils',
+        'Oona',
+        'Pim',
+        'Quinn',
+        'Rhea',
+        'Sol',
+        'Tam'
+    };
+    private static final List<String> LAST = new List<String>{
+        'Ashworth',
+        'Brandt',
+        'Calloway',
+        'Duarte',
+        'Ellery',
+        'Fairbanks',
+        'Ghosh',
+        'Halloran',
+        'Ishikawa',
+        'Jarrett',
+        'Kowalski',
+        'Lindqvist',
+        'Mbeki',
+        'Novak',
+        'Okonkwo',
+        'Pereira',
+        'Quintana',
+        'Rasmussen',
+        'Sandoval',
+        'Trevino'
+    };
+    private static final List<String> STREET = new List<String>{
+        'Maple',
+        'Bellwether',
+        'Kiln',
+        'Foundry',
+        'Cobble',
+        'Lantern',
+        'Rowan',
+        'Pitch',
+        'Garrick',
+        'Sable'
+    };
     private static final List<String> SUFFIX = new List<String>{ 'Row', 'Terrace', 'Close', 'Yard', 'Mews', 'Lane' };
     private static final List<String> CONTROLLING = new List<String>{ 'Hardware', 'Software', 'Services' };
     private static final Map<String, List<String>> DEPENDENT = new Map<String, List<String>>{
@@ -110,8 +157,12 @@ public with sharing class RowhouseBenchData {
 
         String email = null;
         if (Math.mod(d[13], 100) < 55) {
-            email = (pick(FIRST, d[14]) + '.' + pick(LAST, d[14] / 20)
-                + (1 + Math.mod(d[14] / 400, 99)) + '@example.com').toLowerCase();
+            email = (pick(FIRST, d[14]) +
+                '.' +
+                pick(LAST, d[14] / 20) +
+                (1 + Math.mod(d[14] / 400, 99)) +
+                '@example.com')
+                .toLowerCase();
         }
         String phone = null;
         if (Math.mod(d[15], 100) < 40) {

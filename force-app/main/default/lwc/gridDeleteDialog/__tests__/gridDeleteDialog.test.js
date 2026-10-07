@@ -37,7 +37,9 @@ describe('gridDeleteDialog', () => {
     it(`names the first ${NAMED} rows, then says how many more`, async () => {
         const names = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
         await mount({ names, count: 8 });
-        expect([...el.shadowRoot.querySelectorAll('.rh-delete-names li')].map(li => li.textContent)).toEqual(names.slice(0, NAMED));
+        expect([...el.shadowRoot.querySelectorAll('.rh-delete-names li')].map(li => li.textContent)).toEqual(
+            names.slice(0, NAMED)
+        );
         expect($('.rh-delete-more').textContent).toBe('and 3 more');
         expect($('h1').textContent).toBe('Delete 8 records?');
         expect($('.rh-delete-where').textContent).toBe('They go to the Recycle Bin, where they can be restored.');
@@ -59,13 +61,17 @@ describe('gridDeleteDialog', () => {
         await flush();
         expect($('h1').textContent).toBe('Delete 12,500 records?');
         expect($('.rh-delete-more').textContent).toBe('and 12,498 more');
-        expect($('.rh-delete-matching').textContent).toBe('This deletes every record that matches the search and filters, including the ones not loaded in the grid.');
+        expect($('.rh-delete-matching').textContent).toBe(
+            'This deletes every record that matches the search and filters, including the ones not loaded in the grid.'
+        );
     });
 
     it('names a row with no name plainly', async () => {
         await mount({ names: [null, ''], count: 2 });
-        expect([...el.shadowRoot.querySelectorAll('.rh-delete-names li')].map(li => li.textContent))
-            .toEqual(['A record with no name', 'A record with no name']);
+        expect([...el.shadowRoot.querySelectorAll('.rh-delete-names li')].map(li => li.textContent)).toEqual([
+            'A record with no name',
+            'A record with no name'
+        ]);
     });
 
     it('offers a destructive Delete, and Cancel, which has focus first', async () => {

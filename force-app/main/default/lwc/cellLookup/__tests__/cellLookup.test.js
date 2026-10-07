@@ -18,7 +18,10 @@ describe('cellLookup', () => {
     let commits;
     const input = () => el.shadowRoot.querySelector('input');
     const options = () => [...el.shadowRoot.querySelectorAll('[role="option"]')];
-    const key = k => input().dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+    const key = k =>
+        input().dispatchEvent(
+            new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true })
+        );
     const type = async text => {
         input().value = text;
         input().dispatchEvent(new CustomEvent('input', { bubbles: true, composed: true }));
@@ -30,8 +33,12 @@ describe('cellLookup', () => {
         searchLookup.mockResolvedValue([ACME, ACORN]);
         el = createElement('c-cell-lookup', { is: CellLookup });
         Object.assign(el, {
-            mode: 'edit', label: 'Account', configName: 'Test_Records', field: 'Lookup_Field__c',
-            value: '001000000000009AAA', valueLabel: 'Current Co'
+            mode: 'edit',
+            label: 'Account',
+            configName: 'Test_Records',
+            field: 'Lookup_Field__c',
+            value: '001000000000009AAA',
+            valueLabel: 'Current Co'
         });
         commits = [];
         el.addEventListener('commit', e => commits.push(e.detail));
@@ -78,8 +85,11 @@ describe('cellLookup', () => {
         expect(list().classList).toContain('slds-dropdown_bottom');
     });
 
-    it('shows each match with its object\'s icon, the record icon when it has none', async () => {
-        searchLookup.mockResolvedValue([{ ...ACME, object: 'Account' }, { ...ACORN, object: 'Other__c' }]);
+    it("shows each match with its object's icon, the record icon when it has none", async () => {
+        searchLookup.mockResolvedValue([
+            { ...ACME, object: 'Account' },
+            { ...ACORN, object: 'Other__c' }
+        ]);
         el.icons = { Account: 'standard:account' };
         await type('ac');
         const icons = [...el.shadowRoot.querySelectorAll('[role="option"] lightning-icon')].map(i => i.iconName);
@@ -165,7 +175,12 @@ describe('cellLookup', () => {
 
     it('drops an answer that arrives after a newer search started', async () => {
         let resolveFirst;
-        searchLookup.mockImplementationOnce(() => new Promise(resolve => { resolveFirst = resolve; }));
+        searchLookup.mockImplementationOnce(
+            () =>
+                new Promise(resolve => {
+                    resolveFirst = resolve;
+                })
+        );
         await type('a');
         searchLookup.mockResolvedValueOnce([ACORN]);
         await type('aco');

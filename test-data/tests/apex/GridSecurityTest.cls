@@ -24,7 +24,6 @@
  */
 @IsTest
 private class GridSecurityTest {
-
     @TestSetup
     static void setup() {
         // Both users come from GridTestUsers, created here, not by seed.sh. The
@@ -42,24 +41,38 @@ private class GridSecurityTest {
                 Read_Only_Text__c = 'visible, not editable',
                 Long_Text__c = 'must never reach the client',
                 Decimal_Field__c = 42.00,
-                Currency_Field__c = 500.00        // editable, but NOT in the column set
+                Currency_Field__c = 500.00 // editable, but NOT in the column set
             );
         }
     }
 
     private static User limitedUser() {
-        return [SELECT Id FROM User WHERE LastName = 'Limited' AND Alias = 'rhltd'
-                AND IsActive = true ORDER BY CreatedDate DESC LIMIT 1];
+        return [
+            SELECT Id
+            FROM User
+            WHERE LastName = 'Limited' AND Alias = 'rhltd' AND IsActive = TRUE
+            ORDER BY CreatedDate DESC
+            LIMIT 1
+        ];
     }
 
     /** Reads the probe row back with full field access. */
     private static Rowhouse_Test_Record__c probe() {
-        User reader = [SELECT Id FROM User WHERE LastName = 'Full' AND Alias = 'rhfull'
-                       AND IsActive = true ORDER BY CreatedDate DESC LIMIT 1];
+        User reader = [
+            SELECT Id
+            FROM User
+            WHERE LastName = 'Full' AND Alias = 'rhfull' AND IsActive = TRUE
+            ORDER BY CreatedDate DESC
+            LIMIT 1
+        ];
         Rowhouse_Test_Record__c row;
         System.runAs(reader) {
-            row = [SELECT Id, Text_Field__c, Read_Only_Text__c, Currency_Field__c, Long_Text__c
-                   FROM Rowhouse_Test_Record__c WHERE Name = 'FLS probe' LIMIT 1];
+            row = [
+                SELECT Id, Text_Field__c, Read_Only_Text__c, Currency_Field__c, Long_Text__c
+                FROM Rowhouse_Test_Record__c
+                WHERE Name = 'FLS probe'
+                LIMIT 1
+            ];
         }
         return row;
     }
@@ -70,18 +83,21 @@ private class GridSecurityTest {
         System.runAs(limitedUser()) {
             Test.startTest();
             row = (Rowhouse_Test_Record__c) GridDataService.fetchPage(
-                new GridRequest(
-                    'Rowhouse_Test_Record__c',
-                    new List<String>{ 'Text_Field__c', 'Long_Text__c' },  // asks for both
-                    null, 50
+                    new GridRequest(
+                        'Rowhouse_Test_Record__c',
+                        new List<String>{ 'Text_Field__c', 'Long_Text__c' }, // asks for both
+                        null,
+                        50
+                    )
                 )
-            ).rows[0];
+                .rows[0];
             Test.stopTest();
         }
-        System.assertEquals('visible and editable', row.Text_Field__c,
-            'A readable field must still come through.');
-        System.assert(!row.getPopulatedFieldsAsMap().containsKey('Long_Text__c'),
-            'An unreadable field leaked into the query result. Security-review failure.');
+        System.assertEquals('visible and editable', row.Text_Field__c, 'A readable field must still come through.');
+        System.assert(
+            !row.getPopulatedFieldsAsMap().containsKey('Long_Text__c'),
+            'An unreadable field leaked into the query result. Security-review failure.'
+        );
     }
 
     @IsTest
@@ -90,22 +106,31 @@ private class GridSecurityTest {
         GridSaveResult ticket;
         System.runAs(limitedUser()) {
             Test.startTest();
-            ticket = GridSaveService.save('Security_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{
-                    'Id'                => rec.Id,
-                    'Text_Field__c'     => 'changed legitimately',
-                    'Read_Only_Text__c' => 'should be stripped'
+            ticket = GridSaveService.save(
+                'Security_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{
+                        'Id' => rec.Id,
+                        'Text_Field__c' => 'changed legitimately',
+                        'Read_Only_Text__c' => 'should be stripped'
+                    }
                 }
-            });
+            );
             Test.stopTest();
         }
         Rowhouse_Test_Record__c after = probe();
         System.assertEquals('changed legitimately', after.Text_Field__c);
-        System.assertEquals('visible, not editable', after.Read_Only_Text__c,
-            'A field the user cannot edit was written anyway.');
-        System.assert(ticket.strippedFields.contains('Read_Only_Text__c'),
-            'Refused, but not by FLS. Read_Only_Text__c is an editable column of Security_Test, '
-            + 'so the field-level security strip must be what stopped it: ' + ticket);
+        System.assertEquals(
+            'visible, not editable',
+            after.Read_Only_Text__c,
+            'A field the user cannot edit was written anyway.'
+        );
+        System.assert(
+            ticket.strippedFields.contains('Read_Only_Text__c'),
+            'Refused, but not by FLS. Read_Only_Text__c is an editable column of Security_Test, ' +
+                'so the field-level security strip must be what stopped it: ' +
+                ticket
+        );
     }
 
     @IsTest
@@ -119,22 +144,30 @@ private class GridSecurityTest {
         GridSaveResult ticket;
         System.runAs(limitedUser()) {
             Test.startTest();
-            ticket = GridSaveService.save('Security_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{
-                    'Id'                => rec.Id,
-                    'Text_Field__c'     => 'in the column set',
-                    'Currency_Field__c' => 999999    // editable, out of band
+            ticket = GridSaveService.save(
+                'Security_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{
+                        'Id' => rec.Id,
+                        'Text_Field__c' => 'in the column set',
+                        'Currency_Field__c' => 999999 // editable, out of band
+                    }
                 }
-            });
+            );
             Test.stopTest();
         }
         Rowhouse_Test_Record__c after = probe();
         System.assertEquals('in the column set', after.Text_Field__c);
-        System.assertEquals(500.00, after.Currency_Field__c,
-            'A field outside the configured column set was written from the client payload. '
-            + 'FLS did not catch it because the user CAN edit it — only the allow-list can.');
-        System.assert(ticket.rejectedFields.contains('Currency_Field__c'),
-            'Currency_Field__c must be refused by the allow-list, and reported as such: ' + ticket);
+        System.assertEquals(
+            500.00,
+            after.Currency_Field__c,
+            'A field outside the configured column set was written from the client payload. ' +
+            'FLS did not catch it because the user CAN edit it — only the allow-list can.'
+        );
+        System.assert(
+            ticket.rejectedFields.contains('Currency_Field__c'),
+            'Currency_Field__c must be refused by the allow-list, and reported as such: ' + ticket
+        );
     }
 
     @IsTest
@@ -145,19 +178,25 @@ private class GridSecurityTest {
         GridSaveResult ticket;
         System.runAs(limitedUser()) {
             Test.startTest();
-            ticket = GridSaveService.save('Security_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{
-                    'Id'           => rec.Id,
-                    'Long_Text__c' => 'invisible to this user'
+            ticket = GridSaveService.save(
+                'Security_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Long_Text__c' => 'invisible to this user' }
                 }
-            });
+            );
             Test.stopTest();
         }
-        System.assertEquals('must never reach the client', probe().Long_Text__c,
-            'An unreadable field from the client payload was written.');
-        System.assert(ticket.strippedFields.contains('Long_Text__c'),
-            'Long_Text__c is an editable column of Security_Test, so FLS — not the allow-list — '
-            + 'must be what refused it: ' + ticket);
+        System.assertEquals(
+            'must never reach the client',
+            probe().Long_Text__c,
+            'An unreadable field from the client payload was written.'
+        );
+        System.assert(
+            ticket.strippedFields.contains('Long_Text__c'),
+            'Long_Text__c is an editable column of Security_Test, so FLS — not the allow-list — ' +
+                'must be what refused it: ' +
+                ticket
+        );
     }
 
     @IsTest
@@ -170,22 +209,50 @@ private class GridSecurityTest {
         GridImportService.Result result;
         System.runAs(limitedUser()) {
             Test.startTest();
-            result = GridImportService.importRows('Security_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => rec.Id, 'Text_Field__c' => 'imported', 'Read_Only_Text__c' => 'should be stripped' },
-                new Map<String, Object>{ 'Text_Field__c' => 'a new row', 'Read_Only_Text__c' => 'should be stripped too' }
-            });
+            result = GridImportService.importRows(
+                'Security_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{
+                        'Id' => rec.Id,
+                        'Text_Field__c' => 'imported',
+                        'Read_Only_Text__c' => 'should be stripped'
+                    },
+                    new Map<String, Object>{
+                        'Text_Field__c' => 'a new row',
+                        'Read_Only_Text__c' => 'should be stripped too'
+                    }
+                }
+            );
             Test.stopTest();
         }
         System.assert(result.rows[0].success && result.rows[1].success, String.valueOf(result.rows));
         Rowhouse_Test_Record__c after = probe();
         System.assertEquals('imported', after.Text_Field__c);
-        System.assertEquals('visible, not editable', after.Read_Only_Text__c, 'A field the user cannot edit was imported anyway.');
+        System.assertEquals(
+            'visible, not editable',
+            after.Read_Only_Text__c,
+            'A field the user cannot edit was imported anyway.'
+        );
         System.assert(result.strippedFields.contains('Read_Only_Text__c'), String.valueOf(result));
-        User reader = [SELECT Id FROM User WHERE LastName = 'Full' AND Alias = 'rhfull' AND IsActive = true ORDER BY CreatedDate DESC LIMIT 1];
+        User reader = [
+            SELECT Id
+            FROM User
+            WHERE LastName = 'Full' AND Alias = 'rhfull' AND IsActive = TRUE
+            ORDER BY CreatedDate DESC
+            LIMIT 1
+        ];
         System.runAs(reader) {
-            Rowhouse_Test_Record__c made = [SELECT Text_Field__c, Read_Only_Text__c FROM Rowhouse_Test_Record__c WHERE Id = :result.rows[1].recordId];
+            Rowhouse_Test_Record__c made = [
+                SELECT Text_Field__c, Read_Only_Text__c
+                FROM Rowhouse_Test_Record__c
+                WHERE Id = :result.rows[1].recordId
+            ];
             System.assertEquals('a new row', made.Text_Field__c);
-            System.assertEquals(null, made.Read_Only_Text__c, 'A field the user cannot set on create was imported anyway.');
+            System.assertEquals(
+                null,
+                made.Read_Only_Text__c,
+                'A field the user cannot set on create was imported anyway.'
+            );
         }
     }
 
@@ -205,8 +272,10 @@ private class GridSecurityTest {
             }
             Test.stopTest();
         }
-        System.assert(message != null && message.contains('permission to delete'),
-            'Delete must be refused, by the object permission, without it: ' + message);
+        System.assert(
+            message != null && message.contains('permission to delete'),
+            'Delete must be refused, by the object permission, without it: ' + message
+        );
         System.assertEquals(rec.Id, probe().Id, 'The row must still be there.');
     }
 
@@ -218,7 +287,10 @@ private class GridSecurityTest {
         System.runAs(limitedUser()) {
             GridConfig.Definition def = GridConfig.forUser('Group_Test');
             for (GridConfig.Column c : def.columns) {
-                System.assert(c.field != 'DateTime_Field__c' && c.field != 'Lookup_Field__c', 'Unreadable column sent: ' + c.field);
+                System.assert(
+                    c.field != 'DateTime_Field__c' && c.field != 'Lookup_Field__c',
+                    'Unreadable column sent: ' + c.field
+                );
             }
             String refused;
             try {
@@ -227,10 +299,19 @@ private class GridSecurityTest {
                 refused = e.getMessage();
             }
             System.assertEquals('Cannot group by Lookup_Field__c.', refused);
-            GridGroupService.Result result = GridGroupService.summarize('Group_Test', null, new List<String>{ 'Picklist_Field__c' }, null, null);
+            GridGroupService.Result result = GridGroupService.summarize(
+                'Group_Test',
+                null,
+                new List<String>{ 'Picklist_Field__c' },
+                null,
+                null
+            );
             System.assert(!result.groups.isEmpty(), 'The probe row is readable, so there is a group.');
             Map<String, Object> values = (Map<String, Object>) result.groups[0].get('v');
-            System.assert(!values.containsKey('DateTime_Field__c'), 'A subtotal of an unreadable field was sent: ' + values);
+            System.assert(
+                !values.containsKey('DateTime_Field__c'),
+                'A subtotal of an unreadable field was sent: ' + values
+            );
             System.assert(values.containsKey('Number_Field__c'), String.valueOf(values));
         }
     }

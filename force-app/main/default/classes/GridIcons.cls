@@ -15,12 +15,13 @@
  * answer the browser caches). Never from the per-row or per-keystroke calls.
  */
 public with sharing class GridIcons {
-
     public static final String FALLBACK = 'standard:record';
     /** An owner field's queues are Groups; Lightning shows them with this icon. */
     public static final String QUEUE = 'standard:queue';
 
-    private static final Pattern ICON_URL = Pattern.compile('/(standard|custom|utility|action)/([a-z0-9_]+?)(?:_\\d+)?\\.(?:png|svg)$');
+    private static final Pattern ICON_URL = Pattern.compile(
+        '/(standard|custom|utility|action)/([a-z0-9_]+?)(?:_\\d+)?\\.(?:png|svg)$'
+    );
     /** lower-case object API name → icon; filled on first use. */
     private static Map<String, String> byObject;
 

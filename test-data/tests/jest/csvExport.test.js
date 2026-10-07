@@ -22,7 +22,12 @@ describe('CSV export', () => {
         const out = toCsv([{ a: 'one\ntwo' }], ['a']);
         expect(out).toContain('"one\ntwo"');
         // Header plus one record — the embedded newline must not split the row.
-        expect(out.trimEnd().split('\n').filter(l => /^[a-z]/.test(l)).length).toBe(1);
+        expect(
+            out
+                .trimEnd()
+                .split('\n')
+                .filter(l => /^[a-z]/.test(l)).length
+        ).toBe(1);
     });
 
     it('TC-004 does not coerce a leading-zero string to a number', () => {
@@ -45,8 +50,8 @@ describe('CSV export', () => {
         // so quoting is NOT neutralisation. Assert the prefix explicitly.
         ['+1234', '-1234', '@SUM(A1)', '=1+1'].forEach(v => {
             const field = toCsv([{ a: v }], ['a']).split('\n')[1];
-            expect(field).toMatch(/^["']?[\t']/);   // tab or apostrophe precedes the value
-            expect(field.replace(/^["']?[\t']/, '')).toContain(v);  // and the value survives
+            expect(field).toMatch(/^["']?[\t']/); // tab or apostrophe precedes the value
+            expect(field.replace(/^["']?[\t']/, '')).toContain(v); // and the value survives
         });
     });
 
@@ -56,14 +61,16 @@ describe('CSV export', () => {
         // rather than leaving it to be discovered by a user.
         const original = '=HYPERLINK("http://example.com","x")';
         const field = toCsv([{ a: original }], ['a']).split('\n')[1];
-        const recovered = field.replace(/^"/, '').replace(/"$/, '').replace(/^[\t']/, '');
+        const recovered = field
+            .replace(/^"/, '')
+            .replace(/"$/, '')
+            .replace(/^[\t']/, '');
         expect(recovered.replace(/""/g, '"')).toBe(original);
     });
 
     it('omits fields the running user cannot read', () => {
         // The export path must respect FLS independently of the render path.
-        const out = toCsv([{ Text_Field__c: 'visible', Long_Text__c: 'hidden' }],
-                          ['Text_Field__c']);
+        const out = toCsv([{ Text_Field__c: 'visible', Long_Text__c: 'hidden' }], ['Text_Field__c']);
         expect(out).toContain('visible');
         expect(out).not.toContain('hidden');
     });

@@ -7,7 +7,6 @@
  */
 @IsTest
 private class GridImportServiceTest {
-
     private static Map<String, Object> row(Map<String, Object> values) {
         return values;
     }
@@ -27,21 +26,38 @@ private class GridImportServiceTest {
             Rowhouse_Test_Record__c existing = new Rowhouse_Test_Record__c(Name = 'Before', Number_Field__c = 1);
             insert existing;
             Test.startTest();
-            GridImportService.Result result = GridImportService.importRows('Test_Records', new List<Map<String, Object>>{
-                row(new Map<String, Object>{ 'Id' => existing.Id, 'Name' => 'After', 'Number_Field__c' => '12' }),
-                row(new Map<String, Object>{ 'Name' => 'Imported', 'Text_Field__c' => 'new', 'Date_Field__c' => '2026-12-31',
-                    'Checkbox_Field__c' => true, 'Picklist_Field__c' => 'Gamma' })
-            });
+            GridImportService.Result result = GridImportService.importRows(
+                'Test_Records',
+                new List<Map<String, Object>>{
+                    row(new Map<String, Object>{ 'Id' => existing.Id, 'Name' => 'After', 'Number_Field__c' => '12' }),
+                    row(
+                        new Map<String, Object>{
+                            'Name' => 'Imported',
+                            'Text_Field__c' => 'new',
+                            'Date_Field__c' => '2026-12-31',
+                            'Checkbox_Field__c' => true,
+                            'Picklist_Field__c' => 'Gamma'
+                        }
+                    )
+                }
+            );
             Test.stopTest();
             System.assertEquals(2, result.rows.size());
             System.assert(result.rows[0].success && !result.rows[0].created, String.valueOf(result.rows[0]));
             System.assertEquals(existing.Id, result.rows[0].recordId);
             System.assert(result.rows[1].success && result.rows[1].created, String.valueOf(result.rows[1]));
-            Rowhouse_Test_Record__c after = [SELECT Name, Number_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :existing.Id];
+            Rowhouse_Test_Record__c after = [
+                SELECT Name, Number_Field__c
+                FROM Rowhouse_Test_Record__c
+                WHERE Id = :existing.Id
+            ];
             System.assertEquals('After', after.Name);
             System.assertEquals(12, after.Number_Field__c);
-            Rowhouse_Test_Record__c made = [SELECT Name, Text_Field__c, Date_Field__c, Checkbox_Field__c, Picklist_Field__c
-                                            FROM Rowhouse_Test_Record__c WHERE Id = :result.rows[1].recordId];
+            Rowhouse_Test_Record__c made = [
+                SELECT Name, Text_Field__c, Date_Field__c, Checkbox_Field__c, Picklist_Field__c
+                FROM Rowhouse_Test_Record__c
+                WHERE Id = :result.rows[1].recordId
+            ];
             System.assertEquals('Imported', made.Name);
             System.assertEquals('new', made.Text_Field__c);
             System.assertEquals(Date.newInstance(2026, 12, 31), made.Date_Field__c);
@@ -56,29 +72,42 @@ private class GridImportServiceTest {
             Rowhouse_Test_Record__c existing = new Rowhouse_Test_Record__c(Name = 'Keep');
             insert existing;
             Test.startTest();
-            GridImportService.Result result = GridImportService.importRows('Test_Records', new List<Map<String, Object>>{
-                row(new Map<String, Object>{ 'Name' => 'Good new row' }),
-                row(new Map<String, Object>{ 'Name' => 'Bad number', 'Number_Field__c' => 'twelve' }),
-                row(new Map<String, Object>{ 'Name' => '' }),
-                row(new Map<String, Object>{ 'Id' => UserInfo.getUserId(), 'Name' => 'Wrong object' }),
-                row(new Map<String, Object>{ 'Id' => 'not-an-id', 'Name' => 'Garbage' }),
-                row(new Map<String, Object>{ 'Id' => existing.Id, 'Text_Field__c' => 'first' }),
-                row(new Map<String, Object>{ 'Id' => existing.Id, 'Text_Field__c' => 'second' })
-            });
+            GridImportService.Result result = GridImportService.importRows(
+                'Test_Records',
+                new List<Map<String, Object>>{
+                    row(new Map<String, Object>{ 'Name' => 'Good new row' }),
+                    row(new Map<String, Object>{ 'Name' => 'Bad number', 'Number_Field__c' => 'twelve' }),
+                    row(new Map<String, Object>{ 'Name' => '' }),
+                    row(new Map<String, Object>{ 'Id' => UserInfo.getUserId(), 'Name' => 'Wrong object' }),
+                    row(new Map<String, Object>{ 'Id' => 'not-an-id', 'Name' => 'Garbage' }),
+                    row(new Map<String, Object>{ 'Id' => existing.Id, 'Text_Field__c' => 'first' }),
+                    row(new Map<String, Object>{ 'Id' => existing.Id, 'Text_Field__c' => 'second' })
+                }
+            );
             Test.stopTest();
             List<GridImportService.RowResult> r = result.rows;
             System.assert(r[0].success, String.valueOf(r[0]));
             System.assertEquals(false, r[1].success);
             System.assertEquals('Number_Field__c', r[1].fieldName);
             System.assert(r[1].message.startsWith('Number_Field__c: Invalid value'), r[1].message);
-            System.assertEquals('Name: ' + GridSaveService.REQUIRED_MESSAGE, r[2].message, 'A required field cannot be blank.');
+            System.assertEquals(
+                'Name: ' + GridSaveService.REQUIRED_MESSAGE,
+                r[2].message,
+                'A required field cannot be blank.'
+            );
             System.assertEquals('Record ' + UserInfo.getUserId() + ' is not a Rowhouse_Test_Record__c.', r[3].message);
             System.assertEquals('Not a record Id: not-an-id', r[4].message);
             System.assert(r[5].success, String.valueOf(r[5]));
             System.assertEquals('Record ' + existing.Id + ' is in the file more than once.', r[6].message);
-            System.assertEquals('first', [SELECT Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :existing.Id].Text_Field__c);
+            System.assertEquals(
+                'first',
+                [SELECT Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :existing.Id].Text_Field__c
+            );
             System.assertEquals(1, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Name = 'Good new row']);
-            System.assertEquals(0, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Name IN ('Bad number', 'Wrong object', 'Garbage')]);
+            System.assertEquals(
+                0,
+                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Name IN ('Bad number', 'Wrong object', 'Garbage')]
+            );
         }
     }
 
@@ -89,14 +118,27 @@ private class GridImportServiceTest {
         // can edit both, so only the allow-list can stop them.
         System.runAs(GridTestUsers.fullUser()) {
             Test.startTest();
-            GridImportService.Result result = GridImportService.importRows('Test_Records', new List<Map<String, Object>>{
-                row(new Map<String, Object>{ 'Name' => 'Allow-list', 'Read_Only_Text__c' => 'no', 'Long_Text__c' => 'no' })
-            });
+            GridImportService.Result result = GridImportService.importRows(
+                'Test_Records',
+                new List<Map<String, Object>>{
+                    row(
+                        new Map<String, Object>{
+                            'Name' => 'Allow-list',
+                            'Read_Only_Text__c' => 'no',
+                            'Long_Text__c' => 'no'
+                        }
+                    )
+                }
+            );
             Test.stopTest();
             System.assert(result.rows[0].success, String.valueOf(result.rows[0]));
             System.assert(result.rejectedFields.contains('Read_Only_Text__c'), String.valueOf(result.rejectedFields));
             System.assert(result.rejectedFields.contains('Long_Text__c'), String.valueOf(result.rejectedFields));
-            Rowhouse_Test_Record__c made = [SELECT Read_Only_Text__c, Long_Text__c FROM Rowhouse_Test_Record__c WHERE Id = :result.rows[0].recordId];
+            Rowhouse_Test_Record__c made = [
+                SELECT Read_Only_Text__c, Long_Text__c
+                FROM Rowhouse_Test_Record__c
+                WHERE Id = :result.rows[0].recordId
+            ];
             System.assertEquals(null, made.Read_Only_Text__c);
             System.assertEquals(null, made.Long_Text__c);
         }
@@ -106,7 +148,10 @@ private class GridImportServiceTest {
     static void refusesWhenTheConfigurationDoesNotAllowIt() {
         System.runAs(GridTestUsers.fullUser()) {
             Test.startTest();
-            String message = refusal('Save_Test', new List<Map<String, Object>>{ row(new Map<String, Object>{ 'Number_Field__c' => '1' }) });
+            String message = refusal(
+                'Save_Test',
+                new List<Map<String, Object>>{ row(new Map<String, Object>{ 'Number_Field__c' => '1' }) }
+            );
             Boolean offered = GridConfig.forUser('Save_Test').allowImport;
             Test.stopTest();
             System.assertEquals('This grid does not allow importing records.', message);
@@ -147,9 +192,23 @@ private class GridImportServiceTest {
         System.runAs(GridTestUsers.fullUser()) {
             String message;
             Test.startTest();
-            GridImportService.Result empty = GridController.importRows('Save_Test', new List<Map<String, Object>>(), null, null, null, null);
+            GridImportService.Result empty = GridController.importRows(
+                'Save_Test',
+                new List<Map<String, Object>>(),
+                null,
+                null,
+                null,
+                null
+            );
             try {
-                GridController.importRows('Save_Test', new List<Map<String, Object>>{ row(new Map<String, Object>{ 'Number_Field__c' => '1' }) }, null, null, null, null);
+                GridController.importRows(
+                    'Save_Test',
+                    new List<Map<String, Object>>{ row(new Map<String, Object>{ 'Number_Field__c' => '1' }) },
+                    null,
+                    null,
+                    null,
+                    null
+                );
             } catch (AuraHandledException e) {
                 message = e.getMessage();
             }
@@ -168,24 +227,51 @@ private class GridImportServiceTest {
     @IsTest
     static void matchesRecordsByAnExternalIdUpdatingOrCreating() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c known = new Rowhouse_Test_Record__c(Name = 'Known', External_Key__c = 'K-1', Number_Field__c = 1);
+            Rowhouse_Test_Record__c known = new Rowhouse_Test_Record__c(
+                Name = 'Known',
+                External_Key__c = 'K-1',
+                Number_Field__c = 1
+            );
             insert known;
             Test.startTest();
-            GridImportService.Result result = matched(new List<Map<String, Object>>{
-                row(new Map<String, Object>{ 'External_Key__c' => 'k-1', 'Number_Field__c' => '5' }),
-                row(new Map<String, Object>{ 'External_Key__c' => 'K-2', 'Name' => 'New by key' }),
-                row(new Map<String, Object>{ 'Name' => 'No key at all' })
-            });
+            GridImportService.Result result = matched(
+                new List<Map<String, Object>>{
+                    row(new Map<String, Object>{ 'External_Key__c' => 'k-1', 'Number_Field__c' => '5' }),
+                    row(new Map<String, Object>{ 'External_Key__c' => 'K-2', 'Name' => 'New by key' }),
+                    row(new Map<String, Object>{ 'Name' => 'No key at all' })
+                }
+            );
             Test.stopTest();
-            System.assert(result.rows[0].success && !result.rows[0].created, 'A value that matches updates, in any case: ' + result.rows[0]);
+            System.assert(
+                result.rows[0].success && !result.rows[0].created,
+                'A value that matches updates, in any case: ' + result.rows[0]
+            );
             System.assertEquals(known.Id, result.rows[0].recordId);
-            System.assertEquals('1', String.valueOf(Decimal.valueOf(String.valueOf(result.rows[0].previous.get('Number_Field__c'))).intValue()),
-                'An update says what the field held, for Undo import.');
-            System.assert(result.rows[1].success && result.rows[1].created, 'A value that matches nothing creates: ' + result.rows[1]);
-            System.assert(result.rows[2].success && result.rows[2].created, 'A row without a value creates: ' + result.rows[2]);
+            System.assertEquals(
+                '1',
+                String.valueOf(
+                    Decimal.valueOf(String.valueOf(result.rows[0].previous.get('Number_Field__c'))).intValue()
+                ),
+                'An update says what the field held, for Undo import.'
+            );
+            System.assert(
+                result.rows[1].success && result.rows[1].created,
+                'A value that matches nothing creates: ' + result.rows[1]
+            );
+            System.assert(
+                result.rows[2].success && result.rows[2].created,
+                'A row without a value creates: ' + result.rows[2]
+            );
             System.assertEquals(null, result.rows[1].previous);
-            System.assertEquals(5, [SELECT Number_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :known.Id].Number_Field__c);
-            System.assertEquals('K-2', [SELECT External_Key__c FROM Rowhouse_Test_Record__c WHERE Id = :result.rows[1].recordId].External_Key__c);
+            System.assertEquals(
+                5,
+                [SELECT Number_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :known.Id].Number_Field__c
+            );
+            System.assertEquals(
+                'K-2',
+                [SELECT External_Key__c FROM Rowhouse_Test_Record__c WHERE Id = :result.rows[1].recordId]
+                .External_Key__c
+            );
         }
     }
 
@@ -196,22 +282,34 @@ private class GridImportServiceTest {
                 new Rowhouse_Test_Record__c(Name = 'Twin 1', External_Key__c = 'TWIN'),
                 new Rowhouse_Test_Record__c(Name = 'Twin 2', External_Key__c = 'TWIN')
             };
-            GridImportService.Result result = matched(new List<Map<String, Object>>{
-                row(new Map<String, Object>{ 'External_Key__c' => 'twin', 'Number_Field__c' => '1' }),
-                row(new Map<String, Object>{ 'External_Key__c' => 'ONCE', 'Number_Field__c' => '2' }),
-                row(new Map<String, Object>{ 'External_Key__c' => 'once', 'Number_Field__c' => '3' })
-            });
+            GridImportService.Result result = matched(
+                new List<Map<String, Object>>{
+                    row(new Map<String, Object>{ 'External_Key__c' => 'twin', 'Number_Field__c' => '1' }),
+                    row(new Map<String, Object>{ 'External_Key__c' => 'ONCE', 'Number_Field__c' => '2' }),
+                    row(new Map<String, Object>{ 'External_Key__c' => 'once', 'Number_Field__c' => '3' })
+                }
+            );
             System.assertEquals('More than one record has twin as its External Key.', result.rows[0].message);
             System.assert(result.rows[1].success, String.valueOf(result.rows[1]));
             System.assertEquals('once is in the file more than once.', result.rows[2].message);
             String refused;
             try {
-                GridImportService.importRows('Import_Test', new List<Map<String, Object>>{ row(new Map<String, Object>{ 'Name' => 'x' }) },
-                    null, null, null, 'Text_Field__c');
+                GridImportService.importRows(
+                    'Import_Test',
+                    new List<Map<String, Object>>{ row(new Map<String, Object>{ 'Name' => 'x' }) },
+                    null,
+                    null,
+                    null,
+                    'Text_Field__c'
+                );
             } catch (GridException e) {
                 refused = e.getMessage();
             }
-            System.assertEquals('Records cannot be matched by Text_Field__c in this grid.', refused, 'Only an External Id column matches.');
+            System.assertEquals(
+                'Records cannot be matched by Text_Field__c in this grid.',
+                refused,
+                'Only an External Id column matches.'
+            );
         }
     }
 
@@ -223,12 +321,16 @@ private class GridImportServiceTest {
             insert someoneElses;
         }
         System.runAs(GridTestUsers.fullUser()) {
-            GridImportService.Result made = GridImportService.importRows('Import_Test', new List<Map<String, Object>>{
-                row(new Map<String, Object>{ 'Name' => 'Undo me' })
-            });
+            GridImportService.Result made = GridImportService.importRows(
+                'Import_Test',
+                new List<Map<String, Object>>{ row(new Map<String, Object>{ 'Name' => 'Undo me' }) }
+            );
             Id mine = made.rows[0].recordId;
             Test.startTest();
-            GridDeleteService.Result undone = GridController.undoImport('Import_Test', new List<Id>{ mine, someoneElses.Id });
+            GridDeleteService.Result undone = GridController.undoImport(
+                'Import_Test',
+                new List<Id>{ mine, someoneElses.Id }
+            );
             Test.stopTest();
             System.assertEquals(new List<Id>{ mine }, undone.deletedIds);
             System.assertEquals(1, undone.errors.size());

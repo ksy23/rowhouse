@@ -34,7 +34,6 @@
  * outright, or the deploy, are errors here and block the save.
  */
 public with sharing class GridAdmin {
-
     public static final String PERMISSION = 'Rowhouse_Admin';
     /** A Custom Metadata record's name and label: at most 40 characters. */
     public static final Integer MAX_NAME = 40;
@@ -48,132 +47,209 @@ public with sharing class GridAdmin {
 
     /** A grid configuration and its records, as the Grid Admin tab edits them. */
     public class Draft {
-        @AuraEnabled public ConfigDraft config = new ConfigDraft();
-        @AuraEnabled public List<ColumnDraft> columns = new List<ColumnDraft>();
-        @AuraEnabled public List<RuleDraft> rules = new List<RuleDraft>();
-        @AuraEnabled public List<ActionDraft> actions = new List<ActionDraft>();
-        @AuraEnabled public List<ChildDraft> children = new List<ChildDraft>();
+        @AuraEnabled
+        public ConfigDraft config = new ConfigDraft();
+        @AuraEnabled
+        public List<ColumnDraft> columns = new List<ColumnDraft>();
+        @AuraEnabled
+        public List<RuleDraft> rules = new List<RuleDraft>();
+        @AuraEnabled
+        public List<ActionDraft> actions = new List<ActionDraft>();
+        @AuraEnabled
+        public List<ChildDraft> children = new List<ChildDraft>();
         /** The admin's filters. */
-        @AuraEnabled public List<FilterDraft> filters = new List<FilterDraft>();
+        @AuraEnabled
+        public List<FilterDraft> filters = new List<FilterDraft>();
     }
 
     public class ConfigDraft {
         /** The configuration's API name (DeveloperName). */
-        @AuraEnabled public String name;
+        @AuraEnabled
+        public String name;
         /** Its label: the grid's title. */
-        @AuraEnabled public String label;
+        @AuraEnabled
+        public String label;
         /** True until it has been saved once. */
-        @AuraEnabled public Boolean isNew = false;
-        @AuraEnabled public String objectApiName;
-        @AuraEnabled public Integer pageSize;
-        @AuraEnabled public String sortField;
-        @AuraEnabled public String sortDirection;
-        @AuraEnabled public Boolean allowInlineEdit = true;
-        @AuraEnabled public Boolean allowCsvExport = true;
-        @AuraEnabled public Boolean allowMassDelete = false;
-        @AuraEnabled public Boolean allowImport = false;
-        @AuraEnabled public Boolean logChanges = false;
-        @AuraEnabled public Integer frozenColumns;
-        @AuraEnabled public Integer height;
+        @AuraEnabled
+        public Boolean isNew = false;
+        @AuraEnabled
+        public String objectApiName;
+        @AuraEnabled
+        public Integer pageSize;
+        @AuraEnabled
+        public String sortField;
+        @AuraEnabled
+        public String sortDirection;
+        @AuraEnabled
+        public Boolean allowInlineEdit = true;
+        @AuraEnabled
+        public Boolean allowCsvExport = true;
+        @AuraEnabled
+        public Boolean allowMassDelete = false;
+        @AuraEnabled
+        public Boolean allowImport = false;
+        @AuraEnabled
+        public Boolean logChanges = false;
+        @AuraEnabled
+        public Integer frozenColumns;
+        @AuraEnabled
+        public Integer height;
         /** On a record page, the lookup that points to the page's record; blank for none. */
-        @AuraEnabled public String recordPageField;
+        @AuraEnabled
+        public String recordPageField;
         /** Out of use. Read for the page; a save keeps what the org has, and only archive changes it. */
-        @AuraEnabled public Boolean archived = false;
+        @AuraEnabled
+        public Boolean archived = false;
     }
 
     /** A Grid Column. The list's order is the grid's order. */
     public class ColumnDraft {
         /** The record's API name; blank for a column not saved yet. */
-        @AuraEnabled public String name;
-        @AuraEnabled public String field;
+        @AuraEnabled
+        public String name;
+        @AuraEnabled
+        public String field;
         /** The header; blank uses the field's label. */
-        @AuraEnabled public String columnLabel;
-        @AuraEnabled public Boolean editable = false;
-        @AuraEnabled public Boolean sortable = true;
-        @AuraEnabled public Boolean wrap = false;
-        @AuraEnabled public Boolean alwaysShown = false;
-        @AuraEnabled public Integer width;
-        @AuraEnabled public String cellType;
-        @AuraEnabled public Integer groupLevel;
-        @AuraEnabled public String groupUnit;
+        @AuraEnabled
+        public String columnLabel;
+        @AuraEnabled
+        public Boolean editable = false;
+        @AuraEnabled
+        public Boolean sortable = true;
+        @AuraEnabled
+        public Boolean wrap = false;
+        @AuraEnabled
+        public Boolean alwaysShown = false;
+        @AuraEnabled
+        public Integer width;
+        @AuraEnabled
+        public String cellType;
+        @AuraEnabled
+        public Integer groupLevel;
+        @AuraEnabled
+        public String groupUnit;
         /** Users may group by it from its menu, without the grid opening grouped by it. */
-        @AuraEnabled public Boolean allowGrouping = false;
-        @AuraEnabled public String subtotal;
-        @AuraEnabled public Boolean inactive = false;
+        @AuraEnabled
+        public Boolean allowGrouping = false;
+        @AuraEnabled
+        public String subtotal;
+        @AuraEnabled
+        public Boolean inactive = false;
         /** A formula column's formula; blank for a column on a field. */
-        @AuraEnabled public String formula;
+        @AuraEnabled
+        public String formula;
         /** What the formula returns: text, number, currency, percent, date, datetime or checkbox. */
-        @AuraEnabled public String formulaType;
-        @AuraEnabled public Integer decimalPlaces;
+        @AuraEnabled
+        public String formulaType;
+        @AuraEnabled
+        public Integer decimalPlaces;
         /** A child total column: the Grid Child Table it totals, by API name; blank for a column on a field. */
-        @AuraEnabled public String childTable;
+        @AuraEnabled
+        public String childTable;
         /** sum, average, min, max or count. */
-        @AuraEnabled public String childTotal;
+        @AuraEnabled
+        public String childTotal;
         /** The child records' field to total; blank with count counts the records. */
-        @AuraEnabled public String childField;
+        @AuraEnabled
+        public String childField;
     }
 
     /** A Grid Format Rule. The list's order is the order the rules apply in. */
     public class RuleDraft {
-        @AuraEnabled public String name;
+        @AuraEnabled
+        public String name;
         /** What the color means: the record's label, shown in the Display Key. */
-        @AuraEnabled public String label;
-        @AuraEnabled public String field;
-        @AuraEnabled public String operator;
-        @AuraEnabled public String value;
-        @AuraEnabled public String style;
-        @AuraEnabled public String applyTo;
-        @AuraEnabled public Boolean active = true;
+        @AuraEnabled
+        public String label;
+        @AuraEnabled
+        public String field;
+        @AuraEnabled
+        public String operator;
+        @AuraEnabled
+        public String value;
+        @AuraEnabled
+        public String style;
+        @AuraEnabled
+        public String applyTo;
+        @AuraEnabled
+        public Boolean active = true;
         /** Between's upper end. */
-        @AuraEnabled public String valueTo;
+        @AuraEnabled
+        public String valueTo;
         /** Another field to compare with instead of a value. */
-        @AuraEnabled public String compareField;
+        @AuraEnabled
+        public String compareField;
         /** A true-or-false formula instead of a condition. */
-        @AuraEnabled public String formula;
+        @AuraEnabled
+        public String formula;
     }
 
     /** A Grid Filter. The list's order is the order they are listed in; every one applies. */
     public class FilterDraft {
-        @AuraEnabled public String name;
+        @AuraEnabled
+        public String name;
         /** The record's label; blank makes one from the field and the operator. */
-        @AuraEnabled public String label;
-        @AuraEnabled public String field;
-        @AuraEnabled public String operator;
-        @AuraEnabled public String value;
-        @AuraEnabled public String valueTo;
-        @AuraEnabled public Boolean inactive = false;
+        @AuraEnabled
+        public String label;
+        @AuraEnabled
+        public String field;
+        @AuraEnabled
+        public String operator;
+        @AuraEnabled
+        public String value;
+        @AuraEnabled
+        public String valueTo;
+        @AuraEnabled
+        public Boolean inactive = false;
     }
 
     /** A Grid Action. The list's order is the menu's order. */
     public class ActionDraft {
-        @AuraEnabled public String name;
+        @AuraEnabled
+        public String name;
         /** What the menu item says: the record's label. */
-        @AuraEnabled public String label;
-        @AuraEnabled public String type;
-        @AuraEnabled public String actionName;
-        @AuraEnabled public String inputName;
-        @AuraEnabled public String showIn;
-        @AuraEnabled public String confirmation;
-        @AuraEnabled public String requiredPermission;
-        @AuraEnabled public Boolean inactive = false;
+        @AuraEnabled
+        public String label;
+        @AuraEnabled
+        public String type;
+        @AuraEnabled
+        public String actionName;
+        @AuraEnabled
+        public String inputName;
+        @AuraEnabled
+        public String showIn;
+        @AuraEnabled
+        public String confirmation;
+        @AuraEnabled
+        public String requiredPermission;
+        @AuraEnabled
+        public Boolean inactive = false;
     }
 
     /** A Grid Child Table. The list's order is the tabs' order. */
     public class ChildDraft {
-        @AuraEnabled public String name;
+        @AuraEnabled
+        public String name;
         /** The child grid's configuration, by API name. */
-        @AuraEnabled public String childConfig;
-        @AuraEnabled public String relationshipField;
-        @AuraEnabled public String tabLabel;
+        @AuraEnabled
+        public String childConfig;
+        @AuraEnabled
+        public String relationshipField;
+        @AuraEnabled
+        public String tabLabel;
         /** The child grid's height in pixels; blank for the standard height. */
-        @AuraEnabled public Integer height;
-        @AuraEnabled public Boolean inactive = false;
+        @AuraEnabled
+        public Integer height;
+        @AuraEnabled
+        public Boolean inactive = false;
     }
 
     /** What a check found: errors block a save; warnings are what the grid would skip. */
     public class Check {
-        @AuraEnabled public List<String> errors = new List<String>();
-        @AuraEnabled public List<String> warnings = new List<String>();
+        @AuraEnabled
+        public List<String> errors = new List<String>();
+        @AuraEnabled
+        public List<String> warnings = new List<String>();
     }
 
     // ---------------------------------------------------------------- who
@@ -207,8 +283,10 @@ public with sharing class GridAdmin {
             }
             for (Grid_Configuration__mdt cfg : configs) {
                 if (GridConfig.belongsTo(c.Grid_Configuration__c, cfg)) {
-                    columnCounts.put(cfg.DeveloperName, (columnCounts.containsKey(cfg.DeveloperName)
-                        ? columnCounts.get(cfg.DeveloperName) : 0) + 1);
+                    columnCounts.put(
+                        cfg.DeveloperName,
+                        (columnCounts.containsKey(cfg.DeveloperName) ? columnCounts.get(cfg.DeveloperName) : 0) + 1
+                    );
                 }
             }
         }
@@ -224,8 +302,10 @@ public with sharing class GridAdmin {
             for (Grid_Configuration__mdt cfg : configs) {
                 if (GridConfig.belongsTo(c.Grid_Configuration__c, cfg)) {
                     parent = cfg;
-                    childCounts.put(cfg.DeveloperName, (childCounts.containsKey(cfg.DeveloperName)
-                        ? childCounts.get(cfg.DeveloperName) : 0) + 1);
+                    childCounts.put(
+                        cfg.DeveloperName,
+                        (childCounts.containsKey(cfg.DeveloperName) ? childCounts.get(cfg.DeveloperName) : 0) + 1
+                    );
                 }
             }
             if (parent == null || parent.Archived__c == true) {
@@ -244,9 +324,13 @@ public with sharing class GridAdmin {
         }
         List<ConfigSummary> sorted = new List<ConfigSummary>();
         for (Grid_Configuration__mdt cfg : configs) {
-            List<String> parents = usedBy.containsKey(cfg.DeveloperName) ? usedBy.get(cfg.DeveloperName) : new List<String>();
+            List<String> parents = usedBy.containsKey(cfg.DeveloperName)
+                ? usedBy.get(cfg.DeveloperName)
+                : new List<String>();
             parents.sort();
-            sorted.add(new ConfigSummary(cfg, columnCounts.get(cfg.DeveloperName), childCounts.get(cfg.DeveloperName), parents));
+            sorted.add(
+                new ConfigSummary(cfg, columnCounts.get(cfg.DeveloperName), childCounts.get(cfg.DeveloperName), parents)
+            );
         }
         sorted.sort();
         List<Map<String, Object>> out = new List<Map<String, Object>>();
@@ -261,7 +345,9 @@ public with sharing class GridAdmin {
         public ConfigSummary(Grid_Configuration__mdt cfg, Integer columns, Integer childTables, List<String> usedBy) {
             String objectLabel = cfg.Object_API_Name__c;
             try {
-                objectLabel = GridDescribe.typeFor(cfg.Object_API_Name__c).getDescribe(SObjectDescribeOptions.DEFERRED).getLabelPlural();
+                objectLabel = GridDescribe.typeFor(cfg.Object_API_Name__c)
+                    .getDescribe(SObjectDescribeOptions.DEFERRED)
+                    .getLabelPlural();
             } catch (GridException e) {
                 objectLabel = cfg.Object_API_Name__c + ' (unknown object)';
             }
@@ -304,7 +390,9 @@ public with sharing class GridAdmin {
 
     /** The configuration of that API name. Throws when there is none. */
     private static Grid_Configuration__mdt configNamed(String configName) {
-        Grid_Configuration__mdt cfg = String.isBlank(configName) ? null : Grid_Configuration__mdt.getInstance(configName.trim());
+        Grid_Configuration__mdt cfg = String.isBlank(configName)
+            ? null
+            : Grid_Configuration__mdt.getInstance(configName.trim());
         if (cfg == null) {
             throw new GridException('No Grid Configuration named "' + configName + '".');
         }
@@ -417,8 +505,19 @@ public with sharing class GridAdmin {
      * events, big objects, tags, and Custom Metadata.
      */
     private static final List<String> NOT_OFFERED_ENDINGS = new List<String>{
-        '__mdt', '__Share', '__History', '__Feed', '__ChangeEvent', '__e', '__b', '__Tag',
-        'Share', 'History', 'Feed', 'ChangeEvent', 'Tag'
+        '__mdt',
+        '__Share',
+        '__History',
+        '__Feed',
+        '__ChangeEvent',
+        '__e',
+        '__b',
+        '__Tag',
+        'Share',
+        'History',
+        'Feed',
+        'ChangeEvent',
+        'Tag'
     };
 
     /** The objects a grid can show: queryable, with records people work with. { name, label }, by label. */
@@ -493,20 +592,26 @@ public with sharing class GridAdmin {
             for (Schema.SObjectType t : d.getReferenceTo()) {
                 referenceTo.add(t.getDescribe(SObjectDescribeOptions.DEFERRED).getLocalName());
             }
-            fields.add(new FieldOption(new Map<String, Object>{
-                'name' => d.getLocalName(),
-                'label' => d.getLabel(),
-                // What a column of it is headed when it has no Column Label.
-                'heading' => GridConfig.defaultLabel(d),
-                'type' => type,
-                'sortable' => d.isSortable(),
-                'groupable' => GridDescribe.isGroupable(d),
-                'filterable' => d.isFilterable(),
-                'editable' => GridConfig.writableByType(d) && GridConfig.EDITABLE_TYPES.contains(type) && !richText,
-                'isName' => d.isNameField(),
-                'referenceTo' => referenceTo,
-                'subtotals' => subtotals
-            }));
+            fields.add(
+                new FieldOption(
+                    new Map<String, Object>{
+                        'name' => d.getLocalName(),
+                        'label' => d.getLabel(),
+                        // What a column of it is headed when it has no Column Label.
+                        'heading' => GridConfig.defaultLabel(d),
+                        'type' => type,
+                        'sortable' => d.isSortable(),
+                        'groupable' => GridDescribe.isGroupable(d),
+                        'filterable' => d.isFilterable(),
+                        'editable' => GridConfig.writableByType(d) &&
+                        GridConfig.EDITABLE_TYPES.contains(type) &&
+                        !richText,
+                        'isName' => d.isNameField(),
+                        'referenceTo' => referenceTo,
+                        'subtotals' => subtotals
+                    }
+                )
+            );
         }
         fields.sort();
         List<Map<String, Object>> fieldMaps = new List<Map<String, Object>>();
@@ -557,10 +662,14 @@ public with sharing class GridAdmin {
             if (!links.isEmpty()) {
                 links.sort();
                 // The child's object too: a child total column's field is chosen from it.
-                out.add(new Map<String, Object>{
-                    'config' => cfg.DeveloperName, 'label' => cfg.MasterLabel, 'fields' => links,
-                    'objectApiName' => GridDescribe.localName(childType)
-                });
+                out.add(
+                    new Map<String, Object>{
+                        'config' => cfg.DeveloperName,
+                        'label' => cfg.MasterLabel,
+                        'fields' => links,
+                        'objectApiName' => GridDescribe.localName(childType)
+                    }
+                );
             }
         }
         return out;
@@ -590,7 +699,9 @@ public with sharing class GridAdmin {
             result.errors.add('The title is ' + c.label.trim().length() + ' characters; ' + MAX_NAME + ' at most.');
         }
         String nameProblem = nameProblem(c.name);
-        Grid_Configuration__mdt existing = String.isBlank(c.name) ? null : Grid_Configuration__mdt.getInstance(c.name.trim());
+        Grid_Configuration__mdt existing = String.isBlank(c.name)
+            ? null
+            : Grid_Configuration__mdt.getInstance(c.name.trim());
         if (nameProblem != null) {
             result.errors.add('API name: ' + nameProblem);
         } else if (c.isNew == true && existing != null) {
@@ -621,9 +732,13 @@ public with sharing class GridAdmin {
         for (Integer i = 0; i < d.rules.size(); i++) {
             RuleDraft r = d.rules[i];
             if (String.isBlank(r.label)) {
-                result.errors.add('Display rule ' + (i + 1) + ' needs a meaning, such as "Overdue": the Display Key shows it.');
+                result.errors.add(
+                    'Display rule ' + (i + 1) + ' needs a meaning, such as "Overdue": the Display Key shows it.'
+                );
             } else if (r.label.trim().length() > MAX_NAME) {
-                result.errors.add('Display rule "' + r.label.trim() + '": its meaning is ' + MAX_NAME + ' characters at most.');
+                result.errors.add(
+                    'Display rule "' + r.label.trim() + '": its meaning is ' + MAX_NAME + ' characters at most.'
+                );
             }
             // Longer than the metadata field holds: the deploy would fail after Save.
             tooLong('Display rule "' + label(r.label, i) + '": its value', r.value, MAX_VALUE, result);
@@ -632,7 +747,9 @@ public with sharing class GridAdmin {
             if (String.isNotBlank(r.formula)) {
                 // A formula that does not build is an error here, not a skipped rule.
                 if (String.isBlank(r.field) && r.applyTo != 'row') {
-                    result.errors.add('Display rule "' + label(r.label, i) + '": choose the cell it colors, or the whole row.');
+                    result.errors.add(
+                        'Display rule "' + label(r.label, i) + '": choose the cell it colors, or the whole row.'
+                    );
                 }
                 String problem = formulaProblem(objectType, r.formula, FormulaEval.FormulaReturnType.BOOLEAN);
                 if (problem != null) {
@@ -672,8 +789,14 @@ public with sharing class GridAdmin {
             return result;
         }
         try {
-            GridConfig.Definition def = GridConfig.build(configRecord(d), columnRecords(d), ruleRecords(d),
-                childRecords(d), actionRecords(d), filterRecords(d));
+            GridConfig.Definition def = GridConfig.build(
+                configRecord(d),
+                columnRecords(d),
+                ruleRecords(d),
+                childRecords(d),
+                actionRecords(d),
+                filterRecords(d)
+            );
             result.warnings.addAll(def.warnings);
         } catch (Exception e) {
             result.errors.add(e.getMessage());
@@ -682,7 +805,11 @@ public with sharing class GridAdmin {
     }
 
     /** Why a formula will not build, or null. */
-    private static String formulaProblem(Schema.SObjectType objectType, String formula, FormulaEval.FormulaReturnType returnType) {
+    private static String formulaProblem(
+        Schema.SObjectType objectType,
+        String formula,
+        FormulaEval.FormulaReturnType returnType
+    ) {
         try {
             GridFormulas.compile(objectType, formula, returnType);
             return null;
@@ -704,7 +831,9 @@ public with sharing class GridAdmin {
             // A child total column: a child table of this grid, a kind of
             // total and a field it fits, checked by the code the grid uses.
             if (String.isNotBlank(col.childTable) || String.isNotBlank(col.childTotal)) {
-                String heading = String.isBlank(col.columnLabel) ? 'Child total column ' + (i + 1) : col.columnLabel.trim();
+                String heading = String.isBlank(col.columnLabel)
+                    ? 'Child total column ' + (i + 1)
+                    : col.columnLabel.trim();
                 tooLong(heading + ': the column label', col.columnLabel, MAX_COLUMN_LABEL, result);
                 if (String.isBlank(col.childTable)) {
                     result.errors.add(heading + ': choose the child table it totals.');
@@ -782,8 +911,13 @@ public with sharing class GridAdmin {
             }
         }
         if (formulas > GridFormulas.MAX_FORMULAS) {
-            result.errors.add('A grid has at most ' + GridFormulas.MAX_FORMULAS
-                + ' formulas, columns and display rules together; this one has ' + formulas + '.');
+            result.errors.add(
+                'A grid has at most ' +
+                    GridFormulas.MAX_FORMULAS +
+                    ' formulas, columns and display rules together; this one has ' +
+                    formulas +
+                    '.'
+            );
         }
     }
 
@@ -822,7 +956,8 @@ public with sharing class GridAdmin {
             return n + ' is ' + n.length() + ' characters; ' + MAX_NAME + ' at most.';
         }
         if (!API_NAME_PATTERN.matcher(n).matches() || n.contains('__') || n.endsWith('_')) {
-            return n + ' must start with a letter and use only letters, numbers and single underscores, not ending with one.';
+            return n +
+                ' must start with a letter and use only letters, numbers and single underscores, not ending with one.';
         }
         return null;
     }
@@ -852,15 +987,19 @@ public with sharing class GridAdmin {
     public static String save(Draft d) {
         requireAdmin();
         if (!GridSecurity.canCustomizeApplication()) {
-            throw new GridException('Saving a grid needs the Customize Application permission as well as Rowhouse Grid Admin. '
-                + 'Ask a Salesforce admin to save it.');
+            throw new GridException(
+                'Saving a grid needs the Customize Application permission as well as Rowhouse Grid Admin. ' +
+                'Ask a Salesforce admin to save it.'
+            );
         }
         Check result = checkDraft(d);
         if (!result.errors.isEmpty()) {
             throw new GridException(String.join(result.errors, ' '));
         }
         // Archived is what the org has: only archive and restore change it.
-        Grid_Configuration__mdt existing = d.config.isNew == true ? null : Grid_Configuration__mdt.getInstance(d.config.name.trim());
+        Grid_Configuration__mdt existing = d.config.isNew == true
+            ? null
+            : Grid_Configuration__mdt.getInstance(d.config.name.trim());
         d.config.archived = existing != null && existing.Archived__c == true;
         Id jobId = deployWith.deploy(container(d), new GridAdminDeploy(UserInfo.getUserId()));
         return String.valueOf(jobId);
@@ -871,8 +1010,10 @@ public with sharing class GridAdmin {
     private static void requireSave() {
         requireAdmin();
         if (!GridSecurity.canCustomizeApplication()) {
-            throw new GridException('This needs the Customize Application permission as well as Rowhouse Grid Admin. '
-                + 'Ask a Salesforce admin to do it.');
+            throw new GridException(
+                'This needs the Customize Application permission as well as Rowhouse Grid Admin. ' +
+                'Ask a Salesforce admin to do it.'
+            );
         }
     }
 
@@ -889,7 +1030,9 @@ public with sharing class GridAdmin {
         d.config = draftOf(cfg).config;
         d.config.archived = archived == true;
         Metadata.DeployContainer out = new Metadata.DeployContainer();
-        out.addMetadata(record(Grid_Configuration__mdt.SObjectType, cfg.DeveloperName, cfg.MasterLabel, configValues(d.config)));
+        out.addMetadata(
+            record(Grid_Configuration__mdt.SObjectType, cfg.DeveloperName, cfg.MasterLabel, configValues(d.config))
+        );
         return String.valueOf(deployWith.deploy(out, new GridAdminDeploy(UserInfo.getUserId())));
     }
 
@@ -966,7 +1109,10 @@ public with sharing class GridAdmin {
         List<Map<String, String>> out = new List<Map<String, String>>();
         List<Grid_Configuration__mdt> configs = Grid_Configuration__mdt.getAll().values();
         for (Grid_Child__mdt link : Grid_Child__mdt.getAll().values()) {
-            if (!GridConfig.belongsTo(link.Child_Configuration__c, cfg) || GridConfig.belongsTo(link.Grid_Configuration__c, cfg)) {
+            if (
+                !GridConfig.belongsTo(link.Child_Configuration__c, cfg) ||
+                GridConfig.belongsTo(link.Grid_Configuration__c, cfg)
+            ) {
                 continue;
             }
             String parentLabel = '';
@@ -975,8 +1121,16 @@ public with sharing class GridAdmin {
                     parentLabel = other.MasterLabel;
                 }
             }
-            out.add(setupItem(link, 'A child table of ' + parentLabel
-                + ' that shows this grid. Deleting it removes that tab from ' + parentLabel + '.'));
+            out.add(
+                setupItem(
+                    link,
+                    'A child table of ' +
+                        parentLabel +
+                        ' that shows this grid. Deleting it removes that tab from ' +
+                        parentLabel +
+                        '.'
+                )
+            );
         }
         for (SObject r : inOrder(GridConfig.columnsOf(cfg))) {
             out.add(setupItem(r, null));
@@ -1017,19 +1171,29 @@ public with sharing class GridAdmin {
     public static String saveLogRetention(Integer days) {
         requireAdmin();
         if (!GridSecurity.canCustomizeApplication()) {
-            throw new GridException('Saving needs the Customize Application permission as well as Rowhouse Grid Admin. '
-                + 'Ask a Salesforce admin to save it.');
+            throw new GridException(
+                'Saving needs the Customize Application permission as well as Rowhouse Grid Admin. ' +
+                'Ask a Salesforce admin to save it.'
+            );
         }
         if (!GridLogRetention.offered(days)) {
             throw new GridException('Keep the edit log for 90 days, 1 year, 2 years or 7 years, or forever.');
         }
         if (days != null && !GridLogRetention.canRun()) {
-            throw new GridException('The nightly clean-up runs as you, and you cannot delete Grid Edit Log entries. '
-                + 'Ask a Salesforce admin who can, such as a System Administrator, to set it.');
+            throw new GridException(
+                'The nightly clean-up runs as you, and you cannot delete Grid Edit Log entries. ' +
+                'Ask a Salesforce admin who can, such as a System Administrator, to set it.'
+            );
         }
         Metadata.DeployContainer container = new Metadata.DeployContainer();
-        container.addMetadata(record(Rowhouse_Setting__mdt.SObjectType, GridLogRetention.SETTING, GridLogRetention.SETTING,
-            new Map<Schema.SObjectField, Object>{ Rowhouse_Setting__mdt.Log_Retention_Days__c => days }));
+        container.addMetadata(
+            record(
+                Rowhouse_Setting__mdt.SObjectType,
+                GridLogRetention.SETTING,
+                GridLogRetention.SETTING,
+                new Map<Schema.SObjectField, Object>{ Rowhouse_Setting__mdt.Log_Retention_Days__c => days }
+            )
+        );
         Id jobId = deployWith.deploy(container, new GridAdminDeploy(UserInfo.getUserId()));
         GridLogRetention.schedule(days);
         return String.valueOf(jobId);
@@ -1052,7 +1216,8 @@ public with sharing class GridAdmin {
             return new Map<String, Object>{ 'status' => 'pending', 'messages' => new List<String>() };
         }
         Grid_Save_Result__c row = rows[0];
-        List<String> messages = String.isBlank(row.Errors_JSON__c) ? new List<String>()
+        List<String> messages = String.isBlank(row.Errors_JSON__c)
+            ? new List<String>()
             : (List<String>) JSON.deserialize(row.Errors_JSON__c, List<String>.class);
         GridSecurity.deleteOwnRecords(rows);
         return new Map<String, Object>{ 'status' => row.Status__c, 'messages' => messages };
@@ -1099,7 +1264,10 @@ public with sharing class GridAdmin {
         List<Grid_Format_Rule__mdt> out = new List<Grid_Format_Rule__mdt>();
         List<String> names = ruleNames(d);
         for (Integer i = 0; i < d.rules.size(); i++) {
-            Map<String, Object> m = new Map<String, Object>{ 'DeveloperName' => names[i], 'MasterLabel' => d.rules[i].label.trim() };
+            Map<String, Object> m = new Map<String, Object>{
+                'DeveloperName' => names[i],
+                'MasterLabel' => d.rules[i].label.trim()
+            };
             Map<Schema.SObjectField, Object> values = ruleValues(d.rules[i], i);
             for (Schema.SObjectField f : values.keySet()) {
                 if (f != Grid_Format_Rule__mdt.Grid_Configuration__c) {
@@ -1115,7 +1283,10 @@ public with sharing class GridAdmin {
         List<Grid_Filter__mdt> out = new List<Grid_Filter__mdt>();
         List<String> names = filterNames(d);
         for (Integer i = 0; i < d.filters.size(); i++) {
-            Map<String, Object> m = new Map<String, Object>{ 'DeveloperName' => names[i], 'MasterLabel' => filterLabel(d.filters[i]) };
+            Map<String, Object> m = new Map<String, Object>{
+                'DeveloperName' => names[i],
+                'MasterLabel' => filterLabel(d.filters[i])
+            };
             Map<Schema.SObjectField, Object> values = filterValues(d.filters[i], i);
             for (Schema.SObjectField f : values.keySet()) {
                 if (f != Grid_Filter__mdt.Grid_Configuration__c) {
@@ -1131,7 +1302,10 @@ public with sharing class GridAdmin {
         List<Grid_Action__mdt> out = new List<Grid_Action__mdt>();
         List<String> names = actionNames(d);
         for (Integer i = 0; i < d.actions.size(); i++) {
-            Map<String, Object> m = new Map<String, Object>{ 'DeveloperName' => names[i], 'MasterLabel' => d.actions[i].label.trim() };
+            Map<String, Object> m = new Map<String, Object>{
+                'DeveloperName' => names[i],
+                'MasterLabel' => d.actions[i].label.trim()
+            };
             Map<Schema.SObjectField, Object> values = actionValues(d.actions[i], i);
             for (Schema.SObjectField f : values.keySet()) {
                 if (f != Grid_Action__mdt.Grid_Configuration__c) {
@@ -1156,8 +1330,10 @@ public with sharing class GridAdmin {
                 }
             }
             // In memory a metadata relationship holds the record's Id; a deploy names it.
-            m.put(GridDescribe.apiName(Grid_Child__mdt.Child_Configuration__c),
-                Grid_Configuration__mdt.getInstance(ch.childConfig.trim()).Id);
+            m.put(
+                GridDescribe.apiName(Grid_Child__mdt.Child_Configuration__c),
+                Grid_Configuration__mdt.getInstance(ch.childConfig.trim()).Id
+            );
             out.add((Grid_Child__mdt) JSON.deserialize(JSON.serialize(m), Grid_Child__mdt.class));
         }
         return out;
@@ -1246,8 +1422,10 @@ public with sharing class GridAdmin {
         if (existing != null) {
             return existing.MasterLabel;
         }
-        String made = (f.field == null ? 'Filter' : f.field.trim().removeEndIgnoreCase('__c').replace('_', ' '))
-            + ' ' + (f.operator == null ? 'equals' : f.operator.trim().replace('_', ' '));
+        String made =
+            (f.field == null ? 'Filter' : f.field.trim().removeEndIgnoreCase('__c').replace('_', ' ')) +
+            ' ' +
+            (f.operator == null ? 'equals' : f.operator.trim().replace('_', ' '));
         return made.left(MAX_NAME);
     }
 
@@ -1288,8 +1466,9 @@ public with sharing class GridAdmin {
     private static Metadata.DeployContainer container(Draft d) {
         Metadata.DeployContainer out = new Metadata.DeployContainer();
         String configName = d.config.name.trim();
-        out.addMetadata(record(Grid_Configuration__mdt.SObjectType, configName, d.config.label.trim(),
-            configValues(d.config)));
+        out.addMetadata(
+            record(Grid_Configuration__mdt.SObjectType, configName, d.config.label.trim(), configValues(d.config))
+        );
         List<String> names = columnNames(d);
         for (Integer i = 0; i < d.columns.size(); i++) {
             Map<Schema.SObjectField, Object> values = columnValues(d.columns[i], i);
@@ -1323,8 +1502,12 @@ public with sharing class GridAdmin {
         return out;
     }
 
-    private static Metadata.CustomMetadata record(Schema.SObjectType type, String name, String label,
-                                                  Map<Schema.SObjectField, Object> values) {
+    private static Metadata.CustomMetadata record(
+        Schema.SObjectType type,
+        String name,
+        String label,
+        Map<Schema.SObjectField, Object> values
+    ) {
         Metadata.CustomMetadata md = new Metadata.CustomMetadata();
         md.fullName = GridDescribe.apiName(type) + '.' + name;
         md.label = label.left(MAX_NAME);
@@ -1369,8 +1552,13 @@ public with sharing class GridAdmin {
         }
         List<String> hints = new List<String>();
         for (ColumnDraft col : d.columns) {
-            hints.add(String.isNotBlank(col.field) ? col.field
-                : String.isNotBlank(col.columnLabel) ? col.columnLabel : (String.isNotBlank(col.childTable) ? 'Total_' + col.childTable : null));
+            hints.add(
+                String.isNotBlank(col.field)
+                    ? col.field
+                    : String.isNotBlank(col.columnLabel)
+                          ? col.columnLabel
+                          : (String.isNotBlank(col.childTable) ? 'Total_' + col.childTable : null)
+            );
         }
         return names(d.config.name, wanted, hints, Grid_Column__mdt.getAll().keySet());
     }
@@ -1437,7 +1625,9 @@ public with sharing class GridAdmin {
                 out.add(wanted[i]);
                 continue;
             }
-            String base = clean(configName + '_' + clean(hints[i] == null ? 'Item' : hints[i].removeEndIgnoreCase('__c')));
+            String base = clean(
+                configName + '_' + clean(hints[i] == null ? 'Item' : hints[i].removeEndIgnoreCase('__c'))
+            );
             String candidate = base.left(MAX_NAME).removeEnd('_');
             Integer n = 2;
             while (used.contains(candidate.toLowerCase())) {

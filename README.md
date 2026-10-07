@@ -1,5 +1,8 @@
 # Rowhouse by Kugamon
 
+[Website](https://rowhouse.app) | [Contributing](CONTRIBUTING.md) | [Support](SUPPORT.md) | [Security](SECURITY.md)
+
+[![verify](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 A free, open-source data grid for Salesforce, built as a Lightning Web
@@ -8,7 +11,9 @@ them, open related records under each row, import and export, and run actions,
 with full keyboard and screen-reader support. Admins build each grid on a
 Grid Admin tab, without code. There is no paid tier.
 
-> **Status: in development. Not installable yet.** Nothing here is a release.
+> **Status: in development, not installable yet.** When it is released,
+> Rowhouse installs as a managed package, linked from
+> [rowhouse.app](https://rowhouse.app). Nothing here is a release.
 
 ## What it does
 
@@ -163,7 +168,7 @@ docs/                 benchmarks, the spreadsheet keys, and the logo files
 
 ```bash
 npm ci --legacy-peer-deps
-npm run verify    # self-tests, hard-rule checks, ESLint, SLDS Linter, Jest
+npm run verify    # self-tests, hard-rule checks, formatting, ESLint, SLDS Linter, Jest
 ```
 
 The same command runs in CI on every push and pull request. The Apex suite runs
@@ -176,6 +181,9 @@ in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
 - [CONTRIBUTING.md](CONTRIBUTING.md): set-up, what a change must include, and
   the twenty-nine hard rules.
 - [SUPPORT.md](SUPPORT.md): how to get help and report a bug.
+- [SECURITY.md](SECURITY.md): how to report a vulnerability privately, and
+  how Rowhouse by Kugamon protects data.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): how we treat each other here.
 - [`docs/benchmarks.md`](docs/benchmarks.md): the benchmark protocol, how to
   run it, and the results.
 - [`docs/spreadsheet.md`](docs/spreadsheet.md): ranges, copy, paste, undo and

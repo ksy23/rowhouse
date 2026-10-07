@@ -48,24 +48,28 @@
  * browser, so it is not logged at all.
  */
 public with sharing class GridActionService {
-
     /** Records per call. Small, so a heavy flow or a retried Apex action stays within one transaction's limits. */
     public static final Integer MAX_IDS = 50;
 
     /** The Invocable.Action type for each server kind. */
     private static final Map<String, String> INVOCABLE_TYPE = new Map<String, String>{
-        'flow' => 'flow', 'apex' => 'apex', 'quickaction' => 'quickAction'
+        'flow' => 'flow',
+        'apex' => 'apex',
+        'quickaction' => 'quickAction'
     };
     /** The input that takes the record Id when the Grid Action names none; Apex's is found by describe. */
     private static final Map<String, String> DEFAULT_INPUT = new Map<String, String>{
-        'flow' => 'recordId', 'quickaction' => 'contextId'
+        'flow' => 'recordId',
+        'quickaction' => 'contextId'
     };
 
     /** What happened to one batch. */
     public class Result {
-        @AuraEnabled public List<Id> succeededIds = new List<Id>();
+        @AuraEnabled
+        public List<Id> succeededIds = new List<Id>();
         /** Row errors: recordId and message, never a field. */
-        @AuraEnabled public List<GridSaveError> errors = new List<GridSaveError>();
+        @AuraEnabled
+        public List<GridSaveError> errors = new List<GridSaveError>();
     }
 
     public static Result run(String configName, String actionName, List<Id> recordIds) {
@@ -84,15 +88,17 @@ public with sharing class GridActionService {
             throw new GridException('You do not have permission to run ' + action.label + '.');
         }
         if (recordIds.size() > MAX_IDS) {
-            throw new GridException('Run an action on at most ' + MAX_IDS + ' records at a time; this request has '
-                + recordIds.size() + '.');
+            throw new GridException(
+                'Run an action on at most ' + MAX_IDS + ' records at a time; this request has ' + recordIds.size() + '.'
+            );
         }
         List<Id> ids = new List<Id>();
         Set<Id> seen = new Set<Id>();
         for (Id recordId : recordIds) {
             if (recordId == null || recordId.getSObjectType() != objectType) {
-                throw new GridException('Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType)
-                    + '. Nothing was run.');
+                throw new GridException(
+                    'Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType) + '. Nothing was run.'
+                );
             }
             if (seen.add(recordId)) {
                 ids.add(recordId);
@@ -107,7 +113,9 @@ public with sharing class GridActionService {
             if (visible.contains(recordId)) {
                 runnable.add(recordId);
             } else {
-                result.errors.add(new GridSaveError(recordId, null, 'You do not have access to this record, or it was deleted.'));
+                result.errors.add(
+                    new GridSaveError(recordId, null, 'You do not have access to this record, or it was deleted.')
+                );
             }
         }
         if (runnable.isEmpty()) {
@@ -148,15 +156,24 @@ public with sharing class GridActionService {
         if (DEFAULT_INPUT.containsKey(action.type)) {
             return DEFAULT_INPUT.get(action.type);
         }
-        List<Invocable.Action.DescribeResult> described = Invocable.Action.createCustomAction('apex', action.actionName).getDescribe();
+        List<Invocable.Action.DescribeResult> described = Invocable.Action.createCustomAction('apex', action.actionName)
+            .getDescribe();
         if (described.isEmpty()) {
-            throw new GridException('There is no invocable Apex action named "' + action.actionName + '" (Grid Action '
-                + action.name + ').');
+            throw new GridException(
+                'There is no invocable Apex action named "' + action.actionName + '" (Grid Action ' + action.name + ').'
+            );
         }
         List<Invocable.Action.InputParameter> inputs = described[0].getInputs();
         if (inputs.size() != 1) {
-            throw new GridException('The Apex action ' + action.actionName + ' has ' + inputs.size()
-                + ' inputs; set Input Name on Grid Action ' + action.name + ' to the one that takes the record Id.');
+            throw new GridException(
+                'The Apex action ' +
+                    action.actionName +
+                    ' has ' +
+                    inputs.size() +
+                    ' inputs; set Input Name on Grid Action ' +
+                    action.name +
+                    ' to the one that takes the record Id.'
+            );
         }
         return inputs[0].getName();
     }
@@ -202,14 +219,21 @@ public with sharing class GridActionService {
      * was undone (measured). Run each record on its own, while the transaction
      * has room; a record not reached keeps the first error.
      */
-    private static Map<Id, String> retryOneByOne(GridConfig.Action action, String input, List<Id> ids,
-                                                 Map<Id, String> firstFailures) {
+    private static Map<Id, String> retryOneByOne(
+        GridConfig.Action action,
+        String input,
+        List<Id> ids,
+        Map<Id, String> firstFailures
+    ) {
         Map<Id, String> out = new Map<Id, String>(firstFailures);
         for (Id recordId : ids) {
             if (!roomToRetry()) {
                 break;
             }
-            Map<Id, String> single = failuresOf(new List<Id>{ recordId }, invoke(action, input, new List<Id>{ recordId }));
+            Map<Id, String> single = failuresOf(
+                new List<Id>{ recordId },
+                invoke(action, input, new List<Id>{ recordId })
+            );
             if (single.containsKey(recordId)) {
                 out.put(recordId, single.get(recordId));
             } else {
@@ -221,8 +245,8 @@ public with sharing class GridActionService {
 
     @TestVisible
     private static Boolean roomToRetry() {
-        return Limits.getCpuTime() * 2 < Limits.getLimitCpuTime()
-            && Limits.getDmlStatements() * 2 < Limits.getLimitDmlStatements()
-            && Limits.getQueries() * 2 < Limits.getLimitQueries();
+        return Limits.getCpuTime() * 2 < Limits.getLimitCpuTime() &&
+            Limits.getDmlStatements() * 2 < Limits.getLimitDmlStatements() &&
+            Limits.getQueries() * 2 < Limits.getLimitQueries();
     }
 }

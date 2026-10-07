@@ -106,11 +106,9 @@ export function dateIn(instant, timeZone = TIME_ZONE) {
         format = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
         dayFormats.set(timeZone, format);
     }
-    format
-        .formatToParts(instant)
-        .forEach(p => {
-            parts[p.type] = p.value;
-        });
+    format.formatToParts(instant).forEach(p => {
+        parts[p.type] = p.value;
+    });
     return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
@@ -130,7 +128,11 @@ export function resolveDate(value, today) {
 // ================================================================ compiling
 
 const lower = v => String(v).toLowerCase();
-const valuesOf = v => String(v).split(';').map(s => s.trim().toLowerCase()).filter(Boolean);
+const valuesOf = v =>
+    String(v)
+        .split(';')
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean);
 
 /**
  * How a rule's type reads a cell's value, and the value it compares with.
@@ -140,7 +142,8 @@ function reading(rule, context) {
     const type = rule.type || 'text';
     const value = rule.value;
     if (NUMBER_TYPES.has(type)) return { read: v => Number(v), target: Number(value), ordered: true };
-    if (type === 'date') return { read: v => String(v).slice(0, 10), target: resolveDate(value, context.today), ordered: true };
+    if (type === 'date')
+        return { read: v => String(v).slice(0, 10), target: resolveDate(value, context.today), ordered: true };
     if (type === 'datetime') {
         const read = v => {
             const instant = new Date(v);
@@ -153,7 +156,8 @@ function reading(rule, context) {
         const hms = v => (/^\d{2}:\d{2}$/.test(String(v)) ? `${v}:00` : String(v).slice(0, 8));
         return { read: hms, target: value == null ? value : hms(value), ordered: true };
     }
-    if (type === 'checkbox' || type === 'boolean') return { read: v => String(v === true || v === 'true'), target: value };
+    if (type === 'checkbox' || type === 'boolean')
+        return { read: v => String(v === true || v === 'true'), target: value };
     if (type === 'reference' || type === 'owner') {
         const id = value === '$User' ? context.userId : value;
         return { read: v => String(v).slice(0, 15), target: String(id || '').slice(0, 15) };

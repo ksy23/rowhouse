@@ -19,7 +19,15 @@ const OPTIONS = [
     { value: '730', label: '2 years' },
     { value: '2555', label: '7 years' }
 ];
-const FOREVER = { days: null, label: 'Forever', options: OPTIONS, canSave: true, canRun: true, scheduled: false, loggingGrids: [] };
+const FOREVER = {
+    days: null,
+    label: 'Forever',
+    options: OPTIONS,
+    canSave: true,
+    canRun: true,
+    scheduled: false,
+    loggingGrids: []
+};
 const YEAR = {
     days: 365,
     label: '1 year',
@@ -74,11 +82,15 @@ it('says entries are kept forever when no period is set', async () => {
     expect(box.value).toBe('');
     expect(box.options.map(o => o.label)).toEqual(['Forever', '90 days', '1 year', '2 years', '7 years']);
     expect($(el, '.rh-retention-period .rh-stat-n').textContent).toBe('Forever');
-    expect($(el, '.rh-retention-period .rh-stat-l').textContent).toBe('Entries are kept forever. Nothing deletes them.');
+    expect($(el, '.rh-retention-period .rh-stat-l').textContent).toBe(
+        'Entries are kept forever. Nothing deletes them.'
+    );
     expect($(el, '.rh-retention-next .rh-stat-n').textContent).toBe('Off');
     expect($(el, '.rh-retention-status').textContent).toBe('No clean-up runs while entries are kept forever.');
     expect($(el, '.rh-retention-logging .rh-stat-n').textContent).toBe('0');
-    expect($(el, '.rh-retention-logging .rh-stat-l').textContent).toContain("Tick Log every change in a grid's settings");
+    expect($(el, '.rh-retention-logging .rh-stat-l').textContent).toContain(
+        "Tick Log every change in a grid's settings"
+    );
     expect($(el, '.rh-retention-save').disabled).toBe(true);
     expect($(el, '.rh-retention-last')).toBeNull();
     expect($(el, '.rh-retention-warning')).toBeNull();
@@ -89,12 +101,16 @@ it('says when the clean-up next runs, as whom, and what it last removed', async 
     const el = await mount();
     expect($(el, '.rh-retention-choice').value).toBe('365');
     expect($(el, '.rh-retention-period .rh-stat-n').textContent).toBe('1 year');
-    expect($(el, '.rh-retention-period .rh-stat-l').textContent).toBe('Entries older than this are deleted each night, for good.');
+    expect($(el, '.rh-retention-period .rh-stat-l').textContent).toBe(
+        'Entries older than this are deleted each night, for good.'
+    );
     expect($(el, '.rh-retention-next .rh-stat-n').textContent).toMatch(/\d/);
     const status = $(el, '.rh-retention-status').textContent;
     expect(status).toMatch(/^The nightly clean-up, next on .+, runs as Hannah Lowell\.$/);
     expect($(el, '.rh-retention-logging .rh-stat-n').textContent).toBe('2');
-    expect($(el, '.rh-retention-logging .rh-stat-l').textContent).toBe('grids log every change: Audit Test, Contact Cleanup.');
+    expect($(el, '.rh-retention-logging .rh-stat-l').textContent).toBe(
+        'grids log every change: Audit Test, Contact Cleanup.'
+    );
     expect($(el, '.rh-retention-last').textContent).toMatch(/^Last clean-up, .+: 12 entries removed\.$/);
     expect(status).not.toContain('Save to run it as you instead.');
     expect($(el, '.rh-retention-save').disabled).toBe(true);
@@ -124,7 +140,9 @@ it('warns when a period is set but no clean-up is scheduled', async () => {
 it('saves a period, waits for the deploy, and reads the status again', async () => {
     logRetention.mockResolvedValueOnce(FOREVER).mockResolvedValueOnce(YEAR);
     saveLogRetention.mockResolvedValue('0Af000000000001');
-    saveStatus.mockResolvedValueOnce({ status: 'pending', messages: [] }).mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
+    saveStatus
+        .mockResolvedValueOnce({ status: 'pending', messages: [] })
+        .mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
     const el = await mount();
     await choose(el, '365');
     expect($(el, '.rh-retention-save').disabled).toBe(false);
@@ -172,7 +190,9 @@ it('saves forever as a blank period', async () => {
 
 it('shows why a save was refused or failed', async () => {
     logRetention.mockResolvedValue(FOREVER);
-    saveLogRetention.mockRejectedValueOnce({ body: { message: 'The nightly clean-up runs as you, and you cannot delete Grid Edit Log entries.' } });
+    saveLogRetention.mockRejectedValueOnce({
+        body: { message: 'The nightly clean-up runs as you, and you cannot delete Grid Edit Log entries.' }
+    });
     const el = await mount();
     await choose(el, '90');
     $(el, '.rh-retention-save').click();
@@ -185,7 +205,9 @@ it('shows why a save was refused or failed', async () => {
     await settle();
     jest.advanceTimersByTime(1000);
     await settle();
-    expect($(el, '.rh-retention-save-error').textContent).toBe('The save did not go through. Rowhouse_Setting__mdt.Default: bad value');
+    expect($(el, '.rh-retention-save-error').textContent).toBe(
+        'The save did not go through. Rowhouse_Setting__mdt.Default: bad value'
+    );
 });
 
 it('cannot be changed without Customize Application', async () => {

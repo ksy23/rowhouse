@@ -11,7 +11,6 @@
  * expensive in a loop over a thousand-field object.
  */
 public with sharing class GridDescribe {
-
     private static final String NAMESPACE = namespacePrefix();
     private static Map<String, Schema.SObjectType> typeCache = new Map<String, Schema.SObjectType>();
     private static Map<String, Map<String, Schema.SObjectField>> fieldsByLocal = new Map<String, Map<String, Schema.SObjectField>>();
@@ -73,7 +72,10 @@ public with sharing class GridDescribe {
     /** The object of this exact name, or null when there is none. */
     private static Schema.SObjectType describedType(String name) {
         try {
-            List<Schema.DescribeSObjectResult> described = Schema.describeSObjects(new List<String>{ name }, SObjectDescribeOptions.DEFERRED);
+            List<Schema.DescribeSObjectResult> described = Schema.describeSObjects(
+                new List<String>{ name },
+                SObjectDescribeOptions.DEFERRED
+            );
             return described.isEmpty() ? null : described[0].getSObjectType();
         } catch (InvalidParameterValueException e) {
             return null; // "The sobject provided does not exist."
@@ -130,22 +132,54 @@ public with sharing class GridDescribe {
             return 'owner';
         }
         switch on field.getDescribe().getType() {
-            when BOOLEAN { return 'checkbox'; }
-            when CURRENCY { return 'currency'; }
-            when PERCENT { return 'percent'; }
-            when DOUBLE, INTEGER, LONG { return 'number'; }
-            when DATE { return 'date'; }
-            when DATETIME { return 'datetime'; }
-            when TIME { return 'time'; }
-            when PICKLIST { return 'picklist'; }
-            when MULTIPICKLIST { return 'multipicklist'; }
-            when EMAIL { return 'email'; }
-            when PHONE { return 'phone'; }
-            when URL { return 'url'; }
-            when TEXTAREA { return 'textarea'; }
-            when REFERENCE { return 'reference'; }
-            when ID { return 'id'; }
-            when else { return 'text'; }
+            when BOOLEAN {
+                return 'checkbox';
+            }
+            when CURRENCY {
+                return 'currency';
+            }
+            when PERCENT {
+                return 'percent';
+            }
+            when DOUBLE, INTEGER, LONG {
+                return 'number';
+            }
+            when DATE {
+                return 'date';
+            }
+            when DATETIME {
+                return 'datetime';
+            }
+            when TIME {
+                return 'time';
+            }
+            when PICKLIST {
+                return 'picklist';
+            }
+            when MULTIPICKLIST {
+                return 'multipicklist';
+            }
+            when EMAIL {
+                return 'email';
+            }
+            when PHONE {
+                return 'phone';
+            }
+            when URL {
+                return 'url';
+            }
+            when TEXTAREA {
+                return 'textarea';
+            }
+            when REFERENCE {
+                return 'reference';
+            }
+            when ID {
+                return 'id';
+            }
+            when else {
+                return 'text';
+            }
         }
     }
 
@@ -200,8 +234,11 @@ public with sharing class GridDescribe {
     // ------------------------------------------------- grouping and subtotals
 
     private static final Set<Schema.DisplayType> NUMBER_TYPES = new Set<Schema.DisplayType>{
-        Schema.DisplayType.DOUBLE, Schema.DisplayType.CURRENCY, Schema.DisplayType.PERCENT,
-        Schema.DisplayType.INTEGER, Schema.DisplayType.LONG
+        Schema.DisplayType.DOUBLE,
+        Schema.DisplayType.CURRENCY,
+        Schema.DisplayType.PERCENT,
+        Schema.DisplayType.INTEGER,
+        Schema.DisplayType.LONG
     };
 
     /**
@@ -234,10 +271,18 @@ public with sharing class GridDescribe {
         }
         Boolean isNumber = NUMBER_TYPES.contains(d.getType());
         switch on subtotal {
-            when 'sum', 'average' { return isNumber; }
-            when 'min', 'max' { return isNumber || isDateLike(d); }
-            when 'count' { return true; }
-            when else { return false; }
+            when 'sum', 'average' {
+                return isNumber;
+            }
+            when 'min', 'max' {
+                return isNumber || isDateLike(d);
+            }
+            when 'count' {
+                return true;
+            }
+            when else {
+                return false;
+            }
         }
     }
 
@@ -291,8 +336,9 @@ public with sharing class GridDescribe {
         }
         String hex = EncodingUtil.convertToHex(EncodingUtil.base64Decode(bitmap));
         for (Integer i = 0; i < controllingValues.size() && i / 8 * 2 + 1 < hex.length(); i++) {
-            Integer octet = '0123456789abcdef'.indexOf(hex.substring(i / 8 * 2, i / 8 * 2 + 1)) * 16
-                + '0123456789abcdef'.indexOf(hex.substring(i / 8 * 2 + 1, i / 8 * 2 + 2));
+            Integer octet =
+                '0123456789abcdef'.indexOf(hex.substring(i / 8 * 2, i / 8 * 2 + 1)) * 16 +
+                '0123456789abcdef'.indexOf(hex.substring(i / 8 * 2 + 1, i / 8 * 2 + 2));
             if ((octet & (128 >> Math.mod(i, 8))) != 0) {
                 valid.add(controllingValues[i]);
             }

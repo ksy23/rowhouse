@@ -27,11 +27,35 @@ const ROW2 = 'a01000000000002AAA';
 const ROW3 = 'a01000000000003AAA';
 const LONG = 'x'.repeat(1000); // the first 1,000 characters, as the server sends them
 const ROWS = [
-    { Id: ROW1, Name: 'One', When__c: '2026-10-01T14:30:00.000Z', At__c: '09:15:00.000Z', Notes__c: 'A short note', Summary__c: 'Short', Locked__c: 'Fixed' },
+    {
+        Id: ROW1,
+        Name: 'One',
+        When__c: '2026-10-01T14:30:00.000Z',
+        At__c: '09:15:00.000Z',
+        Notes__c: 'A short note',
+        Summary__c: 'Short',
+        Locked__c: 'Fixed'
+    },
     // The server shortened two long values in this row (TC-055).
-    { Id: ROW2, Name: 'Two', When__c: null, At__c: '17:30:00.000Z', Notes__c: LONG, Summary__c: 'y'.repeat(200), Locked__c: null,
-        _cut: ['Notes__c', 'Summary__c'] },
-    { Id: ROW3, Name: 'Three', When__c: null, At__c: null, Notes__c: 'Another note', Summary__c: 'Three', Locked__c: null }
+    {
+        Id: ROW2,
+        Name: 'Two',
+        When__c: null,
+        At__c: '17:30:00.000Z',
+        Notes__c: LONG,
+        Summary__c: 'y'.repeat(200),
+        Locked__c: null,
+        _cut: ['Notes__c', 'Summary__c']
+    },
+    {
+        Id: ROW3,
+        Name: 'Three',
+        When__c: null,
+        At__c: null,
+        Notes__c: 'Another note',
+        Summary__c: 'Three',
+        Locked__c: null
+    }
 ];
 
 let el;
@@ -105,7 +129,7 @@ describe('the new editors in the table', () => {
         expect(editor.required).toBe(false);
     });
 
-    it('a text area cell opens the text area editor, from Enter, with the field\'s length', async () => {
+    it("a text area cell opens the text area editor, from Enter, with the field's length", async () => {
         await mount();
         const td = await focusOn(ROW1, 'Notes__c');
         await key(td, 'Enter');
@@ -122,7 +146,9 @@ describe('the new editors in the table', () => {
 
     it('a double-click opens them too', async () => {
         await mount();
-        cell(ROW3, 'When__c').dispatchEvent(new MouseEvent('dblclick', { bubbles: true, composed: true, cancelable: true }));
+        cell(ROW3, 'When__c').dispatchEvent(
+            new MouseEvent('dblclick', { bubbles: true, composed: true, cancelable: true })
+        );
         await flush();
         expect($('c-cell-date-time[data-editor]')).not.toBeNull();
     });
@@ -184,7 +210,7 @@ describe('a value the server shortened (row._cut)', () => {
         expect(fetchFullText).toHaveBeenCalledWith({ configName: 'Test_Records', recordId: ROW2, field: 'Notes__c' });
     });
 
-    it('opens the text area editor whatever the column\'s type', async () => {
+    it("opens the text area editor whatever the column's type", async () => {
         await mount();
         const td = await focusOn(ROW2, 'Summary__c');
         await key(td, 'Enter');
@@ -212,7 +238,7 @@ describe('a value the server shortened (row._cut)', () => {
         expect($('c-cell-textarea[data-editor]')).toBeNull();
     });
 
-    it('with an unsaved edit, opens the column\'s own editor on the edit: there is nothing more to read', async () => {
+    it("with an unsaved edit, opens the column's own editor on the edit: there is nothing more to read", async () => {
         await mount({ drafts: { [ROW2]: { Summary__c: 'typed' } } });
         await editByPencil(ROW2, 'Summary__c');
         const editor = $('c-cell-text[data-editor]');
@@ -227,10 +253,15 @@ describe('a value the server shortened (row._cut)', () => {
         const whole = 'w'.repeat(4000);
         $('c-cell-textarea[data-editor]').dispatchEvent(new CustomEvent('commit', { detail: { value: whole } }));
         await flush();
-        expect(change.mock.calls[0][0].detail).toEqual({ recordId: ROW2, field: 'Notes__c', value: whole, originalValue: LONG });
+        expect(change.mock.calls[0][0].detail).toEqual({
+            recordId: ROW2,
+            field: 'Notes__c',
+            value: whole,
+            originalValue: LONG
+        });
     });
 
-    it('makes room for the text area under a shortened text cell, not a text box\'s', async () => {
+    it("makes room for the text area under a shortened text cell, not a text box's", async () => {
         await mount({ height: 600 });
         const scroller = $('[data-scroller]');
         scroller.getBoundingClientRect = () => ({ top: 100, bottom: 170, left: 0, right: 1200 });
@@ -255,7 +286,9 @@ describe('fill down from a shortened value', () => {
             { recordId: ROW3, field: 'At__c', value: ROWS[1].At__c, originalValue: null }
         ]);
         // What was filled is said first, then what was left out.
-        expect(announcement()).toBe('Filled down 1 cell. Notes not filled down: the text is too long to copy here. Edit it on its own.');
+        expect(announcement()).toBe(
+            'Filled down 1 cell. Notes not filled down: the text is too long to copy here. Edit it on its own.'
+        );
     });
 
     it('on one cell, Cmd+D under a shortened value fills nothing', async () => {
@@ -273,7 +306,9 @@ describe('fill down from a shortened value', () => {
         await key(cell(ROW2, 'Summary__c'), 'ArrowDown', { shiftKey: true });
         await key(cell(ROW3, 'Summary__c'), 'd', { metaKey: true });
         expect(changes).toEqual([]);
-        expect(announcement()).toBe('Notes, Summary not filled down: the text is too long to copy here. Edit it on its own.');
+        expect(announcement()).toBe(
+            'Notes, Summary not filled down: the text is too long to copy here. Edit it on its own.'
+        );
     });
 
     it('fills from a shortened value that has an unsaved edit: the edit is whole', async () => {
@@ -316,7 +351,12 @@ describe('the new editors in cards', () => {
         expect(editor.label).toBe(COLUMNS.find(c => c.field === field).label);
         editor.dispatchEvent(new CustomEvent('commit', { detail: { value: null } }));
         await flush();
-        expect(change.mock.calls[0][0].detail).toEqual({ recordId: ROW1, field, value: null, originalValue: ROWS[0][field] });
+        expect(change.mock.calls[0][0].detail).toEqual({
+            recordId: ROW1,
+            field,
+            value: null,
+            originalValue: ROWS[0][field]
+        });
     });
 
     it('a shortened value opens the text area editor, which reads the whole text', async () => {

@@ -28,7 +28,6 @@
  *   Limits.getLimitFetchCallsOnApexCursor() = 100 fetch calls per transaction.
  */
 public with sharing class GridDataService {
-
     public static final Integer DEFAULT_PAGE_SIZE = 200;
     public static final Integer MAX_PAGE_SIZE = 2000;
     @TestVisible
@@ -44,8 +43,12 @@ public with sharing class GridDataService {
     }
 
     private static final Set<Schema.DisplayType> SEARCHABLE_TYPES = new Set<Schema.DisplayType>{
-        Schema.DisplayType.STRING, Schema.DisplayType.EMAIL, Schema.DisplayType.PHONE,
-        Schema.DisplayType.URL, Schema.DisplayType.PICKLIST, Schema.DisplayType.COMBOBOX
+        Schema.DisplayType.STRING,
+        Schema.DisplayType.EMAIL,
+        Schema.DisplayType.PHONE,
+        Schema.DisplayType.URL,
+        Schema.DisplayType.PICKLIST,
+        Schema.DisplayType.COMBOBOX
     };
 
     public static GridPage fetchPage(GridRequest request) {
@@ -72,7 +75,8 @@ public with sharing class GridDataService {
             Schema.DescribeFieldResult d = f.getDescribe();
             // A lookup shows its record's name, read in the same query.
             String path = d.getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(f)
-                ? GridDescribe.namePath(f) : null;
+                ? GridDescribe.namePath(f)
+                : null;
             if (path != null && selectedLower.add(path.toLowerCase())) {
                 selectList.add(path);
                 page.namePaths.put(local, path);
@@ -106,16 +110,28 @@ public with sharing class GridDataService {
         soql += orderBy(objectType, request);
 
         String fingerprint = EncodingUtil.convertToHex(
-            Crypto.generateDigest('SHA-256', Blob.valueOf(soql + '|' + JSON.serialize(binds)))
-        ).left(16);
+                Crypto.generateDigest('SHA-256', Blob.valueOf(soql + '|' + JSON.serialize(binds)))
+            )
+            .left(16);
         List<Integer> position = readLocator(request.cursorLocator, fingerprint);
         Integer start = position[0];
-        Integer size = request.pageSize == null ? DEFAULT_PAGE_SIZE
+        Integer size = request.pageSize == null
+            ? DEFAULT_PAGE_SIZE
             : Math.max(1, Math.min(MAX_PAGE_SIZE, request.pageSize));
 
         Database.PaginationCursor cursor = openCursors.get(fingerprint);
-        if (cursor == null && start > 0 && continueOnHandedBack(page, request.cursorToken,
-                new List<Integer>{ start, size, position[1] }, fingerprint, objectType, selectedLower)) {
+        if (
+            cursor == null &&
+            start > 0 &&
+            continueOnHandedBack(
+                page,
+                request.cursorToken,
+                new List<Integer>{ start, size, position[1] },
+                fingerprint,
+                objectType,
+                selectedLower
+            )
+        ) {
             return page;
         }
         if (cursor == null) {
@@ -133,7 +149,11 @@ public with sharing class GridDataService {
      * the record page's filters. The rows, and the records a
      * delete of every match reaches (idsMatching), filter through here.
      */
-    private static List<String> conditionsFor(GridRequest request, Schema.SObjectType objectType, Map<String, Object> binds) {
+    private static List<String> conditionsFor(
+        GridRequest request,
+        Schema.SObjectType objectType,
+        Map<String, Object> binds
+    ) {
         List<String> conditions = new List<String>();
         if (request.recordIds != null) {
             conditions.add('Id IN :recordIds');
@@ -170,9 +190,12 @@ public with sharing class GridDataService {
             conditions.add('Id > :afterId');
             binds.put('afterId', afterId);
         }
-        String soql = 'SELECT Id FROM ' + GridDescribe.apiName(objectType)
-            + (conditions.isEmpty() ? '' : ' WHERE ' + String.join(conditions, ' AND '))
-            + ' ORDER BY Id LIMIT ' + Math.max(1, Math.min(MAX_PAGE_SIZE, max == null ? MAX_PAGE_SIZE : max));
+        String soql =
+            'SELECT Id FROM ' +
+            GridDescribe.apiName(objectType) +
+            (conditions.isEmpty() ? '' : ' WHERE ' + String.join(conditions, ' AND ')) +
+            ' ORDER BY Id LIMIT ' +
+            Math.max(1, Math.min(MAX_PAGE_SIZE, max == null ? MAX_PAGE_SIZE : max));
         List<Id> out = new List<Id>();
         for (SObject r : GridSecurity.query(soql, binds)) {
             out.add(r.Id);
@@ -185,9 +208,14 @@ public with sharing class GridDataService {
      * used (none, expired, another user's, not a cursor): the caller then opens
      * a fresh one. Throws when it CAN be used but belongs to another query.
      */
-    private static Boolean continueOnHandedBack(GridPage page, String token, List<Integer> window,
-                                                String fingerprint, Schema.SObjectType objectType,
-                                                Set<String> selectedLower) {
+    private static Boolean continueOnHandedBack(
+        GridPage page,
+        String token,
+        List<Integer> window,
+        String fingerprint,
+        Schema.SObjectType objectType,
+        Set<String> selectedLower
+    ) {
         Database.PaginationCursor cursor = GridSecurity.resumeCursor(token);
         if (cursor == null) {
             return false;
@@ -233,8 +261,12 @@ public with sharing class GridDataService {
      * "Salesforce System Error" that no catch block stops (measured).
      * A cursor this request opened is asked first, as before.
      */
-    private static void fill(GridPage page, Database.PaginationCursor cursor, List<Integer> window,
-                             String fingerprint) {
+    private static void fill(
+        GridPage page,
+        Database.PaginationCursor cursor,
+        List<Integer> window,
+        String fingerprint
+    ) {
         Integer start = window[0];
         Integer size = window[1];
         Integer total = window[2] == null ? cursor.getNumRecords() : window[2];
@@ -280,8 +312,12 @@ public with sharing class GridDataService {
      * search matches nothing. The rows and the subtotals both filter
      * through here, so a group's count is the count of its rows.
      */
-    public static String searchCondition(Schema.SObjectType objectType, List<String> fields, String term,
-                                         Map<String, Object> binds) {
+    public static String searchCondition(
+        Schema.SObjectType objectType,
+        List<String> fields,
+        String term,
+        Map<String, Object> binds
+    ) {
         if (String.isBlank(term)) {
             return null;
         }
@@ -298,7 +334,8 @@ public with sharing class GridDataService {
                 searchable.add(api);
             }
             String path = d.getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(f)
-                ? GridDescribe.namePath(f) : null;
+                ? GridDescribe.namePath(f)
+                : null;
             if (path != null && seen.add(path.toLowerCase())) {
                 searchable.add(path);
             }
@@ -329,8 +366,10 @@ public with sharing class GridDataService {
         Set<String> used = new Set<String>();
         for (String groupField : request.groupFields) {
             Schema.SObjectField f = sortableField(objectType, groupField, 'group');
-            String direction = groupField.equalsIgnoreCase(request.sortField) && 'desc'.equalsIgnoreCase(request.sortDirection)
-                ? 'DESC' : 'ASC';
+            String direction = groupField.equalsIgnoreCase(request.sortField) &&
+                'desc'.equalsIgnoreCase(request.sortDirection)
+                ? 'DESC'
+                : 'ASC';
             String path = namePathFor(f);
             if (path != null) {
                 keys.add(path + ' ' + direction + ' NULLS LAST');
@@ -363,7 +402,8 @@ public with sharing class GridDataService {
     /** The name path a lookup shows and sorts by, or null. */
     private static String namePathFor(Schema.SObjectField f) {
         return f.getDescribe().getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(f)
-            ? GridDescribe.namePath(f) : null;
+            ? GridDescribe.namePath(f)
+            : null;
     }
 
     /** 'ns__Account__r' to 'Account__r'; a name without a namespace is unchanged. */

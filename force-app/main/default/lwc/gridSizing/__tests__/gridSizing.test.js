@@ -48,7 +48,7 @@ describe('fitting a column to its values', () => {
         expect(w).toBeGreaterThan(130);
     });
 
-    it('never goes below the type\'s minimum, nor above the cap', () => {
+    it("never goes below the type's minimum, nor above the cap", () => {
         expect(fitWidth(['1'], { type: 'number' })).toBe(100);
         expect(fitWidth(['9'.repeat(80)], { type: 'number' })).toBe(FIT_CAP);
         expect(fitWidth([], { type: 'date' })).toBe(110);

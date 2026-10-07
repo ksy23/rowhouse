@@ -62,13 +62,13 @@ afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
 });
 
-describe('drawing the user\'s columns', () => {
-    it('draws the admin\'s columns without a choice', async () => {
+describe("drawing the user's columns", () => {
+    it("draws the admin's columns without a choice", async () => {
         await mount();
         expect(headers()).toEqual(['Name', 'Notes__c', 'Amount__c', 'Stage__c']);
     });
 
-    it('draws them in the user\'s order, without the hidden ones, and counts only those for ARIA', async () => {
+    it("draws them in the user's order, without the hidden ones, and counts only those for ARIA", async () => {
         await mount({ columnChoice: { order: ['Amount__c', 'Name', 'Notes__c', 'Stage__c'], hidden: ['Notes__c'] } });
         expect(headers()).toEqual(['Amount__c', 'Name', 'Stage__c']);
         expect($('[role="grid"]').getAttribute('aria-colcount')).toBe('3');
@@ -76,8 +76,11 @@ describe('drawing the user\'s columns', () => {
         expect(cells).toEqual(['Amount__c', 'Name', 'Stage__c']);
     });
 
-    it('freezes the first columns in the user\'s order', async () => {
-        await mount({ frozenColumns: 1, columnChoice: { order: ['Amount__c', 'Name', 'Notes__c', 'Stage__c'], hidden: [] } });
+    it("freezes the first columns in the user's order", async () => {
+        await mount({
+            frozenColumns: 1,
+            columnChoice: { order: ['Amount__c', 'Name', 'Notes__c', 'Stage__c'], hidden: [] }
+        });
         await frame(); // frozen columns pin the widths
         expect($$('thead th.rh-frozen').map(h => h.dataset.field)).toEqual(['Amount__c']);
     });
@@ -86,14 +89,19 @@ describe('drawing the user\'s columns', () => {
         await mount({ frozenColumns: 1 });
         await frame();
         expect($('table').style.width).not.toBe('');
-        await setConfig({ columnChoice: { order: ['Name', 'Notes__c', 'Amount__c', 'Stage__c'], hidden: ['Notes__c'] } });
+        await setConfig({
+            columnChoice: { order: ['Name', 'Notes__c', 'Amount__c', 'Stage__c'], hidden: ['Notes__c'] }
+        });
         expect($('table').style.width).toBe(''); // fills the grid again, pinned anew next frame
         await frame();
         expect($('table').style.width).not.toBe('');
     });
 
-    it('lays cards out in the user\'s order', async () => {
-        await mount({ layout: 'cards', columnChoice: { order: ['Notes__c', 'Name', 'Stage__c', 'Amount__c'], hidden: ['Amount__c'] } });
+    it("lays cards out in the user's order", async () => {
+        await mount({
+            layout: 'cards',
+            columnChoice: { order: ['Notes__c', 'Name', 'Stage__c', 'Amount__c'], hidden: ['Amount__c'] }
+        });
         const card = $('.rh-card, [data-card]') || $$('article')[0];
         expect(card.querySelector('h3').textContent).toBe('First note');
         expect([...card.querySelectorAll('dt')].map(n => n.textContent)).toEqual(['Name', 'Stage']);
@@ -101,7 +109,7 @@ describe('drawing the user\'s columns', () => {
 });
 
 describe('Hide column, in the column menu', () => {
-    it('is the last item of a column\'s menu', async () => {
+    it("is the last item of a column's menu", async () => {
         await mount();
         await openMenu('Notes__c');
         expect(menuLabels()[menuLabels().length - 1]).toBe('Hide column');
@@ -121,12 +129,14 @@ describe('Hide column, in the column menu', () => {
         expect(hideItem()).toBeNull();
     });
 
-    it('tells the parent, says so, and puts focus on the next column\'s header', async () => {
+    it("tells the parent, says so, and puts focus on the next column's header", async () => {
         await mount();
         await openMenu('Notes__c');
         hideItem().click();
         await flush();
-        expect(changes).toEqual([{ choice: { order: ['Name', 'Notes__c', 'Amount__c', 'Stage__c'], hidden: ['Notes__c'] } }]);
+        expect(changes).toEqual([
+            { choice: { order: ['Name', 'Notes__c', 'Amount__c', 'Stage__c'], hidden: ['Notes__c'] } }
+        ]);
         expect(el.shadowRoot.textContent).toContain('Notes hidden. Choose columns shows it again.');
         await setConfig({ columnChoice: changes[0].choice });
         expect(headers()).toEqual(['Name', 'Amount__c', 'Stage__c']);
@@ -190,7 +200,10 @@ describe('dragging a header', () => {
 describe('when the parent hides the focused column', () => {
     it('moves focus to the first column showing', async () => {
         await mount();
-        const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+        const key = (target, k) =>
+            target.dispatchEvent(
+                new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true })
+            );
         $(`td[data-row-id="${id(1)}"][data-field="Name"]`).focus();
         await flush();
         key(el.shadowRoot.activeElement, 'ArrowDown');
@@ -198,7 +211,9 @@ describe('when the parent hides the focused column', () => {
         key(el.shadowRoot.activeElement, 'ArrowRight');
         await flush();
         expect(el.shadowRoot.activeElement).toBe($(`td[data-row-id="${id(2)}"][data-field="Amount__c"]`));
-        await setConfig({ columnChoice: { order: ['Name', 'Notes__c', 'Amount__c', 'Stage__c'], hidden: ['Amount__c'] } });
+        await setConfig({
+            columnChoice: { order: ['Name', 'Notes__c', 'Amount__c', 'Stage__c'], hidden: ['Amount__c'] }
+        });
         expect($(`td[data-row-id="${id(2)}"][data-field="Name"]`).getAttribute('tabindex')).toBe('0');
     });
 });

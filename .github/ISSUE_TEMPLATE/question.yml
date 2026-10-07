@@ -1,0 +1,25 @@
+name: Question
+description: Ask how to do something with Rowhouse.
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The Grid Guide tab in the Rowhouse app answers most questions, with step-by-step tutorials. If it doesn't cover yours, ask here.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      placeholder: Show each Account's open Opportunities under it, and let users edit the Close Date.
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: The steps you took, and what happened.
+  - type: input
+    id: version
+    attributes:
+      label: Rowhouse version
+      description: Setup → Installed Packages.

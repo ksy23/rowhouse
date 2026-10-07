@@ -58,7 +58,9 @@ it.each(Object.keys(TITLES))('shows the %s tab its record, and links its part of
     const el = await mount(tab);
     expect($(el, '.rh-help-title').textContent).toBe(TITLES[tab]);
     expect($(el, '.rh-help-list')).not.toBeNull();
-    expect($(el, '.rh-help-open').getAttribute('href')).toBe(`/lightning/n/Rowhouse_Guide?c__page=configure&c__section=${SECTIONS[tab]}`);
+    expect($(el, '.rh-help-open').getAttribute('href')).toBe(
+        `/lightning/n/Rowhouse_Guide?c__page=configure&c__section=${SECTIONS[tab]}`
+    );
 });
 
 it('follows the tab as it changes, and takes an unknown tab as Grid', async () => {

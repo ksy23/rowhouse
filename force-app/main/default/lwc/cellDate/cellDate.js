@@ -127,8 +127,12 @@ export default class CellDate extends LightningElement {
     }
 
     get dropdownClass() {
-        return 'slds-datepicker slds-dropdown ' + (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left')
-            + (this.dropdownUp ? ' slds-dropdown_bottom' : '') + ' rh-calendar';
+        return (
+            'slds-datepicker slds-dropdown ' +
+            (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left') +
+            (this.dropdownUp ? ' slds-dropdown_bottom' : '') +
+            ' rh-calendar'
+        );
     }
 
     get monthLabel() {

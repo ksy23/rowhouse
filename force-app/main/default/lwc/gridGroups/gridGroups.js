@@ -53,7 +53,16 @@
 import LOCALE from '@salesforce/i18n/locale';
 import TIME_ZONE from '@salesforce/i18n/timeZone';
 import FIRST_DAY_OF_WEEK from '@salesforce/i18n/firstDayOfWeek';
-import { isBlank, isNumericType, formatValue, formatNumber, formatDate, formatCount, picklistLabel, compareValues } from 'c/gridFormat';
+import {
+    isBlank,
+    isNumericType,
+    formatValue,
+    formatNumber,
+    formatDate,
+    formatCount,
+    picklistLabel,
+    compareValues
+} from 'c/gridFormat';
 import { isLookup } from 'c/gridFields';
 import { firstDayFromSalesforce } from 'c/gridCalendar';
 
@@ -104,7 +113,8 @@ export function normalizeGrouping(grouping, columns) {
     (grouping || []).forEach(level => {
         const field = level && level.field;
         const column = byField.get(field);
-        if (!column || column.groupable !== true || out.length >= MAX_LEVELS || out.some(l => l.field === field)) return;
+        if (!column || column.groupable !== true || out.length >= MAX_LEVELS || out.some(l => l.field === field))
+            return;
         const unit = isDateColumn(column) ? (DATE_UNITS.includes(level.unit) ? level.unit : 'month') : null;
         out.push({ field, unit });
     });
@@ -114,7 +124,9 @@ export function normalizeGrouping(grouping, columns) {
 export function sameGrouping(a, b) {
     const x = a || [];
     const y = b || [];
-    return x.length === y.length && x.every((l, i) => l.field === y[i].field && (l.unit || null) === (y[i].unit || null));
+    return (
+        x.length === y.length && x.every((l, i) => l.field === y[i].field && (l.unit || null) === (y[i].unit || null))
+    );
 }
 
 // ------------------------------------------------------------------ keys
@@ -157,14 +169,15 @@ export function weekStart(isoDate, firstDay = FIRST_DAY) {
  */
 export function fiscalOf(isoDate, fiscal) {
     const day = isoDate.slice(0, 10);
-    const periods = (fiscal && Array.isArray(fiscal.periods)) ? fiscal.periods : [];
+    const periods = fiscal && Array.isArray(fiscal.periods) ? fiscal.periods : [];
     const within = type => periods.find(p => p && p.type === type && p.start <= day && day <= p.end);
     const year = within('year');
     if (year && year.name) {
         const quarter = within('quarter');
         return { year: String(year.name), quarter: quarter ? Number(quarter.number) : null };
     }
-    const start = fiscal && Number(fiscal.startMonth) >= 1 && Number(fiscal.startMonth) <= 12 ? Number(fiscal.startMonth) : 1;
+    const start =
+        fiscal && Number(fiscal.startMonth) >= 1 && Number(fiscal.startMonth) <= 12 ? Number(fiscal.startMonth) : 1;
     const y = Number(day.slice(0, 4));
     const month = Number(day.slice(5, 7));
     const startYear = month >= start ? y : y - 1;
@@ -244,7 +257,8 @@ export function groupLabel(key, column, unit, { sample, names, serverLabel } = {
         }
         if (unit === 'year') return key;
         if (unit === 'quarter') return `Q${key.slice(-1)} ${key.slice(0, 4)}`;
-        if (!monthFormat) monthFormat = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+        if (!monthFormat)
+            monthFormat = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric', timeZone: 'UTC' });
         return monthFormat.format(Date.UTC(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1));
     }
     if (isLookup(column.type)) return (names && names[key]) || serverLabel || key;
@@ -283,9 +297,21 @@ function hashPath(path) {
  * (rows loaded), count and values (the server's, or null), edited and unknown
  * (withDrafts), expanded, parentId }.
  */
-export function buildView(rows, levels, {
-    columns = [], keyField = 'Id', collapsed = {}, totals = null, names = {}, sortKeys = [], timeZone = TIME_ZONE, fiscal = null, order = null
-} = {}) {
+export function buildView(
+    rows,
+    levels,
+    {
+        columns = [],
+        keyField = 'Id',
+        collapsed = {},
+        totals = null,
+        names = {},
+        sortKeys = [],
+        timeZone = TIME_ZONE,
+        fiscal = null,
+        order = null
+    } = {}
+) {
     const headers = new Map();
     if (!levels || !levels.length) return { items: rows, headers };
     const byField = new Map(columns.map(c => [c.field, c]));
@@ -299,7 +325,16 @@ export function buildView(rows, levels, {
             path = i ? path + SEP + key : key;
             let child = node.children.get(key);
             if (!child) {
-                child = { key, path, level: i + 1, sample: row[level.field], children: new Map(), order: [], rows: [], loaded: 0 };
+                child = {
+                    key,
+                    path,
+                    level: i + 1,
+                    sample: row[level.field],
+                    children: new Map(),
+                    order: [],
+                    rows: [],
+                    loaded: 0
+                };
                 node.children.set(key, child);
                 node.order.push(child);
             }
@@ -327,7 +362,11 @@ export function buildView(rows, levels, {
                 key: g.key,
                 field: level.field,
                 unit: level.unit,
-                label: groupLabel(g.key, column, level.unit, { sample: g.sample, names, serverLabel: agg ? agg.label : null }),
+                label: groupLabel(g.key, column, level.unit, {
+                    sample: g.sample,
+                    names,
+                    serverLabel: agg ? agg.label : null
+                }),
                 columnLabel: column.label || column.field,
                 loaded: g.loaded,
                 count: agg ? agg.count : null,
@@ -405,7 +444,8 @@ function arrangeGroups(root, levels, cols, names, sortKeys, order, totals, allCo
 export function normalizeOrder(order, columns) {
     const by = order && typeof order.by === 'string' ? order.by : 'name';
     if (by === 'name') return { by: 'name', direction: 'asc' };
-    if (by !== 'count' && !(columns || []).some(c => c.field === by && c.subtotal)) return { by: 'name', direction: 'asc' };
+    if (by !== 'count' && !(columns || []).some(c => c.field === by && c.subtotal))
+        return { by: 'name', direction: 'asc' };
     return { by, direction: order.direction === 'asc' ? 'asc' : 'desc' };
 }
 
@@ -567,7 +607,14 @@ const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
  *
  *   options   { keyField, timeZone, fiscal, complete }
  */
-export function withDrafts(totals, rows, drafts, levels, columns, { keyField = 'Id', timeZone = TIME_ZONE, fiscal = null, complete = false } = {}) {
+export function withDrafts(
+    totals,
+    rows,
+    drafts,
+    levels,
+    columns,
+    { keyField = 'Id', timeZone = TIME_ZONE, fiscal = null, complete = false } = {}
+) {
     if (!totals || !drafts || !Object.keys(drafts).length) return totals;
     const subtotalled = (columns || []).filter(c => c.subtotal);
     if (!subtotalled.length) return totals;
@@ -621,7 +668,15 @@ export function withDrafts(totals, rows, drafts, levels, columns, { keyField = '
         });
     });
     if (!copies.size) return totals;
-    if (recompute.size) lowestAndHighest(copies, rows, drafts, subtotalled.filter(c => recompute.has(c.field)), pathsOf, keyField);
+    if (recompute.size)
+        lowestAndHighest(
+            copies,
+            rows,
+            drafts,
+            subtotalled.filter(c => recompute.has(c.field)),
+            pathsOf,
+            keyField
+        );
     const byPath = new Map(totals.byPath);
     copies.forEach((entry, path) => {
         if (path !== null) byPath.set(path, entry);
@@ -654,7 +709,13 @@ function applyEdit(v, kind, before, after, lost) {
         const key = kind === 'min' ? 'mn' : 'mx';
         const better = (x, y) => (kind === 'min' ? compareAgg(x, y) < 0 : compareAgg(x, y) > 0);
         if (now !== null && (isBlank(v[key]) || better(now, v[key]))) v[key] = now;
-        else if (was !== null && !isBlank(v[key]) && compareAgg(was, v[key]) === 0 && (now === null || better(was, now))) lost();
+        else if (
+            was !== null &&
+            !isBlank(v[key]) &&
+            compareAgg(was, v[key]) === 0 &&
+            (now === null || better(was, now))
+        )
+            lost();
     }
 }
 

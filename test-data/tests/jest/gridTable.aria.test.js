@@ -26,7 +26,9 @@ describe('ARIA grid structure', () => {
         await flushPromises();
         root = el.shadowRoot.querySelector('[role="grid"]');
     });
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('declares role="grid"', () => {
         expect(root).not.toBeNull();
@@ -40,9 +42,9 @@ describe('ARIA grid structure', () => {
 
         if (indexed.length) {
             const values = indexed.map(r => Number(r.getAttribute('aria-rowindex')));
-            expect(Math.min(...values)).toBe(1);                       // 1-based
+            expect(Math.min(...values)).toBe(1); // 1-based
             expect(values).toEqual([...values].sort((a, b) => a - b)); // increasing
-            expect(new Set(values).size).toBe(values.length);          // no duplicates
+            expect(new Set(values).size).toBe(values.length); // no duplicates
         }
     });
 
@@ -71,15 +73,16 @@ describe('ARIA grid structure', () => {
         const sortable = [...root.querySelectorAll('[role="columnheader"][data-sortable="true"]')];
         expect(sortable.length).toBeGreaterThan(0);
         const values = sortable.map(h => h.getAttribute('aria-sort'));
-        expect(values).not.toContain('other');   // what lightning-datatable emits
+        expect(values).not.toContain('other'); // what lightning-datatable emits
         values.forEach(v => expect(['none', 'ascending', 'descending']).toContain(v));
     });
 
     it('marks a sort direction on at most one column (HR-14)', async () => {
         el.shadowRoot.querySelector('[data-field="Text_Field__c"] .slds-th__action').click();
         await flushPromises();
-        const directed = [...root.querySelectorAll('[role="columnheader"]')]
-            .filter(h => ['ascending', 'descending'].includes(h.getAttribute('aria-sort')));
+        const directed = [...root.querySelectorAll('[role="columnheader"]')].filter(h =>
+            ['ascending', 'descending'].includes(h.getAttribute('aria-sort'))
+        );
         // ARIA cannot express multiple sort keys, so multi-column sort is not
         // fully representable. One column carries the announcement.
         expect(directed.length).toBeLessThanOrEqual(1);

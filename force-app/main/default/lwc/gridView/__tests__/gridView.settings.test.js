@@ -19,10 +19,16 @@ jest.mock('@salesforce/apex/GridController.save', () => ({ default: jest.fn() })
 jest.mock('@salesforce/apex/GridController.saveStatus', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.deleteRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 jest.mock('@salesforce/apex/GridController.runAction', () => ({ default: jest.fn() }), { virtual: true });
 // The dialog's editor never finishes loading here; the dialog has its own tests.
-jest.mock('@salesforce/apex/GridAdminController.readConfig', () => ({ default: jest.fn(() => new Promise(() => {})) }), { virtual: true });
+jest.mock(
+    '@salesforce/apex/GridAdminController.readConfig',
+    () => ({ default: jest.fn(() => new Promise(() => {})) }),
+    { virtual: true }
+);
 
 const DEFINITION = {
     name: 'Test_Records',
@@ -75,7 +81,7 @@ it('shows no gear without Rowhouse Grid Admin', async () => {
     expect($(el, '.rh-settings')).toBeNull();
 });
 
-it('opens this grid\'s settings from the gear', async () => {
+it("opens this grid's settings from the gear", async () => {
     const el = mount();
     await settle();
     const gear = $(el, '.rh-settings');
@@ -94,7 +100,11 @@ it('opens this grid\'s settings from the gear', async () => {
 it('waits for unsaved changes to be saved or cancelled', async () => {
     const el = mount();
     await settle();
-    $(el, 'c-grid-table').dispatchEvent(new CustomEvent('cellchange', { detail: { recordId: row(1).Id, field: 'Text_Field__c', value: 'changed', originalValue: 'x' } }));
+    $(el, 'c-grid-table').dispatchEvent(
+        new CustomEvent('cellchange', {
+            detail: { recordId: row(1).Id, field: 'Text_Field__c', value: 'changed', originalValue: 'x' }
+        })
+    );
     await settle();
     const gear = $(el, '.rh-settings');
     expect(gear.disabled).toBe(true);
@@ -107,7 +117,11 @@ it('opens the grid again after a save, with the configuration just saved', async
     expect(openGrid).toHaveBeenCalledTimes(1);
     $(el, '.rh-settings').dispatchEvent(new CustomEvent('click'));
     await settle();
-    getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, label: 'Renamed' }, diagnostics: false, canConfigure: true });
+    getGridConfig.mockResolvedValue({
+        definition: { ...DEFINITION, label: 'Renamed' },
+        diagnostics: false,
+        canConfigure: true
+    });
     $(el, 'c-grid-settings').dispatchEvent(new CustomEvent('saved', { detail: { configName: 'Test_Records' } }));
     await settle();
     expect($(el, 'c-grid-settings')).toBeNull();

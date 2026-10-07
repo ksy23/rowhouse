@@ -44,33 +44,42 @@
  * browser sizes its batches so none does.
  */
 public with sharing class GridImportService {
-
     /** One DML statement's worth, as for a save chunk. */
     public static final Integer MAX_ROWS = 200;
 
     /** What happened to one row, by its position in the batch. */
     public class RowResult {
-        @AuraEnabled public Integer index;
+        @AuraEnabled
+        public Integer index;
         /** The record updated, or the one created. */
-        @AuraEnabled public Id recordId;
-        @AuraEnabled public Boolean created = false;
-        @AuraEnabled public Boolean success = false;
+        @AuraEnabled
+        public Id recordId;
+        @AuraEnabled
+        public Boolean created = false;
+        @AuraEnabled
+        public Boolean success = false;
         /** Set when one field is at fault. */
-        @AuraEnabled public String fieldName;
-        @AuraEnabled public String message;
+        @AuraEnabled
+        public String fieldName;
+        @AuraEnabled
+        public String message;
         /** An update's fields as they were before it, for Undo import; null for a new record. */
-        @AuraEnabled public Map<String, Object> previous;
+        @AuraEnabled
+        public Map<String, Object> previous;
     }
 
     /** Records undoCreates deletes at most in one call: one DML statement's worth. */
     public static final Integer MAX_UNDO = 200;
 
     public class Result {
-        @AuraEnabled public List<RowResult> rows = new List<RowResult>();
+        @AuraEnabled
+        public List<RowResult> rows = new List<RowResult>();
         /** Fields not written because they are not editable columns of this grid. */
-        @AuraEnabled public List<String> rejectedFields = new List<String>();
+        @AuraEnabled
+        public List<String> rejectedFields = new List<String>();
         /** Fields not written because of field-level security. */
-        @AuraEnabled public List<String> strippedFields = new List<String>();
+        @AuraEnabled
+        public List<String> strippedFields = new List<String>();
     }
 
     public static Result importRows(String configName, List<Map<String, Object>> rows) {
@@ -78,7 +87,12 @@ public with sharing class GridImportService {
     }
 
     /** The same, in a child grid: new rows are created under the parent. */
-    public static Result importRows(String configName, List<Map<String, Object>> rows, String parentLink, String parentId) {
+    public static Result importRows(
+        String configName,
+        List<Map<String, Object>> rows,
+        String parentLink,
+        String parentId
+    ) {
         return importRows(configName, rows, parentLink, parentId, null);
     }
 
@@ -86,8 +100,13 @@ public with sharing class GridImportService {
      * The same, on a record page: new rows are created with the
      * configuration's Record Page Field pointing to the page's record.
      */
-    public static Result importRows(String configName, List<Map<String, Object>> rows, String parentLink, String parentId,
-                                    String pageRecordId) {
+    public static Result importRows(
+        String configName,
+        List<Map<String, Object>> rows,
+        String parentLink,
+        String parentId,
+        String pageRecordId
+    ) {
         return importRows(configName, rows, parentLink, parentId, pageRecordId, null);
     }
 
@@ -95,8 +114,14 @@ public with sharing class GridImportService {
      * The same, matching records by an External Id column of the grid
      * (matchField) instead of the record Id.
      */
-    public static Result importRows(String configName, List<Map<String, Object>> rows, String parentLink, String parentId,
-                                    String pageRecordId, String matchField) {
+    public static Result importRows(
+        String configName,
+        List<Map<String, Object>> rows,
+        String parentLink,
+        String parentId,
+        String pageRecordId,
+        String matchField
+    ) {
         Result result = new Result();
         if (rows == null || rows.isEmpty()) {
             return result; // nothing asked, no DML
@@ -110,7 +135,9 @@ public with sharing class GridImportService {
             scope = GridFilters.recordScope(def, pageRecordId);
         }
         if (rows.size() > MAX_ROWS) {
-            throw new GridException('Import at most ' + MAX_ROWS + ' rows at a time; this request has ' + rows.size() + '.');
+            throw new GridException(
+                'Import at most ' + MAX_ROWS + ' rows at a time; this request has ' + rows.size() + '.'
+            );
         }
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         Set<String> allowed = def.editableFields();
@@ -143,8 +170,12 @@ public with sharing class GridImportService {
                     keysSeen.put(key, i);
                     List<Id> found = matched.get(key);
                     if (found != null && found.size() > 1) {
-                        r.message = 'More than one record has ' + String.valueOf(valueIn(row, matchKey)) + ' as its '
-                            + match.getDescribe().getLabel() + '.';
+                        r.message =
+                            'More than one record has ' +
+                            String.valueOf(valueIn(row, matchKey)) +
+                            ' as its ' +
+                            match.getDescribe().getLabel() +
+                            '.';
                         continue;
                     }
                     if (found != null) {
@@ -206,14 +237,20 @@ public with sharing class GridImportService {
         if (!inserts.isEmpty()) {
             GridSecurity.requireCreate(objectType);
             if (scope != null && !GridSecurity.canSetOnCreate(scope.field)) {
-                throw new GridException('You cannot set ' + GridDescribe.localName(scope.field)
-                    + ' on new records, so this grid cannot create them.');
+                throw new GridException(
+                    'You cannot set ' +
+                        GridDescribe.localName(scope.field) +
+                        ' on new records, so this grid cannot create them.'
+                );
             }
         }
         GridAudit.Context audit = updates.isEmpty() && inserts.isEmpty() ? null : GridAudit.start(def); // throws if the user cannot log
         if (audit != null && cellsIn(updates) + inserts.size() > GridAudit.MAX_ENTRIES) {
-            throw new GridException('This batch would write more than ' + GridAudit.MAX_ENTRIES
-                + ' log entries; import fewer rows or columns at a time. Nothing was imported.');
+            throw new GridException(
+                'This batch would write more than ' +
+                    GridAudit.MAX_ENTRIES +
+                    ' log entries; import fewer rows or columns at a time. Nothing was imported.'
+            );
         }
         Set<String> stripped = new Set<String>();
         List<Grid_Edit_Log__c> entries = new List<Grid_Edit_Log__c>();
@@ -247,7 +284,11 @@ public with sharing class GridImportService {
      * left out of the update, and a changed one fails its row. The two lists
      * are changed in place and stay in step.
      */
-    private static void dropShortenedCopies(List<SObject> updates, List<RowResult> updated, Schema.SObjectType objectType) {
+    private static void dropShortenedCopies(
+        List<SObject> updates,
+        List<RowResult> updated,
+        Schema.SObjectType objectType
+    ) {
         if (updates.isEmpty()) {
             return;
         }
@@ -288,7 +329,11 @@ public with sharing class GridImportService {
     // ------------------------------------------------------------- matching
 
     /** The External Id column to match by, checked against the grid; null when the request names none. */
-    private static Schema.SObjectField matchFieldOf(GridConfig.Definition def, Schema.SObjectType objectType, String matchField) {
+    private static Schema.SObjectField matchFieldOf(
+        GridConfig.Definition def,
+        Schema.SObjectType objectType,
+        String matchField
+    ) {
         if (String.isBlank(matchField)) {
             return null;
         }
@@ -324,8 +369,12 @@ public with sharing class GridImportService {
     }
 
     /** The records the batch's values match, in user mode: { key: [Ids] }, two Ids for a value two records share. */
-    private static Map<String, List<Id>> idsByKey(List<Map<String, Object>> rows, Schema.SObjectField match, String matchKey,
-                                                  Schema.SObjectType objectType) {
+    private static Map<String, List<Id>> idsByKey(
+        List<Map<String, Object>> rows,
+        Schema.SObjectField match,
+        String matchKey,
+        Schema.SObjectType objectType
+    ) {
         Map<String, List<Id>> out = new Map<String, List<Id>>();
         Set<String> values = new Set<String>();
         for (Map<String, Object> row : rows) {
@@ -338,7 +387,10 @@ public with sharing class GridImportService {
             return out;
         }
         Schema.DisplayType t = match.getDescribe().getType();
-        Boolean numeric = t == Schema.DisplayType.DOUBLE || t == Schema.DisplayType.INTEGER || t == Schema.DisplayType.LONG;
+        Boolean numeric =
+            t == Schema.DisplayType.DOUBLE ||
+            t == Schema.DisplayType.INTEGER ||
+            t == Schema.DisplayType.LONG;
         Object bound = values;
         if (numeric) {
             List<Decimal> numbers = new List<Decimal>();
@@ -352,8 +404,12 @@ public with sharing class GridImportService {
             bound = numbers;
         }
         String api = GridDescribe.apiName(match);
-        for (SObject r : GridSecurity.query('SELECT Id, ' + api + ' FROM ' + GridDescribe.apiName(objectType)
-                + ' WHERE ' + api + ' IN :keys', new Map<String, Object>{ 'keys' => bound })) {
+        for (
+            SObject r : GridSecurity.query(
+                'SELECT Id, ' + api + ' FROM ' + GridDescribe.apiName(objectType) + ' WHERE ' + api + ' IN :keys',
+                new Map<String, Object>{ 'keys' => bound }
+            )
+        ) {
             String key = keyOf(r.get(match));
             if (!out.containsKey(key)) {
                 out.put(key, new List<Id>());
@@ -378,8 +434,12 @@ public with sharing class GridImportService {
                 }
                 Object value = old.get(key);
                 String local = GridDescribe.localName(GridDescribe.field(writing[i].getSObjectType(), key)); // HR-4
-                previous.put(local, value instanceof Decimal ? (Object) ((Decimal) value).toPlainString()
-                    : value instanceof Time ? (Object) timeText((Time) value) : value);
+                previous.put(
+                    local,
+                    value instanceof Decimal
+                        ? (Object) ((Decimal) value).toPlainString()
+                        : value instanceof Time ? (Object) timeText((Time) value) : value
+                );
             }
             r.previous = previous;
         }
@@ -387,8 +447,14 @@ public with sharing class GridImportService {
 
     /** A Time as the grid's editors and the save path read it: "17:30:00.000Z". */
     private static String timeText(Time t) {
-        return String.valueOf(t.hour()).leftPad(2, '0') + ':' + String.valueOf(t.minute()).leftPad(2, '0') + ':'
-            + String.valueOf(t.second()).leftPad(2, '0') + '.' + String.valueOf(t.millisecond()).leftPad(3, '0') + 'Z';
+        return String.valueOf(t.hour()).leftPad(2, '0') +
+            ':' +
+            String.valueOf(t.minute()).leftPad(2, '0') +
+            ':' +
+            String.valueOf(t.second()).leftPad(2, '0') +
+            '.' +
+            String.valueOf(t.millisecond()).leftPad(3, '0') +
+            'Z';
     }
 
     // ------------------------------------------------------------- undoing
@@ -412,27 +478,45 @@ public with sharing class GridImportService {
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         GridSecurity.requireDelete(objectType);
         if (recordIds.size() > MAX_UNDO) {
-            throw new GridException('Undo at most ' + MAX_UNDO + ' records at a time; this request has ' + recordIds.size() + '.');
+            throw new GridException(
+                'Undo at most ' + MAX_UNDO + ' records at a time; this request has ' + recordIds.size() + '.'
+            );
         }
         Set<Id> asked = new Set<Id>();
         for (Id recordId : recordIds) {
             if (recordId == null || recordId.getSObjectType() != objectType) {
-                throw new GridException('Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType) + '. Nothing was deleted.');
+                throw new GridException(
+                    'Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType) + '. Nothing was deleted.'
+                );
             }
             asked.add(recordId);
         }
         Map<String, Object> binds = new Map<String, Object>{
-            'ids' => asked, 'me' => UserInfo.getUserId(), 'since' => System.now().addDays(-1)
+            'ids' => asked,
+            'me' => UserInfo.getUserId(),
+            'since' => System.now().addDays(-1)
         };
-        Set<Id> mine = new Map<Id, SObject>(GridSecurity.query('SELECT Id FROM ' + GridDescribe.apiName(objectType)
-            + ' WHERE Id IN :ids AND CreatedById = :me AND CreatedDate >= :since', binds)).keySet();
+        Set<Id> mine = new Map<Id, SObject>(
+                GridSecurity.query(
+                    'SELECT Id FROM ' +
+                        GridDescribe.apiName(objectType) +
+                        ' WHERE Id IN :ids AND CreatedById = :me AND CreatedDate >= :since',
+                    binds
+                )
+            )
+            .keySet();
         List<Id> ids = new List<Id>();
         for (Id recordId : asked) {
             if (mine.contains(recordId)) {
                 ids.add(recordId);
             } else {
-                result.errors.add(new GridSaveError(recordId, null,
-                    'Not deleted: it is not a record you created in the last day, or it is already deleted.'));
+                result.errors.add(
+                    new GridSaveError(
+                        recordId,
+                        null,
+                        'Not deleted: it is not a record you created in the last day, or it is already deleted.'
+                    )
+                );
             }
         }
         if (ids.isEmpty()) {
@@ -465,7 +549,11 @@ public with sharing class GridImportService {
         return n;
     }
 
-    private static void collectRemoved(SObjectAccessDecision decision, Schema.SObjectType objectType, Set<String> names) {
+    private static void collectRemoved(
+        SObjectAccessDecision decision,
+        Schema.SObjectType objectType,
+        Set<String> names
+    ) {
         for (Set<String> fields : decision.getRemovedFields().values()) {
             for (String f : fields) {
                 names.add(GridDescribe.localName(GridDescribe.field(objectType, f))); // HR-4

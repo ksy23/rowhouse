@@ -33,9 +33,28 @@ jest.mock('lightning/navigation', () => {
 });
 
 const ID = 'a01000000000003AAA';
-const BACK = { type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Dev' }, state: { c__grid: 'Test_Records' } };
-const NOTE = { name: 'Add_Note', label: 'Add a note', flowName: 'Rowhouse_Test_Screen_Flow', inputName: 'recordId', onRow: true, onSelection: true };
-const rowState = (extra = {}) => ({ c__grid: 'Test_Records', c__action: 'Add_Note', c__on: 'row', c__token: 'tok1', c__ids: ID, c__back: JSON.stringify(BACK), ...extra });
+const BACK = {
+    type: 'standard__navItemPage',
+    attributes: { apiName: 'Rowhouse_Dev' },
+    state: { c__grid: 'Test_Records' }
+};
+const NOTE = {
+    name: 'Add_Note',
+    label: 'Add a note',
+    flowName: 'Rowhouse_Test_Screen_Flow',
+    inputName: 'recordId',
+    onRow: true,
+    onSelection: true
+};
+const rowState = (extra = {}) => ({
+    c__grid: 'Test_Records',
+    c__action: 'Add_Note',
+    c__on: 'row',
+    c__token: 'tok1',
+    c__ids: ID,
+    c__back: JSON.stringify(BACK),
+    ...extra
+});
 
 const settle = async () => {
     for (let i = 0; i < 10; i++) {
@@ -68,7 +87,7 @@ afterEach(() => {
 });
 
 describe('running the flow', () => {
-    it('asks the server which flow, and runs it with the row\'s Id under the action\'s label', async () => {
+    it("asks the server which flow, and runs it with the row's Id under the action's label", async () => {
         await mount(rowState());
         expect(screenFlow).toHaveBeenCalledWith({ configName: 'Test_Records', actionName: 'Add_Note' });
         expect($('h1').textContent).toBe('Add a note');
@@ -89,7 +108,11 @@ describe('running the flow', () => {
 
     it('shows a spinner while it asks', async () => {
         let release;
-        screenFlow.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+        screenFlow.mockReturnValueOnce(
+            new Promise(resolve => {
+                release = resolve;
+            })
+        );
         await mount(rowState());
         expect($('lightning-spinner')).not.toBeNull();
         expect($('lightning-flow')).toBeNull();
@@ -120,7 +143,7 @@ describe('going back to the grid', () => {
         expect(mockNavigate).toHaveBeenCalledWith({ ...BACK, state: { ...BACK.state, c__flowDone: 'tok1' } });
     });
 
-    it('goes back in the browser\'s history when it was not told the way', async () => {
+    it("goes back in the browser's history when it was not told the way", async () => {
         const back = jest.spyOn(window.history, 'back').mockImplementation(() => {});
         await mount(rowState({ c__back: undefined }));
         $('.rh-flow-cancel').click();
@@ -132,7 +155,9 @@ describe('going back to the grid', () => {
 
 describe('what it will not run', () => {
     it('says why when the grid has no such screen flow for this user', async () => {
-        screenFlow.mockRejectedValue({ body: { message: 'This grid has no screen flow called "Nope" that you can run.' } });
+        screenFlow.mockRejectedValue({
+            body: { message: 'This grid has no screen flow called "Nope" that you can run.' }
+        });
         await mount(rowState({ c__action: 'Nope' }));
         expect($('.rh-flow-error').textContent).toContain('no screen flow called "Nope"');
         expect($('lightning-flow')).toBeNull();

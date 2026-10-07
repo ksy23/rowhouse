@@ -9,7 +9,8 @@ const languageOptions = require('@salesforce/eslint-config-lwc/lib/defaults');
 const plugin = require('..');
 
 const tester = new RuleTester({ languageOptions });
-const cls = body => `import { LightningElement, api, track } from 'lwc';\nexport default class X extends LightningElement {\n${body}\n}`;
+const cls = body =>
+    `import { LightningElement, api, track } from 'lwc';\nexport default class X extends LightningElement {\n${body}\n}`;
 
 tester.run('no-clone-in-api-setter', plugin.rules['no-clone-in-api-setter'], {
     valid: [
@@ -23,7 +24,10 @@ tester.run('no-clone-in-api-setter', plugin.rules['no-clone-in-api-setter'], {
         { code: cls('@api get rows() { return this._r; } set rows(v) { this._r = Array.from(v); }'), errors: 1 },
         { code: cls('@api get cfg() { return this._c; } set cfg(v) { this._c = Object.assign({}, v); }'), errors: 1 },
         { code: cls('@api get cfg() { return this._c; } set cfg(v) { this._c = { ...v }; }'), errors: 1 },
-        { code: cls('@api get cfg() { return this._c; } set cfg(v) { this._c = JSON.parse(JSON.stringify(v)); }'), errors: 1 },
+        {
+            code: cls('@api get cfg() { return this._c; } set cfg(v) { this._c = JSON.parse(JSON.stringify(v)); }'),
+            errors: 1
+        },
         { code: cls('@api get cfg() { return this._c; } set cfg(v) { this._c = structuredClone(v); }'), errors: 1 }
     ]
 });

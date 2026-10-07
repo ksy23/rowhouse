@@ -24,7 +24,6 @@
  * configuration and the user's access, in user mode: the filter only narrows.
  */
 public with sharing class GridNesting {
-
     /** A top-level grid, its children and theirs; deeper tabs are not offered. */
     public static final Integer MAX_LEVELS = 3;
     /** Child total columns a grid may have: each is a query for every page of rows. */
@@ -34,7 +33,11 @@ public with sharing class GridNesting {
     /** A child grid's height, at least: the same floor as a grid's own Height. */
     public static final Integer MIN_HEIGHT = 160;
     private static final Map<String, String> TOTAL_NAMES = new Map<String, String>{
-        'sum' => 'Sum', 'average' => 'Average', 'min' => 'Lowest', 'max' => 'Highest', 'count' => 'Count'
+        'sum' => 'Sum',
+        'average' => 'Average',
+        'min' => 'Lowest',
+        'max' => 'Highest',
+        'count' => 'Count'
     };
 
     /**
@@ -64,8 +67,11 @@ public with sharing class GridNesting {
     }
 
     /** The tabs a configuration lists, in Sort Order; one that cannot work is skipped with a warning. */
-    public static List<GridConfig.Child> childrenOf(Grid_Configuration__mdt cfg, Schema.SObjectType parentType,
-                                                    List<String> warnings) {
+    public static List<GridConfig.Child> childrenOf(
+        Grid_Configuration__mdt cfg,
+        Schema.SObjectType parentType,
+        List<String> warnings
+    ) {
         return childrenFrom(linksOf(cfg), parentType, warnings);
     }
 
@@ -85,8 +91,11 @@ public with sharing class GridNesting {
      * tab), in Sort Order, leaving out any marked Inactive; one that
      * cannot work is skipped with a warning.
      */
-    public static List<GridConfig.Child> childrenFrom(List<Grid_Child__mdt> records, Schema.SObjectType parentType,
-                                                      List<String> warnings) {
+    public static List<GridConfig.Child> childrenFrom(
+        List<Grid_Child__mdt> records,
+        Schema.SObjectType parentType,
+        List<String> warnings
+    ) {
         List<Grid_Child__mdt> links = new List<Grid_Child__mdt>();
         for (Grid_Child__mdt link : records) {
             if (link.Inactive__c != true) {
@@ -108,7 +117,8 @@ public with sharing class GridNesting {
     /** Can this user open the tab? Its object and its relationship field must be readable. */
     public static Boolean canOpen(GridConfig.Child c) {
         Schema.SObjectType childType = GridDescribe.typeFor(c.objectApiName);
-        return GridSecurity.canRead(childType) && GridSecurity.canRead(GridDescribe.field(childType, c.relationshipField));
+        return GridSecurity.canRead(childType) &&
+            GridSecurity.canRead(GridDescribe.field(childType, c.relationshipField));
     }
 
     /**
@@ -131,15 +141,18 @@ public with sharing class GridNesting {
         }
         Grid_Configuration__mdt childCfg = configFor(link.Child_Configuration__c, link, 'Child Configuration');
         if (childCfg.DeveloperName != def.name) {
-            throw new GridException('Grid Child Table ' + link.DeveloperName + ' does not show the grid ' + def.name + '.');
+            throw new GridException(
+                'Grid Child Table ' + link.DeveloperName + ' does not show the grid ' + def.name + '.'
+            );
         }
         Grid_Configuration__mdt parentCfg = configFor(link.Grid_Configuration__c, link, 'Grid Configuration');
         Schema.SObjectType parentType = GridDescribe.typeFor(parentCfg.Object_API_Name__c);
         Schema.SObjectType childType = GridDescribe.typeFor(def.objectApiName);
         Schema.SObjectField f = relationshipField(link, childType, parentType);
         if (!GridSecurity.canRead(f)) {
-            throw new GridException('You do not have access to ' + GridDescribe.localName(childType) + '.'
-                + GridDescribe.localName(f) + '.');
+            throw new GridException(
+                'You do not have access to ' + GridDescribe.localName(childType) + '.' + GridDescribe.localName(f) + '.'
+            );
         }
         Id recordId;
         try {
@@ -217,10 +230,19 @@ public with sharing class GridNesting {
                 List<String> conditions = new List<String>{ fieldApi + ' IN :ids' };
                 conditions.addAll(GridFilters.clauses(childType, filters, binds));
                 // The field comes from describe, the Ids and values are bound (HR-6).
-                for (SObject r : GridSecurity.query(
-                        'SELECT ' + fieldApi + ' p, COUNT(Id) n FROM ' + GridDescribe.apiName(childType)
-                        + ' WHERE ' + String.join(conditions, ' AND ') + ' GROUP BY ' + fieldApi,
-                        binds)) {
+                for (
+                    SObject r : GridSecurity.query(
+                        'SELECT ' +
+                            fieldApi +
+                            ' p, COUNT(Id) n FROM ' +
+                            GridDescribe.apiName(childType) +
+                            ' WHERE ' +
+                            String.join(conditions, ' AND ') +
+                            ' GROUP BY ' +
+                            fieldApi,
+                        binds
+                    )
+                ) {
                     Id parent = (Id) r.get('p');
                     if (byParent.containsKey(parent)) {
                         byParent.get(parent).put(tab.name, (Integer) r.get('n'));
@@ -271,7 +293,10 @@ public with sharing class GridNesting {
         c.label = String.isNotBlank(link.Tab_Label__c) ? link.Tab_Label__c.trim() : childCfg.MasterLabel;
         c.objectApiName = GridDescribe.localName(childType);
         c.relationshipField = GridDescribe.localName(f);
-        c.height = link.Height_Px__c == null || link.Height_Px__c <= 0 ? null : Math.max(MIN_HEIGHT, link.Height_Px__c.intValue());
+        c.height = link.Height_Px__c == null ||
+            link.Height_Px__c <= 0
+            ? null
+            : Math.max(MIN_HEIGHT, link.Height_Px__c.intValue());
         return c;
     }
 
@@ -284,8 +309,13 @@ public with sharing class GridNesting {
      * the total fits (blank only for a count of records). Throws a
      * GridException in an admin's terms.
      */
-    public static ChildTotal childTotalOf(String tableName, String kindName, String fieldName, Schema.SObjectType parentType,
-                                          List<Grid_Child__mdt> links) {
+    public static ChildTotal childTotalOf(
+        String tableName,
+        String kindName,
+        String fieldName,
+        Schema.SObjectType parentType,
+        List<Grid_Child__mdt> links
+    ) {
         String wanted = tableName == null ? '' : tableName.trim();
         Grid_Child__mdt link = null;
         for (Grid_Child__mdt l : links == null ? new List<Grid_Child__mdt>() : links) {
@@ -315,7 +345,9 @@ public with sharing class GridNesting {
         t.kind = kind;
         if (String.isBlank(fieldName)) {
             if (kind != 'count') {
-                throw new GridException('a ' + TOTAL_NAMES.get(kind).toLowerCase() + ' needs the Child Field to work out.');
+                throw new GridException(
+                    'a ' + TOTAL_NAMES.get(kind).toLowerCase() + ' needs the Child Field to work out.'
+                );
             }
             t.type = 'number';
             t.scale = 0;
@@ -330,12 +362,21 @@ public with sharing class GridNesting {
         }
         Schema.DescribeFieldResult d = f.getDescribe();
         if (!GridDescribe.subtotalFits(kind, d)) {
-            throw new GridException('a ' + TOTAL_NAMES.get(kind).toLowerCase() + ' does not apply to ' + d.getLabel()
-                + ', a ' + GridDescribe.cellType(f) + ' field.');
+            throw new GridException(
+                'a ' +
+                    TOTAL_NAMES.get(kind).toLowerCase() +
+                    ' does not apply to ' +
+                    d.getLabel() +
+                    ', a ' +
+                    GridDescribe.cellType(f) +
+                    ' field.'
+            );
         }
         t.field = d.getLocalName();
         t.type = kind == 'count' ? 'number' : GridDescribe.cellType(f);
-        t.scale = kind == 'count' ? 0 : (kind == 'average' && t.type != 'currency' ? Math.max(2, d.getScale()) : d.getScale());
+        t.scale = kind == 'count'
+            ? 0
+            : (kind == 'average' && t.type != 'currency' ? Math.max(2, d.getScale()) : d.getScale());
         t.defaultLabel = tabLabel + ': ' + TOTAL_NAMES.get(kind) + ' of ' + d.getLabel();
         return t;
     }
@@ -343,9 +384,9 @@ public with sharing class GridNesting {
     /** Can this user see a child total? The child records, their link to the row, and the field totalled. */
     public static Boolean canTotal(ChildTotal t) {
         Schema.SObjectType childType = GridDescribe.typeFor(t.objectApiName);
-        return GridSecurity.canRead(childType)
-            && GridSecurity.canRead(GridDescribe.field(childType, t.relationshipField))
-            && (t.field == null || GridSecurity.canRead(GridDescribe.field(childType, t.field)));
+        return GridSecurity.canRead(childType) &&
+            GridSecurity.canRead(GridDescribe.field(childType, t.relationshipField)) &&
+            (t.field == null || GridSecurity.canRead(GridDescribe.field(childType, t.field)));
     }
 
     /**
@@ -427,7 +468,12 @@ public with sharing class GridNesting {
         }
         Map<Id, Object> out = new Map<Id, Object>();
         // The fields come from describe, the Ids and values are bound (HR-6).
-        for (SObject r : GridSecurity.query('SELECT ' + rel + ' p, ' + measure + ' v' + source + ' GROUP BY ' + rel, binds)) {
+        for (
+            SObject r : GridSecurity.query(
+                'SELECT ' + rel + ' p, ' + measure + ' v' + source + ' GROUP BY ' + rel,
+                binds
+            )
+        ) {
             out.put((Id) r.get('p'), plain(r.get('v')));
         }
         return out;
@@ -460,8 +506,11 @@ public with sharing class GridNesting {
     }
 
     /** The child object's field that points to the parent's object. Throws in an admin's terms. */
-    private static Schema.SObjectField relationshipField(Grid_Child__mdt link, Schema.SObjectType childType,
-                                                         Schema.SObjectType parentType) {
+    private static Schema.SObjectField relationshipField(
+        Grid_Child__mdt link,
+        Schema.SObjectType childType,
+        Schema.SObjectType parentType
+    ) {
         String childName = GridDescribe.localName(childType);
         if (String.isBlank(link.Relationship_Field__c)) {
             throw new GridException('it has no Relationship Field.');
@@ -474,8 +523,14 @@ public with sharing class GridNesting {
         }
         Schema.DescribeFieldResult d = f.getDescribe();
         if (d.getType() != Schema.DisplayType.REFERENCE || !d.getReferenceTo().contains(parentType)) {
-            throw new GridException(childName + '.' + d.getLocalName() + ' does not point to '
-                + GridDescribe.localName(parentType) + ' records.');
+            throw new GridException(
+                childName +
+                    '.' +
+                    d.getLocalName() +
+                    ' does not point to ' +
+                    GridDescribe.localName(parentType) +
+                    ' records.'
+            );
         }
         return f;
     }

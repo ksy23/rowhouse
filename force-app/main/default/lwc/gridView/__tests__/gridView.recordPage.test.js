@@ -24,7 +24,9 @@ jest.mock('@salesforce/apex/GridController.save', () => ({ default: jest.fn() })
 jest.mock('@salesforce/apex/GridController.saveStatus', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.deleteRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 jest.mock('@salesforce/apex/GridController.runAction', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn() }), { virtual: true });
@@ -43,7 +45,15 @@ const DEFINITION = {
     allowCsvExport: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
-        { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, sortable: true, scale: 2, subtotal: 'sum' }
+        {
+            field: 'Amount__c',
+            label: 'Amount',
+            type: 'currency',
+            editable: true,
+            sortable: true,
+            scale: 2,
+            subtotal: 'sum'
+        }
     ]
 };
 const RECORD = '001000000000001AAA';
@@ -73,7 +83,8 @@ function mount({ configName = 'Account_Deals', recordId, parent } = {}) {
     return el;
 }
 
-const withDefinition = extra => getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, ...extra }, diagnostics: false });
+const withDefinition = extra =>
+    getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, ...extra }, diagnostics: false });
 
 beforeEach(() => {
     openGrid.mockImplementation(openGridFrom({ getGridConfig, getLayout, fetchRows }));
@@ -91,23 +102,34 @@ afterEach(() => {
     jest.useRealTimers();
 });
 
-describe('the page\'s record', () => {
+describe("the page's record", () => {
     it('goes with every request for rows and for counts and subtotals', async () => {
         mount({ recordId: RECORD });
         await settle();
         expect(getGridConfig).toHaveBeenCalledTimes(1);
         expect(fetchRows).toHaveBeenCalledWith({
-            configName: 'Account_Deals', searchTerm: null, sortField: 'Name', sortDirection: 'asc',
-            cursorLocator: null, cursorToken: null, pageSize: null,
-            filters: null, recordId: RECORD
+            configName: 'Account_Deals',
+            searchTerm: null,
+            sortField: 'Name',
+            sortDirection: 'asc',
+            cursorLocator: null,
+            cursorToken: null,
+            pageSize: null,
+            filters: null,
+            recordId: RECORD
         });
         expect(summarizeGroups).toHaveBeenCalledWith({
-            configName: 'Account_Deals', searchTerm: null, grouping: [], fromId: null, toId: null,
-            filters: null, recordId: RECORD
+            configName: 'Account_Deals',
+            searchTerm: null,
+            grouping: [],
+            fromId: null,
+            toId: null,
+            filters: null,
+            recordId: RECORD
         });
     });
 
-    it('goes with the user\'s filters too', async () => {
+    it("goes with the user's filters too", async () => {
         const el = mount({ recordId: RECORD });
         await settle();
         const filter = { field: 'Amount__c', operator: 'greater_than', value: '5', valueTo: null };
@@ -179,12 +201,16 @@ describe('the page\'s record', () => {
         mount({ configName: 'Deal_Lines', recordId: RECORD, parent: PARENT });
         await settle();
         expect(lastCall(fetchRows)).toMatchObject({ parentLink: PARENT.link, parentId: PARENT.id, recordId: null });
-        expect(lastCall(summarizeGroups)).toMatchObject({ parentLink: PARENT.link, parentId: PARENT.id, recordId: null });
+        expect(lastCall(summarizeGroups)).toMatchObject({
+            parentLink: PARENT.link,
+            parentId: PARENT.id,
+            recordId: null
+        });
     });
 });
 
 describe('"Filtered" in the header', () => {
-    it('is not shown for the page\'s record alone: a related list does not say so either', async () => {
+    it("is not shown for the page's record alone: a related list does not say so either", async () => {
         withDefinition({ recordPageField: 'Account__c' });
         const el = mount({ recordId: RECORD });
         await settle();
@@ -208,7 +234,9 @@ describe('"Filtered" in the header', () => {
 describe('on a page the grid does not fit', () => {
     it('says why, with no empty table and no count under it', async () => {
         withDefinition({ recordPageField: 'Account__c' });
-        fetchRows.mockRejectedValue({ body: { message: 'This grid shows Deals related to Account records, and this page shows Contact.' } });
+        fetchRows.mockRejectedValue({
+            body: { message: 'This grid shows Deals related to Account records, and this page shows Contact.' }
+        });
         const el = mount({ recordId: '003000000000001AAA' });
         await settle();
         expect($(el, '.rh-load-error').textContent).toContain('this page shows Contact');
@@ -222,7 +250,7 @@ describe('importing on a record page', () => {
     const withImport = () => withDefinition({ allowImport: true, canCreate: true, recordPageField: 'Account__c' });
     const dialog = el => $(el, 'c-grid-import-dialog');
 
-    it('hands the import dialog the page\'s record', async () => {
+    it("hands the import dialog the page's record", async () => {
         withImport();
         const el = mount({ recordId: RECORD });
         await settle();
@@ -241,7 +269,7 @@ describe('importing on a record page', () => {
         expect(dialog(el).recordId).toBeNull();
     });
 
-    it('hands a child table\'s dialog its parent, and no page record', async () => {
+    it("hands a child table's dialog its parent, and no page record", async () => {
         withImport();
         const el = mount({ configName: 'Deal_Lines', recordId: RECORD, parent: PARENT });
         await settle();

@@ -53,10 +53,12 @@ const KIND_BY_TYPE = {
     datetime: 'datetime',
     time: 'time',
     textarea: 'textarea',
-    checkbox: 'checkbox', boolean: 'checkbox',
+    checkbox: 'checkbox',
+    boolean: 'checkbox',
     picklist: 'picklist',
     multipicklist: 'multi',
-    reference: 'lookup', owner: 'lookup'
+    reference: 'lookup',
+    owner: 'lookup'
 };
 /** The picklist's "--None--" choice. */
 const NONE = '';
@@ -193,7 +195,8 @@ export default class GridMassUpdate extends LightningElement {
         if (!rows.length || !col) return '';
         const names = rows.slice(0, NAMED_ROWS).map(r => this.shown(r[col.field], col) || 'a row with no name');
         const more = Math.max(0, (this.count || rows.length) - names.length);
-        if (!more) return names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+        if (!more)
+            return names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
         return `${names.join(', ')} and ${more} more`;
     }
 
@@ -214,7 +217,11 @@ export default class GridMassUpdate extends LightningElement {
         const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
         const shown = sorted.slice(0, SHOWN_VALUES).map(([text, n]) => `${text} (${n})`);
         const others = sorted.length - shown.length;
-        return 'Currently: ' + shown.join(', ') + (others ? `, and ${others} other ${others === 1 ? 'value' : 'values'}` : '');
+        return (
+            'Currently: ' +
+            shown.join(', ') +
+            (others ? `, and ${others} other ${others === 1 ? 'value' : 'values'}` : '')
+        );
     }
 
     /** A value as the grid shows it: a lookup by name, anything else formatted. */
@@ -225,7 +232,10 @@ export default class GridMassUpdate extends LightningElement {
 
     /** Tall only where a list opens inside the dialog. */
     get bodyClass() {
-        return 'slds-modal__content slds-p-around_medium rh-mass-body' + (this.isLookup || this.isMulti ? ' rh-mass-body_tall' : '');
+        return (
+            'slds-modal__content slds-p-around_medium rh-mass-body' +
+            (this.isLookup || this.isMulti ? ' rh-mass-body_tall' : '')
+        );
     }
 
     /** The lookup's targets' icons, for its matches. */
@@ -368,7 +378,12 @@ export default class GridMassUpdate extends LightningElement {
             event.preventDefault();
             event.stopPropagation();
             this.cancel();
-        } else if (event.key === 'Enter' && event.target && event.target.dataset && 'enterApplies' in event.target.dataset) {
+        } else if (
+            event.key === 'Enter' &&
+            event.target &&
+            event.target.dataset &&
+            'enterApplies' in event.target.dataset
+        ) {
             event.preventDefault();
             this.handleApply();
         }
@@ -436,9 +451,11 @@ export default class GridMassUpdate extends LightningElement {
             this.error = result.error;
             return;
         }
-        this.dispatchEvent(new CustomEvent('apply', {
-            detail: { field: this.field, value: result.value, valueLabel: result.valueLabel || null }
-        }));
+        this.dispatchEvent(
+            new CustomEvent('apply', {
+                detail: { field: this.field, value: result.value, valueLabel: result.valueLabel || null }
+            })
+        );
     }
 
     handleCancel() {

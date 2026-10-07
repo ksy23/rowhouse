@@ -9,7 +9,9 @@ const mount = props => {
     document.body.appendChild(el);
     return el;
 };
-afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+afterEach(() => {
+    while (document.body.firstChild) document.body.firstChild.remove();
+});
 
 describe('number cell', () => {
     it('TC-022 negative currency displays below zero, per locale', () => {
@@ -29,7 +31,9 @@ describe('number cell', () => {
     it('TC-023 a typed value with extra decimals commits rounded to the field scale', async () => {
         const el = mount({ value: 1, mode: 'edit', label: 'Decimal', type: 'number', scale: 2 });
         await flush();
-        el.shadowRoot.querySelector('lightning-input').dispatchEvent(new CustomEvent('change', { detail: { value: '1234.567' } }));
+        el.shadowRoot
+            .querySelector('lightning-input')
+            .dispatchEvent(new CustomEvent('change', { detail: { value: '1234.567' } }));
         const handler = jest.fn();
         el.addEventListener('commit', handler);
         el.commit();
@@ -51,7 +55,8 @@ describe('number cell', () => {
     it('TC-024 an 18-digit entry commits as an exact string', async () => {
         const el = mount({ value: null, mode: 'edit', label: 'Number' });
         await flush();
-        el.shadowRoot.querySelector('lightning-input')
+        el.shadowRoot
+            .querySelector('lightning-input')
             .dispatchEvent(new CustomEvent('change', { detail: { value: '999999999999999999' } }));
         const handler = jest.fn();
         el.addEventListener('commit', handler);
@@ -61,7 +66,9 @@ describe('number cell', () => {
     it('an emptied input commits null, never an empty string', async () => {
         const el = mount({ value: 5, mode: 'edit', label: 'Number' });
         await flush();
-        el.shadowRoot.querySelector('lightning-input').dispatchEvent(new CustomEvent('change', { detail: { value: '' } }));
+        el.shadowRoot
+            .querySelector('lightning-input')
+            .dispatchEvent(new CustomEvent('change', { detail: { value: '' } }));
         const handler = jest.fn();
         el.addEventListener('commit', handler);
         el.commit();

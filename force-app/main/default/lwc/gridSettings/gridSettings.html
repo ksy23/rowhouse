@@ -25,7 +25,11 @@
                 </div>
             </div>
             <div class="slds-modal__content slds-p-horizontal_medium slds-p-top_small rh-settings-body">
-                <c-grid-config-editor config-name={configName} onsaved={handleSaved} onclose={handleEditorClose}></c-grid-config-editor>
+                <c-grid-config-editor
+                    config-name={configName}
+                    onsaved={handleSaved}
+                    onclose={handleEditorClose}
+                ></c-grid-config-editor>
             </div>
         </div>
         <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>

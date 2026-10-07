@@ -10,15 +10,18 @@ import { columns } from '../../../../../../test-data/tests/jest/fixtures/seed';
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const frame = () => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
 const key = (target, k, opts = {}) =>
-    target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts }));
+    target.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts })
+    );
 
-const big = n => Array.from({ length: n }, (_, i) => ({
-    Id: 'a0' + String(i).padStart(16, '0'),
-    Name: 'Row ' + (i + 1),
-    Test_Case__c: 'MORE',
-    Text_Field__c: 'text ' + (i + 1),
-    Number_Field__c: i + 1
-}));
+const big = n =>
+    Array.from({ length: n }, (_, i) => ({
+        Id: 'a0' + String(i).padStart(16, '0'),
+        Name: 'Row ' + (i + 1),
+        Test_Case__c: 'MORE',
+        Text_Field__c: 'text ' + (i + 1),
+        Number_Field__c: i + 1
+    }));
 
 describe('loading more as you scroll', () => {
     let el;
@@ -33,11 +36,15 @@ describe('loading more as you scroll', () => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = { columns, rows: ROWS, totalRows: 50000, hasMore: true, loadingMore: false, ...config };
         asked = 0;
-        el.addEventListener('loadmore', () => { asked++; });
+        el.addEventListener('loadmore', () => {
+            asked++;
+        });
         document.body.appendChild(el);
         await flush();
     }
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('counts every row on the server for assistive technology, not just the loaded ones', async () => {
         await mount();

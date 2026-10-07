@@ -1,0 +1,12 @@
+{
+    "trailingComma": "none",
+    "singleQuote": true,
+    "tabWidth": 4,
+    "printWidth": 120,
+    "arrowParens": "avoid",
+    "plugins": ["prettier-plugin-apex"],
+    "overrides": [
+        { "files": "**/lwc/**/*.html", "options": { "parser": "lwc" } },
+        { "files": "*.{yml,yaml}", "options": { "tabWidth": 2 } }
+    ]
+}

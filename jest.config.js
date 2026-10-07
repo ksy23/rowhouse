@@ -7,10 +7,7 @@ const { jestConfig } = require('@salesforce/sfdx-lwc-jest/config');
 
 module.exports = {
     ...jestConfig,
-    testMatch: [
-        '<rootDir>/force-app/**/__tests__/**/*.test.js',
-        '<rootDir>/test-data/tests/jest/**/*.test.js'
-    ],
+    testMatch: ['<rootDir>/force-app/**/__tests__/**/*.test.js', '<rootDir>/test-data/tests/jest/**/*.test.js'],
     setupFilesAfterEnv: [...(jestConfig.setupFilesAfterEnv || []), '<rootDir>/jest.setup.js'],
     modulePathIgnorePatterns: ['<rootDir>/.localdevserver'],
     // A CSS-only module (the Grid Guide's stylesheet, and the Grid Admin

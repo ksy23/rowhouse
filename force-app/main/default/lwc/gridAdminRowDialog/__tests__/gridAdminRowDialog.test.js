@@ -65,7 +65,9 @@ describe('names for a clone', () => {
     it('numbers the API name when another grid has it', () => {
         expect(freeName('Copy of Deals', NAMES)).toBe('Copy_of_Deals');
         expect(freeName('Copy of Account People', NAMES)).toBe('Copy_of_Account_People_2');
-        expect(freeName('Copy of Account People', [...NAMES, 'copy_of_account_people_2'])).toBe('Copy_of_Account_People_3');
+        expect(freeName('Copy of Account People', [...NAMES, 'copy_of_account_people_2'])).toBe(
+            'Copy_of_Account_People_3'
+        );
     });
 });
 
@@ -94,11 +96,17 @@ describe('Clone', () => {
 
     it('deploys the copy, waits for it, and says it went through', async () => {
         cloneConfig.mockResolvedValue('0Af000000000001');
-        saveStatus.mockResolvedValueOnce({ status: 'pending' }).mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
+        saveStatus
+            .mockResolvedValueOnce({ status: 'pending' })
+            .mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
         const el = await mount('clone');
         $(el, '.rh-row-dialog-confirm').click();
         await settle();
-        expect(cloneConfig).toHaveBeenCalledWith({ sourceName: 'Account_People', label: 'Copy of Account People', name: 'Copy_of_Account_People_2' });
+        expect(cloneConfig).toHaveBeenCalledWith({
+            sourceName: 'Account_People',
+            label: 'Copy of Account People',
+            name: 'Copy_of_Account_People_2'
+        });
         expect($(el, '.rh-row-dialog-working').textContent).toContain('Cloning');
         expect($(el, '.rh-row-dialog-cancel').disabled).toBe(true);
         $(el, '.rh-row-dialog-cancel').click();
@@ -112,12 +120,16 @@ describe('Clone', () => {
     });
 
     it('says why the server refused it, and stays open', async () => {
-        cloneConfig.mockRejectedValue({ body: { message: 'A grid named Deals already exists. Choose another API name.' } });
+        cloneConfig.mockRejectedValue({
+            body: { message: 'A grid named Deals already exists. Choose another API name.' }
+        });
         const el = await mount('clone');
         await type(el, '.rh-row-dialog-name', 'Deals');
         $(el, '.rh-row-dialog-confirm').click();
         await settle();
-        expect($(el, '.rh-row-dialog-error').textContent).toBe('A grid named Deals already exists. Choose another API name.');
+        expect($(el, '.rh-row-dialog-error').textContent).toBe(
+            'A grid named Deals already exists. Choose another API name.'
+        );
         expect($(el, '.rh-row-dialog-confirm').disabled).toBe(false);
         expect(events).toEqual([]);
     });
@@ -130,7 +142,9 @@ describe('Clone', () => {
         await settle();
         jest.advanceTimersByTime(1000);
         await settle();
-        expect($(el, '.rh-row-dialog-error').textContent).toBe('It did not go through. Grid_Column__mdt.X: Something went wrong');
+        expect($(el, '.rh-row-dialog-error').textContent).toBe(
+            'It did not go through. Grid_Column__mdt.X: Something went wrong'
+        );
     });
 });
 
@@ -176,19 +190,45 @@ describe('Archive and Restore', () => {
 describe('Delete in Setup', () => {
     it('lists the records to delete, in order, each a link to its page in Setup', async () => {
         setupRecords.mockResolvedValue([
-            { kind: 'Grid Child Table', label: 'People', name: 'Accounts_People', url: '/lightning/setup/CustomMetadata/page?address=%2Fm03A', note: 'A child table of Accounts that shows this grid.' },
-            { kind: 'Grid Column', label: 'Name', name: 'Account_People_Name', url: '/lightning/setup/CustomMetadata/page?address=%2Fm01A', note: null },
-            { kind: 'Grid Configuration', label: 'Account People', name: 'Account_People', url: '/lightning/setup/CustomMetadata/page?address=%2Fm00A', note: 'The grid itself: delete it last.' }
+            {
+                kind: 'Grid Child Table',
+                label: 'People',
+                name: 'Accounts_People',
+                url: '/lightning/setup/CustomMetadata/page?address=%2Fm03A',
+                note: 'A child table of Accounts that shows this grid.'
+            },
+            {
+                kind: 'Grid Column',
+                label: 'Name',
+                name: 'Account_People_Name',
+                url: '/lightning/setup/CustomMetadata/page?address=%2Fm01A',
+                note: null
+            },
+            {
+                kind: 'Grid Configuration',
+                label: 'Account People',
+                name: 'Account_People',
+                url: '/lightning/setup/CustomMetadata/page?address=%2Fm00A',
+                note: 'The grid itself: delete it last.'
+            }
         ]);
         const el = await mount('setup');
         expect(setupRecords).toHaveBeenCalledWith({ configName: 'Account_People' });
         expect($(el, '.rh-row-dialog-heading').textContent).toBe('Delete Account People in Setup');
         expect($(el, '.rh-row-dialog-lede').textContent).toContain('only Setup can delete Custom Metadata records');
         const links = $$(el, '.rh-row-dialog-record a');
-        expect(links.map(a => a.textContent)).toEqual(['Grid Child Table: People', 'Grid Column: Name', 'Grid Configuration: Account People']);
+        expect(links.map(a => a.textContent)).toEqual([
+            'Grid Child Table: People',
+            'Grid Column: Name',
+            'Grid Configuration: Account People'
+        ]);
         expect(links[2].getAttribute('href')).toBe('/lightning/setup/CustomMetadata/page?address=%2Fm00A');
         expect(links[2].getAttribute('target')).toBe('_blank');
-        expect($$(el, '.rh-row-dialog-record-name').map(s => s.textContent)).toEqual(['Accounts_People', 'Account_People_Name', 'Account_People']);
+        expect($$(el, '.rh-row-dialog-record-name').map(s => s.textContent)).toEqual([
+            'Accounts_People',
+            'Account_People_Name',
+            'Account_People'
+        ]);
         expect($$(el, '.rh-row-dialog-record-note').map(s => s.textContent)).toEqual([
             'A child table of Accounts that shows this grid.',
             'The grid itself: delete it last.'
@@ -208,7 +248,13 @@ it('closes on Escape, and starts on the safe choice', async () => {
 
 it('is accessible, asking and listing', async () => {
     setupRecords.mockResolvedValue([
-        { kind: 'Grid Configuration', label: 'Account People', name: 'Account_People', url: '/lightning/setup/CustomMetadata/page?address=%2Fm00A', note: 'The grid itself: delete it last.' }
+        {
+            kind: 'Grid Configuration',
+            label: 'Account People',
+            name: 'Account_People',
+            url: '/lightning/setup/CustomMetadata/page?address=%2Fm00A',
+            note: 'The grid itself: delete it last.'
+        }
     ]);
     jest.useRealTimers();
     for (const action of ['clone', 'archive', 'setup']) {

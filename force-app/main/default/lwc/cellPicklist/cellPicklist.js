@@ -60,7 +60,9 @@ export default class CellPicklist extends LightningElement {
 
     get optionList() {
         const current = this.current;
-        const list = [{ value: '', label: '--None--', selected: current === null || current === undefined || current === '' }];
+        const list = [
+            { value: '', label: '--None--', selected: current === null || current === undefined || current === '' }
+        ];
         const active = this.options || [];
         active.forEach(o => list.push({ value: o.value, label: o.label, selected: o.value === current }));
         const known = active.some(o => o.value === current);

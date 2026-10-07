@@ -56,8 +56,20 @@ describe('gridChildren', () => {
     it('limits each grid to the open row, through its own link, one level down', async () => {
         await mount();
         const views = $$('c-grid-view');
-        expect(views[0].parent).toEqual({ link: 'Nest_Accounts_Contacts', id: PARENT_ID, name: 'Acme', level: 2, height: null });
-        expect(views[1].parent).toEqual({ link: 'Nest_Accounts_Records', id: PARENT_ID, name: 'Acme', level: 2, height: null });
+        expect(views[0].parent).toEqual({
+            link: 'Nest_Accounts_Contacts',
+            id: PARENT_ID,
+            name: 'Acme',
+            level: 2,
+            height: null
+        });
+        expect(views[1].parent).toEqual({
+            link: 'Nest_Accounts_Records',
+            id: PARENT_ID,
+            name: 'Acme',
+            level: 2,
+            height: null
+        });
         expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Nest_Contacts' });
     });
 
@@ -86,7 +98,7 @@ describe('gridChildren', () => {
         expect($$('lightning-tab')).toHaveLength(0);
     });
 
-    it('focus() goes to the open tab\'s grid: the first until another tab opens', async () => {
+    it("focus() goes to the open tab's grid: the first until another tab opens", async () => {
         await mount();
         const [first, second] = $$('c-grid-view');
         const one = jest.spyOn(first, 'focus');
@@ -106,7 +118,7 @@ describe('gridChildren details', () => {
         delete global.ResizeObserver;
     });
 
-    it('puts each tab\'s count in its label, as a related list does', async () => {
+    it("puts each tab's count in its label, as a related list does", async () => {
         await mount({ counts: { Nest_Accounts_Contacts: 3, Nest_Accounts_Records: 0 } });
         expect($$('lightning-tab').map(t => t.label)).toEqual(['Contacts (3)', 'Test Records (0)']);
     });
@@ -145,7 +157,7 @@ describe('gridChildren details', () => {
         expect($$('lightning-tab').map(t => t.label)).toEqual(['Contacts (3)', 'Test Records']);
     });
 
-    it('follows the tab\'s own grid once it reports its count, and tells the parent row', async () => {
+    it("follows the tab's own grid once it reports its count, and tells the parent row", async () => {
         await mount({ counts: { Nest_Accounts_Contacts: 3 } });
         const heard = jest.fn();
         el.addEventListener('childcount', heard);

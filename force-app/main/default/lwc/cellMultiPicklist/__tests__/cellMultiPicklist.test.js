@@ -19,7 +19,9 @@ describe('cellMultiPicklist', () => {
         await flush();
     };
     const box = () => el.shadowRoot.querySelector('lightning-dual-listbox');
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('TC-040: shows the stored values as a comma list', async () => {
         await mount({ value: 'Red;Green;Blue' });
@@ -34,7 +36,14 @@ describe('cellMultiPicklist', () => {
     it('edits with the dual listbox, keeping an inactive stored value', async () => {
         await mount({ value: 'Red;Retired', mode: 'edit' });
         expect(box().value).toEqual(['Red', 'Retired']);
-        expect(box().options.map(o => o.label)).toEqual(['Red', 'Green', 'Blue', 'Amber', 'Slate', 'Retired (inactive)']);
+        expect(box().options.map(o => o.label)).toEqual([
+            'Red',
+            'Green',
+            'Blue',
+            'Amber',
+            'Slate',
+            'Retired (inactive)'
+        ]);
     });
 
     it('TC-040: an unchanged value is committed exactly as stored', async () => {

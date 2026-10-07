@@ -21,7 +21,6 @@
  * being updated: see GridLogSchedule.
  */
 public with sharing class GridLogRetention implements Schedulable {
-
     public static final String JOB_NAME = 'Rowhouse: Grid Edit Log clean-up';
 
     /**
@@ -49,7 +48,10 @@ public with sharing class GridLogRetention implements Schedulable {
             return testDays;
         }
         Rowhouse_Setting__mdt setting = Rowhouse_Setting__mdt.getInstance(SETTING);
-        return setting == null || setting.Log_Retention_Days__c == null ? null : setting.Log_Retention_Days__c.intValue();
+        return setting == null ||
+            setting.Log_Retention_Days__c == null
+            ? null
+            : setting.Log_Retention_Days__c.intValue();
     }
 
     /** Is this a period the Grid Admin tab offers? Blank (forever) is. */
@@ -71,7 +73,8 @@ public with sharing class GridLogRetention implements Schedulable {
 
     /** May the running user run the clean-up: delete entries, and write the note of what it removed? */
     public static Boolean canRun() {
-        return GridSecurity.canDelete(Grid_Edit_Log__c.SObjectType) && GridSecurity.canCreate(Grid_Edit_Log__c.SObjectType);
+        return GridSecurity.canDelete(Grid_Edit_Log__c.SObjectType) &&
+            GridSecurity.canCreate(Grid_Edit_Log__c.SObjectType);
     }
 
     // ---------------------------------------------------------------- the job
@@ -79,8 +82,8 @@ public with sharing class GridLogRetention implements Schedulable {
     /** The scheduled jobs of this name, newest first. Normally one. */
     private static List<CronTrigger> jobs() {
         return (List<CronTrigger>) GridSecurity.query(
-            'SELECT Id, NextFireTime, PreviousFireTime, State, CreatedById, CreatedBy.Name FROM CronTrigger '
-            + 'WHERE CronJobDetail.Name = :name ORDER BY CreatedDate DESC',
+            'SELECT Id, NextFireTime, PreviousFireTime, State, CreatedById, CreatedBy.Name FROM CronTrigger ' +
+            'WHERE CronJobDetail.Name = :name ORDER BY CreatedDate DESC',
             new Map<String, Object>{ 'name' => jobName() }
         );
     }
@@ -159,15 +162,15 @@ public with sharing class GridLogRetention implements Schedulable {
         }
         out.put('loggingGrids', loggingGrids());
         List<Grid_Edit_Log__c> notes = (List<Grid_Edit_Log__c>) GridSecurity.query(
-            'SELECT CreatedDate, Record_Name__c, New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = :op '
-            + 'ORDER BY CreatedDate DESC LIMIT 1',
+            'SELECT CreatedDate, Record_Name__c, New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = :op ' +
+            'ORDER BY CreatedDate DESC LIMIT 1',
             new Map<String, Object>{ 'op' => GridAudit.OP_CLEANUP }
         );
         if (!notes.isEmpty()) {
-            out.put('lastCleanup', new Map<String, Object>{
-                'when' => notes[0].CreatedDate,
-                'summary' => notes[0].New_Value__c
-            });
+            out.put(
+                'lastCleanup',
+                new Map<String, Object>{ 'when' => notes[0].CreatedDate, 'summary' => notes[0].New_Value__c }
+            );
         }
         return out;
     }

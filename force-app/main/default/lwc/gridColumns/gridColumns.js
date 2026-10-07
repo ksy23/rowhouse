@@ -62,7 +62,11 @@ export function readChoice(saved, columns) {
     const hidden = new Set(keysOf(saved.hidden).filter(k => known.has(k) && known.get(k).alwaysShown !== true));
     // At least one column shows: hiding every one is no choice to keep.
     if (hidden.size >= order.length) hidden.clear();
-    return normal(order.filter(k => known.has(k)), [...hidden], cols);
+    return normal(
+        order.filter(k => known.has(k)),
+        [...hidden],
+        cols
+    );
 }
 
 /** The choice as kept: null when it is the admin's columns, as configured. */

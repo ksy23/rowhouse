@@ -8,7 +8,9 @@
 import { createElement } from 'lwc';
 import GridTable from 'c/gridTable';
 
-jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest.fn(() => Promise.resolve([])) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest.fn(() => Promise.resolve([])) }), {
+    virtual: true
+});
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const COLUMNS = [
@@ -24,7 +26,8 @@ describe('room for an open editor', () => {
     const popover = () => el.shadowRoot.querySelector('section.rh-edit-popover');
     const box = (node, rect, clientHeight) => {
         node.getBoundingClientRect = () => rect;
-        if (clientHeight !== undefined) Object.defineProperty(node, 'clientHeight', { value: clientHeight, configurable: true });
+        if (clientHeight !== undefined)
+            Object.defineProperty(node, 'clientHeight', { value: clientHeight, configurable: true });
     };
     const mount = async config => {
         el = createElement('rowhouse-grid-table', { is: GridTable });

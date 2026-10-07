@@ -14,7 +14,6 @@
  * enforces field permissions while the code under test runs in user mode.
  */
 public with sharing class GridSecurity {
-
     /** A real cursor token is about 30 characters: {"queryId":"0r8..."}. */
     private static final Integer MAX_CURSOR_TOKEN = 200;
 
@@ -44,19 +43,25 @@ public with sharing class GridSecurity {
 
     public static void requireUpdate(Schema.SObjectType objectType) {
         if (!canUpdate(objectType)) {
-            throw new GridException('You do not have permission to edit ' + GridDescribe.localName(objectType) + ' records.');
+            throw new GridException(
+                'You do not have permission to edit ' + GridDescribe.localName(objectType) + ' records.'
+            );
         }
     }
 
     public static void requireCreate(Schema.SObjectType objectType) {
         if (!canCreate(objectType)) {
-            throw new GridException('You do not have permission to create ' + GridDescribe.localName(objectType) + ' records.');
+            throw new GridException(
+                'You do not have permission to create ' + GridDescribe.localName(objectType) + ' records.'
+            );
         }
     }
 
     public static void requireDelete(Schema.SObjectType objectType) {
         if (!canDelete(objectType)) {
-            throw new GridException('You do not have permission to delete ' + GridDescribe.localName(objectType) + ' records.');
+            throw new GridException(
+                'You do not have permission to delete ' + GridDescribe.localName(objectType) + ' records.'
+            );
         }
     }
 
@@ -115,10 +120,10 @@ public with sharing class GridSecurity {
     public static Boolean canCustomizeApplication() {
         try {
             return countQuery(
-                'SELECT COUNT() FROM PermissionSetAssignment WHERE AssigneeId = :me '
-                + 'AND PermissionSet.PermissionsCustomizeApplication = true',
-                new Map<String, Object>{ 'me' => UserInfo.getUserId() }
-            ) > 0;
+                    'SELECT COUNT() FROM PermissionSetAssignment WHERE AssigneeId = :me ' +
+                    'AND PermissionSet.PermissionsCustomizeApplication = true',
+                    new Map<String, Object>{ 'me' => UserInfo.getUserId() }
+                ) > 0;
         } catch (Exception e) {
             return false;
         }
@@ -134,8 +139,12 @@ public with sharing class GridSecurity {
         if (ids == null || ids.isEmpty()) {
             return out;
         }
-        for (SObject r : query('SELECT Id FROM ' + GridDescribe.apiName(objectType) + ' WHERE Id IN :ids',
-                new Map<String, Object>{ 'ids' => ids })) {
+        for (
+            SObject r : query(
+                'SELECT Id FROM ' + GridDescribe.apiName(objectType) + ' WHERE Id IN :ids',
+                new Map<String, Object>{ 'ids' => ids }
+            )
+        ) {
             out.add(r.Id);
         }
         return out;
@@ -257,7 +266,9 @@ public with sharing class GridSecurity {
      * the user may delete; there is no access mode to pass.
      */
     public static List<Database.EmptyRecycleBinResult> purgeDeleted(List<Id> ids) {
-        return ids == null || ids.isEmpty() ? new List<Database.EmptyRecycleBinResult>() : Database.emptyRecycleBin(ids);
+        return ids == null || ids.isEmpty()
+            ? new List<Database.EmptyRecycleBinResult>()
+            : Database.emptyRecycleBin(ids);
     }
 
     public static void deleteOwnRecords(List<SObject> records) {

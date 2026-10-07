@@ -2,7 +2,17 @@
  * Undo and redo of uncommitted edits: one action is one step, a new
  * action clears redo, and undo puts back exactly the drafts that were there.
  */
-import { emptyHistory, stepBetween, record, undo, redo, describe as name, draftState, withoutRecords, MAX_STEPS } from 'c/gridHistory';
+import {
+    emptyHistory,
+    stepBetween,
+    record,
+    undo,
+    redo,
+    describe as name,
+    draftState,
+    withoutRecords,
+    MAX_STEPS
+} from 'c/gridHistory';
 
 const A = 'a0000000000000AAA';
 const B = 'a0000000000000BBB';
@@ -27,7 +37,10 @@ describe('gridHistory', () => {
     it('undo restores the drafts before the step, redo the drafts after it', () => {
         const before = { [A]: { Text: 'old draft' } };
         const after = { [A]: { Text: 'new' }, [B]: { Number: 1 } };
-        const cells = [{ recordId: A, field: 'Text' }, { recordId: B, field: 'Number' }];
+        const cells = [
+            { recordId: A, field: 'Text' },
+            { recordId: B, field: 'Number' }
+        ];
         let history = record(emptyHistory(), stepBetween('paste', before, after, cells));
 
         const undone = undo(history, after);
@@ -53,7 +66,10 @@ describe('gridHistory', () => {
     it('keeps only the last MAX_STEPS steps', () => {
         let history = emptyHistory();
         for (let i = 0; i < MAX_STEPS + 5; i++) {
-            history = record(history, { label: 'edit', cells: [{ recordId: A, field: 'F' + i, before: { has: false }, after: { has: true, value: i } }] });
+            history = record(history, {
+                label: 'edit',
+                cells: [{ recordId: A, field: 'F' + i, before: { has: false }, after: { has: true, value: i } }]
+            });
         }
         expect(history.undo).toHaveLength(MAX_STEPS);
         expect(history.undo[0].cells[0].field).toBe('F5');
@@ -74,7 +90,13 @@ describe('gridHistory', () => {
         let h = emptyHistory();
         h = record(h, stepBetween('edit', {}, { [A]: { Text: 'a' } }, [{ recordId: A, field: 'Text' }]));
         const both = { [A]: { Text: 'a', Number: 1 }, [B]: { Number: 1 } };
-        h = record(h, stepBetween('mass update', { [A]: { Text: 'a' } }, both, [{ recordId: A, field: 'Number' }, { recordId: B, field: 'Number' }]));
+        h = record(
+            h,
+            stepBetween('mass update', { [A]: { Text: 'a' } }, both, [
+                { recordId: A, field: 'Number' },
+                { recordId: B, field: 'Number' }
+            ])
+        );
         const pruned = withoutRecords(h, [A]);
         expect(pruned.undo).toHaveLength(1);
         expect(pruned.undo[0].label).toBe('mass update');

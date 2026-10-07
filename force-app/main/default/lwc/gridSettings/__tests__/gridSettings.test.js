@@ -7,7 +7,11 @@ import { createElement } from 'lwc';
 import GridSettings from 'c/gridSettings';
 
 // The editor is the real one (it has its own tests); its server calls answer here.
-jest.mock('@salesforce/apex/GridAdminController.readConfig', () => ({ default: jest.fn(() => new Promise(() => {})) }), { virtual: true });
+jest.mock(
+    '@salesforce/apex/GridAdminController.readConfig',
+    () => ({ default: jest.fn(() => new Promise(() => {})) }),
+    { virtual: true }
+);
 jest.mock('@salesforce/apex/GridAdminController.listObjects', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.describeObject', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.checkDraft', () => ({ default: jest.fn() }), { virtual: true });
@@ -30,7 +34,7 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
-it('shows the Rowhouse mark, the grid\'s title and its editor', () => {
+it("shows the Rowhouse mark, the grid's title and its editor", () => {
     const el = mount();
     expect($(el, '.rh-settings-mark').getAttribute('src')).toContain('RowhouseMark');
     expect($(el, 'h1').textContent).toBe('Grid settings: Deals');
@@ -47,7 +51,7 @@ it('closes through the editor, from the close button and from Escape', () => {
     expect(closed).toEqual(['close', 'close']);
 });
 
-it('passes on the editor\'s close and saved', () => {
+it("passes on the editor's close and saved", () => {
     const el = mount();
     const events = [];
     el.addEventListener('close', () => events.push('close'));

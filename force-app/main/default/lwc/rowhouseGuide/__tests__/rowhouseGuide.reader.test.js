@@ -29,7 +29,11 @@ const open = async state => {
     el = createElement('c-rowhouse-guide', { is: RowhouseGuide });
     document.body.appendChild(el);
     // eslint-disable-next-line @lwc/lwc/no-unexpected-wire-adapter-usages -- the test adapter's emit
-    CurrentPageReference.emit({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: state || {} });
+    CurrentPageReference.emit({
+        type: 'standard__navItemPage',
+        attributes: { apiName: 'Rowhouse_Guide' },
+        state: state || {}
+    });
     await settle();
 };
 const $ = s => el.shadowRoot.querySelector(s);
@@ -44,14 +48,21 @@ afterEach(() => {
 
 it('shows the sections for users', async () => {
     await open();
-    expect([...el.shadowRoot.querySelectorAll('.rh-guide-nav-link')].map(a => a.textContent)).toEqual(['Welcome', 'User guide', 'Tutorials', 'Reference']);
+    expect([...el.shadowRoot.querySelectorAll('.rh-guide-nav-link')].map(a => a.textContent)).toEqual([
+        'Welcome',
+        'User guide',
+        'Tutorials',
+        'Reference'
+    ]);
 });
 
 it('says an admin page is for grid admins, and points to the User guide', async () => {
     await open({ c__page: 'configure', c__section: 'filter' });
     expect($('c-guide-content')).toBeNull();
     expect($('.rh-guide-admin-only h2').textContent).toBe('This page is for grid admins');
-    expect($('.rh-guide-admin-only').textContent).toContain('"Configuration reference" is for the people who build grids');
+    expect($('.rh-guide-admin-only').textContent).toContain(
+        '"Configuration reference" is for the people who build grids'
+    );
     expect($('.rh-guide-admin-only a').getAttribute('href')).toBe('/lightning/n/Rowhouse_Guide?c__page=using');
 });
 

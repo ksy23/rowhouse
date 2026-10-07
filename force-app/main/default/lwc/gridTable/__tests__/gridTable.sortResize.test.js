@@ -13,7 +13,8 @@ describe('sorting', () => {
     let el;
     const order = () => [...el.shadowRoot.querySelectorAll('tr[role="row"][data-row-id]')].map(r => r.dataset.rowId);
     const sortBy = async (field, shiftKey = false) => {
-        el.shadowRoot.querySelector(`th[data-field="${field}"] .slds-th__action`)
+        el.shadowRoot
+            .querySelector(`th[data-field="${field}"] .slds-th__action`)
             .dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, shiftKey }));
         await flush();
     };
@@ -23,15 +24,17 @@ describe('sorting', () => {
         document.body.appendChild(el);
         await flush();
     });
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('TC-049..054: nulls last, case-insensitive, accents after base, text "10" before "9"', async () => {
         await sortBy('Text_Field__c');
         const ids = order();
         const pos = n => ids.indexOf(tc(n).Id);
-        expect(pos('TC-053')).toBeLessThan(pos('TC-054'));   // "10" before "9" as text
-        expect(pos('TC-050')).toBeLessThan(pos('TC-052'));   // apple before Äpple
-        expect(pos('TC-051')).toBeLessThan(pos('TC-052'));   // Apple before Äpple
+        expect(pos('TC-053')).toBeLessThan(pos('TC-054')); // "10" before "9" as text
+        expect(pos('TC-050')).toBeLessThan(pos('TC-052')); // apple before Äpple
+        expect(pos('TC-051')).toBeLessThan(pos('TC-052')); // Apple before Äpple
         expect(pos('TC-049')).toBeGreaterThan(pos('TC-052')); // null after every value
         // Every row with a null Text_Field__c comes after every row with a value.
         const firstNull = ids.findIndex(id => seedRows.find(r => r.Id === id).Text_Field__c == null);
@@ -67,7 +70,9 @@ describe('sorting', () => {
 });
 
 describe('sort indicator', () => {
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('always uses the down arrow and lets the SLDS direction class rotate it', async () => {
         // Regression, found in Lightning Experience: swapping in arrowup for
@@ -78,7 +83,9 @@ describe('sort indicator', () => {
         await flush();
         const th = () => el.shadowRoot.querySelector('th[data-field="Number_Field__c"]');
         const click = async () => {
-            th().querySelector('.slds-th__action').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            th()
+                .querySelector('.slds-th__action')
+                .dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
             await flush();
         };
         await click();
@@ -114,7 +121,8 @@ describe('column widths after a resize', () => {
     // Pinned widths round down, so no pixel of scrollbar appears.
     let spy;
     beforeEach(() => {
-        spy = jest.spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
+        spy = jest
+            .spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
             .mockReturnValue({ width: 200.6, height: 33, top: 0, left: 0, right: 200.6, bottom: 33, x: 0, y: 0 });
     });
     afterEach(() => {
@@ -183,8 +191,9 @@ describe('column widths after a resize', () => {
         let widthSpy;
         beforeEach(() => {
             // The scroller is 1,000px wide; JSDOM has no layout of its own.
-            widthSpy = jest.spyOn(Element.prototype, 'clientWidth', 'get')
-                .mockImplementation(function width() { return this.hasAttribute('data-scroller') ? 1000 : 0; });
+            widthSpy = jest.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(function width() {
+                return this.hasAttribute('data-scroller') ? 1000 : 0;
+            });
         });
         afterEach(() => widthSpy.mockRestore());
 
@@ -208,12 +217,14 @@ describe('column widths after a resize', () => {
             expect(el.shadowRoot.querySelector('table').style.width).toBe(''); // still not pinned
         });
 
-        it('leaves room for the table\'s borders, so it never scrolls sideways by 2px', async () => {
+        it("leaves room for the table's borders, so it never scrolls sideways by 2px", async () => {
             // Found in Lightning Experience: a two-row grid scrolled
             // sideways because the columns filled the box and the borders did not fit.
             const el = await mountTwo(TWO);
-            const widths = [...el.shadowRoot.querySelectorAll('thead th[data-field]')]
-                .reduce((sum, cell) => sum + parseInt(cell.style.width, 10), 0);
+            const widths = [...el.shadowRoot.querySelectorAll('thead th[data-field]')].reduce(
+                (sum, cell) => sum + parseInt(cell.style.width, 10),
+                0
+            );
             expect(widths + 2).toBeLessThanOrEqual(1000);
         });
 
@@ -233,14 +244,18 @@ describe('column widths after a resize', () => {
         // guide line 100vh tall, so a two-row grid scrolled into empty space.
         let heightSpy;
         beforeEach(() => {
-            heightSpy = jest.spyOn(Element.prototype, 'clientHeight', 'get')
-                .mockImplementation(function height() { return this.hasAttribute('data-scroller') ? 145 : 0; });
+            heightSpy = jest.spyOn(Element.prototype, 'clientHeight', 'get').mockImplementation(function height() {
+                return this.hasAttribute('data-scroller') ? 145 : 0;
+            });
         });
         afterEach(() => heightSpy.mockRestore());
 
         it('reach the bottom of what the grid shows, and no further', async () => {
             const el = createElement('rowhouse-grid-table', { is: GridTable });
-            el.config = { columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }], rows: seedRows.slice(0, 2) };
+            el.config = {
+                columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }],
+                rows: seedRows.slice(0, 2)
+            };
             document.body.appendChild(el);
             await flush();
             const thead = el.shadowRoot.querySelector('thead');
@@ -248,7 +263,7 @@ describe('column widths after a resize', () => {
             expect(el.shadowRoot.querySelector('.slds-resizable__divider').classList).toContain('rh-resize-divider');
         });
 
-        it('start below the table\'s top border, and end at the bottom of the box, not 1px past it', async () => {
+        it("start below the table's top border, and end at the bottom of the box, not 1px past it", async () => {
             // Found in Lightning Experience: the header cells sit 1px
             // below the box's top, so a line as tall as the box overflowed by 1px.
             const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function rect() {
@@ -259,10 +274,15 @@ describe('column widths after a resize', () => {
             });
             try {
                 const el = createElement('rowhouse-grid-table', { is: GridTable });
-                el.config = { columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }], rows: seedRows.slice(0, 2) };
+                el.config = {
+                    columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }],
+                    rows: seedRows.slice(0, 2)
+                };
                 document.body.appendChild(el);
                 await flush();
-                expect(el.shadowRoot.querySelector('thead').style.getPropertyValue('--rh-divider-height')).toBe('144px');
+                expect(el.shadowRoot.querySelector('thead').style.getPropertyValue('--rh-divider-height')).toBe(
+                    '144px'
+                );
             } finally {
                 rectSpy.mockRestore();
             }
@@ -272,18 +292,27 @@ describe('column widths after a resize', () => {
             // Found in Lightning Experience: the box was 144.5px,
             // clientHeight said 145, and half a pixel over still showed a scrollbar.
             const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function rect() {
-                if (this.hasAttribute('data-scroller')) return { top: 100, left: 0, right: 0, bottom: 244.5, width: 0, height: 144.5 };
+                if (this.hasAttribute('data-scroller'))
+                    return { top: 100, left: 0, right: 0, bottom: 244.5, width: 0, height: 144.5 };
                 const top = this.classList.contains('rh-resize-divider') ? 101 : 0;
                 return { top, left: 0, right: 0, bottom: top, width: 0, height: 0 };
             });
-            const offsetSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
-                .mockImplementation(function height() { return this.hasAttribute('data-scroller') ? 145 : 0; });
+            const offsetSpy = jest
+                .spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+                .mockImplementation(function height() {
+                    return this.hasAttribute('data-scroller') ? 145 : 0;
+                });
             try {
                 const el = createElement('rowhouse-grid-table', { is: GridTable });
-                el.config = { columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }], rows: seedRows.slice(0, 2) };
+                el.config = {
+                    columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }],
+                    rows: seedRows.slice(0, 2)
+                };
                 document.body.appendChild(el);
                 await flush();
-                expect(el.shadowRoot.querySelector('thead').style.getPropertyValue('--rh-divider-height')).toBe('143px');
+                expect(el.shadowRoot.querySelector('thead').style.getPropertyValue('--rh-divider-height')).toBe(
+                    '143px'
+                );
             } finally {
                 rectSpy.mockRestore();
                 offsetSpy.mockRestore();
@@ -292,10 +321,15 @@ describe('column widths after a resize', () => {
 
         it('follow the grid when its height changes', async () => {
             const el = createElement('rowhouse-grid-table', { is: GridTable });
-            el.config = { columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }], rows: seedRows.slice(0, 2) };
+            el.config = {
+                columns: [{ field: 'Name', label: 'Name', type: 'text', width: 220 }],
+                rows: seedRows.slice(0, 2)
+            };
             document.body.appendChild(el);
             await flush();
-            heightSpy.mockImplementation(function height() { return this.hasAttribute('data-scroller') ? 300 : 0; });
+            heightSpy.mockImplementation(function height() {
+                return this.hasAttribute('data-scroller') ? 300 : 0;
+            });
             el.config = { ...el.config, rows: seedRows.slice(0, 5) };
             await flush();
             expect(el.shadowRoot.querySelector('thead').style.getPropertyValue('--rh-divider-height')).toBe('300px');

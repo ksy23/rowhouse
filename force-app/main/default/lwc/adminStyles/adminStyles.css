@@ -112,7 +112,8 @@
     background: var(--rh-surface);
     border: var(--slds-g-sizing-border-1, 1px) solid var(--rh-line);
     border-radius: var(--slds-g-radius-border-3, 0.5rem);
-    padding: var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-5, 1.25rem);
+    padding: var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-4, 1rem)
+        var(--slds-g-spacing-5, 1.25rem);
 }
 
 .rh-stat::before {

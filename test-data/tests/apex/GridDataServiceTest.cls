@@ -15,7 +15,6 @@
  */
 @IsTest
 private class GridDataServiceTest {
-
     @TestSetup
     static void setup() {
         // At API 67 plain DML runs in user mode too, so even the seed rows are
@@ -23,8 +22,7 @@ private class GridDataServiceTest {
         System.runAs(GridTestUsers.fullUser()) {
             List<Rowhouse_Test_Record__c> recs = new List<Rowhouse_Test_Record__c>();
             for (Integer i = 1; i <= 550; i++) {
-                recs.add(new Rowhouse_Test_Record__c(
-                    Name = String.valueOf(1000 + i), Number_Field__c = i));
+                recs.add(new Rowhouse_Test_Record__c(Name = String.valueOf(1000 + i), Number_Field__c = i));
             }
             insert recs;
         }
@@ -36,15 +34,17 @@ private class GridDataServiceTest {
             Set<Id> seen = new Set<Id>();
             Test.startTest();
             GridPage page = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200));
+                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200)
+            );
             while (true) {
                 for (SObject r : page.rows) {
                     System.assert(seen.add(r.Id), 'Record returned twice: ' + r.Id);
                 }
-                if (!page.hasMore) break;
+                if (!page.hasMore)
+                    break;
                 page = GridDataService.fetchPage(
-                    new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' },
-                                    page.cursorLocator, 200));
+                    new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, page.cursorLocator, 200)
+                );
             }
             Test.stopTest();
             System.assertEquals(550, seen.size(), 'Paging lost or repeated records.');
@@ -60,7 +60,8 @@ private class GridDataServiceTest {
             // needs its own reconciliation and the design changes.
             Test.startTest();
             GridPage first = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200));
+                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200)
+            );
 
             // Someone else deletes rows while this user pages: the seed rows'
             // owner, since deleting a record needs ownership, not just edit access.
@@ -69,14 +70,16 @@ private class GridDataServiceTest {
             }
 
             GridPage second = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' },
-                                first.cursorLocator, 200));
+                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, first.cursorLocator, 200)
+            );
             Test.stopTest();
 
             Set<Id> firstIds = new Map<Id, SObject>(first.rows).keySet();
             for (SObject r : second.rows) {
-                System.assert(!firstIds.contains(r.Id),
-                    'Page 2 repeated a record from page 1 after a mid-cursor delete.');
+                System.assert(
+                    !firstIds.contains(r.Id),
+                    'Page 2 repeated a record from page 1 after a mid-cursor delete.'
+                );
             }
         }
     }
@@ -84,11 +87,12 @@ private class GridDataServiceTest {
     @IsTest
     static void nullsSortLastOnAscending() {
         System.runAs(GridTestUsers.fullUser()) {
-            insert new Rowhouse_Test_Record__c(Name = 'null sort probe');  // Number_Field__c null
+            insert new Rowhouse_Test_Record__c(Name = 'null sort probe'); // Number_Field__c null
             Test.startTest();
             GridPage page = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Number_Field__c' },
-                                null, 600).orderBy('Number_Field__c', 'asc'));
+                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Number_Field__c' }, null, 600)
+                    .orderBy('Number_Field__c', 'asc')
+            );
             Test.stopTest();
             // NOTE: NULLS FIRST is the SOQL default for ASC, so this passes only if
             // the service emits an explicit NULLS LAST. This asserts a Rowhouse
@@ -110,8 +114,7 @@ private class GridDataServiceTest {
             // before startTest, so a read there measures the outer context and
             // passes regardless of what the service did.
             Test.startTest();
-            GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 10));
+            GridDataService.fetchPage(new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 10));
             Integer callouts = Limits.getCallouts();
             Test.stopTest();
             System.assertEquals(0, callouts, 'Rowhouse must make no callouts.');
@@ -130,18 +133,23 @@ private class GridDataServiceTest {
             Test.startTest();
             Integer fetches = 0;
             GridPage page = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200));
+                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200)
+            );
             fetches++;
             while (page.hasMore && fetches < 10) {
                 page = GridDataService.fetchPage(
-                    new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' },
-                                    page.cursorLocator, 200));
+                    new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, page.cursorLocator, 200)
+                );
                 fetches++;
             }
             Test.stopTest();
-            System.assert(fetches < 10,
-                'Walking the seed data consumed ' + fetches + ' of 10 fetch calls. '
-                + 'Either reduce the seed size or page in a larger chunk.');
+            System.assert(
+                fetches < 10,
+                'Walking the seed data consumed ' +
+                    fetches +
+                    ' of 10 fetch calls. ' +
+                    'Either reduce the seed size or page in a larger chunk.'
+            );
             System.assert(!page.hasMore, 'Ran out of fetch calls before reaching the last page.');
         }
     }
@@ -149,8 +157,11 @@ private class GridDataServiceTest {
     @IsTest
     static void theFetchCallLimitIsWhatThePlatformReports() {
         // Pins the corrected number, so the next person to quote "ten" finds out.
-        System.assertEquals(100, Limits.getLimitFetchCallsOnApexCursor(),
-            'The per-transaction cursor fetch limit has changed.');
+        System.assertEquals(
+            100,
+            Limits.getLimitFetchCallsOnApexCursor(),
+            'The per-transaction cursor fetch limit has changed.'
+        );
     }
 
     @IsTest
@@ -167,19 +178,34 @@ private class GridDataServiceTest {
             Test.startTest();
             GridPage quoted = GridDataService.fetchPage(
                 new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Text_Field__c' }, null, 50)
-                    .withSearch('O\'Brien \\'));
+                    .withSearch('O\'Brien \\')
+            );
             GridPage wildcard = GridDataService.fetchPage(
                 new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Text_Field__c' }, null, 50)
-                    .withSearch('%wildcard%_'));
+                    .withSearch('%wildcard%_')
+            );
             GridPage percentOnly = GridDataService.fetchPage(
                 new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Text_Field__c' }, null, 50)
-                    .withSearch('%'));
+                    .withSearch('%')
+            );
             Test.stopTest();
 
-            System.assertEquals(1, quoted.rows.size(), 'A quote and a backslash must be searchable, not a syntax error.');
-            System.assertEquals(1, wildcard.rows.size(), '"%wildcard%_" must match the literal text only, not the decoy.');
+            System.assertEquals(
+                1,
+                quoted.rows.size(),
+                'A quote and a backslash must be searchable, not a syntax error.'
+            );
+            System.assertEquals(
+                1,
+                wildcard.rows.size(),
+                '"%wildcard%_" must match the literal text only, not the decoy.'
+            );
             System.assertEquals('TC-021 probe', (String) wildcard.rows[0].get('Name'));
-            System.assertEquals(1, percentOnly.rows.size(), 'A bare "%" is a literal percent sign, not "match everything".');
+            System.assertEquals(
+                1,
+                percentOnly.rows.size(),
+                'A bare "%" is a literal percent sign, not "match everything".'
+            );
         }
     }
 
@@ -192,7 +218,8 @@ private class GridDataServiceTest {
 
     private static GridRequest nameRequest(String locator, String token) {
         return new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, locator, 200)
-            .orderBy('Name', 'asc').withCursor(token);
+            .orderBy('Name', 'asc')
+            .withCursor(token);
     }
 
     @IsTest
@@ -269,7 +296,8 @@ private class GridDataServiceTest {
             Test.startTest();
             GridPage wider = GridDataService.fetchPage(
                 new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Number_Field__c' }, null, 200)
-                    .orderBy('Name', 'asc'));
+                    .orderBy('Name', 'asc')
+            );
             GridPage first = GridDataService.fetchPage(nameRequest(null, null));
             GridDataService.forgetOpenCursors();
             try {
@@ -308,12 +336,18 @@ private class GridDataServiceTest {
     static void aLocatorFromAnotherQueryIsRefused() {
         System.runAs(GridTestUsers.fullUser()) {
             GridPage first = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 10));
+                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 10)
+            );
             Boolean refused = false;
             try {
                 GridDataService.fetchPage(
-                    new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Number_Field__c' },
-                                    first.cursorLocator, 10));
+                    new GridRequest(
+                        'Rowhouse_Test_Record__c',
+                        new List<String>{ 'Name', 'Number_Field__c' },
+                        first.cursorLocator,
+                        10
+                    )
+                );
             } catch (GridException e) {
                 refused = true;
             }
@@ -325,7 +359,8 @@ private class GridDataServiceTest {
     static void anUnknownFieldFailsWithItsName() {
         try {
             GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'No_Such_Field__c' }, null, 10));
+                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'No_Such_Field__c' }, null, 10)
+            );
             System.assert(false, 'Expected an exception.');
         } catch (GridException e) {
             System.assert(e.getMessage().contains('No_Such_Field__c'), e.getMessage());

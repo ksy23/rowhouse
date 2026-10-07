@@ -41,9 +41,23 @@ const COLUMNS = [
     { field: 'Email__c', label: 'Email', type: 'email', editable: true, sortable: true },
     { field: 'Phone__c', label: 'Phone', type: 'phone', editable: true, sortable: true },
     { field: 'Web__c', label: 'Web', type: 'url', editable: true, sortable: true },
-    { field: 'Account__c', label: 'Account', type: 'reference', editable: true, sortable: true, referenceTo: ['Account'] }
+    {
+        field: 'Account__c',
+        label: 'Account',
+        type: 'reference',
+        editable: true,
+        sortable: true,
+        referenceTo: ['Account']
+    }
 ];
-const ROW = { Id: ID, Name: 'TC-001', Email__c: 'ada@example.com', Phone__c: '+1 (415) 555-0100', Web__c: 'https://example.com', Account__c: ACC };
+const ROW = {
+    Id: ID,
+    Name: 'TC-001',
+    Email__c: 'ada@example.com',
+    Phone__c: '+1 (415) 555-0100',
+    Web__c: 'https://example.com',
+    Account__c: ACC
+};
 
 let el;
 const mount = async (row = ROW) => {
@@ -75,7 +89,7 @@ afterEach(() => {
 });
 
 describe('links in cells', () => {
-    it('links the record\'s name to the record', async () => {
+    it("links the record's name to the record", async () => {
         await mount();
         expect(link('Name').getAttribute('href')).toBe(`/lightning/r/${ID}/view`);
         expect(link('Name').textContent).toBe('TC-001');
@@ -94,14 +108,19 @@ describe('links in cells', () => {
     it('leaves a malformed email address as plain text', async () => {
         await mount({ ...ROW, Email__c: 'not an address' });
         expect(link('Email__c')).toBeNull();
-        expect(el.shadowRoot.querySelector(`td[data-row-id="${ID}"][data-field="Email__c"]`).textContent).toContain('not an address');
+        expect(el.shadowRoot.querySelector(`td[data-row-id="${ID}"][data-field="Email__c"]`).textContent).toContain(
+            'not an address'
+        );
     });
 
     it('follows a record link through Lightning, in the same tab', async () => {
         await mount();
         const event = click(link('Account__c'));
         expect(event.defaultPrevented).toBe(true);
-        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__recordPage', attributes: { recordId: ACC, actionName: 'view' } });
+        expect(mockNavigate).toHaveBeenCalledWith({
+            type: 'standard__recordPage',
+            attributes: { recordId: ACC, actionName: 'view' }
+        });
     });
 
     it('leaves a click with Cmd, Ctrl or Shift to the browser: a new tab or window', async () => {

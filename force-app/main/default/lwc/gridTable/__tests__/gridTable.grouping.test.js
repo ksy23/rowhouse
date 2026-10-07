@@ -34,13 +34,23 @@ const SERVER_GROUPS = [
     { k: ['Won'], l: [''], n: 2, v: { Amount__c: { s: '500' } } },
     { k: [''], l: [''], n: 1, v: { Amount__c: { s: '10' } } }
 ];
-const ready = (groups = SERVER_GROUPS, levels = BY_STAGE) => ({ status: 'ready', totals: rollUp(groups, levels, COLUMNS) });
+const ready = (groups = SERVER_GROUPS, levels = BY_STAGE) => ({
+    status: 'ready',
+    totals: rollUp(groups, levels, COLUMNS)
+});
 
 let el;
 let events;
 const mount = async (config = {}) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
-    el.config = { columns: COLUMNS, rows: ROWS, totalRows: ROWS.length, grouping: BY_STAGE, groupSummary: ready(), ...config };
+    el.config = {
+        columns: COLUMNS,
+        rows: ROWS,
+        totalRows: ROWS.length,
+        grouping: BY_STAGE,
+        groupSummary: ready(),
+        ...config
+    };
     events = { groupchange: [], cellschange: [], selectionchange: [] };
     Object.keys(events).forEach(name => el.addEventListener(name, e => events[name].push(e.detail)));
     document.body.appendChild(el);
@@ -82,8 +92,12 @@ describe('a grouped grid', () => {
     it('is a treegrid with a header row per group, in group order, blanks last', async () => {
         await mount();
         expect($('table').getAttribute('role')).toBe('treegrid');
-        expect(groupLabels().map(span => span.textContent))
-            .toEqual(['Stage: Lost', 'Stage: Open', 'Stage: Won', 'Stage: (blank)']);
+        expect(groupLabels().map(span => span.textContent)).toEqual([
+            'Stage: Lost',
+            'Stage: Open',
+            'Stage: Won',
+            'Stage: (blank)'
+        ]);
         groupRows().forEach(tr => {
             expect(tr.getAttribute('aria-level')).toBe('1');
             expect(tr.getAttribute('aria-expanded')).toBe('true');
@@ -101,14 +115,25 @@ describe('a grouped grid', () => {
     it('numbers every row, group rows included, and knows the count once every row is loaded (HR-10)', async () => {
         await mount();
         const rows = $$('tbody tr[role="row"]');
-        expect(rows.map(tr => tr.getAttribute('aria-rowindex'))).toEqual(['2', '3', '4', '5', '6', '7', '8', '9', '10', '11']);
+        expect(rows.map(tr => tr.getAttribute('aria-rowindex'))).toEqual([
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+            '11'
+        ]);
         expect($('table').getAttribute('aria-rowcount')).toBe('11');
         await mount({ hasMore: true, totalRows: 5000 });
         // More records on the server bring groups not yet known: the count is unknown.
         expect($('table').getAttribute('aria-rowcount')).toBe('-1');
     });
 
-    it('shows each group\'s count and subtotal, and says them in full to a screen reader', async () => {
+    it("shows each group's count and subtotal, and says them in full to a screen reader", async () => {
         await mount();
         const open = groupRow('Open');
         expect(open.querySelector('.rh-group-count').textContent).toBe('(2)'); // as a related list's title shows it
@@ -144,11 +169,16 @@ describe('a grouped grid', () => {
         const cells = [...totals.querySelectorAll('td')];
         expect(cells).toHaveLength($$('thead th').length); // one per column, Group column included
         expect(cells[0].textContent).toBe('Total6 records'); // in the Group column
-        expect(cells[cells.length - 1].querySelector('.slds-assistive-text').textContent).toBe('Sum of Amount: $685.00');
+        expect(cells[cells.length - 1].querySelector('.slds-assistive-text').textContent).toBe(
+            'Sum of Amount: $685.00'
+        );
     });
 
     it('has a Total row without grouping when a column has a subtotal, labelled in the first data column', async () => {
-        await mount({ grouping: [], groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], []) });
+        await mount({
+            grouping: [],
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+        });
         expect($('table').getAttribute('role')).toBe('grid');
         expect(groupRows()).toHaveLength(0);
         expect($('th[data-field="__group"]')).toBeNull();
@@ -205,9 +235,13 @@ describe('the grouping menus', () => {
         let items = await openMenu('__group');
         expect($('[role="menu"]').getAttribute('aria-label')).toBe('Grouping actions');
         expect(items.map(a => a.textContent.trim())).toEqual([
-            'Expand all groups', 'Collapse all groups',
+            'Expand all groups',
+            'Collapse all groups',
             // The groups' order and percentages.
-            'Order groups by name', 'Order groups by record count', 'Order groups by sum of Amount', 'Show percent of total',
+            'Order groups by name',
+            'Order groups by record count',
+            'Order groups by sum of Amount',
+            'Show percent of total',
             'Stop grouping'
         ]);
         await choose(items, 'Collapse all groups');
@@ -231,7 +265,14 @@ describe('the grouping menus', () => {
         await mount({ grouping: [], groupSummary: null });
         const items = await openMenu('Stage__c');
         // Sorting comes first in every column's menu, then text, then grouping.
-        expect(items.map(a => a.textContent.trim())).toEqual(['Sort ascending', 'Sort descending', 'Wrap text', 'Clip text', 'Group by Stage', 'Hide column']);
+        expect(items.map(a => a.textContent.trim())).toEqual([
+            'Sort ascending',
+            'Sort descending',
+            'Wrap text',
+            'Clip text',
+            'Group by Stage',
+            'Hide column'
+        ]);
         expect(items[4].getAttribute('role')).toBe('menuitem');
         expect(items[4].closest('li').classList).toContain('slds-has-divider_top-space');
         await choose(items, 'Group by Stage');
@@ -245,13 +286,31 @@ describe('the grouping menus', () => {
     it('once grouped, another column can be added, or group alone; the grouped column can be taken out', async () => {
         await mount();
         let items = await openMenu('Close__c');
-        expect(items.map(a => a.textContent.trim())).toEqual(['Sort ascending', 'Sort descending', 'Add Close to grouping', 'Group by Close only', 'Hide column']);
+        expect(items.map(a => a.textContent.trim())).toEqual([
+            'Sort ascending',
+            'Sort descending',
+            'Add Close to grouping',
+            'Group by Close only',
+            'Hide column'
+        ]);
         await choose(items, 'Add Close to grouping');
         // A date groups by month until the user picks another unit.
-        expect(events.groupchange[0]).toEqual({ grouping: [{ field: 'Stage__c', unit: null }, { field: 'Close__c', unit: 'month' }] });
+        expect(events.groupchange[0]).toEqual({
+            grouping: [
+                { field: 'Stage__c', unit: null },
+                { field: 'Close__c', unit: 'month' }
+            ]
+        });
 
         items = await openMenu('Stage__c');
-        expect(items.map(a => a.textContent.trim())).toEqual(['Sort ascending', 'Sort descending', 'Wrap text', 'Clip text', 'Stop grouping by Stage', 'Hide column']);
+        expect(items.map(a => a.textContent.trim())).toEqual([
+            'Sort ascending',
+            'Sort descending',
+            'Wrap text',
+            'Clip text',
+            'Stop grouping by Stage',
+            'Hide column'
+        ]);
         await choose(items, 'Stop grouping by Stage');
         expect(events.groupchange[1]).toEqual({ grouping: [] });
     });
@@ -261,11 +320,18 @@ describe('the grouping menus', () => {
         await mount({ grouping: levels, groupSummary: null });
         expect($('th[data-field="__group"]').getAttribute('aria-label')).toBe('Grouped by Close (month)');
         const items = await openMenu('__group');
-        const radios = items.filter(a => a.getAttribute('role') === 'menuitemradio' && a.textContent.trim().startsWith('Close by'));
+        const radios = items.filter(
+            a => a.getAttribute('role') === 'menuitemradio' && a.textContent.trim().startsWith('Close by')
+        );
         // Week and the fiscal periods too.
         expect(radios.map(a => [a.textContent.trim(), a.getAttribute('aria-checked')])).toEqual([
-            ['Close by day', 'false'], ['Close by week', 'false'], ['Close by month', 'true'], ['Close by quarter', 'false'],
-            ['Close by year', 'false'], ['Close by fiscal quarter', 'false'], ['Close by fiscal year', 'false']
+            ['Close by day', 'false'],
+            ['Close by week', 'false'],
+            ['Close by month', 'true'],
+            ['Close by quarter', 'false'],
+            ['Close by year', 'false'],
+            ['Close by fiscal quarter', 'false'],
+            ['Close by fiscal year', 'false']
         ]);
         await choose(items, 'Close by quarter');
         expect(events.groupchange).toEqual([{ grouping: [{ field: 'Close__c', unit: 'quarter' }] }]);
@@ -387,7 +453,10 @@ describe('cards', () => {
         await mount({ layout: 'cards' });
         const toggles = $$('.rh-group-toggle');
         expect(toggles.map(b => b.textContent.trim())).toEqual([
-            'Stage: Lost1 record', 'Stage: Open2 records', 'Stage: Won2 records', 'Stage: (blank)1 record'
+            'Stage: Lost1 record',
+            'Stage: Open2 records',
+            'Stage: Won2 records',
+            'Stage: (blank)1 record'
         ]);
         expect($$('.rh-card-subtotals')[1].textContent).toBe('Sum of Amount: $150.00');
         toggles[1].click();
@@ -406,13 +475,19 @@ describe('accessibility', () => {
 
 describe('grouping details', () => {
     it('says what the grid is grouped by above it, one chip per level, each removable', async () => {
-        const levels = [{ field: 'Stage__c', unit: null }, { field: 'Close__c', unit: 'month' }];
+        const levels = [
+            { field: 'Stage__c', unit: null },
+            { field: 'Close__c', unit: 'month' }
+        ];
         await mount({ grouping: levels, groupSummary: null });
         const bar = $('.rh-group-chips');
         expect(bar.getAttribute('role')).toBe('group');
         expect($$('.rh-group-chip .slds-pill__label').map(s => s.textContent)).toEqual(['Stage', 'Close (by month)']);
         const remove = $$('.rh-group-chip button');
-        expect($$('.rh-group-chip button .slds-assistive-text').map(s => s.textContent)).toEqual(['Stop grouping by Stage', 'Stop grouping by Close']);
+        expect($$('.rh-group-chip button .slds-assistive-text').map(s => s.textContent)).toEqual([
+            'Stop grouping by Stage',
+            'Stop grouping by Close'
+        ]);
         remove[1].click();
         await flush();
         expect(events.groupchange).toEqual([{ grouping: [{ field: 'Stage__c', unit: null }] }]);
@@ -439,8 +514,14 @@ describe('grouping details', () => {
         expect(th.textContent).not.toContain('Grouped by Stage');
     });
 
-    it('draws a guide line down a group\'s records, at their level', async () => {
-        await mount({ grouping: [{ field: 'Stage__c', unit: null }, { field: 'Close__c', unit: 'month' }], groupSummary: null });
+    it("draws a guide line down a group's records, at their level", async () => {
+        await mount({
+            grouping: [
+                { field: 'Stage__c', unit: null },
+                { field: 'Close__c', unit: 'month' }
+            ],
+            groupSummary: null
+        });
         const record = recordRows()[0];
         const groupTd = record.querySelector('td[data-field="__group"]');
         expect(groupTd.style.getPropertyValue('--rh-guide')).toBe(`${(2 - 1) * 24 + 18}px`);

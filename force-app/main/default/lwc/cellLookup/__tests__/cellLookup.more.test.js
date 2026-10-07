@@ -18,9 +18,18 @@ let el;
 let events;
 const mount = async props => {
     el = createElement('c-cell-lookup', { is: CellLookup });
-    Object.assign(el, { mode: 'edit', label: 'Account', configName: 'Test_Records', field: 'Lookup_Field__c', value: null, ...props });
+    Object.assign(el, {
+        mode: 'edit',
+        label: 'Account',
+        configName: 'Test_Records',
+        field: 'Lookup_Field__c',
+        value: null,
+        ...props
+    });
     events = [];
-    ['commit', 'cancel', 'newrecord'].forEach(name => el.addEventListener(name, e => events.push({ name, detail: e.detail })));
+    ['commit', 'cancel', 'newrecord'].forEach(name =>
+        el.addEventListener(name, e => events.push({ name, detail: e.detail }))
+    );
     document.body.appendChild(el);
     await flush();
 };
@@ -32,7 +41,8 @@ const type = async text => {
     await wait(SEARCH_DELAY_MS + 20);
     await flush();
 };
-const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+const key = (target, k) =>
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
@@ -79,9 +89,15 @@ describe('the New item', () => {
 });
 
 describe('a field with a lookup filter', () => {
-    const FILTERED = { filtered: true, fieldApiName: 'Filtered_Account__c', objectApiName: 'Rowhouse_Test_Record__c', recordId: ROW, field: 'Filtered_Account__c' };
+    const FILTERED = {
+        filtered: true,
+        fieldApiName: 'Filtered_Account__c',
+        objectApiName: 'Rowhouse_Test_Record__c',
+        recordId: ROW,
+        field: 'Filtered_Account__c'
+    };
 
-    it('is edited with Salesforce\'s own lookup, on the row\'s record, which applies the filter', async () => {
+    it("is edited with Salesforce's own lookup, on the row's record, which applies the filter", async () => {
         await mount({ ...FILTERED, value: ACME.id });
         expect($('input')).toBeNull();
         const form = $('lightning-record-edit-form');
@@ -102,11 +118,15 @@ describe('a field with a lookup filter', () => {
         await mount(FILTERED);
         $('lightning-input-field').dispatchEvent(new CustomEvent('change', { detail: { value: [ACME.id] } }));
         await flush();
-        expect(lookupName).toHaveBeenCalledWith({ configName: 'Test_Records', field: 'Filtered_Account__c', recordId: ACME.id });
+        expect(lookupName).toHaveBeenCalledWith({
+            configName: 'Test_Records',
+            field: 'Filtered_Account__c',
+            recordId: ACME.id
+        });
         expect(events).toEqual([{ name: 'commit', detail: { value: ACME.id, label: 'Acme Corp' } }]);
     });
 
-    it('waits, on the grid\'s focus-out, for the record a click on the lookup\'s list chose', async () => {
+    it("waits, on the grid's focus-out, for the record a click on the lookup's list chose", async () => {
         lookupName.mockResolvedValue('Acme Corp');
         await mount(FILTERED);
         expect(el.commit()).toBe(true); // the grid's focus-out, before the lookup's change

@@ -16,7 +16,21 @@ const fs = require('fs');
 const { parse } = require('@lwc/template-compiler');
 
 const TABLE_PARENTS = new Set(['table', 'thead', 'tbody', 'tfoot', 'tr']);
-const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
+const VOID = new Set([
+    'area',
+    'base',
+    'br',
+    'col',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'link',
+    'meta',
+    'source',
+    'track',
+    'wbr'
+]);
 
 function lineOf(source, index) {
     return source.slice(0, index).split('\n').length;
@@ -51,10 +65,14 @@ function checkTemplates(files) {
     const violations = [];
     files.forEach(file => {
         const source = fs.readFileSync(file, 'utf8');
-        slotInTable(source).forEach(v => violations.push({
-            rule: 'HR-22', file, line: v.line,
-            message: `<slot> directly inside <${v.parent}> — the parser hoists it out of the table (lwc#265). Project columns by iterating config.`
-        }));
+        slotInTable(source).forEach(v =>
+            violations.push({
+                rule: 'HR-22',
+                file,
+                line: v.line,
+                message: `<slot> directly inside <${v.parent}> — the parser hoists it out of the table (lwc#265). Project columns by iterating config.`
+            })
+        );
         let result;
         try {
             result = parse(source, {});

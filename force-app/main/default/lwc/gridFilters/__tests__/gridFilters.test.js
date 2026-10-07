@@ -30,7 +30,13 @@ const STAGE = {
 };
 const AMOUNT = { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, filterable: true };
 const OWNER = { field: 'OwnerId', label: 'Owner', type: 'owner', referenceTo: ['User'], filterable: true };
-const ACCOUNT = { field: 'Account__c', label: 'Account', type: 'reference', referenceTo: ['Account'], filterable: true };
+const ACCOUNT = {
+    field: 'Account__c',
+    label: 'Account',
+    type: 'reference',
+    referenceTo: ['Account'],
+    filterable: true
+};
 
 describe('which columns can be filtered', () => {
     it('is what the server says, never a formula column', () => {
@@ -44,10 +50,22 @@ describe('which columns can be filtered', () => {
 
 describe('the conditions each type offers', () => {
     it('offers text, picklist, multi-select and checkbox conditions', () => {
-        expect(values(operatorsFor({ type: 'text' }))).toEqual(
-            ['contains', 'not_contains', 'equals', 'not_equals', 'starts_with', 'is_blank', 'is_not_blank']);
+        expect(values(operatorsFor({ type: 'text' }))).toEqual([
+            'contains',
+            'not_contains',
+            'equals',
+            'not_equals',
+            'starts_with',
+            'is_blank',
+            'is_not_blank'
+        ]);
         expect(values(operatorsFor(STAGE))).toEqual(['equals', 'not_equals', 'is_blank', 'is_not_blank']);
-        expect(operatorsFor({ type: 'multipicklist' }).map(o => o.label)).toEqual(['Includes', 'Excludes', 'Is blank', 'Is not blank']);
+        expect(operatorsFor({ type: 'multipicklist' }).map(o => o.label)).toEqual([
+            'Includes',
+            'Excludes',
+            'Is blank',
+            'Is not blank'
+        ]);
         expect(values(operatorsFor({ type: 'checkbox' }))).toEqual(['equals']);
     });
 
@@ -55,7 +73,15 @@ describe('the conditions each type offers', () => {
         expect(values(operatorsFor(AMOUNT))).toContain('between');
         expect(values(operatorsFor({ type: 'time' }))).toContain('greater_than');
         const date = operatorsFor({ type: 'date' });
-        expect(date.map(o => o.label).slice(0, 7)).toEqual(['On', 'Not on', 'After', 'On or after', 'Before', 'On or before', 'Between']);
+        expect(date.map(o => o.label).slice(0, 7)).toEqual([
+            'On',
+            'Not on',
+            'After',
+            'On or after',
+            'Before',
+            'On or before',
+            'Between'
+        ]);
         expect(operatorsFor({ type: 'datetime' })).toBe(date);
     });
 
@@ -84,23 +110,43 @@ describe('the value box', () => {
     });
 
     it('lists a picklist’s values, or Checked and Not checked', () => {
-        expect(choicesFor(STAGE)).toEqual([{ value: 'Open', label: 'Open' }, { value: 'Closed_Won', label: 'Closed Won' }]);
+        expect(choicesFor(STAGE)).toEqual([
+            { value: 'Open', label: 'Open' },
+            { value: 'Closed_Won', label: 'Closed Won' }
+        ]);
         expect(values(choicesFor({ type: 'checkbox' }))).toEqual(['true', 'false']);
     });
 });
 
 describe('what goes to the server', () => {
     it('sends a complete filter, values as text', () => {
-        expect(toRequest({ field: 'Amount__c', operator: 'greater_than', value: 1000 })).toEqual(
-            { field: 'Amount__c', operator: 'greater_than', value: '1000', valueTo: null });
-        expect(toRequest({ field: 'Amount__c', operator: 'between', value: '1', valueTo: '9' })).toEqual(
-            { field: 'Amount__c', operator: 'between', value: '1', valueTo: '9' });
+        expect(toRequest({ field: 'Amount__c', operator: 'greater_than', value: 1000 })).toEqual({
+            field: 'Amount__c',
+            operator: 'greater_than',
+            value: '1000',
+            valueTo: null
+        });
+        expect(toRequest({ field: 'Amount__c', operator: 'between', value: '1', valueTo: '9' })).toEqual({
+            field: 'Amount__c',
+            operator: 'between',
+            value: '1',
+            valueTo: '9'
+        });
     });
 
     it('sends "is me" as equals $User, and the blank tests without a value', () => {
-        expect(toRequest({ field: 'OwnerId', operator: IS_ME })).toEqual({ field: 'OwnerId', operator: 'equals', value: '$User', valueTo: null });
-        expect(toRequest({ field: 'Stage__c', operator: 'is_blank', value: 'ignored' })).toEqual(
-            { field: 'Stage__c', operator: 'is_blank', value: null, valueTo: null });
+        expect(toRequest({ field: 'OwnerId', operator: IS_ME })).toEqual({
+            field: 'OwnerId',
+            operator: 'equals',
+            value: '$User',
+            valueTo: null
+        });
+        expect(toRequest({ field: 'Stage__c', operator: 'is_blank', value: 'ignored' })).toEqual({
+            field: 'Stage__c',
+            operator: 'is_blank',
+            value: null,
+            valueTo: null
+        });
     });
 
     it('sends nothing when a value is missing, or Between lacks an end', () => {
@@ -113,9 +159,13 @@ describe('what goes to the server', () => {
     it('says why a filter cannot be applied yet', () => {
         expect(problemOf({ operator: null }, AMOUNT)).toBe('Choose a condition.');
         expect(problemOf({ operator: 'equals', value: '' }, AMOUNT)).toBe('Enter a value.');
-        expect(problemOf({ operator: 'between', value: '1', valueTo: '' }, AMOUNT)).toBe('Enter both ends of the range.');
+        expect(problemOf({ operator: 'between', value: '1', valueTo: '' }, AMOUNT)).toBe(
+            'Enter both ends of the range.'
+        );
         expect(problemOf({ operator: 'equals', value: '1,000' }, AMOUNT)).toBe('Enter a number, such as 1000.');
-        expect(problemOf({ operator: 'between', value: '1', valueTo: 'x' }, AMOUNT)).toBe('Enter a number, such as 1000.');
+        expect(problemOf({ operator: 'between', value: '1', valueTo: 'x' }, AMOUNT)).toBe(
+            'Enter a number, such as 1000.'
+        );
         expect(problemOf({ operator: 'equals', value: '-1.5' }, AMOUNT)).toBe('');
         expect(problemOf({ operator: 'is_blank' }, AMOUNT)).toBe('');
     });
@@ -123,12 +173,22 @@ describe('what goes to the server', () => {
 
 describe('a filter in words, for its chip', () => {
     it('names the column, the condition and the value as the grid shows it', () => {
-        expect(describeFilter({ field: 'Stage__c', operator: 'equals', value: 'Closed_Won' }, STAGE)).toBe('Stage equals Closed Won');
+        expect(describeFilter({ field: 'Stage__c', operator: 'equals', value: 'Closed_Won' }, STAGE)).toBe(
+            'Stage equals Closed Won'
+        );
         expect(describeFilter({ field: 'Stage__c', operator: 'is_blank' }, STAGE)).toBe('Stage is blank');
-        expect(describeFilter({ field: 'Name', operator: 'contains', value: 'acme' }, { field: 'Name', label: 'Name', type: 'text' }))
-            .toBe('Name contains “acme”');
-        expect(describeFilter({ field: 'Done__c', operator: 'equals', value: 'true' }, { field: 'Done__c', label: 'Done', type: 'checkbox' }))
-            .toBe('Done is checked');
+        expect(
+            describeFilter(
+                { field: 'Name', operator: 'contains', value: 'acme' },
+                { field: 'Name', label: 'Name', type: 'text' }
+            )
+        ).toBe('Name contains “acme”');
+        expect(
+            describeFilter(
+                { field: 'Done__c', operator: 'equals', value: 'true' },
+                { field: 'Done__c', label: 'Done', type: 'checkbox' }
+            )
+        ).toBe('Done is checked');
     });
 
     it('reads Between with both ends', () => {

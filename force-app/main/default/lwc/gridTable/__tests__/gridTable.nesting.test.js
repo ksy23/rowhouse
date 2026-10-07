@@ -121,7 +121,7 @@ describe('the toggle column', () => {
 });
 
 describe('opening a row', () => {
-    it('puts a panel row after it, one cell across every column, holding the row\'s tabs', async () => {
+    it("puts a panel row after it, one cell across every column, holding the row's tabs", async () => {
         await mount();
         await open(id(1));
         expect(rowOrder()).toEqual([id(1), detailId(id(1)), id(2), id(3)]);
@@ -139,7 +139,13 @@ describe('opening a row', () => {
         // One child grid per tab, each limited to this row's records.
         const views = children.shadowRoot.querySelectorAll('c-grid-view');
         expect([...views].map(v => v.configName)).toEqual(['Test_Children', 'Test_Notes']);
-        expect(views[0].parent).toEqual({ link: 'Test_Records_Children', id: id(1), name: 'One', level: 2, height: null });
+        expect(views[0].parent).toEqual({
+            link: 'Test_Records_Children',
+            id: id(1),
+            name: 'One',
+            level: 2,
+            height: null
+        });
     });
 
     it('marks the toggle open, points it at the panel and says so', async () => {
@@ -214,10 +220,12 @@ describe('panel details', () => {
         const td = cell(id(1), '__expand');
         expect(td.querySelector('.rh-expand-count').textContent).toBe('3');
         expect(td.querySelector('.rh-expand-count').getAttribute('aria-hidden')).toBe('true');
-        expect(toggle(id(1)).querySelector('.slds-assistive-text').textContent).toBe('Show related records for One (3)');
+        expect(toggle(id(1)).querySelector('.slds-assistive-text').textContent).toBe(
+            'Show related records for One (3)'
+        );
     });
 
-    it('offers no toggle while a row\'s count is on the way, so rows with none never flash one', async () => {
+    it("offers no toggle while a row's count is on the way, so rows with none never flash one", async () => {
         // Rows first, counts not yet: no row offers a toggle.
         await mount({ childCounts: {} });
         expect($$('td[data-field="__expand"] button')).toHaveLength(0);
@@ -253,42 +261,50 @@ describe('panel details', () => {
         expect(announcement()).toBe('No related records.');
     });
 
-    it('hands the open row\'s counts to its tabs', async () => {
+    it("hands the open row's counts to its tabs", async () => {
         await mount({ childCounts: COUNTS });
         await open(id(1));
-        expect(detailCell(id(1)).querySelector('c-grid-children').counts).toEqual({ Test_Records_Children: 2, Test_Records_Notes: 1 });
+        expect(detailCell(id(1)).querySelector('c-grid-children').counts).toEqual({
+            Test_Records_Children: 2,
+            Test_Records_Notes: 1
+        });
     });
 
-    it('sizes the panel to what it holds, up to its level\'s maximum', async () => {
+    it("sizes the panel to what it holds, up to its level's maximum", async () => {
         await mount();
         await open(id(1));
         const row = () => $(`tr[data-row-id="${detailId(id(1))}"]`);
         expect(row().style.height).toBe(`${DETAIL_HEIGHT}px`); // not measured yet
-        detailCell(id(1)).querySelector('c-grid-children').dispatchEvent(new CustomEvent('panelsize', { detail: { height: 200 } }));
+        detailCell(id(1))
+            .querySelector('c-grid-children')
+            .dispatchEvent(new CustomEvent('panelsize', { detail: { height: 200 } }));
         await flush();
         const want = panelHeightFor(200, 1);
         expect(want).toBeLessThan(DETAIL_HEIGHT);
         expect(row().style.height).toBe(`${want}px`);
         expect(detailCell(id(1)).querySelector('.rh-detail-panel').style.height).toBe(`${want - 1}px`);
         // A child grid far taller than the panel still stops at the maximum.
-        detailCell(id(1)).querySelector('c-grid-children').dispatchEvent(new CustomEvent('panelsize', { detail: { height: 2000 } }));
+        detailCell(id(1))
+            .querySelector('c-grid-children')
+            .dispatchEvent(new CustomEvent('panelsize', { detail: { height: 2000 } }));
         await flush();
         expect(row().style.height).toBe(`${DETAIL_HEIGHT}px`);
     });
 
-    it('indents the panel under the row\'s toggle', async () => {
+    it("indents the panel under the row's toggle", async () => {
         await mount({ selection: 'multi' });
         await open(id(1));
         const panel = detailCell(id(1)).querySelector('.rh-detail-panel');
         expect(panel.style.getPropertyValue('--rh-panel-indent')).toBe(`${52 + 12}px`);
     });
 
-    it('passes a child table\'s new count up, with the row it belongs to', async () => {
+    it("passes a child table's new count up, with the row it belongs to", async () => {
         await mount({ childCounts: COUNTS });
         const heard = [];
         el.addEventListener('childcount', e => heard.push(e.detail));
         await open(id(1));
-        detailCell(id(1)).querySelector('c-grid-children')
+        detailCell(id(1))
+            .querySelector('c-grid-children')
             .dispatchEvent(new CustomEvent('childcount', { detail: { tab: 'Test_Records_Notes', count: 4 } }));
         expect(heard).toEqual([{ parentId: id(1), tab: 'Test_Records_Notes', count: 4 }]);
     });
@@ -323,7 +339,7 @@ describe('keys', () => {
         expect(el.shadowRoot.activeElement).toBe(cell(id(2), 'Amount__c'));
     });
 
-    it('Enter on the panel goes into the open tab\'s grid', async () => {
+    it("Enter on the panel goes into the open tab's grid", async () => {
         await mount();
         await open(id(1));
         const td = await focusOn(detailCell(id(1)));
@@ -354,7 +370,7 @@ describe('keys', () => {
     });
 });
 
-describe('a child grid\'s own events', () => {
+describe("a child grid's own events", () => {
     it('its keys are its own: the parent table does not move', async () => {
         await mount();
         await open(id(1));
@@ -380,7 +396,7 @@ describe('a child grid\'s own events', () => {
         expect(el.shadowRoot.activeElement).toBe(td);
     });
 
-    it('its paste is its own: nothing is pasted into the parent\'s focused cell', async () => {
+    it("its paste is its own: nothing is pasted into the parent's focused cell", async () => {
         await mount();
         await open(id(1));
         await focusOn(cell(id(2), 'Name'));
@@ -419,7 +435,9 @@ describe('the spreadsheet keys over a range with a panel in it', () => {
         await selectDown();
         await key(cell(id(2), 'Amount__c'), 'd', { ctrlKey: true });
         expect(events.cellschange).toHaveLength(1);
-        expect(events.cellschange[0].changes.map(c => [c.recordId, c.field, c.value])).toEqual([[id(2), 'Amount__c', 100]]);
+        expect(events.cellschange[0].changes.map(c => [c.recordId, c.field, c.value])).toEqual([
+            [id(2), 'Amount__c', 100]
+        ]);
     });
 
     it('fill down will not start from a panel', async () => {
@@ -434,7 +452,12 @@ describe('the spreadsheet keys over a range with a panel in it', () => {
 });
 
 describe('windowing with a panel open', () => {
-    const many = Array.from({ length: 200 }, (_, i) => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + (i + 1), Stage__c: 'Open', Amount__c: i }));
+    const many = Array.from({ length: 200 }, (_, i) => ({
+        Id: 'a00' + String(i).padStart(15, '0'),
+        Name: 'Row ' + (i + 1),
+        Stage__c: 'Open',
+        Amount__c: i
+    }));
     const rowHeight = 33; // the default until measured; JSDOM has no layout
 
     it('renders the rows that fit around the taller panel, and sizes the spacer below from the offsets', async () => {
@@ -468,7 +491,7 @@ describe('windowing with a panel open', () => {
 });
 
 describe('a sideways scroll', () => {
-    it('moves open rows\' panels with it, through a variable on the tbody, not a render', async () => {
+    it("moves open rows' panels with it, through a variable on the tbody, not a render", async () => {
         await mount();
         await open(id(1));
         const scroller = $('[data-scroller]');
@@ -481,10 +504,12 @@ describe('a sideways scroll', () => {
         expect($('tbody').style.getPropertyValue('--rh-scroll-left')).toBe('150px');
     });
 
-    it('the panel is not position: sticky, which would trap a child grid\'s dialogs under the parent\'s rows', () => {
+    it("the panel is not position: sticky, which would trap a child grid's dialogs under the parent's rows", () => {
         // Found in Lightning Experience: the import dialog of a
         // child grid was painted over by the next parent row, its buttons hidden.
-        const css = fs.readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+        const css = fs
+            .readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '');
         const rule = css.match(/\.rh-detail-panel\s*\{([^}]*)\}/);
         expect(rule).not.toBeNull();
         expect(rule[1]).not.toMatch(/position\s*:/);
@@ -493,11 +518,12 @@ describe('a sideways scroll', () => {
     });
 });
 
-describe('a child grid\'s dialogs escape the parent table', () => {
+describe("a child grid's dialogs escape the parent table", () => {
     // Found in Lightning Experience: SLDS's transform on a
     // fixed-layout tbody made it the frame of a child grid's position: fixed
     // dialog, which was clipped to the parent's scroller.
-    const css = () => fs.readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const css = () =>
+        fs.readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 
     it('marks a table with child tables, and only such a table', async () => {
         await mount();
@@ -506,7 +532,7 @@ describe('a child grid\'s dialogs escape the parent table', () => {
         expect($('table').classList).not.toContain('rh-table_parent');
     });
 
-    it('drops the transform on that table\'s own tbody', () => {
+    it("drops the transform on that table's own tbody", () => {
         const rule = css().match(/\.rh-table_parent\s*>\s*tbody\s*\{([^}]*)\}/);
         expect(rule).not.toBeNull();
         expect(rule[1]).toMatch(/transform:\s*none/);
@@ -553,10 +579,16 @@ describe('cards', () => {
         expect($('.rh-card-expand')).toBeNull();
     });
 
-    it('offers a card\'s toggle only once its count says it has related records', async () => {
+    it("offers a card's toggle only once its count says it has related records", async () => {
         await mount({ layout: 'cards', childCounts: {} });
         expect($('.rh-card-expand')).toBeNull();
-        el.config = { ...el.config, childCounts: { [id(1)]: { total: 2, byTab: { Test_Records_Children: 2 } }, [id(2)]: { total: 0, byTab: {} } } };
+        el.config = {
+            ...el.config,
+            childCounts: {
+                [id(1)]: { total: 2, byTab: { Test_Records_Children: 2 } },
+                [id(2)]: { total: 0, byTab: {} }
+            }
+        };
         await flush();
         expect($$('.rh-card-expand').map(b => b.closest('li').dataset.rowId)).toEqual([id(1)]);
         el.config = { ...el.config, childCountsFailed: true };
@@ -565,7 +597,7 @@ describe('cards', () => {
     });
 });
 
-describe('every row at once, and the admin\'s heights', () => {
+describe("every row at once, and the admin's heights", () => {
     const COUNTS = {
         [id(1)]: { total: 2, byTab: { Test_Records_Children: 2, Test_Records_Notes: 0 } },
         [id(2)]: { total: 0, byTab: { Test_Records_Children: 0, Test_Records_Notes: 0 } },
@@ -589,14 +621,20 @@ describe('every row at once, and the admin\'s heights', () => {
         expect(announcement()).toBe('Hid related records for every row');
     });
 
-    it('does the same with Enter on the toggle column\'s header', async () => {
+    it("does the same with Enter on the toggle column's header", async () => {
         await mount({ childCounts: COUNTS });
         await key(await focusOn($('th[data-field="__expand"]')), 'Enter');
         expect(rowOrder()).toEqual([id(1), detailId(id(1)), id(2), id(3), detailId(id(3))]);
     });
 
     it('offers no button when no row has related records', async () => {
-        await mount({ childCounts: { [id(1)]: { total: 0, byTab: {} }, [id(2)]: { total: 0, byTab: {} }, [id(3)]: { total: 0, byTab: {} } } });
+        await mount({
+            childCounts: {
+                [id(1)]: { total: 0, byTab: {} },
+                [id(2)]: { total: 0, byTab: {} },
+                [id(3)]: { total: 0, byTab: {} }
+            }
+        });
         expect(allButton()).toBeNull();
     });
 

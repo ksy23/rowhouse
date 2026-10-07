@@ -1,0 +1,17 @@
+# Weekly update pull requests for the build tools (npm) and for the GitHub
+# Actions the workflows use. Rowhouse ships no third-party code, so these only
+# ever touch tooling; CI must pass before any of them is merged.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

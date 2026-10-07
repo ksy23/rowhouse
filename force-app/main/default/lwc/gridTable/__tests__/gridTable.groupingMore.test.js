@@ -12,8 +12,17 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
     {
-        field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true,
-        options: [{ value: 'Open', label: 'Open' }, { value: 'Won', label: 'Won' }, { value: 'Lost', label: 'Lost' }]
+        field: 'Stage__c',
+        label: 'Stage',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        groupable: true,
+        options: [
+            { value: 'Open', label: 'Open' },
+            { value: 'Won', label: 'Won' },
+            { value: 'Lost', label: 'Lost' }
+        ]
     },
     { field: 'Region__c', label: 'Region', type: 'text', editable: true, sortable: true, groupable: true },
     { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true, sortable: true, subtotal: 'sum' }
@@ -37,7 +46,14 @@ let el;
 let events;
 const mount = async (config = {}) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
-    el.config = { columns: COLUMNS, rows: ROWS, totalRows: ROWS.length, grouping: BY_STAGE, groupSummary: ready(), ...config };
+    el.config = {
+        columns: COLUMNS,
+        rows: ROWS,
+        totalRows: ROWS.length,
+        grouping: BY_STAGE,
+        groupSummary: ready(),
+        ...config
+    };
     events = { groupchange: [], layoutchange: [] };
     Object.keys(events).forEach(name => el.addEventListener(name, e => events[name].push(e.detail)));
     document.body.appendChild(el);
@@ -45,7 +61,8 @@ const mount = async (config = {}) => {
 };
 const $ = selector => el.shadowRoot.querySelector(selector);
 const $$ = selector => [...el.shadowRoot.querySelectorAll(selector)];
-const groupNames = () => $$('tbody tr[data-kind="group"] .rh-group-label').map(s => s.textContent.replace('Stage: ', ''));
+const groupNames = () =>
+    $$('tbody tr[data-kind="group"] .rh-group-label').map(s => s.textContent.replace('Stage: ', ''));
 const groupRow = name => {
     const match = $$('tbody tr[data-kind="group"] .rh-group-label').find(span => span.textContent === 'Stage: ' + name);
     return match ? match.closest('tr') : null;
@@ -66,7 +83,7 @@ afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
 });
 
-describe('the groups\' order', () => {
+describe("the groups' order", () => {
     it('is by name, then by a subtotal, largest or smallest first, from the Group column menu', async () => {
         await mount();
         expect(groupNames()).toEqual(['Open', 'Won', 'Lost']);
@@ -84,24 +101,33 @@ describe('the groups\' order', () => {
     it('is told to the parent with the layout, and comes back with it', async () => {
         await mount();
         await choose('__group', 'Order groups by record count');
-        expect(events.layoutchange[events.layoutchange.length - 1].groupView).toEqual({ order: { by: 'count', direction: 'desc' }, percent: false });
+        expect(events.layoutchange[events.layoutchange.length - 1].groupView).toEqual({
+            order: { by: 'count', direction: 'desc' },
+            percent: false
+        });
         el.remove();
-        await mount({ userLayout: { key: 7, groupView: { order: { by: 'Amount__c', direction: 'asc' }, percent: true } } });
+        await mount({
+            userLayout: { key: 7, groupView: { order: { by: 'Amount__c', direction: 'asc' }, percent: true } }
+        });
         expect(groupNames()).toEqual(['Lost', 'Open', 'Won']);
         expect(groupRow('Open').querySelector('.rh-group-share').textContent).toBe('50%');
     });
 });
 
 describe('percent of total', () => {
-    it('shows each group\'s share of the records and of each sum, and says it', async () => {
+    it("shows each group's share of the records and of each sum, and says it", async () => {
         await mount();
         expect($('.rh-group-share')).toBeNull();
         await choose('__group', 'Show percent of total');
         const open = groupRow('Open');
         expect(open.querySelector('.rh-group-share').textContent).toBe('50%');
         expect(open.querySelector('td[data-field="Amount__c"] .rh-subtotal-share').textContent).toBe('22%');
-        expect(open.querySelector('.rh-group-toggle .slds-assistive-text').textContent).toBe('Stage: Open, 2 records, 50% of all records');
-        expect(open.querySelector('td[data-field="Amount__c"] .slds-assistive-text').textContent).toContain('22% of the total');
+        expect(open.querySelector('.rh-group-toggle .slds-assistive-text').textContent).toBe(
+            'Stage: Open, 2 records, 50% of all records'
+        );
+        expect(open.querySelector('td[data-field="Amount__c"] .slds-assistive-text').textContent).toContain(
+            '22% of the total'
+        );
         const item = (await openMenu('__group')).find(a => a.textContent.trim() === 'Show percent of total');
         expect(item.getAttribute('role')).toBe('menuitemcheckbox');
         expect(item.getAttribute('aria-checked')).toBe('true');
@@ -115,7 +141,9 @@ describe('subtotals with unsaved edits', () => {
         expect(cell.querySelector('.rh-subtotal').textContent).toContain('180.00');
         expect(cell.classList).toContain('rh-subtotal_edited');
         expect(cell.querySelector('.slds-assistive-text').textContent).toContain('with your unsaved changes');
-        expect(groupRow('Won').querySelector('td[data-field="Amount__c"]').classList).not.toContain('rh-subtotal_edited');
+        expect(groupRow('Won').querySelector('td[data-field="Amount__c"]').classList).not.toContain(
+            'rh-subtotal_edited'
+        );
         const total = $('.rh-totals .rh-subtotal').closest('td');
         expect(total.textContent).toContain('705.00');
         expect(total.classList).toContain('rh-subtotal_edited');
@@ -143,7 +171,14 @@ describe('dragging a header to group by it', () => {
         expect(header('__group').classList).toContain('rh-drop_group');
         drag(header('__group'), 'drop');
         await flush();
-        expect(events.groupchange).toEqual([{ grouping: [{ field: 'Stage__c', unit: null }, { field: 'Region__c', unit: null }] }]);
+        expect(events.groupchange).toEqual([
+            {
+                grouping: [
+                    { field: 'Stage__c', unit: null },
+                    { field: 'Region__c', unit: null }
+                ]
+            }
+        ]);
     });
 
     it('shows a drop zone above the table while a groupable header is dragged, which groups by it', async () => {

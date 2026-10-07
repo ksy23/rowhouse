@@ -20,7 +20,16 @@ import {
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', groupable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', groupable: true, options: [{ value: 'alpha_api', label: 'Alpha' }, { value: 'Beta', label: 'Beta' }] },
+    {
+        field: 'Stage__c',
+        label: 'Stage',
+        type: 'picklist',
+        groupable: true,
+        options: [
+            { value: 'alpha_api', label: 'Alpha' },
+            { value: 'Beta', label: 'Beta' }
+        ]
+    },
     { field: 'Due__c', label: 'Due', type: 'date', groupable: true, subtotal: 'max' },
     { field: 'When__c', label: 'When', type: 'datetime', groupable: true, subtotal: 'min' },
     { field: 'Done__c', label: 'Done', type: 'checkbox', groupable: true },
@@ -34,11 +43,27 @@ const ACC = '001000000000001AAA';
 
 describe('the grouping', () => {
     it('keeps groupable columns once each, at most three, with a unit for dates only', () => {
-        expect(normalizeGrouping([
-            { field: 'Amount__c' }, { field: 'Due__c' }, { field: 'Stage__c', unit: 'day' }, { field: 'Due__c', unit: 'year' },
-            { field: 'Done__c' }, { field: 'Name' }, { field: 'Nope__c' }
-        ], COLUMNS)).toEqual([{ field: 'Due__c', unit: 'month' }, { field: 'Stage__c', unit: null }, { field: 'Done__c', unit: null }]);
-        expect(normalizeGrouping([{ field: 'When__c', unit: 'quarter' }], COLUMNS)).toEqual([{ field: 'When__c', unit: 'quarter' }]);
+        expect(
+            normalizeGrouping(
+                [
+                    { field: 'Amount__c' },
+                    { field: 'Due__c' },
+                    { field: 'Stage__c', unit: 'day' },
+                    { field: 'Due__c', unit: 'year' },
+                    { field: 'Done__c' },
+                    { field: 'Name' },
+                    { field: 'Nope__c' }
+                ],
+                COLUMNS
+            )
+        ).toEqual([
+            { field: 'Due__c', unit: 'month' },
+            { field: 'Stage__c', unit: null },
+            { field: 'Done__c', unit: null }
+        ]);
+        expect(normalizeGrouping([{ field: 'When__c', unit: 'quarter' }], COLUMNS)).toEqual([
+            { field: 'When__c', unit: 'quarter' }
+        ]);
         expect(normalizeGrouping(null, COLUMNS)).toEqual([]);
         expect(levelParam({ field: 'Due__c', unit: 'quarter' })).toBe('Due__c:quarter');
         expect(levelParam({ field: 'Stage__c', unit: null })).toBe('Stage__c');
@@ -103,18 +128,41 @@ describe('the view', () => {
         { Id: 'r4', Stage__c: 'ALPHA_API', Due__c: null },
         { Id: 'r5', Stage__c: null, Due__c: '2026-03-03' }
     ];
-    const levels = [{ field: 'Stage__c', unit: null }, { field: 'Due__c', unit: 'quarter' }];
-    const shape = items => items.map(i => (i.__group ? `${'  '.repeat(i.__group.level - 1)}[${i.__group.label}]` : i.Id));
+    const levels = [
+        { field: 'Stage__c', unit: null },
+        { field: 'Due__c', unit: 'quarter' }
+    ];
+    const shape = items =>
+        items.map(i => (i.__group ? `${'  '.repeat(i.__group.level - 1)}[${i.__group.label}]` : i.Id));
 
     it('gathers rows under their groups, never splitting one, and puts the groups in order, blank last', () => {
         const { items, headers } = buildView(rows, levels, { columns: COLUMNS });
         expect(shape(items)).toEqual([
-            '[Alpha]', '  [Q1 2026]', 'r2', `  [${BLANK_LABEL}]`, 'r4',
-            '[Beta]', '  [Q1 2026]', 'r1', '  [Q3 2026]', 'r3',
-            `[${BLANK_LABEL}]`, '  [Q1 2026]', 'r5'
+            '[Alpha]',
+            '  [Q1 2026]',
+            'r2',
+            `  [${BLANK_LABEL}]`,
+            'r4',
+            '[Beta]',
+            '  [Q1 2026]',
+            'r1',
+            '  [Q3 2026]',
+            'r3',
+            `[${BLANK_LABEL}]`,
+            '  [Q1 2026]',
+            'r5'
         ]);
         const beta = items[5].__group;
-        expect(beta).toMatchObject({ level: 1, key: 'beta', field: 'Stage__c', columnLabel: 'Stage', loaded: 2, count: null, expanded: true, parentId: null });
+        expect(beta).toMatchObject({
+            level: 1,
+            key: 'beta',
+            field: 'Stage__c',
+            columnLabel: 'Stage',
+            loaded: 2,
+            count: null,
+            expanded: true,
+            parentId: null
+        });
         expect(items[5].Id).toBe(beta.id);
         expect(headers.get(items[6].Id).parentId).toBe(beta.id);
         expect(items[5].Id).toMatch(/^__g1_/);
@@ -125,13 +173,25 @@ describe('the view', () => {
     it('hides a collapsed group, and takes counts and subtotals from the server by path', () => {
         const first = buildView(rows, levels, { columns: COLUMNS });
         const betaId = first.items.find(i => i.__group && i.__group.label === 'Beta').Id;
-        const totals = rollUp([
-            { k: ['Beta', '2026-Q1'], n: 4, v: { Amount__c: { s: '10.5' } } },
-            { k: ['Beta', '2026-Q3'], n: 1, v: { Amount__c: { s: '1' } } }
-        ], levels, COLUMNS);
+        const totals = rollUp(
+            [
+                { k: ['Beta', '2026-Q1'], n: 4, v: { Amount__c: { s: '10.5' } } },
+                { k: ['Beta', '2026-Q3'], n: 1, v: { Amount__c: { s: '1' } } }
+            ],
+            levels,
+            COLUMNS
+        );
         const { items, headers } = buildView(rows, levels, { columns: COLUMNS, collapsed: { [betaId]: true }, totals });
         expect(shape(items)).toEqual([
-            '[Alpha]', '  [Q1 2026]', 'r2', `  [${BLANK_LABEL}]`, 'r4', '[Beta]', `[${BLANK_LABEL}]`, '  [Q1 2026]', 'r5'
+            '[Alpha]',
+            '  [Q1 2026]',
+            'r2',
+            `  [${BLANK_LABEL}]`,
+            'r4',
+            '[Beta]',
+            `[${BLANK_LABEL}]`,
+            '  [Q1 2026]',
+            'r5'
         ]);
         const beta = headers.get(betaId);
         expect(beta.expanded).toBe(false);
@@ -150,20 +210,36 @@ describe('the view', () => {
     it('keeps the user order within a group, whatever it is (a date by year is not sorted by its day)', () => {
         const byYear = [{ field: 'Due__c', unit: 'year' }];
         const named = [
-            { Id: 'a', Due__c: '2026-12-31' }, { Id: 'b', Due__c: '2026-01-01' }, { Id: 'c', Due__c: '2025-06-01' }, { Id: 'd', Due__c: '2026-06-15' }
+            { Id: 'a', Due__c: '2026-12-31' },
+            { Id: 'b', Due__c: '2026-01-01' },
+            { Id: 'c', Due__c: '2025-06-01' },
+            { Id: 'd', Due__c: '2026-06-15' }
         ];
-        expect(shape(buildView(named, byYear, { columns: COLUMNS }).items)).toEqual(['[2025]', 'c', '[2026]', 'a', 'b', 'd']);
+        expect(shape(buildView(named, byYear, { columns: COLUMNS }).items)).toEqual([
+            '[2025]',
+            'c',
+            '[2026]',
+            'a',
+            'b',
+            'd'
+        ]);
     });
 
     it('orders the groups in the direction the user sorted that column, blank still last', () => {
         const byStage = [{ field: 'Stage__c', unit: null }];
-        const { items } = buildView(rows, byStage, { columns: COLUMNS, sortKeys: [{ field: 'Stage__c', direction: 'desc' }] });
+        const { items } = buildView(rows, byStage, {
+            columns: COLUMNS,
+            sortKeys: [{ field: 'Stage__c', direction: 'desc' }]
+        });
         expect(shape(items)).toEqual(['[Beta]', 'r1', 'r3', '[Alpha]', 'r2', 'r4', `[${BLANK_LABEL}]`, 'r5']);
     });
 
     it('orders picklist groups as the field lists its values, as a Salesforce report does', () => {
         const stage = {
-            field: 'StageName', label: 'Stage', type: 'picklist', groupable: true,
+            field: 'StageName',
+            label: 'Stage',
+            type: 'picklist',
+            groupable: true,
             options: [
                 { value: 'Prospecting', label: 'Prospecting' },
                 { value: 'Qualification', label: 'Qualification' },
@@ -182,41 +258,105 @@ describe('the view', () => {
             { Id: 'q', StageName: 'qualification' }
         ];
         expect(shape(buildView(deals, byStage, { columns: [stage] }).items)).toEqual([
-            '[Prospecting]', 'p', '[Qualification]', 'q', '[Negotiation/Review]', 'r', '[Closed Won]', 'w',
-            '[Archived]', 'a', '[Old Stage]', 'o', `[${BLANK_LABEL}]`, 'n'
+            '[Prospecting]',
+            'p',
+            '[Qualification]',
+            'q',
+            '[Negotiation/Review]',
+            'r',
+            '[Closed Won]',
+            'w',
+            '[Archived]',
+            'a',
+            '[Old Stage]',
+            'o',
+            `[${BLANK_LABEL}]`,
+            'n'
         ]);
         // Sorted descending, the order reverses; blank stays last.
-        expect(shape(buildView(deals, byStage, { columns: [stage], sortKeys: [{ field: 'StageName', direction: 'desc' }] }).items)).toEqual([
-            '[Old Stage]', 'o', '[Archived]', 'a', '[Closed Won]', 'w', '[Negotiation/Review]', 'r',
-            '[Qualification]', 'q', '[Prospecting]', 'p', `[${BLANK_LABEL}]`, 'n'
+        expect(
+            shape(
+                buildView(deals, byStage, { columns: [stage], sortKeys: [{ field: 'StageName', direction: 'desc' }] })
+                    .items
+            )
+        ).toEqual([
+            '[Old Stage]',
+            'o',
+            '[Archived]',
+            'a',
+            '[Closed Won]',
+            'w',
+            '[Negotiation/Review]',
+            'r',
+            '[Qualification]',
+            'q',
+            '[Prospecting]',
+            'p',
+            `[${BLANK_LABEL}]`,
+            'n'
         ]);
         // As an inner level too.
-        const byDoneThenStage = [{ field: 'Done__c', unit: null }, { field: 'StageName', unit: null }];
+        const byDoneThenStage = [
+            { field: 'Done__c', unit: null },
+            { field: 'StageName', unit: null }
+        ];
         const mixed = [
             { Id: 'x1', Done__c: false, StageName: 'Closed Won' },
             { Id: 'x2', Done__c: false, StageName: 'Prospecting' }
         ];
         expect(shape(buildView(mixed, byDoneThenStage, { columns: [stage, col('Done__c')] }).items)).toEqual([
-            '[Not checked]', '  [Prospecting]', 'x2', '  [Closed Won]', 'x1'
+            '[Not checked]',
+            '  [Prospecting]',
+            'x2',
+            '  [Closed Won]',
+            'x1'
         ]);
     });
 
     it('orders number groups by size, not as text', () => {
         const level = { field: 'Floors__c', label: 'Floors', type: 'number', scale: 0, groupable: true };
-        const buildings = [{ Id: 'b10', Floors__c: 10 }, { Id: 'b9', Floors__c: 9 }, { Id: 'b100', Floors__c: 100 }];
+        const buildings = [
+            { Id: 'b10', Floors__c: 10 },
+            { Id: 'b9', Floors__c: 9 },
+            { Id: 'b100', Floors__c: 100 }
+        ];
         expect(shape(buildView(buildings, [{ field: 'Floors__c', unit: null }], { columns: [level] }).items)).toEqual([
-            '[9]', 'b9', '[10]', 'b10', '[100]', 'b100'
+            '[9]',
+            'b9',
+            '[10]',
+            'b10',
+            '[100]',
+            'b100'
         ]);
     });
 
     it('orders lookup groups by the record name, and checkboxes unchecked first', () => {
         const ACC2 = '001000000000002AAA';
         const byAccount = [{ field: 'Account__c', unit: null }];
-        const accounts = [{ Id: 'x', Account__c: ACC }, { Id: 'y', Account__c: ACC2 }, { Id: 'z', Account__c: null }];
+        const accounts = [
+            { Id: 'x', Account__c: ACC },
+            { Id: 'y', Account__c: ACC2 },
+            { Id: 'z', Account__c: null }
+        ];
         const names = { [ACC]: 'Zeta', [ACC2]: 'Acme' };
-        expect(shape(buildView(accounts, byAccount, { columns: COLUMNS, names }).items)).toEqual(['[Acme]', 'y', '[Zeta]', 'x', `[${BLANK_LABEL}]`, 'z']);
-        const done = [{ Id: 'p', Done__c: true }, { Id: 'q', Done__c: false }];
-        expect(shape(buildView(done, [{ field: 'Done__c', unit: null }], { columns: COLUMNS }).items)).toEqual(['[Not checked]', 'q', '[Checked]', 'p']);
+        expect(shape(buildView(accounts, byAccount, { columns: COLUMNS, names }).items)).toEqual([
+            '[Acme]',
+            'y',
+            '[Zeta]',
+            'x',
+            `[${BLANK_LABEL}]`,
+            'z'
+        ]);
+        const done = [
+            { Id: 'p', Done__c: true },
+            { Id: 'q', Done__c: false }
+        ];
+        expect(shape(buildView(done, [{ field: 'Done__c', unit: null }], { columns: COLUMNS }).items)).toEqual([
+            '[Not checked]',
+            'q',
+            '[Checked]',
+            'p'
+        ]);
     });
 });
 
@@ -231,13 +371,45 @@ describe('subtotals', () => {
     });
 
     it('roll the deepest groups up into every level and the Total, slices merging', () => {
-        const levels = [{ field: 'Stage__c', unit: null }, { field: 'Account__c', unit: null }];
+        const levels = [
+            { field: 'Stage__c', unit: null },
+            { field: 'Account__c', unit: null }
+        ];
         const slices = [
-            [{ k: ['Beta', ACC], l: [null, 'Acme'], n: 2, v: { Amount__c: { s: '5.25' }, Due__c: { mx: '2026-03-01' }, When__c: { mn: '2026-01-02T10:00:00.000Z' }, Qty__c: { s: '3', c: 2 }, Note__c: { c: 1 } } }],
             [
-                { k: ['BETA', ACC], l: [null, 'Acme'], n: 1, v: { Amount__c: { s: '4.75' }, Due__c: { mx: '2026-12-31' }, When__c: { mn: '2025-06-01T00:00:00.000Z' }, Qty__c: { s: '4', c: 1 }, Note__c: { c: 1 } } },
+                {
+                    k: ['Beta', ACC],
+                    l: [null, 'Acme'],
+                    n: 2,
+                    v: {
+                        Amount__c: { s: '5.25' },
+                        Due__c: { mx: '2026-03-01' },
+                        When__c: { mn: '2026-01-02T10:00:00.000Z' },
+                        Qty__c: { s: '3', c: 2 },
+                        Note__c: { c: 1 }
+                    }
+                }
+            ],
+            [
+                {
+                    k: ['BETA', ACC],
+                    l: [null, 'Acme'],
+                    n: 1,
+                    v: {
+                        Amount__c: { s: '4.75' },
+                        Due__c: { mx: '2026-12-31' },
+                        When__c: { mn: '2025-06-01T00:00:00.000Z' },
+                        Qty__c: { s: '4', c: 1 },
+                        Note__c: { c: 1 }
+                    }
+                },
                 // As Lightning delivers it: a blank key is '', and null values are simply missing.
-                { k: ['', ''], l: ['', ''], n: 3, v: { Amount__c: {}, Due__c: {}, When__c: {}, Qty__c: { c: 0 }, Note__c: { c: 0 } } }
+                {
+                    k: ['', ''],
+                    l: ['', ''],
+                    n: 3,
+                    v: { Amount__c: {}, Due__c: {}, When__c: {}, Qty__c: { c: 0 }, Note__c: { c: 0 } }
+                }
             ]
         ];
         const { byPath, total } = rollUp(slices.flat(), levels, COLUMNS);
@@ -264,11 +436,18 @@ describe('subtotals', () => {
 
     it('never files a group without one key per level under another group; it counts in the Total only', () => {
         // Lightning drops null list elements: [null, "2026-Q1"] would arrive as ["2026-Q1"].
-        const levels = [{ field: 'Stage__c', unit: null }, { field: 'Due__c', unit: 'quarter' }];
-        const { byPath, total } = rollUp([
-            { k: ['2026-Q1'], n: 4, v: { Amount__c: { s: '4' } } },
-            { k: ['Beta', '2026-Q1'], n: 1, v: { Amount__c: { s: '1' } } }
-        ], levels, COLUMNS);
+        const levels = [
+            { field: 'Stage__c', unit: null },
+            { field: 'Due__c', unit: 'quarter' }
+        ];
+        const { byPath, total } = rollUp(
+            [
+                { k: ['2026-Q1'], n: 4, v: { Amount__c: { s: '4' } } },
+                { k: ['Beta', '2026-Q1'], n: 1, v: { Amount__c: { s: '1' } } }
+            ],
+            levels,
+            COLUMNS
+        );
         expect(byPath.has('2026-q1')).toBe(false);
         expect([...byPath.keys()]).toEqual(['beta', 'beta' + String.fromCharCode(31) + '2026-Q1']);
         expect(total.count).toBe(5);

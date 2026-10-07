@@ -241,17 +241,19 @@
 import { LightningElement, api } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import tableTemplate from './gridTable.html';
-import {
-    nextPosition,
-    actionFor,
-    isNavigationKey,
-    MODE_NAVIGATION,
-    MODE_ACTION
-} from 'c/gridKeyboard';
+import { nextPosition, actionFor, isNavigationKey, MODE_NAVIGATION, MODE_ACTION } from 'c/gridKeyboard';
 import { formatValue, formatCount, safeHref, sortRows, alignmentFor, isBlank, picklistRanks } from 'c/gridFormat';
 import { mark, measure, afterPaint } from 'c/gridTiming';
 import { copyText, toTsv, parseTsv, parseCell, pastePlan, MAX_PASTE_CELLS } from 'c/gridClipboard';
-import { isLookup, lookupText, lookupHref, nameIndex, dependentOptions, isValidDependent, dependentClears } from 'c/gridFields';
+import {
+    isLookup,
+    lookupText,
+    lookupHref,
+    nameIndex,
+    dependentOptions,
+    isValidDependent,
+    dependentClears
+} from 'c/gridFields';
 import { compileRules, formatsFor } from 'c/gridFormatRules';
 import {
     normalizeGrouping,
@@ -322,7 +324,9 @@ const has = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
 // ---- a cell range as the page shows it ----
 const inRect = (r, row, col) => Boolean(r) && row >= r.top && row <= r.bottom && col >= r.left && col <= r.right;
-const sameRect = (a, b) => (!a && !b) || (Boolean(a) && Boolean(b) && a.top === b.top && a.bottom === b.bottom && a.left === b.left && a.right === b.right);
+const sameRect = (a, b) =>
+    (!a && !b) ||
+    (Boolean(a) && Boolean(b) && a.top === b.top && a.bottom === b.bottom && a.left === b.left && a.right === b.right);
 /** The smallest rectangle holding both (either may be null). */
 function boundingRect(a, b) {
     const rects = [a, b].filter(Boolean);
@@ -340,7 +344,8 @@ const cellState = el => ({
     inRange: el.classList.contains('rh-in-range'),
     selected: el.getAttribute('aria-selected')
 });
-const sameState = (a, b) => a.tabindex === b.tabindex && a.ring === b.ring && a.inRange === b.inRange && a.selected === b.selected;
+const sameState = (a, b) =>
+    a.tabindex === b.tabindex && a.ring === b.ring && a.inRange === b.inRange && a.selected === b.selected;
 /** Values sampled per column to fit its width: the longest ones, by stored text. */
 const FIT_SAMPLE = 8;
 /** Fields a card shows before "Show all fields". */
@@ -348,13 +353,27 @@ const CARD_FIELDS = 3;
 const RECORD_ID = /^[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?$/;
 
 const EDITOR_BY_TYPE = {
-    text: 'text', string: 'text', textarea: 'textarea', email: 'text', phone: 'text', url: 'text',
-    number: 'number', double: 'number', integer: 'number', long: 'number', currency: 'number', percent: 'number',
-    date: 'date', datetime: 'datetime', time: 'time',
-    checkbox: 'checkbox', boolean: 'checkbox',
+    text: 'text',
+    string: 'text',
+    textarea: 'textarea',
+    email: 'text',
+    phone: 'text',
+    url: 'text',
+    number: 'number',
+    double: 'number',
+    integer: 'number',
+    long: 'number',
+    currency: 'number',
+    percent: 'number',
+    date: 'date',
+    datetime: 'datetime',
+    time: 'time',
+    checkbox: 'checkbox',
+    boolean: 'checkbox',
     picklist: 'picklist',
     multipicklist: 'multipicklist',
-    reference: 'lookup', owner: 'lookup'
+    reference: 'lookup',
+    owner: 'lookup'
 };
 // The edit box is the cell's width, for every editor.
 // What cannot fit a narrow cell hangs below the box like a menu: a lookup's
@@ -440,7 +459,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         this._layout.restoreFocus = this._layout.restoreFocus || this.hasFocus;
         if (!this._layout.sortInitialised && value && Array.isArray(value.sort)) {
             this._layout.sortInitialised = true;
-            this.sortKeys = value.sort.map(s => ({ field: s.field, direction: s.direction === 'desc' ? 'desc' : 'asc' }));
+            this.sortKeys = value.sort.map(s => ({
+                field: s.field,
+                direction: s.direction === 'desc' ? 'desc' : 'asc'
+            }));
         }
         // A new selectionKey from the parent clears the row selection: after a
         // reload or a delete the selected rows are gone or different.
@@ -454,7 +476,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         // the grid; widths the user chose are kept (found in Lightning
         // Experience: ungrouping left a 220px gap at the right).
         const grouped = this.isGrouped;
-        if (this._layout.grouped !== undefined && grouped !== this._layout.grouped && this.widthsPinned && !this._layout.userResized) {
+        if (
+            this._layout.grouped !== undefined &&
+            grouped !== this._layout.grouped &&
+            this.widthsPinned &&
+            !this._layout.userResized
+        ) {
             this.widths = {};
             this.widthsPinned = false;
         }
@@ -477,14 +504,20 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     columnsChanged() {
         const shown = new Set(this.shownColumns.map(c => c.field));
         const focus = this._nav.focus;
-        if (focus && focus.field !== DETAIL_FIELD && !shown.has(focus.field) && this.columns.some(c => c.field === focus.field)) {
+        if (
+            focus &&
+            focus.field !== DETAIL_FIELD &&
+            !shown.has(focus.field) &&
+            this.columns.some(c => c.field === focus.field)
+        ) {
             const first = this.shownColumns[0];
             this._nav.focus = first ? { rowId: focus.rowId, field: first.field } : null;
             this.focusRev++;
         }
         this.rangeAnchor = null;
         this.rangeFocus = null;
-        if (this.menuOpenFor !== null && !shown.has(this.menuOpenFor) && this.menuOpenFor !== GROUP_FIELD) this.menuOpenFor = null;
+        if (this.menuOpenFor !== null && !shown.has(this.menuOpenFor) && this.menuOpenFor !== GROUP_FIELD)
+            this.menuOpenFor = null;
         if (this.filterOpenFor !== null && !shown.has(this.filterOpenFor)) this.filterOpenFor = null;
         if (this.widthsPinned && !this._layout.userResized) {
             this.widths = {};
@@ -545,14 +578,16 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     emitLayout() {
         const widths = this._layout.userResized ? { ...this.widths } : null;
         const gv = this.groupView;
-        this.dispatchEvent(new CustomEvent('layoutchange', {
-            detail: {
-                widths,
-                wrap: { ...this.wrapOverrides },
-                expanded: Object.keys(this.expanded).slice(0, MAX_OPEN_ROWS),
-                groupView: { order: { ...gv.order }, percent: gv.percent }
-            }
-        }));
+        this.dispatchEvent(
+            new CustomEvent('layoutchange', {
+                detail: {
+                    widths,
+                    wrap: { ...this.wrapOverrides },
+                    expanded: Object.keys(this.expanded).slice(0, MAX_OPEN_ROWS),
+                    groupView: { order: { ...gv.order }, percent: gv.percent }
+                }
+            })
+        );
     }
 
     /** Re-entering the grid lands on the last focused cell, not the first. */
@@ -627,8 +662,16 @@ export default class GridTable extends NavigationMixin(LightningElement) {
      * its columns after it is built.
      */
     get layoutColumns() {
-        const deps = [this._config.columns, this._config.columnChoice, this.wrapOverrides, this.hasRowStatus, this.hasSelection, this.hasChildren,
-            this.isGrouped, this.hasRowActions];
+        const deps = [
+            this._config.columns,
+            this._config.columnChoice,
+            this.wrapOverrides,
+            this.hasRowStatus,
+            this.hasSelection,
+            this.hasChildren,
+            this.isGrouped,
+            this.hasRowActions
+        ];
         const m = this._memo;
         if (m.layoutDeps && m.layoutDeps.every((d, i) => d === deps[i])) return m.layoutColumns;
         const list = [];
@@ -640,7 +683,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         // The row's actions come last, as a list view's do.
         if (this.hasRowActions) list.push({ field: ACTIONS_FIELD, utility: true, label: 'Actions' });
         m.layoutDeps = deps;
-        m.layoutColumns = list.map((c, i) => ({ ...c, colIndex: i + 1, wrappable: this.isWrappable(c), wrapped: this.isWrapped(c) }));
+        m.layoutColumns = list.map((c, i) => ({
+            ...c,
+            colIndex: i + 1,
+            wrappable: this.isWrappable(c),
+            wrapped: this.isWrapped(c)
+        }));
         return m.layoutColumns;
     }
 
@@ -656,10 +704,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     get tableClass() {
         const wraps = this.shownColumns.some(c => this.isWrapped(c));
-        return 'slds-table slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols slds-table_edit slds-no-cell-focus'
-            + (wraps ? ' rh-table_wrap' : '')
+        return (
+            'slds-table slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols slds-table_edit slds-no-cell-focus' +
+            (wraps ? ' rh-table_wrap' : '') +
             // Child grids' dialogs must escape this table (see gridTable.css).
-            + (this.hasChildren ? ' rh-table_parent' : '');
+            (this.hasChildren ? ' rh-table_parent' : '')
+        );
     }
 
     /**
@@ -784,8 +834,17 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const wrapped = this.shownColumns.filter(c => this.isWrapped(c));
         if (!wrapped.length) return MAX_LINES;
         const m = this._memo;
-        const deps = [this._config.rows, this.shownColumns, this._config.drafts, this.wrapOverrides, this.widths, this.viewWidth,
-            this.widthsPinned, this.wrapMin, this._config.refNames];
+        const deps = [
+            this._config.rows,
+            this.shownColumns,
+            this._config.drafts,
+            this.wrapOverrides,
+            this.widths,
+            this.viewWidth,
+            this.widthsPinned,
+            this.wrapMin,
+            this._config.refNames
+        ];
         if (m.wrapDeps && m.wrapDeps.every((d, i) => d === deps[i])) return m.wrapLines;
         const rows = Array.isArray(this._config.rows) ? this._config.rows : [];
         const drafts = this._config.drafts || {};
@@ -843,7 +902,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     /** Column index of the first data column (after row status, selection, the toggle and the Group column). */
     get firstDataCol() {
-        return (this.hasRowStatus ? 1 : 0) + (this.hasSelection ? 1 : 0) + (this.hasChildren ? 1 : 0) + (this.isGrouped ? 1 : 0) + 1;
+        return (
+            (this.hasRowStatus ? 1 : 0) +
+            (this.hasSelection ? 1 : 0) +
+            (this.hasChildren ? 1 : 0) +
+            (this.isGrouped ? 1 : 0) +
+            1
+        );
     }
 
     // ============================================================ child tables
@@ -974,9 +1039,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         }
         const closing = this.allOpen;
         const next = {};
-        if (!closing) rows.slice(0, MAX_OPEN_ALL).forEach(row => {
-            next[String(row[this.keyField])] = true;
-        });
+        if (!closing)
+            rows.slice(0, MAX_OPEN_ALL).forEach(row => {
+                next[String(row[this.keyField])] = true;
+            });
         this._layout.restoreFocus = this._layout.restoreFocus || this.hasFocus;
         this.setRange(null, null);
         const k = this.focusKey;
@@ -987,7 +1053,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const n = Object.keys(next).length;
         this.announcement = closing
             ? 'Hid related records for every row'
-            : `Showing related records for ${n} ${n === 1 ? 'row' : 'rows'}` + (rows.length > MAX_OPEN_ALL ? `, the first ${MAX_OPEN_ALL} with any` : '');
+            : `Showing related records for ${n} ${n === 1 ? 'row' : 'rows'}` +
+              (rows.length > MAX_OPEN_ALL ? `, the first ${MAX_OPEN_ALL} with any` : '');
         this.emitLayout();
     }
 
@@ -1014,7 +1081,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         this.expanded = next;
         const k = this.focusKey;
         if (!opening && k && k.rowId === detailId(rowId)) this.focusKey = { rowId, field: EXPAND_FIELD };
-        const row = (this.view.find(r => String(r[this.keyField]) === rowId) || null);
+        const row = this.view.find(r => String(r[this.keyField]) === rowId) || null;
         const name = this.rowName(row);
         this.announcement = `${opening ? 'Showing' : 'Hid'} related records${name ? ' for ' + name : ''}`;
         this.emitLayout();
@@ -1169,7 +1236,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (!r) return;
         const rows = r.bottom - r.top + 1;
         const cols = r.right - r.left + 1;
-        this.announceInPlace(`${rows} ${rows === 1 ? 'row' : 'rows'} by ${cols} ${cols === 1 ? 'column' : 'columns'} selected`);
+        this.announceInPlace(
+            `${rows} ${rows === 1 ? 'row' : 'rows'} by ${cols} ${cols === 1 ? 'column' : 'columns'} selected`
+        );
     }
 
     announceInPlace(text) {
@@ -1266,7 +1335,15 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const totals = this.groupTotals;
         if (!totals) return null;
         const m = this._memo;
-        const deps = [totals, this._config.drafts, this._config.rows, this.grouping, this._config.columns, this.hasMoreRows, this._config.fiscal];
+        const deps = [
+            totals,
+            this._config.drafts,
+            this._config.rows,
+            this.grouping,
+            this._config.columns,
+            this.hasMoreRows,
+            this._config.fiscal
+        ];
         if (m.shownDeps && m.shownDeps.every((d, i) => d === deps[i])) return m.shownTotals;
         m.shownDeps = deps;
         m.shownTotals = totalsWithDrafts(totals, this._config.rows, this._config.drafts, this.grouping, this.columns, {
@@ -1333,9 +1410,18 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const order = this.groupView.order;
         const fiscal = this._config.fiscal || null;
         const m = this._memo;
-        if (m.rows === rows && m.sortSig === sortSig && m.columns === this._config.columns && m.names === names
-            && m.levels === levels && m.totals === totals && m.collapsed === collapsed && m.expanded === expanded
-            && m.order === order && m.fiscal === fiscal) {
+        if (
+            m.rows === rows &&
+            m.sortSig === sortSig &&
+            m.columns === this._config.columns &&
+            m.names === names &&
+            m.levels === levels &&
+            m.totals === totals &&
+            m.collapsed === collapsed &&
+            m.expanded === expanded &&
+            m.order === order &&
+            m.fiscal === fiscal
+        ) {
             return m.view;
         }
         // The user's sort. Grouped, buildView gathers each group's rows (in
@@ -1347,11 +1433,23 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 const type = column.type || 'text';
                 // A lookup sorts by the name shown; a picklist in its own
                 // order, as SOQL's ORDER BY does.
-                return { ...k, type, names: isLookup(type) ? names || {} : undefined, ranks: type === 'picklist' ? this.ranksOf(column) : null };
+                return {
+                    ...k,
+                    type,
+                    names: isLookup(type) ? names || {} : undefined,
+                    ranks: type === 'picklist' ? this.ranksOf(column) : null
+                };
             });
         const sorted = keys.length ? sortRows(rows, keys, this.keyField) : rows;
         const built = buildView(sorted, levels, {
-            columns: this.columns, keyField: this.keyField, collapsed, totals, names: names || {}, sortKeys: this.sortKeys, fiscal, order
+            columns: this.columns,
+            keyField: this.keyField,
+            collapsed,
+            totals,
+            names: names || {},
+            sortKeys: this.sortKeys,
+            fiscal,
+            order
         });
         // Each open record is followed by its detail row.
         const detailed = withDetails(built.items, expanded, this.keyField);
@@ -1617,7 +1715,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 if (sortable) classes.push('slds-is-sortable');
                 if (menuItems.length) classes.push('slds-has-button-menu');
                 classes.push('slds-is-resizable');
-                if (isPrimary) classes.push('slds-is-sorted', direction === 'desc' ? 'slds-is-sorted_desc' : 'slds-is-sorted_asc');
+                if (isPrimary)
+                    classes.push('slds-is-sorted', direction === 'desc' ? 'slds-is-sorted_desc' : 'slds-is-sorted_asc');
                 if (focused && this.hasFocus) classes.push('slds-has-focus', 'rh-cell_focus');
                 if (this.mode === MODE_ACTION && focused) classes.push('slds-cell_action-mode');
                 const frozen = offsets && offsets[c.field];
@@ -1625,11 +1724,14 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 if (frozen && frozen.last) classes.push('rh-frozen_last');
                 // A header being dragged, and where it would land.
                 if (this.draggingField === c.field) classes.push('rh-dragging');
-                if (this.dropTarget && this.dropTarget.field === c.field) classes.push(this.dropTarget.after ? 'rh-drop_after' : 'rh-drop_before');
+                if (this.dropTarget && this.dropTarget.field === c.field)
+                    classes.push(this.dropTarget.after ? 'rh-drop_after' : 'rh-drop_before');
                 // Once pinned, every column states its width, so the table's
                 // width (their sum) and the columns always agree. Before that,
                 // any room over goes to the data columns (sharedWidths).
-                const width = this.widthsPinned ? this.columnWidth(c) : (shared && shared[c.field]) || this.columnWidth(c);
+                const width = this.widthsPinned
+                    ? this.columnWidth(c)
+                    : (shared && shared[c.field]) || this.columnWidth(c);
                 const styles = width ? [`width:${width}px`] : [];
                 if (frozen) styles.push(`left:${frozen.left}px`, `z-index:${frozen.z}`);
                 const label = c.label || c.field;
@@ -1659,7 +1761,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                     sortableAttr: sortable ? 'true' : 'false',
                     // HR-14: "none" for sortable-but-unsorted; a direction on the
                     // primary key only. ARIA cannot express a secondary key.
-                    ariaSort: sortable ? (isPrimary ? (direction === 'desc' ? 'descending' : 'ascending') : 'none') : null,
+                    ariaSort: sortable
+                        ? isPrimary
+                            ? direction === 'desc'
+                                ? 'descending'
+                                : 'ascending'
+                            : 'none'
+                        : null,
                     // Always the down arrow: SLDS rotates it for slds-is-sorted_asc. Swapping
                     // in arrowup for descending cancels that out (found in LEX).
                     sortIcon: 'utility:arrowdown',
@@ -1702,29 +1810,68 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             const primary = this.sortKeys[0];
             const on = Boolean(primary) && primary.field === field;
             sections.push([
-                this.menuItem({ key: field + ':asc', field, label: 'Sort ascending', radio: true, checked: on && primary.direction === 'asc', sort: 'asc' }),
-                this.menuItem({ key: field + ':desc', field, label: 'Sort descending', radio: true, checked: on && primary.direction === 'desc', sort: 'desc' })
+                this.menuItem({
+                    key: field + ':asc',
+                    field,
+                    label: 'Sort ascending',
+                    radio: true,
+                    checked: on && primary.direction === 'asc',
+                    sort: 'asc'
+                }),
+                this.menuItem({
+                    key: field + ':desc',
+                    field,
+                    label: 'Sort descending',
+                    radio: true,
+                    checked: on && primary.direction === 'desc',
+                    sort: 'desc'
+                })
             ]);
         }
         if (c.wrappable) {
             sections.push([
-                this.menuItem({ key: field + ':wrap', field, label: 'Wrap text', radio: true, checked: c.wrapped, wrap: 'true' }),
-                this.menuItem({ key: field + ':clip', field, label: 'Clip text', radio: true, checked: !c.wrapped, wrap: 'false' })
+                this.menuItem({
+                    key: field + ':wrap',
+                    field,
+                    label: 'Wrap text',
+                    radio: true,
+                    checked: c.wrapped,
+                    wrap: 'true'
+                }),
+                this.menuItem({
+                    key: field + ':clip',
+                    field,
+                    label: 'Clip text',
+                    radio: true,
+                    checked: !c.wrapped,
+                    wrap: 'false'
+                })
             ]);
         }
         // Filter by this column: opens the filter panel under the header.
         // At MAX_FILTERS columns already filtered, only those can change.
         const active = canFilter(c) && Boolean(this.filterOf(field));
         if (canFilter(c) && (active || this.filters.length < MAX_FILTERS)) {
-            const filterItems = [this.menuItem({ key: field + ':filter', field, label: active ? 'Edit filter…' : 'Filter…', filter: 'open' })];
-            if (active) filterItems.push(this.menuItem({ key: field + ':unfilter', field, label: 'Remove filter', filter: 'remove' }));
+            const filterItems = [
+                this.menuItem({
+                    key: field + ':filter',
+                    field,
+                    label: active ? 'Edit filter…' : 'Filter…',
+                    filter: 'open'
+                })
+            ];
+            if (active)
+                filterItems.push(
+                    this.menuItem({ key: field + ':unfilter', field, label: 'Remove filter', filter: 'remove' })
+                );
             sections.push(filterItems);
         }
         if (c.groupable === true && !this.isCards) {
             const levels = this.grouping;
             const label = c.label || field;
             const group = [];
-            const add = (action, text) => group.push(this.menuItem({ key: field + ':' + action, field, label: text, action }));
+            const add = (action, text) =>
+                group.push(this.menuItem({ key: field + ':' + action, field, label: text, action }));
             if (levels.some(l => l.field === field)) add('remove', `Stop grouping by ${label}`);
             else if (!levels.length) add('group', `Group by ${label}`);
             else {
@@ -1748,7 +1895,21 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     /** One menu item's model; a radio shows a tick when chosen. */
-    menuItem({ key, field, label, radio = false, checkbox = false, checked = false, wrap, action, unit, sort, filter, hide, divider = false }) {
+    menuItem({
+        key,
+        field,
+        label,
+        radio = false,
+        checkbox = false,
+        checked = false,
+        wrap,
+        action,
+        unit,
+        sort,
+        filter,
+        hide,
+        divider = false
+    }) {
         const ticked = radio || checkbox;
         return {
             key,
@@ -1763,7 +1924,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             wrap,
             action,
             unit,
-            cls: 'slds-dropdown__item' + (ticked && checked ? ' slds-is-selected' : '') + (divider ? ' slds-has-divider_top-space' : '')
+            cls:
+                'slds-dropdown__item' +
+                (ticked && checked ? ' slds-is-selected' : '') +
+                (divider ? ' slds-has-divider_top-space' : '')
         };
     }
 
@@ -1790,31 +1954,93 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         levels.forEach(l => {
             const col = this.columnByField(l.field);
             if (!isDateColumn(col)) return;
-            DATE_UNITS.forEach((u, i) => items.push(this.menuItem({
-                key: l.field + ':' + u, field: GROUP_FIELD, label: `${col.label || l.field} by ${UNIT_LABELS[u].toLowerCase()}`,
-                radio: true, checked: l.unit === u, action: 'unit', unit: l.field + ':' + u, divider: i === 0
-            })));
+            DATE_UNITS.forEach((u, i) =>
+                items.push(
+                    this.menuItem({
+                        key: l.field + ':' + u,
+                        field: GROUP_FIELD,
+                        label: `${col.label || l.field} by ${UNIT_LABELS[u].toLowerCase()}`,
+                        radio: true,
+                        checked: l.unit === u,
+                        action: 'unit',
+                        unit: l.field + ':' + u,
+                        divider: i === 0
+                    })
+                )
+            );
         });
         // The groups' order: by name, by record count, or by a subtotal.
         const order = this.groupView.order;
-        const measures = [{ by: 'name', label: 'Order groups by name' }, { by: 'count', label: 'Order groups by record count' }].concat(
-            this.columns.filter(col => col.subtotal).map(col => ({
-                by: col.field, label: `Order groups by ${SUBTOTAL_NAMES[col.subtotal].toLowerCase()} of ${col.label || col.field}`
-            }))
+        const measures = [
+            { by: 'name', label: 'Order groups by name' },
+            { by: 'count', label: 'Order groups by record count' }
+        ].concat(
+            this.columns
+                .filter(col => col.subtotal)
+                .map(col => ({
+                    by: col.field,
+                    label: `Order groups by ${SUBTOTAL_NAMES[col.subtotal].toLowerCase()} of ${col.label || col.field}`
+                }))
         );
-        measures.forEach((o, i) => items.push(this.menuItem({
-            key: 'order:' + o.by, field: GROUP_FIELD, label: o.label, radio: true, checked: order.by === o.by,
-            action: 'order', unit: o.by, divider: i === 0
-        })));
+        measures.forEach((o, i) =>
+            items.push(
+                this.menuItem({
+                    key: 'order:' + o.by,
+                    field: GROUP_FIELD,
+                    label: o.label,
+                    radio: true,
+                    checked: order.by === o.by,
+                    action: 'order',
+                    unit: o.by,
+                    divider: i === 0
+                })
+            )
+        );
         if (order.by !== 'name') {
-            items.push(this.menuItem({ key: 'dir:desc', field: GROUP_FIELD, label: 'Largest first', radio: true, checked: order.direction === 'desc', action: 'direction', unit: 'desc', divider: true }));
-            items.push(this.menuItem({ key: 'dir:asc', field: GROUP_FIELD, label: 'Smallest first', radio: true, checked: order.direction === 'asc', action: 'direction', unit: 'asc' }));
+            items.push(
+                this.menuItem({
+                    key: 'dir:desc',
+                    field: GROUP_FIELD,
+                    label: 'Largest first',
+                    radio: true,
+                    checked: order.direction === 'desc',
+                    action: 'direction',
+                    unit: 'desc',
+                    divider: true
+                })
+            );
+            items.push(
+                this.menuItem({
+                    key: 'dir:asc',
+                    field: GROUP_FIELD,
+                    label: 'Smallest first',
+                    radio: true,
+                    checked: order.direction === 'asc',
+                    action: 'direction',
+                    unit: 'asc'
+                })
+            );
         }
-        items.push(this.menuItem({
-            key: 'percent', field: GROUP_FIELD, label: 'Show percent of total', checkbox: true, checked: this.groupView.percent,
-            action: 'percent', divider: true
-        }));
-        items.push(this.menuItem({ key: 'ungroup', field: GROUP_FIELD, label: 'Stop grouping', action: 'ungroup', divider: true }));
+        items.push(
+            this.menuItem({
+                key: 'percent',
+                field: GROUP_FIELD,
+                label: 'Show percent of total',
+                checkbox: true,
+                checked: this.groupView.percent,
+                action: 'percent',
+                divider: true
+            })
+        );
+        items.push(
+            this.menuItem({
+                key: 'ungroup',
+                field: GROUP_FIELD,
+                label: 'Stop grouping',
+                action: 'ungroup',
+                divider: true
+            })
+        );
         const menuOpen = this.menuOpenFor === GROUP_FIELD;
         const frozen = offsets && offsets[GROUP_FIELD];
         const width = this.columnWidth(c);
@@ -1830,9 +2056,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             sortableAttr: 'false',
             ariaSort: null,
             staticActionCls: 'slds-th__action',
-            cls: 'rh-th rh-group-th slds-has-button-menu slds-is-resizable' + (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '')
-                + (this.dropTarget && this.dropTarget.field === GROUP_FIELD ? ' rh-drop_group' : '')
-                + (this.mode === MODE_ACTION && focused ? ' slds-cell_action-mode' : '') + (frozen ? ' rh-frozen' : '') + (frozen && frozen.last ? ' rh-frozen_last' : ''),
+            cls:
+                'rh-th rh-group-th slds-has-button-menu slds-is-resizable' +
+                (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') +
+                (this.dropTarget && this.dropTarget.field === GROUP_FIELD ? ' rh-drop_group' : '') +
+                (this.mode === MODE_ACTION && focused ? ' slds-cell_action-mode' : '') +
+                (frozen ? ' rh-frozen' : '') +
+                (frozen && frozen.last ? ' rh-frozen_last' : ''),
             tabindex: this.isTabStop(HEADER, GROUP_FIELD, focus) ? '0' : '-1',
             actionTabindex: actionTab,
             width,
@@ -1842,7 +2072,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             menuItems: items,
             // Wider than the column, and opening rightwards from its left edge: the
             // Group column is at the grid's left, and its items are long.
-            menuCls: menuClass(items.length).replace('slds-dropdown_right', 'slds-dropdown_left') + ' rh-column-menu_wide',
+            menuCls:
+                menuClass(items.length).replace('slds-dropdown_right', 'slds-dropdown_left') + ' rh-column-menu_wide',
             menuOpen,
             menuExpanded: menuOpen ? 'true' : 'false',
             menuLabel: 'Show grouping actions',
@@ -1859,7 +2090,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         return {
             colIndex: col.colIndex,
             tabindex: this.isTabStop(HEADER, SELECT_FIELD) ? '0' : '-1',
-            cls: 'slds-text-align_right rh-select-col' + (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') + this.frozenClass(SELECT_FIELD),
+            cls:
+                'slds-text-align_right rh-select-col' +
+                (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') +
+                this.frozenClass(SELECT_FIELD),
             style: `width:${SELECT_WIDTH}px` + this.frozenStyle(SELECT_FIELD, true),
             controlTabindex: focused && this.mode === MODE_ACTION ? '0' : '-1',
             allChecked: rows.length > 0 && selectedCount === rows.length,
@@ -1883,8 +2117,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             allLabel: label,
             allIcon: all ? 'utility:collapse_all' : 'utility:expand_all',
             allPressed: String(all),
-            cls: 'rh-expand-col' + (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') + this.frozenClass(EXPAND_FIELD)
-                + (this.mode === MODE_ACTION && focused ? ' slds-cell_action-mode' : ''),
+            cls:
+                'rh-expand-col' +
+                (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') +
+                this.frozenClass(EXPAND_FIELD) +
+                (this.mode === MODE_ACTION && focused ? ' slds-cell_action-mode' : ''),
             style: `width:${EXPAND_WIDTH}px` + this.frozenStyle(EXPAND_FIELD, true)
         };
     }
@@ -1908,7 +2145,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         return {
             colIndex: col.colIndex,
             tabindex: this.isTabStop(HEADER, STATUS_FIELD) ? '0' : '-1',
-            cls: 'rh-status-col' + (this.isFocused(HEADER, STATUS_FIELD) && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') + this.frozenClass(STATUS_FIELD),
+            cls:
+                'rh-status-col' +
+                (this.isFocused(HEADER, STATUS_FIELD) && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') +
+                this.frozenClass(STATUS_FIELD),
             style: `width:${STATUS_WIDTH}px` + this.frozenStyle(STATUS_FIELD, true)
         };
     }
@@ -1951,8 +2191,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const errors = this._config.errors || {};
         const cols = this.layoutColumns;
         const editableGrid = cols.some(c => c.editable);
-        const maxed = this.isMulti && this._config.maxSelected
-            && Object.keys(this.selected).length >= this._config.maxSelected;
+        const maxed =
+            this.isMulti && this._config.maxSelected && Object.keys(this.selected).length >= this._config.maxSelected;
         // Computed once per render, not once per cell.
         const layout = {
             range: this.range,
@@ -1984,7 +2224,22 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             const format = this.rowFormats(row, id, drafts, dataFields);
             const cells = [];
             cols.forEach(c => {
-                cells.push(this.cellModel(c, row, id, i + 1, rowDrafts, fieldErrors, rowErrors, editableGrid, isSelected, maxed, layout, format));
+                cells.push(
+                    this.cellModel(
+                        c,
+                        row,
+                        id,
+                        i + 1,
+                        rowDrafts,
+                        fieldErrors,
+                        rowErrors,
+                        editableGrid,
+                        isSelected,
+                        maxed,
+                        layout,
+                        format
+                    )
+                );
             });
             out.push({
                 key: id, // HR-19: record-derived, stable, opaque — never the index
@@ -2000,9 +2255,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 // rh-row_selected and rh-row_open let frozen cells take the row's
                 // color without naming an SLDS class (HR-15); a row
                 // format's fill is a bar at the row's left edge.
-                cls: 'slds-hint-parent' + (isSelected ? ' slds-is-selected rh-row_selected' : '')
-                    + (this.hasChildren && this.expanded[id] ? ' rh-row_open' : '')
-                    + (format && format.bar ? ' rh-row_bar ' + format.bar : ''),
+                cls:
+                    'slds-hint-parent' +
+                    (isSelected ? ' slds-is-selected rh-row_selected' : '') +
+                    (this.hasChildren && this.expanded[id] ? ' rh-row_open' : '') +
+                    (format && format.bar ? ' rh-row_bar ' + format.bar : ''),
                 statusCell: cells.find(x => x.isStatus) || null,
                 selectCell: cells.find(x => x.isSelect) || null,
                 expandCell: cells.find(x => x.isExpand) || null,
@@ -2048,10 +2305,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 colIndex: 1,
                 colspan: this.ariaColCount,
                 tabindex: this.isTabStop(id, DETAIL_FIELD, focus) ? '0' : '-1',
-                label: `Related records for ${name || 'row ' + (index)}`,
+                label: `Related records for ${name || 'row ' + index}`,
                 // Focus inside the child table is shown there; the panel keeps its
                 // left bar, not an outline round the whole panel.
-                cls: 'rh-detail-cell' + (focused && this.hasFocus && !this.childFocus ? ' slds-has-focus rh-cell_focus' : ''),
+                cls:
+                    'rh-detail-cell' +
+                    (focused && this.hasFocus && !this.childFocus ? ' slds-has-focus rh-cell_focus' : ''),
                 panelStyle: `height:${height - 1}px;--rh-panel-indent:${indent}px` + width,
                 tabs: this.childTabs,
                 counts: counts ? counts.byTab : null,
@@ -2135,8 +2394,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             controlTabindex: inAction ? '0' : '-1',
             style: this.frozenStyle(c.field, false, layout.offsets).slice(1)
         };
-        const focusCls = (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') + this.frozenClass(c.field, layout.offsets)
-            + (inAction ? ' slds-cell_action-mode' : '');
+        const focusCls =
+            (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') +
+            this.frozenClass(c.field, layout.offsets) +
+            (inAction ? ' slds-cell_action-mode' : '');
         if (c.field === STATUS_FIELD) return { ...base, isStatus: true, cls: 'rh-group-utility' + focusCls };
         if (c.field === SELECT_FIELD) return { ...base, isSelect: true, cls: 'rh-group-utility' + focusCls };
         // A group has no child tables of its own, and no actions.
@@ -2156,7 +2417,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 countText: h.count === null ? '' : `(${formatCount(h.count)})`,
                 shareText: share,
                 // "Stage: Open, 2 records"; the button adds "expanded" or "collapsed".
-                spokenName: h.count === null ? label : `${label}, ${recordsText(h.count)}${share ? `, ${share} of all records` : ''}`,
+                spokenName:
+                    h.count === null
+                        ? label
+                        : `${label}, ${recordsText(h.count)}${share ? `, ${share} of all records` : ''}`,
                 expandedAttr: String(h.expanded),
                 toggleIcon: h.expanded ? 'utility:chevrondown' : 'utility:chevronright',
                 contentStyle: `padding-left:${(h.level - 1) * GROUP_INDENT}px`,
@@ -2177,8 +2441,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             shareText: share,
             spoken: shown ? this.subtotalSpoken(sub, c, h, share) : '',
             title: shown ? this.subtotalSpoken(sub, c, h, share) : '',
-            cls: 'rh-subtotal-cell' + (align !== 'left' ? ' slds-text-align_' + align : '') + focusCls
-                + (shown && h.edited && h.edited[c.field] ? ' rh-subtotal_edited' : '')
+            cls:
+                'rh-subtotal-cell' +
+                (align !== 'left' ? ' slds-text-align_' + align : '') +
+                focusCls +
+                (shown && h.edited && h.edited[c.field] ? ' rh-subtotal_edited' : '')
         };
     }
 
@@ -2195,7 +2462,20 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         return text;
     }
 
-    cellModel(c, row, id, rowIndex, rowDrafts, fieldErrors, rowErrors, editableGrid, isSelected, maxed, layout = {}, format = null) {
+    cellModel(
+        c,
+        row,
+        id,
+        rowIndex,
+        rowDrafts,
+        fieldErrors,
+        rowErrors,
+        editableGrid,
+        isSelected,
+        maxed,
+        layout = {},
+        format = null
+    ) {
         const focused = this.isFocused(id, c.field, layout.focus);
         const inAction = focused && this.mode === MODE_ACTION;
         const base = {
@@ -2205,7 +2485,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             controlTabindex: inAction ? '0' : '-1',
             style: this.frozenStyle(c.field, false, layout.offsets).slice(1)
         };
-        const focusCls = (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') + this.frozenClass(c.field, layout.offsets);
+        const focusCls =
+            (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') +
+            this.frozenClass(c.field, layout.offsets);
         if (c.field === GROUP_FIELD) {
             // A record's Group cell is empty: its groups are the header rows above
             // the record. A guide line at its innermost group's indent
@@ -2225,7 +2507,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 hasError: Boolean(rowErrors.row),
                 message: rowErrors.row ? 'Row ' + rowIndex + ' has errors: ' + rowErrors.row : 'No errors',
                 cls: 'slds-cell-edit slds-cell-error' + focusCls,
-                buttonCls: 'slds-button slds-button_icon slds-button_icon-error slds-m-horizontal_xxx-small' + (rowErrors.row ? '' : ' slds-hidden')
+                buttonCls:
+                    'slds-button slds-button_icon slds-button_icon-error slds-m-horizontal_xxx-small' +
+                    (rowErrors.row ? '' : ' slds-hidden')
             };
         }
         if (c.field === EXPAND_FIELD) {
@@ -2244,8 +2528,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 expandedAttr: String(open),
                 controls: open ? this.detailCellId(id) : null,
                 toggleIcon: open ? 'utility:chevrondown' : 'utility:chevronright',
-                toggleLabel: `${open ? 'Hide' : 'Show'} related records for ${name || 'row ' + rowIndex}`
-                    + (total === null ? '' : ` (${countText})`),
+                toggleLabel:
+                    `${open ? 'Hide' : 'Show'} related records for ${name || 'row ' + rowIndex}` +
+                    (total === null ? '' : ` (${countText})`),
                 cls: 'rh-expand-cell' + focusCls + (inAction ? ' slds-cell_action-mode' : '')
             };
         }
@@ -2263,7 +2548,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 menuExpanded: open ? 'true' : 'false',
                 menuItems: open ? this.rowMenuItems : null,
                 triggerCls: 'slds-dropdown-trigger slds-dropdown-trigger_click' + (open ? ' slds-is-open' : ''),
-                dropdownCls: 'slds-dropdown slds-dropdown_right rh-row-menu' + (open && this.rowMenu.up ? ' slds-dropdown_bottom' : ''),
+                dropdownCls:
+                    'slds-dropdown slds-dropdown_right rh-row-menu' +
+                    (open && this.rowMenu.up ? ' slds-dropdown_bottom' : ''),
                 cls: 'rh-actions-cell' + focusCls + (inAction ? ' slds-cell_action-mode' : '')
             };
         }
@@ -2311,11 +2598,19 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         // first data cell the row's, and the icon's, which is hidden from
         // screen readers: without it an icon said nothing to them.
         const formatLabel = formatted
-            ? [...new Set([format.labels[c.field], c.colIndex === this.firstDataCol ? format.rowLabels.join(', ') : '', icon ? icon.label : '']
-                .filter(Boolean))].join(', ')
+            ? [
+                  ...new Set(
+                      [
+                          format.labels[c.field],
+                          c.colIndex === this.firstDataCol ? format.rowLabels.join(', ') : '',
+                          icon ? icon.label : ''
+                      ].filter(Boolean)
+                  )
+              ].join(', ')
             : '';
         const r = layout.range;
-        const inRange = Boolean(r) && rowIndex >= r.top && rowIndex <= r.bottom && c.colIndex >= r.left && c.colIndex <= r.right;
+        const inRange =
+            Boolean(r) && rowIndex >= r.top && rowIndex <= r.bottom && c.colIndex >= r.left && c.colIndex <= r.right;
         if (inRange) classes.push('rh-in-range');
         // A value the server shortened (TC-055) is edited in the text area
         // editor, which reads the whole text first.
@@ -2341,7 +2636,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             formatLabel,
             // A number or a tick fills the space before the edit button, so the
             // cell's alignment reaches it (the wrapper is a flex row).
-            textCls: c.wrapped ? 'slds-line-clamp rh-wrap-text' : 'slds-truncate' + (align !== 'left' ? ' slds-grow' : ''),
+            textCls: c.wrapped
+                ? 'slds-line-clamp rh-wrap-text'
+                : 'slds-truncate' + (align !== 'left' ? ' slds-grow' : ''),
             isCheckbox,
             checked: value === true || value === 'true',
             href: link.href,
@@ -2389,9 +2686,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             editType: c.type,
             scale: c.scale,
             // A dependent picklist offers only the values its controlling value allows.
-            options: isEditing && c.dependentOn
-                ? dependentOptions(c, has(rowDrafts, c.dependentOn) ? rowDrafts[c.dependentOn] : row[c.dependentOn])
-                : c.options || [],
+            options:
+                isEditing && c.dependentOn
+                    ? dependentOptions(c, has(rowDrafts, c.dependentOn) ? rowDrafts[c.dependentOn] : row[c.dependentOn])
+                    : c.options || [],
             dependentOn: c.dependentOn || null,
             required: Boolean(c.required),
             editorLabel: label,
@@ -2418,7 +2716,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (c.type === 'url') return { href: safeHref(value), target: '_blank', recordId: null };
         if (c.type === 'email') {
             const address = String(value).trim();
-            return /^[^\s@]+@[^\s@]+$/.test(address) ? { href: safeHref('mailto:' + address), target: null, recordId: null } : none;
+            return /^[^\s@]+@[^\s@]+$/.test(address)
+                ? { href: safeHref('mailto:' + address), target: null, recordId: null }
+                : none;
         }
         if (c.type === 'phone') {
             const dial = String(value).replace(/[^\d+#*,;]/g, '');
@@ -2511,8 +2811,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 text: shown ? sub.text : '',
                 spoken: shown ? this.subtotalSpoken(sub, c, t, '') : '',
                 style: styles.join(';'),
-                cls: 'rh-total-cell' + (align !== 'left' ? ' slds-text-align_' + align : '') + this.frozenClass(c.field, offsets)
-                    + (edited ? ' rh-subtotal_edited' : '')
+                cls:
+                    'rh-total-cell' +
+                    (align !== 'left' ? ' slds-text-align_' + align : '') +
+                    this.frozenClass(c.field, offsets) +
+                    (edited ? ' rh-subtotal_edited' : '')
             };
         });
     }
@@ -2543,7 +2846,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (prev === next || (prev && next && prev.rowId === next.rowId && prev.field === next.field)) return;
         if (!this.patchFocus(prev, next)) this.focusRev++;
         // Focus reaching another cell some other way ends a range (rangeActive): its shading goes.
-        else if (!this._nav.rangeQueued && !sameRect(this._nav.shaded, this.range) && !this.patchRange()) this.focusRev++;
+        else if (!this._nav.rangeQueued && !sameRect(this._nav.shaded, this.range) && !this.patchRange())
+            this.focusRev++;
     }
 
     /**
@@ -2651,9 +2955,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     /** { row, col } for a focus key: row 0 is the header. */
     positionOfKey(key) {
         if (!key) return { row: 1, col: 1 };
-        const col = key.field === DETAIL_FIELD
-            ? Math.min(this._layout.detailCol || this.firstDataCol, this.ariaColCount)
-            : (this.layoutColumns.find(c => c.field === key.field) || { colIndex: 1 }).colIndex;
+        const col =
+            key.field === DETAIL_FIELD
+                ? Math.min(this._layout.detailCol || this.firstDataCol, this.ariaColCount)
+                : (this.layoutColumns.find(c => c.field === key.field) || { colIndex: 1 }).colIndex;
         const row = key.rowId === HEADER ? 0 : this.positionOf(key.rowId) + 1;
         return { row: Math.max(0, row), col };
     }
@@ -2712,7 +3017,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (this._config.diagnostics === true) this.timeRender();
         if (!this._layout.widthWatch) this.watchWidth();
         // Frozen columns need pixel offsets, so they need pinned widths.
-        if (this.frozenCount && !this.widthsPinned && !this._layout.pinPending && this.template.querySelector('thead th')) {
+        if (
+            this.frozenCount &&
+            !this.widthsPinned &&
+            !this._layout.pinPending &&
+            this.template.querySelector('thead th')
+        ) {
             this._layout.pinPending = true;
             // eslint-disable-next-line @lwc/lwc/no-async-operation -- reactive change outside the render (HR-20)
             requestAnimationFrame(() => {
@@ -2750,7 +3060,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             if (editor && typeof editor.focus === 'function') editor.focus();
             // An editor on a row near the bottom of the box: scroll it into view.
             const popover = this.template.querySelector('section.rh-edit-popover');
-            if (popover && typeof popover.scrollIntoView === 'function') popover.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            if (popover && typeof popover.scrollIntoView === 'function')
+                popover.scrollIntoView({ block: 'nearest', inline: 'nearest' });
             return;
         }
         if (this._layout.restoreFocus) {
@@ -2765,7 +3076,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             if (!k) return;
             const rowId = String(k.rowId).replace(/"/g, '\\"');
             const field = String(k.field).replace(/"/g, '\\"');
-            const button = this.template.querySelector(`[data-card-edit][data-row-id="${rowId}"][data-field="${field}"]`);
+            const button = this.template.querySelector(
+                `[data-card-edit][data-row-id="${rowId}"][data-field="${field}"]`
+            );
             if (button) button.focus();
             return;
         }
@@ -2788,8 +3101,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         // (76px against 77px in Lightning Experience), and at
         // 10,000 rows that pixel would put the spacers 10,000px out. Record rows
         // only: a group's header row is given this height.
-        const row = this.template.querySelector('tbody tr[data-kind="record"] + tr[data-kind="record"]')
-            || this.template.querySelector('tbody tr[data-kind="record"]');
+        const row =
+            this.template.querySelector('tbody tr[data-kind="record"] + tr[data-kind="record"]') ||
+            this.template.querySelector('tbody tr[data-kind="record"]');
         const height = row ? row.offsetHeight : 0;
         if (height && Math.abs(height - this.rowHeight) > 1 && !this._measurements.rafPending) {
             this._measurements.rafPending = true;
@@ -2837,10 +3151,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const box = scroller.getBoundingClientRect();
         // The box's height less its borders and any sideways scrollbar. With no
         // layout to measure (Jest), what clientHeight says.
-        const inner = box.height ? box.height - Math.max(0, scroller.offsetHeight - scroller.clientHeight) : scroller.clientHeight;
+        const inner = box.height
+            ? box.height - Math.max(0, scroller.offsetHeight - scroller.clientHeight)
+            : scroller.clientHeight;
         const top = Math.max(0, line.getBoundingClientRect().top - box.top - scroller.clientTop);
         const want = Math.max(0, Math.floor(inner - top)) + 'px';
-        if (thead.style.getPropertyValue('--rh-divider-height') !== want) thead.style.setProperty('--rh-divider-height', want);
+        if (thead.style.getPropertyValue('--rh-divider-height') !== want)
+            thead.style.setProperty('--rh-divider-height', want);
     }
 
     /**
@@ -2986,22 +3303,34 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         }
         // Enter or Space on a row's toggle opens or closes its child tables;
         // on the column's header, every row's.
-        if (this.mode === MODE_NAVIGATION && key.field === EXPAND_FIELD && (event.key === 'Enter' || event.key === ' ')) {
+        if (
+            this.mode === MODE_NAVIGATION &&
+            key.field === EXPAND_FIELD &&
+            (event.key === 'Enter' || event.key === ' ')
+        ) {
             event.preventDefault();
             if (key.rowId === HEADER) this.toggleAll();
             else this.toggleExpand(key.rowId);
             return;
         }
         // Enter, Space or Alt+Down on a record's Actions cell opens its menu.
-        if (this.mode === MODE_NAVIGATION && key.field === ACTIONS_FIELD && key.rowId !== HEADER
-            && (event.key === 'Enter' || event.key === ' ' || (event.altKey && event.key === 'ArrowDown'))) {
+        if (
+            this.mode === MODE_NAVIGATION &&
+            key.field === ACTIONS_FIELD &&
+            key.rowId !== HEADER &&
+            (event.key === 'Enter' || event.key === ' ' || (event.altKey && event.key === 'ArrowDown'))
+        ) {
             event.preventDefault();
             this.openRowMenu(key.rowId, 'first');
             return;
         }
         // Enter or Space on a group's Group cell opens or closes the group.
-        if (this.mode === MODE_NAVIGATION && key.field === GROUP_FIELD && (event.key === 'Enter' || event.key === ' ')
-            && this.groupHeaderFor(key.rowId)) {
+        if (
+            this.mode === MODE_NAVIGATION &&
+            key.field === GROUP_FIELD &&
+            (event.key === 'Enter' || event.key === ' ') &&
+            this.groupHeaderFor(key.rowId)
+        ) {
             event.preventDefault();
             this.toggleGroup(key.rowId);
             return;
@@ -3059,12 +3388,17 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const from = this.positionOfKey(this.focusKey || this.defaultFocusKey());
         const root = this.template.querySelector('[data-grid-root]');
         const rtl = root ? getComputedStyle(root).direction === 'rtl' : false;
-        return nextPosition(from, event.key, { ctrlKey: event.ctrlKey, metaKey: event.metaKey }, {
-            rowCount: this.rowCount,
-            colCount: this.ariaColCount,
-            pageSize: Math.max(1, Math.floor(this._measurements.viewport / this.rowHeight) - 1),
-            rtl
-        });
+        return nextPosition(
+            from,
+            event.key,
+            { ctrlKey: event.ctrlKey, metaKey: event.metaKey },
+            {
+                rowCount: this.rowCount,
+                colCount: this.ariaColCount,
+                pageSize: Math.max(1, Math.floor(this._measurements.viewport / this.rowHeight) - 1),
+                rtl
+            }
+        );
     }
 
     moveFocus(event) {
@@ -3190,7 +3524,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (!rect) return;
         const names = this._config.refNames || {};
         // A lookup copies the name shown.
-        const cols = this.columnsIn(rect).filter(Boolean).map(c => (isLookup(c.type) ? { ...c, names } : c));
+        const cols = this.columnsIn(rect)
+            .filter(Boolean)
+            .map(c => (isLookup(c.type) ? { ...c, names } : c));
         const drafts = this._config.drafts || {};
         const matrix = [];
         for (let r = rect.top; r <= rect.bottom; r++) {
@@ -3348,7 +3684,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         this.columnsIn(rect).forEach(c => {
             // A value the server shortened (TC-055) would fill the rows with the
             // shortened copy: that column is left out, and said.
-            const cut = c && Array.isArray(source._cut) && source._cut.includes(c.field) && !has(drafts[sourceId] || {}, c.field);
+            const cut =
+                c &&
+                Array.isArray(source._cut) &&
+                source._cut.includes(c.field) &&
+                !has(drafts[sourceId] || {}, c.field);
             if (cut) {
                 shortened.push(c.label || c.field);
                 return;
@@ -3361,7 +3701,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                     readOnly++;
                     continue;
                 }
-                changes.push({ recordId: String(record[this.keyField]), field: c.field, value, originalValue: record[c.field] });
+                changes.push({
+                    recordId: String(record[this.keyField]),
+                    field: c.field,
+                    value,
+                    originalValue: record[c.field]
+                });
             }
         });
         this.emitChanges('fill down', changes, [], { readOnly });
@@ -3389,7 +3734,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 }
                 // TC-042: a checkbox is never blank, so clearing unchecks it.
                 const blank = c.type === 'checkbox' || c.type === 'boolean' ? false : null;
-                changes.push({ recordId: String(record[this.keyField]), field: c.field, value: blank, originalValue: record[c.field] });
+                changes.push({
+                    recordId: String(record[this.keyField]),
+                    field: c.field,
+                    value: blank,
+                    originalValue: record[c.field]
+                });
             }
         }
         this.emitChanges('clear', changes, [], { readOnly });
@@ -3410,10 +3760,18 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             if (!c || !c.dependentOn) continue;
             const key = ch.recordId + '|' + c.dependentOn;
             const row = this.view[this.positionOf(ch.recordId)];
-            const controlling = pasted.has(key) ? pasted.get(key) : row ? this.currentValue(row, ch.recordId, c.dependentOn, drafts) : null;
+            const controlling = pasted.has(key)
+                ? pasted.get(key)
+                : row
+                  ? this.currentValue(row, ch.recordId, c.dependentOn, drafts)
+                  : null;
             if (!isValidDependent(c, ch.value, controlling)) {
                 const controller = (this.columnByField(c.dependentOn) || {}).label || c.dependentOn;
-                errors.push({ recordId: ch.recordId, field: ch.field, message: `${ch.value} is not offered when ${controller} is ${isBlank(controlling) ? 'blank' : controlling}.` });
+                errors.push({
+                    recordId: ch.recordId,
+                    field: ch.field,
+                    message: `${ch.value} is not offered when ${controller} is ${isBlank(controlling) ? 'blank' : controlling}.`
+                });
                 changes.splice(i, 1);
             }
         }
@@ -3513,7 +3871,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             this.dispatchEvent(new CustomEvent('sortchange', { detail: { sort: [] } }));
             return;
         }
-        const labelOf = k => ((this.columnByField(k.field) || {}).label || k.field) + ' ' + (k.direction === 'asc' ? 'ascending' : 'descending');
+        const labelOf = k =>
+            ((this.columnByField(k.field) || {}).label || k.field) +
+            ' ' +
+            (k.direction === 'asc' ? 'ascending' : 'descending');
         this.announcement = 'Sorted by ' + next.map(labelOf).join(', then by ');
         this.dispatchEvent(new CustomEvent('sortchange', { detail: { sort: next.map(k => ({ ...k })) } }));
     }
@@ -3528,7 +3889,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         // eslint-disable-next-line @lwc/lwc/no-async-operation
         requestAnimationFrame(() => {
             this._measurements.scrollPending = false;
-            const first = this.detailRows.length ? this.rowAtOffset(scroller.scrollTop) : Math.floor(scroller.scrollTop / this.rowHeight);
+            const first = this.detailRows.length
+                ? this.rowAtOffset(scroller.scrollTop)
+                : Math.floor(scroller.scrollTop / this.rowHeight);
             // Re-window only when the viewport has moved a meaningful distance.
             if (this.isWindowed && Math.abs(first - this.firstRow) >= WINDOW_BUFFER / 2) {
                 this._layout.restoreFocus = this._layout.restoreFocus || this.hasFocus;
@@ -3586,7 +3949,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (this.isMulti) {
             next = { ...this.selected };
             if (next[rowId]) delete next[rowId];
-            else if (!this._config.maxSelected || Object.keys(next).length < this._config.maxSelected) next[rowId] = true;
+            else if (!this._config.maxSelected || Object.keys(next).length < this._config.maxSelected)
+                next[rowId] = true;
         } else {
             next = this.selected[rowId] ? {} : { [rowId]: true };
         }
@@ -3648,7 +4012,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     editorFor(column, rowId) {
         const row = this.view[this.positionOf(rowId)];
         const drafts = (this._config.drafts || {})[rowId];
-        const cut = row && Array.isArray(row._cut) && row._cut.includes(column.field) && !(drafts && has(drafts, column.field));
+        const cut =
+            row && Array.isArray(row._cut) && row._cut.includes(column.field) && !(drafts && has(drafts, column.field));
         return cut ? 'textarea' : EDITOR_BY_TYPE[column.type] || 'text';
     }
 
@@ -3756,7 +4121,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const clears = this.forcedClears([change]);
         if (clears.length) {
             // One undo step: the controlling edit and the dependent values it cleared.
-            this.dispatchEvent(new CustomEvent('cellschange', { detail: { label: 'edit', changes: [change, ...clears], errors: [] } }));
+            this.dispatchEvent(
+                new CustomEvent('cellschange', { detail: { label: 'edit', changes: [change, ...clears], errors: [] } })
+            );
             this.announcement = this.clearedMessage(clears);
             return;
         }
@@ -3797,9 +4164,17 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (!rowId) return;
         this.closeEditor();
         const detail = event.detail || {};
-        this.dispatchEvent(new CustomEvent('newrecord', {
-            detail: { recordId: rowId, field, object: detail.object, objectLabel: detail.label, term: detail.term || '' }
-        }));
+        this.dispatchEvent(
+            new CustomEvent('newrecord', {
+                detail: {
+                    recordId: rowId,
+                    field,
+                    object: detail.object,
+                    objectLabel: detail.label,
+                    term: detail.term || ''
+                }
+            })
+        );
     }
 
     /** Clicking outside the edit popover commits, as in the SLDS blueprint. */
@@ -3907,7 +4282,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         }
         const cap = fitsToValues(column.type) ? FIT_CAP : TEXT_FIT_CAP;
         this.pinWidths();
-        this.setWidth(field, fitWidth(texts, { type: column.type, editable: this.editableGrid, label: column.label || field, cap }));
+        this.setWidth(
+            field,
+            fitWidth(texts, { type: column.type, editable: this.editableGrid, label: column.label || field, cap })
+        );
         this.emitLayout();
     }
 
@@ -3943,19 +4321,35 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     handleMenuKeyDown(event) {
-        this.navigateMenu(event, item => this.chooseMenuItem(item), () => this.closeMenu(true));
+        this.navigateMenu(
+            event,
+            item => this.chooseMenuItem(item),
+            () => this.closeMenu(true)
+        );
     }
 
     /** The menu keys, for a column menu and a row's actions menu alike: move, choose, close. */
     navigateMenu(event, choose, close) {
-        const items = [...event.currentTarget.querySelectorAll('[role="menuitemradio"], [role="menuitemcheckbox"], [role="menuitem"]')];
+        const items = [
+            ...event.currentTarget.querySelectorAll(
+                '[role="menuitemradio"], [role="menuitemcheckbox"], [role="menuitem"]'
+            )
+        ];
         const i = items.indexOf(event.target);
         let next;
         switch (event.key) {
-            case 'ArrowDown': next = (i + 1) % items.length; break;
-            case 'ArrowUp': next = (i - 1 + items.length) % items.length; break;
-            case 'Home': next = 0; break;
-            case 'End': next = items.length - 1; break;
+            case 'ArrowDown':
+                next = (i + 1) % items.length;
+                break;
+            case 'ArrowUp':
+                next = (i - 1 + items.length) % items.length;
+                break;
+            case 'Home':
+                next = 0;
+                break;
+            case 'End':
+                next = items.length - 1;
+                break;
             case 'Enter':
             case ' ':
                 event.preventDefault();
@@ -3979,7 +4373,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     /** The parent keeps the choice: say what it is now. */
     emitColumns(choice) {
-        this.dispatchEvent(new CustomEvent('columnschange', { detail: { choice: choice ? { order: choice.order.slice(), hidden: choice.hidden.slice() } : null } }));
+        this.dispatchEvent(
+            new CustomEvent('columnschange', {
+                detail: { choice: choice ? { order: choice.order.slice(), hidden: choice.hidden.slice() } : null }
+            })
+        );
     }
 
     labelOf(field) {
@@ -4048,7 +4446,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const over = Boolean(this.dropTarget) && this.dropTarget.field === GROUP_ZONE;
         return {
             label: this.isGrouped ? `Drop here to add ${label} to the grouping` : `Drop here to group by ${label}`,
-            cls: 'slds-grid slds-grid_vertical-align-center slds-m-horizontal_small slds-m-bottom_x-small rh-group-zone' + (over ? ' rh-group-zone_over' : '')
+            cls:
+                'slds-grid slds-grid_vertical-align-center slds-m-horizontal_small slds-m-bottom_x-small rh-group-zone' +
+                (over ? ' rh-group-zone_over' : '')
         };
     }
 
@@ -4061,7 +4461,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         } catch {
             // read-only in some browsers
         }
-        if (!this.dropTarget || this.dropTarget.field !== GROUP_ZONE) this.dropTarget = { field: GROUP_ZONE, after: false };
+        if (!this.dropTarget || this.dropTarget.field !== GROUP_ZONE)
+            this.dropTarget = { field: GROUP_ZONE, after: false };
     }
 
     handleGroupZoneDragLeave(event) {
@@ -4087,7 +4488,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             } catch {
                 // read-only in some browsers
             }
-            if (!this.dropTarget || this.dropTarget.field !== GROUP_FIELD) this.dropTarget = { field: GROUP_FIELD, after: false };
+            if (!this.dropTarget || this.dropTarget.field !== GROUP_FIELD)
+                this.dropTarget = { field: GROUP_FIELD, after: false };
             return;
         }
         if (!from || !to || to === GROUP_FIELD || !this.shownColumns.some(c => c.field === to)) return;
@@ -4103,7 +4505,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         }
         const box = event.currentTarget.getBoundingClientRect();
         const after = event.clientX > box.left + box.width / 2;
-        if (!this.dropTarget || this.dropTarget.field !== to || this.dropTarget.after !== after) this.dropTarget = { field: to, after };
+        if (!this.dropTarget || this.dropTarget.field !== to || this.dropTarget.after !== after)
+            this.dropTarget = { field: to, after };
     }
 
     handleHeaderDragLeave(event) {
@@ -4184,7 +4587,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     /** Focus moving anywhere but the menu or its own button closes the menu. */
     handleMenuFocusOut(event) {
         const next = event.relatedTarget;
-        if (next && (event.currentTarget.contains(next) || (next.dataset && next.dataset.menuButton !== undefined && next.dataset.field === this.menuOpenFor))) return;
+        if (
+            next &&
+            (event.currentTarget.contains(next) ||
+                (next.dataset && next.dataset.menuButton !== undefined && next.dataset.field === this.menuOpenFor))
+        )
+            return;
         this.closeMenu(false);
     }
 
@@ -4232,7 +4640,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (!scroller || !menu) return;
         const box = scroller.getBoundingClientRect();
         // The filter panel's box is inside its own component, which measures it.
-        const bottom = typeof menu.panelBottom === 'function' ? menu.panelBottom() : menu.getBoundingClientRect().bottom;
+        const bottom =
+            typeof menu.panelBottom === 'function' ? menu.panelBottom() : menu.getBoundingClientRect().bottom;
         const height = box.bottom - box.top;
         // The visible bottom: a horizontal scrollbar takes the last few pixels.
         const scrollbar = Math.max(0, height - (scroller.clientHeight || height));
@@ -4296,7 +4705,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             return;
         }
         const column = this.columnByField(field) || {};
-        this.announcement = filter ? `Filtered: ${describeFilter(filter, column)}` : `${column.label || field}: filter removed`;
+        this.announcement = filter
+            ? `Filtered: ${describeFilter(filter, column)}`
+            : `${column.label || field}: filter removed`;
         this.dispatchEvent(new CustomEvent('filterchange', { detail: { filters: next } }));
     }
 
@@ -4339,7 +4750,15 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const user = this.filters.map(f => {
             const column = this.columnByField(f.field) || { field: f.field, label: f.field };
             const text = describeFilter(f, column);
-            return { key: 'user:' + f.field, field: f.field, label: text, locked: false, cls: CHIP_CLS, title: text, removeLabel: `Remove filter: ${text}` };
+            return {
+                key: 'user:' + f.field,
+                field: f.field,
+                label: text,
+                locked: false,
+                cls: CHIP_CLS,
+                title: text,
+                removeLabel: `Remove filter: ${text}`
+            };
         });
         const chips = admin.concat(user);
         return chips.length ? chips : null;
@@ -4383,7 +4802,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     handleRowMenuKeyDown(event) {
-        this.navigateMenu(event, item => this.chooseRowAction(item), () => this.closeRowMenu(true));
+        this.navigateMenu(
+            event,
+            item => this.chooseRowAction(item),
+            () => this.closeRowMenu(true)
+        );
     }
 
     handleRowMenuChoice(event) {
@@ -4396,8 +4819,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     handleRowMenuFocusOut(event) {
         const next = event.relatedTarget;
         const rowId = this.rowMenu && this.rowMenu.rowId;
-        if (next && (event.currentTarget.contains(next)
-            || (next.dataset && next.dataset.rowMenuButton !== undefined && next.dataset.rowId === rowId))) return;
+        if (
+            next &&
+            (event.currentTarget.contains(next) ||
+                (next.dataset && next.dataset.rowMenuButton !== undefined && next.dataset.rowId === rowId))
+        )
+            return;
         this.closeRowMenu(false);
     }
 
@@ -4485,7 +4912,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         this.setRange(null, null); // positions below the group change
         this.collapsed = next;
         const k = this.focusKey;
-        if (k && k.rowId !== HEADER && this.positionOf(k.rowId) < 0) this.focusKey = { rowId: header.id, field: GROUP_FIELD };
+        if (k && k.rowId !== HEADER && this.positionOf(k.rowId) < 0)
+            this.focusKey = { rowId: header.id, field: GROUP_FIELD };
         this.announcement = `${header.columnLabel} ${header.label} ${header.expanded ? 'collapsed' : 'expanded'}`;
     }
 
@@ -4534,7 +4962,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         }
         next = normalizeGrouping(next, this.columns);
         this.setRange(null, null);
-        const labelOf = l => ((this.columnByField(l.field) || {}).label || l.field) + (l.unit ? ` by ${UNIT_LABELS[l.unit].toLowerCase()}` : '');
+        const labelOf = l =>
+            ((this.columnByField(l.field) || {}).label || l.field) +
+            (l.unit ? ` by ${UNIT_LABELS[l.unit].toLowerCase()}` : '');
         this.announcement = next.length ? 'Grouped by ' + next.map(labelOf).join(', then ') : 'Not grouped';
         this.dispatchEvent(new CustomEvent('groupchange', { detail: { grouping: next.map(l => ({ ...l })) } }));
     }
@@ -4549,7 +4979,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         let percent = gv.percent;
         if (action === 'order') {
             // Largest first is what ordering by a figure is for; by name follows the column's sort.
-            order = normalizeOrder({ by: value, direction: value === 'name' ? 'asc' : order.by === 'name' ? 'desc' : order.direction }, this.columns);
+            order = normalizeOrder(
+                { by: value, direction: value === 'name' ? 'asc' : order.by === 'name' ? 'desc' : order.direction },
+                this.columns
+            );
         } else if (action === 'direction') {
             order = normalizeOrder({ by: order.by, direction: value }, this.columns);
         } else {
@@ -4559,19 +4992,28 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         this.setRange(null, null); // positions change with the order
         this.groupView = { order, percent };
         if (action === 'percent') {
-            this.announcement = percent ? 'Showing each group\'s percent of the total' : 'Percent of total hidden';
+            this.announcement = percent ? "Showing each group's percent of the total" : 'Percent of total hidden';
         } else {
-            const what = order.by === 'name' ? 'name'
-                : order.by === 'count' ? 'record count'
-                : `${(SUBTOTAL_NAMES[(this.columnByField(order.by) || {}).subtotal] || 'subtotal').toLowerCase()} of ${this.labelOf(order.by)}`;
-            this.announcement = `Groups ordered by ${what}` + (order.by === 'name' ? '' : order.direction === 'desc' ? ', largest first' : ', smallest first');
+            const what =
+                order.by === 'name'
+                    ? 'name'
+                    : order.by === 'count'
+                      ? 'record count'
+                      : `${(SUBTOTAL_NAMES[(this.columnByField(order.by) || {}).subtotal] || 'subtotal').toLowerCase()} of ${this.labelOf(order.by)}`;
+            this.announcement =
+                `Groups ordered by ${what}` +
+                (order.by === 'name' ? '' : order.direction === 'desc' ? ', largest first' : ', smallest first');
         }
         this.emitLayout();
     }
 
     /** Every group's id, closed ones' sub-groups included, for Collapse all. */
     allGroupIds() {
-        const all = buildView(this.sortedRows, this.grouping, { columns: this.columns, keyField: this.keyField, fiscal: this._config.fiscal || null });
+        const all = buildView(this.sortedRows, this.grouping, {
+            columns: this.columns,
+            keyField: this.keyField,
+            fiscal: this._config.fiscal || null
+        });
         const out = {};
         all.headers.forEach((h, id) => {
             out[id] = true;
@@ -4634,7 +5076,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const cols = this.shownColumns;
         // The title's column last: a row rule's icon goes on the first of these,
         // and the title is not a field of the card, so the icon was lost.
-        const fields = cols.slice(1).concat(cols.slice(0, 1)).map(c => c.field);
+        const fields = cols
+            .slice(1)
+            .concat(cols.slice(0, 1))
+            .map(c => c.field);
         const out = [];
         // The limit counts records and groups; an open record's panel comes with
         // its card and is not counted. Without panels, `shown` is i + 1.
@@ -4667,14 +5112,17 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             // fields show, the rest on request. An editable title is a
             // field again among all of them, so it can still be edited.
             const shownAlways = (c, n) => n < CARD_FIELDS || has(rowDrafts, c.field) || fieldErrors[c.field];
-            const titleField = first && (first.editable || has(rowDrafts, first.field) || fieldErrors[first.field]) ? [first] : [];
+            const titleField =
+                first && (first.editable || has(rowDrafts, first.field) || fieldErrors[first.field]) ? [first] : [];
             const rest = cols.slice(1);
             const all = Boolean(this.cardExpanded[id]);
             const more = Math.max(0, rest.length - CARD_FIELDS) + (first && first.editable ? 1 : 0);
             // A field with an error or an unsaved edit is shown whatever the limit.
             const visible = all
                 ? titleField.concat(rest)
-                : titleField.filter(c => has(rowDrafts, c.field) || fieldErrors[c.field]).concat(rest.filter(shownAlways));
+                : titleField
+                      .filter(c => has(rowDrafts, c.field) || fieldErrors[c.field])
+                      .concat(rest.filter(shownAlways));
             out.push({
                 key: id, // HR-19: record-derived, never the index
                 id,
@@ -4698,7 +5146,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 expandable: this.hasChildren && this.offersToggle(open, counts),
                 expandedAttr: String(open),
                 expandIcon: open ? 'utility:chevrondown' : 'utility:chevronright',
-                expandText: (open ? 'Hide related records' : 'Show related records') + (counts ? ` (${counts.total})` : ''),
+                expandText:
+                    (open ? 'Hide related records' : 'Show related records') + (counts ? ` (${counts.total})` : ''),
                 panelId: open ? this.detailCellId(id) : null,
                 // The row's actions, in a menu beside the title.
                 actionsLabel: `Actions for ${title}`
@@ -4742,12 +5191,14 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     groupCard(h) {
         const subtotals = h.values
             ? this.shownColumns
-                .map(c => {
-                    const sub = subtotalFor({ values: h.values }, c);
-                    return sub && sub.text ? `${SUBTOTAL_NAMES[sub.kind]} of ${c.label || c.field}: ${sub.text}` : null;
-                })
-                .filter(Boolean)
-                .join(' · ')
+                  .map(c => {
+                      const sub = subtotalFor({ values: h.values }, c);
+                      return sub && sub.text
+                          ? `${SUBTOTAL_NAMES[sub.kind]} of ${c.label || c.field}: ${sub.text}`
+                          : null;
+                  })
+                  .filter(Boolean)
+                  .join(' · ')
             : '';
         return {
             key: h.id,
@@ -4834,9 +5285,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             editSeed: undefined,
             editType: c.type,
             scale: c.scale,
-            options: isEditing && c.dependentOn
-                ? dependentOptions(c, has(rowDrafts, c.dependentOn) ? rowDrafts[c.dependentOn] : row[c.dependentOn])
-                : c.options || [],
+            options:
+                isEditing && c.dependentOn
+                    ? dependentOptions(c, has(rowDrafts, c.dependentOn) ? rowDrafts[c.dependentOn] : row[c.dependentOn])
+                    : c.options || [],
             dependentOn: c.dependentOn || null,
             required: Boolean(c.required),
             editorLabel: label
@@ -4881,7 +5333,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const options = [{ value: '', label: 'Default order', selected: !primary }];
         this.shownColumns
             .filter(c => c.sortable !== false)
-            .forEach(c => options.push({ value: c.field, label: c.label || c.field, selected: Boolean(primary && primary.field === c.field) }));
+            .forEach(c =>
+                options.push({
+                    value: c.field,
+                    label: c.label || c.field,
+                    selected: Boolean(primary && primary.field === c.field)
+                })
+            );
         return options;
     }
 

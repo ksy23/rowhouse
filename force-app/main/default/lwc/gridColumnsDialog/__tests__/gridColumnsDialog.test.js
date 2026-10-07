@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 describe('Choose columns', () => {
-    it('offers every column, with the visible ones in the user\'s order, and keeps the admin\'s locked ones in', async () => {
+    it("offers every column, with the visible ones in the user's order, and keeps the admin's locked ones in", async () => {
         await mount({ order: ['Amount', 'Name', 'StageName', 'CloseDate'], hidden: ['StageName'] });
         expect($('h1').textContent).toBe('Choose columns');
         expect(lists().options).toEqual([
@@ -41,11 +41,16 @@ describe('Choose columns', () => {
         expect(lists().sourceLabel).toBe('Available');
         expect(lists().selectedLabel).toBe('Visible');
         expect(String(lists().min)).toBe('1');
-        expect($('.rh-columns-kept').textContent).toBe('Your admin keeps Opportunity on screen: it can be moved, not hidden.');
+        expect($('.rh-columns-kept').textContent).toBe(
+            'Your admin keeps Opportunity on screen: it can be moved, not hidden.'
+        );
     });
 
-    it('starts from the admin\'s columns without a choice, and says nothing of locks when there are none', async () => {
-        await mount(null, COLUMNS.map(c => ({ field: c.field, label: c.label })));
+    it("starts from the admin's columns without a choice, and says nothing of locks when there are none", async () => {
+        await mount(
+            null,
+            COLUMNS.map(c => ({ field: c.field, label: c.label }))
+        );
         expect(lists().value).toEqual(['Name', 'StageName', 'Amount', 'CloseDate']);
         expect($('.rh-columns-kept')).toBeNull();
     });

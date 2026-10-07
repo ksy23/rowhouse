@@ -26,7 +26,9 @@ jest.mock('@salesforce/apex/GridController.save', () => ({ default: jest.fn() })
 jest.mock('@salesforce/apex/GridController.saveStatus', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.deleteRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 jest.mock('@salesforce/apex/GridController.runAction', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn() }), { virtual: true });
@@ -67,8 +69,13 @@ const SAVED = {
 const SAVED_JSON = JSON.stringify(SAVED);
 
 const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Amount__c: i, Stage__c: 'Open' });
-const page = (rows, { hasMore = false, locator = null, total = rows.length } = {}) =>
-    ({ rows, hasMore, cursorLocator: locator, cursorToken: null, totalRows: total });
+const page = (rows, { hasMore = false, locator = null, total = rows.length } = {}) => ({
+    rows,
+    hasMore,
+    cursorLocator: locator,
+    cursorToken: null,
+    totalRows: total
+});
 
 // Resolve every pending promise.
 const settle = async () => {
@@ -138,7 +145,7 @@ describe('readLayout', () => {
         });
     });
 
-    it('reads the groups\' order and percentages', () => {
+    it("reads the groups' order and percentages", () => {
         expect(read({ groups: { order: { by: 'count', direction: 'asc' }, percent: true } }).groupView).toEqual({
             order: { by: 'count', direction: 'asc' },
             percent: true
@@ -147,8 +154,15 @@ describe('readLayout', () => {
         expect(read({ groups: { percent: 'yes' } }).groupView).toEqual({ order: null, percent: false });
     });
 
-    it('reads the user\'s own columns as far as they fit the grid', () => {
-        expect(read({ columns: { order: ['Stage__c', 'Gone__c', 'Name', 'Amount__c', 'Close__c', 'Notes__c'], hidden: ['Notes__c', 'Gone__c'] } }).columns).toEqual({
+    it("reads the user's own columns as far as they fit the grid", () => {
+        expect(
+            read({
+                columns: {
+                    order: ['Stage__c', 'Gone__c', 'Name', 'Amount__c', 'Close__c', 'Notes__c'],
+                    hidden: ['Notes__c', 'Gone__c']
+                }
+            }).columns
+        ).toEqual({
             order: ['Stage__c', 'Name', 'Amount__c', 'Close__c', 'Notes__c'],
             hidden: ['Notes__c']
         });
@@ -170,14 +184,22 @@ describe('readLayout', () => {
     it('leaves out sort keys on columns the grid no longer has, or can no longer sort by', () => {
         const layout = read({
             v: 1,
-            sort: [{ field: 'Gone__c', direction: 'asc' }, { field: 'Notes__c', direction: 'asc' }, null,
-                { field: 'Amount__c', direction: 'desc' }, { field: 'Name', direction: 'sideways' }]
+            sort: [
+                { field: 'Gone__c', direction: 'asc' },
+                { field: 'Notes__c', direction: 'asc' },
+                null,
+                { field: 'Amount__c', direction: 'desc' },
+                { field: 'Name', direction: 'sideways' }
+            ]
         });
         // Anything but desc is ascending.
-        expect(layout.sort).toEqual([{ field: 'Amount__c', direction: 'desc' }, { field: 'Name', direction: 'asc' }]);
+        expect(layout.sort).toEqual([
+            { field: 'Amount__c', direction: 'desc' },
+            { field: 'Name', direction: 'asc' }
+        ]);
     });
 
-    it('uses no saved sort when no column is left for it, so the admin\'s applies', () => {
+    it("uses no saved sort when no column is left for it, so the admin's applies", () => {
         expect(read({ v: 1, sort: [{ field: 'Gone__c', direction: 'desc' }] }).sort).toBeNull();
         expect(read({ v: 1, sort: 'Amount__c' }).sort).toBeNull();
         expect(read({ v: 1 }).sort).toBeNull();
@@ -188,17 +210,33 @@ describe('readLayout', () => {
     });
 
     it('keeps at most five sort keys', () => {
-        const many = Array.from({ length: 7 }, (_, i) => ({ field: 'F' + i, label: 'F' + i, type: 'text', sortable: true }));
-        const layout = readLayout(JSON.stringify({ v: 1, sort: many.map(c => ({ field: c.field, direction: 'asc' })) }), many);
+        const many = Array.from({ length: 7 }, (_, i) => ({
+            field: 'F' + i,
+            label: 'F' + i,
+            type: 'text',
+            sortable: true
+        }));
+        const layout = readLayout(
+            JSON.stringify({ v: 1, sort: many.map(c => ({ field: c.field, direction: 'asc' })) }),
+            many
+        );
         expect(layout.sort.map(k => k.field)).toEqual(['F0', 'F1', 'F2', 'F3', 'F4']);
     });
 
     it('leaves out grouping on columns the grid no longer has or cannot group by, and gives a date its unit', () => {
         const layout = read({
             v: 1,
-            grouping: [{ field: 'Gone__c', unit: null }, { field: 'Name', unit: null }, { field: 'Close__c' }, { field: 'Stage__c', unit: 'year' }]
+            grouping: [
+                { field: 'Gone__c', unit: null },
+                { field: 'Name', unit: null },
+                { field: 'Close__c' },
+                { field: 'Stage__c', unit: 'year' }
+            ]
         });
-        expect(layout.grouping).toEqual([{ field: 'Close__c', unit: 'month' }, { field: 'Stage__c', unit: null }]);
+        expect(layout.grouping).toEqual([
+            { field: 'Close__c', unit: 'month' },
+            { field: 'Stage__c', unit: null }
+        ]);
         expect(read({ v: 1, grouping: [] }).grouping).toEqual([]);
         expect(read({ v: 1, grouping: 'Stage__c' }).grouping).toBeNull();
         expect(read({ v: 1 }).grouping).toBeNull();
@@ -234,7 +272,11 @@ describe('starting from the saved layout', () => {
         const el = mount();
         await settle();
         // The server is asked for the rows in the saved order, in the saved groups.
-        expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Amount__c', sortDirection: 'desc', groupBy: ['Stage__c'] });
+        expect(fetchRows.mock.calls[0][0]).toMatchObject({
+            sortField: 'Amount__c',
+            sortDirection: 'desc',
+            groupBy: ['Stage__c']
+        });
         expect(summarizeGroups.mock.calls[0][0]).toMatchObject({ grouping: ['Stage__c'] });
         const cfg = tableConfig(el);
         expect(cfg.sort).toEqual([{ field: 'Amount__c', direction: 'desc' }]);
@@ -267,10 +309,17 @@ describe('starting from the saved layout', () => {
         }
     });
 
-    it('uses the admin\'s sort when no saved sort key is left, and leaves out what cannot be grouped', async () => {
-        getLayout.mockResolvedValue(JSON.stringify({
-            v: 1, sort: [{ field: 'Gone__c', direction: 'desc' }, { field: 'Notes__c', direction: 'desc' }], grouping: [{ field: 'Name', unit: null }]
-        }));
+    it("uses the admin's sort when no saved sort key is left, and leaves out what cannot be grouped", async () => {
+        getLayout.mockResolvedValue(
+            JSON.stringify({
+                v: 1,
+                sort: [
+                    { field: 'Gone__c', direction: 'desc' },
+                    { field: 'Notes__c', direction: 'desc' }
+                ],
+                grouping: [{ field: 'Name', unit: null }]
+            })
+        );
         const el = mount();
         await settle();
         expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Name', sortDirection: 'asc' });
@@ -316,7 +365,13 @@ describe('starting from the saved layout', () => {
         mount();
         await settle();
         const lines = info.mock.calls.map(([, json]) => JSON.parse(json)).filter(e => e.event === 'layout');
-        expect(lines).toEqual([expect.objectContaining({ source: 'rowhouse', grid: 'Test_Records', error: 'Insufficient access to Grid User Layout.' })]);
+        expect(lines).toEqual([
+            expect.objectContaining({
+                source: 'rowhouse',
+                grid: 'Test_Records',
+                error: 'Insufficient access to Grid User Layout.'
+            })
+        ]);
         info.mockRestore();
     });
 
@@ -378,13 +433,23 @@ describe('keeping changes', () => {
         expect(keptLayout()).toEqual({ v: 1, sort: ADMIN_SORT, grouping: [{ field: 'Stage__c', unit: null }] });
     });
 
-    it('keeps the groups\' order and percentages, and leaves them out when they are the default', async () => {
+    it("keeps the groups' order and percentages, and leaves them out when they are the default", async () => {
         const el = mount();
         await settle();
-        layoutChange(el, { widths: null, wrap: {}, expanded: [], groupView: { order: { by: 'count', direction: 'desc' }, percent: true } });
+        layoutChange(el, {
+            widths: null,
+            wrap: {},
+            expanded: [],
+            groupView: { order: { by: 'count', direction: 'desc' }, percent: true }
+        });
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         expect(keptLayout().groups).toEqual({ order: { by: 'count', direction: 'desc' }, percent: true });
-        layoutChange(el, { widths: null, wrap: {}, expanded: [], groupView: { order: { by: 'name', direction: 'asc' }, percent: false } });
+        layoutChange(el, {
+            widths: null,
+            wrap: {},
+            expanded: [],
+            groupView: { order: { by: 'name', direction: 'asc' }, percent: false }
+        });
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         expect(keptLayout().groups).toBeUndefined();
     });
@@ -496,7 +561,7 @@ describe('keeping changes', () => {
         expect(saveLayout).toHaveBeenCalledTimes(1);
     });
 
-    it('never keeps one grid\'s layout under another grid\'s name', async () => {
+    it("never keeps one grid's layout under another grid's name", async () => {
         const el = mount();
         await settle();
         sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
@@ -517,11 +582,14 @@ describe('keeping changes', () => {
         expect(keptLayout().sort).toEqual([{ field: 'Amount__c', direction: 'desc' }]);
     });
 
-    it('a late failure for the grid before does not stop keeping the next one\'s', async () => {
+    it("a late failure for the grid before does not stop keeping the next one's", async () => {
         let failFirst;
-        saveLayout.mockImplementationOnce(() => new Promise((resolve, reject) => {
-            failFirst = reject;
-        }));
+        saveLayout.mockImplementationOnce(
+            () =>
+                new Promise((resolve, reject) => {
+                    failFirst = reject;
+                })
+        );
         const el = mount();
         await settle();
         sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
@@ -536,7 +604,7 @@ describe('keeping changes', () => {
         expect(lastCall(saveLayout).configName).toBe('Other_Grid');
     });
 
-    it('never keeps the user\'s filters', async () => {
+    it("never keeps the user's filters", async () => {
         const el = mount();
         await settle();
         filterChange(el, [{ field: 'Stage__c', operator: 'equals', value: 'Won', valueTo: null }]);
@@ -565,7 +633,7 @@ describe('Reset layout', () => {
         expect(button.title).toMatch(/^Reset layout/);
     });
 
-    it('forgets the layout and puts back the admin\'s sort and grouping', async () => {
+    it("forgets the layout and puts back the admin's sort and grouping", async () => {
         getLayout.mockResolvedValue(SAVED_JSON);
         const el = mount();
         await settle();
@@ -576,15 +644,25 @@ describe('Reset layout', () => {
         const cfg = tableConfig(el);
         expect(cfg.grouping).toEqual([]);
         // A new key, so the table applies it: the admin's sort, no widths, wrap or open rows.
-        expect(cfg.userLayout).toEqual({ key: expect.any(Number), widths: null, wrap: {}, expanded: [], groupView: null, sort: ADMIN_SORT });
+        expect(cfg.userLayout).toEqual({
+            key: expect.any(Number),
+            widths: null,
+            wrap: {},
+            expanded: [],
+            groupView: null,
+            sort: ADMIN_SORT
+        });
         expect(cfg.userLayout.key).not.toBe(before);
         expect($(el, '.rh-sorted').textContent).toBe('Sorted by Name');
         expect($(el, '.rh-reset-layout')).toBeNull();
         expect(live(el)).toBe('Layout reset. The grid is as your admin set it up.');
     });
 
-    it('puts back the admin\'s own grouping', async () => {
-        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, grouping: [{ field: 'Close__c', unit: 'year' }] }, diagnostics: false });
+    it("puts back the admin's own grouping", async () => {
+        getGridConfig.mockResolvedValue({
+            definition: { ...DEFINITION, grouping: [{ field: 'Close__c', unit: 'year' }] },
+            diagnostics: false
+        });
         getLayout.mockResolvedValue(SAVED_JSON);
         const el = mount();
         await settle();
@@ -597,7 +675,7 @@ describe('Reset layout', () => {
         expect(summarizeGroups).toHaveBeenCalledWith(expect.objectContaining({ grouping: ['Close__c:year'] }));
     });
 
-    it('asks for the rows again in the admin\'s order when not every row is loaded', async () => {
+    it("asks for the rows again in the admin's order when not every row is loaded", async () => {
         getLayout.mockResolvedValue(SAVED_JSON);
         // 50,000 matching rows: the grid preloads some and leaves the rest on the server.
         let next = 0;
@@ -614,11 +692,15 @@ describe('Reset layout', () => {
         fetchRows.mockClear();
         reset(el);
         await settle();
-        expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Name', sortDirection: 'asc', cursorLocator: null });
+        expect(fetchRows.mock.calls[0][0]).toMatchObject({
+            sortField: 'Name',
+            sortDirection: 'asc',
+            cursorLocator: null
+        });
         expect(fetchRows.mock.calls[0][0].groupBy).toBeUndefined();
     });
 
-    it('with every row loaded, reads them again in the admin\'s order: its sort field need not be a column', async () => {
+    it("with every row loaded, reads them again in the admin's order: its sort field need not be a column", async () => {
         // Found live: the rows were read in the saved order, and the admin's sort
         // field (LastName) was not a column the browser could sort by.
         getLayout.mockResolvedValue(SAVED_JSON);
@@ -628,7 +710,11 @@ describe('Reset layout', () => {
         reset(el);
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
-        expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Name', sortDirection: 'asc', cursorLocator: null });
+        expect(fetchRows.mock.calls[0][0]).toMatchObject({
+            sortField: 'Name',
+            sortDirection: 'asc',
+            cursorLocator: null
+        });
     });
 
     it('with every row loaded and the same sort, asks for nothing', async () => {
@@ -670,9 +756,12 @@ describe('Reset layout', () => {
 
     it('waits for a save still on its way, so it cannot bring the layout back', async () => {
         let finishSave;
-        saveLayout.mockImplementationOnce(() => new Promise(resolve => {
-            finishSave = resolve;
-        }));
+        saveLayout.mockImplementationOnce(
+            () =>
+                new Promise(resolve => {
+                    finishSave = resolve;
+                })
+        );
         getLayout.mockResolvedValue(SAVED_JSON);
         const el = mount();
         await settle();
@@ -715,10 +804,12 @@ describe('Reset layout', () => {
             }
             disconnect() {}
         };
-        const narrow = () => observers
-            .filter(o => o.target && o.target.hasAttribute('data-view-root'))
-            .forEach(o => o.cb([{ contentRect: { width: NARROW_WIDTH - 80 } }]));
-        const items = el => [...el.shadowRoot.querySelectorAll('.rh-actions-menu lightning-menu-item')].map(i => i.label);
+        const narrow = () =>
+            observers
+                .filter(o => o.target && o.target.hasAttribute('data-view-root'))
+                .forEach(o => o.cb([{ contentRect: { width: NARROW_WIDTH - 80 } }]));
+        const items = el =>
+            [...el.shadowRoot.querySelectorAll('.rh-actions-menu lightning-menu-item')].map(i => i.label);
         let el = mount();
         await settle();
         narrow();

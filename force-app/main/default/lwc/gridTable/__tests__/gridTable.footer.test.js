@@ -16,7 +16,9 @@ const mount = async (config, layout) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
     el.config = { columns, rows: seedRows.slice(0, 3), ...(layout ? { layout } : {}), ...config };
     events = [];
-    ['undo', 'redo', 'emptyaction', 'save', 'cancel'].forEach(name => el.addEventListener(name, () => events.push(name)));
+    ['undo', 'redo', 'emptyaction', 'save', 'cancel'].forEach(name =>
+        el.addEventListener(name, () => events.push(name))
+    );
     document.body.appendChild(el);
     await flush();
 };
@@ -29,7 +31,10 @@ afterEach(() => {
 
 describe('Undo and Redo in the Save bar', () => {
     it('offers them beside Save and Cancel, named for the step they take', async () => {
-        await mount({ drafts: DRAFT, history: { canUndo: true, canRedo: false, undoLabel: 'Undo paste of 2 cells', redoLabel: 'Redo' } });
+        await mount({
+            drafts: DRAFT,
+            history: { canUndo: true, canRedo: false, undoLabel: 'Undo paste of 2 cells', redoLabel: 'Redo' }
+        });
         const undo = $('.rh-footer-undo');
         expect(undo.textContent.trim()).toBe('Undo');
         expect(undo.title).toBe('Undo paste of 2 cells');
@@ -41,7 +46,10 @@ describe('Undo and Redo in the Save bar', () => {
     });
 
     it('stays after everything is undone, while there is something to redo', async () => {
-        await mount({ drafts: {}, history: { canUndo: false, canRedo: true, undoLabel: 'Undo', redoLabel: 'Redo edit' } });
+        await mount({
+            drafts: {},
+            history: { canUndo: false, canRedo: true, undoLabel: 'Undo', redoLabel: 'Redo edit' }
+        });
         expect($('.rh-footer-summary').textContent).toBe('No unsaved changes');
         expect($('.rh-footer-redo').disabled).toBe(false);
         $('.rh-footer-redo').click();
@@ -58,7 +66,10 @@ describe('Undo and Redo in the Save bar', () => {
     });
 
     it('says what is unsaved above its buttons, not beside them', async () => {
-        await mount({ drafts: DRAFT, history: { canUndo: true, canRedo: false, undoLabel: 'Undo', redoLabel: 'Redo' } });
+        await mount({
+            drafts: DRAFT,
+            history: { canUndo: true, canRedo: false, undoLabel: 'Undo', redoLabel: 'Redo' }
+        });
         const bar = $('.rh-footer');
         const [summary, actions] = bar.children;
         expect(summary.classList).toContain('rh-footer-summary');
@@ -81,7 +92,12 @@ describe('while the edits save', () => {
     const TWO = { [seedRows[0].Id]: { Text_Field__c: 'x' }, [seedRows[1].Id]: { Text_Field__c: 'y' } };
 
     it('shows a spinner and "Saving…" on Save, in its blue, and says what is being saved', async () => {
-        await mount({ drafts: TWO, saving: true, savingEdits: true, history: { canUndo: true, canRedo: false, undoLabel: 'Undo', redoLabel: 'Redo' } });
+        await mount({
+            drafts: TWO,
+            saving: true,
+            savingEdits: true,
+            history: { canUndo: true, canRedo: false, undoLabel: 'Undo', redoLabel: 'Redo' }
+        });
         const save = $('.rh-footer-save');
         expect(save.textContent.trim()).toBe('Saving…');
         expect(save.querySelector('.rh-save-spinner.slds-spinner_inverse').getAttribute('aria-hidden')).toBe('true');
@@ -133,7 +149,12 @@ describe('while the edits save', () => {
 });
 
 describe('an empty list', () => {
-    const EMPTY = { title: 'No records match “zzz”', message: 'Check the spelling.', actionLabel: 'Clear search', icon: 'utility:search' };
+    const EMPTY = {
+        title: 'No records match “zzz”',
+        message: 'Check the spelling.',
+        actionLabel: 'Clear search',
+        icon: 'utility:search'
+    };
 
     it('says why, and offers the next step', async () => {
         await mount({ rows: [], totalRows: 0, emptyState: EMPTY });
@@ -145,7 +166,11 @@ describe('an empty list', () => {
     });
 
     it('offers no button when there is nothing to do', async () => {
-        await mount({ rows: [], totalRows: 0, emptyState: { title: 'No records yet', message: '', actionLabel: null } });
+        await mount({
+            rows: [],
+            totalRows: 0,
+            emptyState: { title: 'No records yet', message: '', actionLabel: null }
+        });
         expect($('.rh-empty-title').textContent).toBe('No records yet');
         expect($('.rh-empty-action')).toBeNull();
     });

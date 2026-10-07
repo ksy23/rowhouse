@@ -26,5 +26,10 @@ Open an issue with:
 
 ## Security issues
 
-Do not open a public issue. Use GitHub's private vulnerability reporting on
-this repository (Security → Report a vulnerability).
+Do not open a public issue. [SECURITY.md](SECURITY.md) explains how to report
+it privately.
+
+## Anything private
+
+Email [support@kugamon.com](mailto:support@kugamon.com) or
+[Submit a Case](https://www.kugamon.com/support/submit-a-case/) with Kugamon.

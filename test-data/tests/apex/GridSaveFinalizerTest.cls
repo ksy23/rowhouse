@@ -5,15 +5,23 @@
  */
 @IsTest
 private class GridSaveFinalizerTest {
-
     private class FailedContext implements FinalizerContext {
-        public Id getAsyncApexJobId() { return null; }
-        public String getRequestId() { return 'test'; }
-        public ParentJobResult getResult() { return ParentJobResult.UNHANDLED_EXCEPTION; }
-        public Exception getException() { return new SimulatedLimitException('Apex CPU time limit exceeded'); }
+        public Id getAsyncApexJobId() {
+            return null;
+        }
+        public String getRequestId() {
+            return 'test';
+        }
+        public ParentJobResult getResult() {
+            return ParentJobResult.UNHANDLED_EXCEPTION;
+        }
+        public Exception getException() {
+            return new SimulatedLimitException('Apex CPU time limit exceeded');
+        }
     }
 
-    private class SimulatedLimitException extends Exception {}
+    private class SimulatedLimitException extends Exception {
+    }
 
     @IsTest
     static void aFailedChunkReportsEveryRecordAsNotSaved() {

@@ -7,7 +7,18 @@
 'use strict';
 
 const LOOPS = new Set(['ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement']);
-const ITERATORS = new Set(['forEach', 'map', 'reduce', 'reduceRight', 'filter', 'some', 'every', 'find', 'findIndex', 'flatMap']);
+const ITERATORS = new Set([
+    'forEach',
+    'map',
+    'reduce',
+    'reduceRight',
+    'filter',
+    'some',
+    'every',
+    'find',
+    'findIndex',
+    'flatMap'
+]);
 
 module.exports = {
     meta: {
@@ -32,8 +43,13 @@ module.exports = {
                     }
                     if (/Function/.test(a.type)) {
                         const parent = ancestors[i - 1];
-                        if (parent && parent.type === 'CallExpression' && parent.arguments.includes(a)
-                            && parent.callee.type === 'MemberExpression' && ITERATORS.has(parent.callee.property.name)) {
+                        if (
+                            parent &&
+                            parent.type === 'CallExpression' &&
+                            parent.arguments.includes(a) &&
+                            parent.callee.type === 'MemberExpression' &&
+                            ITERATORS.has(parent.callee.property.name)
+                        ) {
                             context.report({ node, messageId: 'loop', data: { method } });
                         }
                         return; // any other function boundary ends the search

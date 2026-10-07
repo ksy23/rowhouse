@@ -27,7 +27,13 @@ function declarationsFor(css, cls) {
     return out;
 }
 
-const classes = [...new Set(Object.values(STYLES).flatMap(s => [s.cls, s.bar]).filter(Boolean))];
+const classes = [
+    ...new Set(
+        Object.values(STYLES)
+            .flatMap(s => [s.cls, s.bar])
+            .filter(Boolean)
+    )
+];
 
 describe('the Display Key matches the table', () => {
     it.each(classes)('%s looks the same in the key as in the grid', cls => {

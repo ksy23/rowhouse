@@ -47,7 +47,11 @@ function messageOf(error) {
     if (!error) return 'Unknown error.';
     const body = error.body;
     if (body && typeof body.message === 'string' && body.message) return body.message;
-    if (Array.isArray(body)) return body.map(e => e && e.message).filter(Boolean).join(' ');
+    if (Array.isArray(body))
+        return body
+            .map(e => e && e.message)
+            .filter(Boolean)
+            .join(' ');
     return error.message || String(error);
 }
 
@@ -121,7 +125,9 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
     }
 
     get saveTitle() {
-        return this.canSave ? 'Save how long the edit log keeps its entries' : 'Saving needs the Customize Application permission';
+        return this.canSave
+            ? 'Save how long the edit log keeps its entries'
+            : 'Saving needs the Customize Application permission';
     }
 
     get chosenLabel() {
@@ -137,7 +143,9 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
     }
 
     get periodText() {
-        return this.savedValue ? 'Entries older than this are deleted each night, for good.' : 'Entries are kept forever. Nothing deletes them.';
+        return this.savedValue
+            ? 'Entries older than this are deleted each night, for good.'
+            : 'Entries are kept forever. Nothing deletes them.';
     }
 
     /** When the clean-up next runs: its time, or that it is off. */
@@ -154,8 +162,10 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
         if (!this.savedValue) return 'No clean-up runs while entries are kept forever.';
         if (!s.scheduled) return 'The nightly clean-up is not scheduled.';
         const next = when(s.nextRun, { dateStyle: 'medium' });
-        return `The nightly clean-up${next ? `, next on ${next},` : ''} runs as ${s.runsAs || 'the admin who saved this'}.`
-            + (s.mine === false && this.canSave ? ' Save to run it as you instead.' : '');
+        return (
+            `The nightly clean-up${next ? `, next on ${next},` : ''} runs as ${s.runsAs || 'the admin who saved this'}.` +
+            (s.mine === false && this.canSave ? ' Save to run it as you instead.' : '')
+        );
     }
 
     get loggingGrids() {
@@ -169,7 +179,8 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
     /** The grids whose changes the log keeps: what the clean-up affects. */
     get loggingText() {
         const names = this.loggingGrids;
-        if (!names.length) return "grids log every change. Tick Log every change in a grid's settings for an audit trail.";
+        if (!names.length)
+            return "grids log every change. Tick Log every change in a grid's settings for an audit trail.";
         return `${names.length === 1 ? 'grid logs' : 'grids log'} every change: ${names.join(', ')}.`;
     }
 
@@ -185,7 +196,11 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
         event.preventDefault();
         openGuide(this, namespaceOf(this.template.host), HELP_PAGE, HELP_SECTION).catch(() => {
             this.dispatchEvent(
-                new ShowToastEvent({ title: 'The Grid Guide did not open', message: 'Open the Grid Guide tab in the Rowhouse app.', variant: 'warning' })
+                new ShowToastEvent({
+                    title: 'The Grid Guide did not open',
+                    message: 'Open the Grid Guide tab in the Rowhouse app.',
+                    variant: 'warning'
+                })
             );
         });
     }
@@ -200,7 +215,9 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
     get warning() {
         const s = this.status || {};
         if (this.savedValue && !s.scheduled) {
-            return this.canSave ? 'Save again to start the nightly clean-up.' : 'Ask a Salesforce admin to save this again to start the nightly clean-up.';
+            return this.canSave
+                ? 'Save again to start the nightly clean-up.'
+                : 'Ask a Salesforce admin to save this again to start the nightly clean-up.';
         }
         if (this.canSave && this.chosen && s.canRun === false) {
             return 'The clean-up runs as the admin who saves this, and you cannot delete Grid Edit Log entries. Ask a System Administrator to save it.';
@@ -228,7 +245,10 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Saved',
-                        message: days === null ? 'The edit log keeps its entries forever.' : `The edit log keeps its entries for ${label.toLowerCase()}.`,
+                        message:
+                            days === null
+                                ? 'The edit log keeps its entries forever.'
+                                : `The edit log keeps its entries for ${label.toLowerCase()}.`,
                         variant: 'success'
                     })
                 );
@@ -237,9 +257,10 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
                 this.dispatchEvent(new CustomEvent('saved', { detail: { days } }));
                 return;
             }
-            this.saveError = outcome.status === 'timeout'
-                ? 'The save is taking longer than usual. Reload the page in a minute to see whether it went through.'
-                : `The save did not go through. ${outcome.messages.join(' ')}`.trim();
+            this.saveError =
+                outcome.status === 'timeout'
+                    ? 'The save is taking longer than usual. Reload the page in a minute to see whether it went through.'
+                    : `The save did not go through. ${outcome.messages.join(' ')}`.trim();
         } catch (e) {
             if (token === this._runtime.token) this.saveError = messageOf(e);
         } finally {

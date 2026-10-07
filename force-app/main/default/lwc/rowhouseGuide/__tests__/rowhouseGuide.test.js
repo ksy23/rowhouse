@@ -40,7 +40,11 @@ const open = async state => {
     el = createElement('c-rowhouse-guide', { is: RowhouseGuide });
     document.body.appendChild(el);
     // eslint-disable-next-line @lwc/lwc/no-unexpected-wire-adapter-usages -- the test adapter's emit
-    CurrentPageReference.emit({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: state || {} });
+    CurrentPageReference.emit({
+        type: 'standard__navItemPage',
+        attributes: { apiName: 'Rowhouse_Guide' },
+        state: state || {}
+    });
     await settle();
 };
 const $ = s => el.shadowRoot.querySelector(s);
@@ -97,7 +101,15 @@ describe('the page', () => {
 describe('who reads what', () => {
     it('shows a grid admin every section', async () => {
         await open();
-        expect(navLabels()).toEqual(['Welcome', 'Get started', 'Configure', 'Features', 'User guide', 'Tutorials', 'Reference']);
+        expect(navLabels()).toEqual([
+            'Welcome',
+            'Get started',
+            'Configure',
+            'Features',
+            'User guide',
+            'Tutorials',
+            'Reference'
+        ]);
     });
 });
 
@@ -107,7 +119,11 @@ describe('moving around', () => {
         const link = $$('.rh-guide-nav-link').find(a => a.textContent === 'User guide');
         expect(link.getAttribute('href')).toBe('/lightning/n/Rowhouse_Guide?c__page=using');
         link.click();
-        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'using' } });
+        expect(mockNavigate).toHaveBeenCalledWith({
+            type: 'standard__navItemPage',
+            attributes: { apiName: 'Rowhouse_Guide' },
+            state: { c__page: 'using' }
+        });
     });
 
     it('goes back to the top for a new page, but not when it opens at a section', async () => {
@@ -115,14 +131,20 @@ describe('moving around', () => {
         const tops = () => scrolled.filter(s => s.classList.contains('rh-guide')).length;
         expect(tops()).toBe(1);
         // eslint-disable-next-line @lwc/lwc/no-unexpected-wire-adapter-usages -- the test adapter's emit
-        CurrentPageReference.emit({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'reference', c__section: 'faq' } });
+        CurrentPageReference.emit({
+            type: 'standard__navItemPage',
+            attributes: { apiName: 'Rowhouse_Guide' },
+            state: { c__page: 'reference', c__section: 'faq' }
+        });
         await settle();
         expect(tops()).toBe(1);
         expect(scrolled.some(s => s.getAttribute('data-anchor') === 'faq')).toBe(true);
     });
 
+    // The Tutorials page is the guide's largest, and checking all of it takes
+    // about 40 seconds on a laptop and more than twice that on a GitHub runner.
     it('is accessible', async () => {
         await open({ c__page: 'tutorials' });
         await expect(el).toBeAccessible();
-    }, 60000);
+    }, 180000);
 });

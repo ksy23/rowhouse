@@ -13,8 +13,16 @@ const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true },
     { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true },
     { field: 'Score__c', label: 'Score', type: 'number', editable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true,
-        options: [{ value: 'Open', label: 'Open' }, { value: 'Won', label: 'Won' }] }
+    {
+        field: 'Stage__c',
+        label: 'Stage',
+        type: 'picklist',
+        editable: true,
+        options: [
+            { value: 'Open', label: 'Open' },
+            { value: 'Won', label: 'Won' }
+        ]
+    }
 ];
 const id = n => 'a01' + String(n).padStart(15, '0');
 const ROWS = [
@@ -24,8 +32,20 @@ const ROWS = [
     { Id: id(4), Name: 'Four', Amount__c: null, Score__c: null, Stage__c: null }
 ];
 const rule = (name, extra) => ({ name, label: name.replace(/_/g, ' '), applyTo: 'cell', ...extra });
-const OVERDUE = rule('Overdue', { field: 'Amount__c', type: 'currency', operator: 'less_than', value: '0', style: 'icon_warning' });
-const BIG = rule('Big_deal', { field: 'Amount__c', type: 'currency', operator: 'greater_or_equal', value: '1000', style: 'icon_up' });
+const OVERDUE = rule('Overdue', {
+    field: 'Amount__c',
+    type: 'currency',
+    operator: 'less_than',
+    value: '0',
+    style: 'icon_warning'
+});
+const BIG = rule('Big_deal', {
+    field: 'Amount__c',
+    type: 'currency',
+    operator: 'greater_or_equal',
+    value: '1000',
+    style: 'icon_up'
+});
 const SCORE_BAR = rule('Score_bar', { field: 'Score__c', type: 'number', operator: 'is_not_blank', style: 'data_bar' });
 
 let el;
@@ -39,7 +59,10 @@ const $ = selector => el.shadowRoot.querySelector(selector);
 const $$ = selector => [...el.shadowRoot.querySelectorAll(selector)];
 const cell = (n, field) => $(`td[data-row-id="${id(n)}"][data-field="${field}"]`);
 const icon = (n, field) => cell(n, field).querySelector('lightning-icon.rh-format-icon');
-const said = (n, field) => [...cell(n, field).querySelectorAll('.slds-assistive-text')].map(s => s.textContent).filter(t => t.startsWith(', '));
+const said = (n, field) =>
+    [...cell(n, field).querySelectorAll('.slds-assistive-text')]
+        .map(s => s.textContent)
+        .filter(t => t.startsWith(', '));
 const bar = (n, field) => cell(n, field).style.getPropertyValue('--rh-databar');
 const tr = n => $(`tr[data-row-id="${id(n)}"]`);
 
@@ -55,8 +78,10 @@ describe('icons', () => {
         ['icon_info', 'utility:info', null],
         ['icon_up', 'utility:arrowup', null],
         ['icon_down', 'utility:arrowdown', null]
-    ])('%s shows %s before the value, titled with the rule\'s label', async (style, name, variant) => {
-        await mount([rule('Check_me', { field: 'Stage__c', type: 'picklist', operator: 'equals', value: 'Won', style })]);
+    ])("%s shows %s before the value, titled with the rule's label", async (style, name, variant) => {
+        await mount([
+            rule('Check_me', { field: 'Stage__c', type: 'picklist', operator: 'equals', value: 'Won', style })
+        ]);
         const shown = icon(2, 'Stage__c');
         expect(shown).not.toBeNull();
         expect(shown.iconName).toBe(name);
@@ -73,7 +98,13 @@ describe('icons', () => {
     });
 
     it('takes the first matching icon rule for a cell', async () => {
-        const alsoNegative = rule('Negative', { field: 'Amount__c', type: 'currency', operator: 'less_than', value: '100', style: 'icon_down' });
+        const alsoNegative = rule('Negative', {
+            field: 'Amount__c',
+            type: 'currency',
+            operator: 'less_than',
+            value: '100',
+            style: 'icon_down'
+        });
         await mount([OVERDUE, alsoNegative, BIG]);
         expect(icon(1, 'Amount__c').iconName).toBe('utility:warning'); // both match; the first wins
         expect(icon(2, 'Amount__c').iconName).toBe('utility:arrowup');
@@ -81,7 +112,7 @@ describe('icons', () => {
         expect(icon(4, 'Amount__c')).toBeNull(); // a blank meets neither
     });
 
-    it('says what the icon means to a screen reader, and in the value\'s tooltip', async () => {
+    it("says what the icon means to a screen reader, and in the value's tooltip", async () => {
         await mount([OVERDUE]);
         // The icon itself is hidden from screen readers; its meaning is said with the value.
         expect(icon(1, 'Amount__c').getAttribute('aria-hidden')).toBe('true');
@@ -90,16 +121,29 @@ describe('icons', () => {
         expect(said(2, 'Amount__c')).toEqual([]);
     });
 
-    it('says an icon\'s meaning once, beside a fill\'s from another rule', async () => {
-        const red = rule('Loss', { field: 'Amount__c', type: 'currency', operator: 'less_than', value: '0', style: 'fill_red' });
+    it("says an icon's meaning once, beside a fill's from another rule", async () => {
+        const red = rule('Loss', {
+            field: 'Amount__c',
+            type: 'currency',
+            operator: 'less_than',
+            value: '0',
+            style: 'fill_red'
+        });
         await mount([red, OVERDUE]);
         expect(cell(1, 'Amount__c').classList).toContain('rh-fmt_fill-red');
         expect(icon(1, 'Amount__c').iconName).toBe('utility:warning');
         expect(said(1, 'Amount__c')).toEqual([', Loss, Overdue']);
     });
 
-    it('puts a row rule\'s icon on the row\'s first value, after the utility columns', async () => {
-        const flag = rule('Won_row', { field: 'Stage__c', type: 'picklist', operator: 'equals', value: 'Won', style: 'icon_success', applyTo: 'row' });
+    it("puts a row rule's icon on the row's first value, after the utility columns", async () => {
+        const flag = rule('Won_row', {
+            field: 'Stage__c',
+            type: 'picklist',
+            operator: 'equals',
+            value: 'Won',
+            style: 'icon_success',
+            applyTo: 'row'
+        });
         await mount([flag], { selection: 'multi' });
         expect(icon(2, 'Name').iconName).toBe('utility:success');
         expect(icon(2, 'Stage__c')).toBeNull();
@@ -115,13 +159,24 @@ describe('icons', () => {
         expect(cell(1, 'Amount__c').classList).toContain('slds-is-edited');
         expect(icon(1, 'Amount__c')).toBeNull();
         // An unsaved edit that meets the rule elsewhere shows it at once.
-        el.config = { ...el.config, drafts: { [id(3)]: { Score__c: 5 } }, rows: ROWS.map(r => (r.Id === id(3) ? { ...r, Amount__c: -1 } : r)) };
+        el.config = {
+            ...el.config,
+            drafts: { [id(3)]: { Score__c: 5 } },
+            rows: ROWS.map(r => (r.Id === id(3) ? { ...r, Amount__c: -1 } : r))
+        };
         await flush();
         expect(icon(3, 'Amount__c').iconName).toBe('utility:warning');
     });
 
-    it('follows an unsaved edit in the cell\'s row: a row rule tested on another cell', async () => {
-        const flag = rule('Won_row', { field: 'Stage__c', type: 'picklist', operator: 'equals', value: 'Won', style: 'icon_success', applyTo: 'row' });
+    it("follows an unsaved edit in the cell's row: a row rule tested on another cell", async () => {
+        const flag = rule('Won_row', {
+            field: 'Stage__c',
+            type: 'picklist',
+            operator: 'equals',
+            value: 'Won',
+            style: 'icon_success',
+            applyTo: 'row'
+        });
         await mount([flag], { drafts: { [id(1)]: { Stage__c: 'Won' } } });
         expect(icon(1, 'Name').iconName).toBe('utility:success');
     });
@@ -139,7 +194,7 @@ describe('icons', () => {
 });
 
 describe('data bars', () => {
-    it('draws a bar behind each value, its length the value\'s place from zero to the highest loaded value', async () => {
+    it("draws a bar behind each value, its length the value's place from zero to the highest loaded value", async () => {
         await mount([SCORE_BAR]);
         expect(cell(1, 'Score__c').classList).toContain('rh-fmt_databar');
         expect(bar(1, 'Score__c')).toBe('10%');
@@ -153,7 +208,12 @@ describe('data bars', () => {
     });
 
     it('measures from the lowest value when some are below zero', async () => {
-        const amountBar = rule('Amount_bar', { field: 'Amount__c', type: 'currency', operator: 'is_not_blank', style: 'data_bar' });
+        const amountBar = rule('Amount_bar', {
+            field: 'Amount__c',
+            type: 'currency',
+            operator: 'is_not_blank',
+            style: 'data_bar'
+        });
         await mount([amountBar]);
         // -20 to 1,500: a range of 1,520.
         expect(bar(1, 'Amount__c')).toBe('0%');
@@ -162,7 +222,13 @@ describe('data bars', () => {
     });
 
     it('scales to every loaded value, not only those the rule matches', async () => {
-        const high = rule('High_score', { field: 'Score__c', type: 'number', operator: 'greater_than', value: '20', style: 'data_bar' });
+        const high = rule('High_score', {
+            field: 'Score__c',
+            type: 'number',
+            operator: 'greater_than',
+            value: '20',
+            style: 'data_bar'
+        });
         await mount([high]);
         expect(cell(1, 'Score__c').classList).not.toContain('rh-fmt_databar'); // 10 does not match
         expect(bar(2, 'Score__c')).toBe('50%');
@@ -190,8 +256,20 @@ describe('data bars', () => {
     });
 
     it('sits with a fill and an icon in one cell: each kind of rule is separate', async () => {
-        const green = rule('Good', { field: 'Score__c', type: 'number', operator: 'greater_or_equal', value: '100', style: 'fill_green' });
-        const star = rule('Top', { field: 'Score__c', type: 'number', operator: 'greater_or_equal', value: '100', style: 'icon_success' });
+        const green = rule('Good', {
+            field: 'Score__c',
+            type: 'number',
+            operator: 'greater_or_equal',
+            value: '100',
+            style: 'fill_green'
+        });
+        const star = rule('Top', {
+            field: 'Score__c',
+            type: 'number',
+            operator: 'greater_or_equal',
+            value: '100',
+            style: 'icon_success'
+        });
         await mount([SCORE_BAR, green, star]);
         const top = cell(3, 'Score__c');
         expect(top.classList).toContain('rh-fmt_fill-green');
@@ -200,10 +278,11 @@ describe('data bars', () => {
         expect(icon(3, 'Score__c').iconName).toBe('utility:success');
     });
 
-    it('keeps a frozen cell\'s offset: the bar is added to its style', async () => {
+    it("keeps a frozen cell's offset: the bar is added to its style", async () => {
         // Frozen columns sit at offsets taken from the pinned widths; JSDOM has
         // no layout, so every header cell reports 150px.
-        const spy = jest.spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
+        const spy = jest
+            .spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
             .mockReturnValue({ width: 150, height: 33, top: 0, left: 0, right: 150, bottom: 33, x: 0, y: 0 });
         try {
             await mount([SCORE_BAR], { frozenColumns: 3 });
@@ -243,7 +322,7 @@ describe('formula rules', () => {
         expect(said(1, 'Name')).toEqual([', At Risk']);
     });
 
-    it('formats one cell for a cell rule, and puts a row rule\'s icon on the first value', async () => {
+    it("formats one cell for a cell rule, and puts a row rule's icon on the first value", async () => {
         await mount([HOT, FLAGGED]);
         expect(cell(3, 'Stage__c').classList).toContain('rh-fmt_bold');
         expect(cell(3, 'Name').classList).not.toContain('rh-fmt_bold');
@@ -267,7 +346,7 @@ describe('formula rules', () => {
         expect(tr(2).classList).toContain('rh-fmt_bar-red');
     });
 
-    it('formats a card the same way, with a row rule\'s icon on the card\'s first value', async () => {
+    it("formats a card the same way, with a row rule's icon on the card's first value", async () => {
         await mount([AT_RISK, HOT, FLAGGED], { layout: 'cards' });
         const card = $(`li[data-row-id="${id(1)}"]`);
         expect(card.classList).toContain('rh-fmt_bar-red');
@@ -282,7 +361,7 @@ describe('formula rules', () => {
         expect(values[2].classList).toContain('rh-fmt_bold'); // Stage, the cell rule
     });
 
-    it('in a card showing every field, keeps the row\'s icon on the first value under the title', async () => {
+    it("in a card showing every field, keeps the row's icon on the first value under the title", async () => {
         await mount([FLAGGED], { layout: 'cards' });
         $(`.rh-card-more[data-row-id="${id(3)}"]`).click();
         await flush();

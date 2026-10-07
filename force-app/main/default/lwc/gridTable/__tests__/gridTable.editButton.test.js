@@ -25,7 +25,10 @@ function opacityRules() {
     while ((m = re.exec(css))) {
         const opacity = /opacity:\s*([\d.]+)/.exec(m[2]);
         if (opacity) {
-            rules.push({ selectors: m[1].split(',').map(s => s.trim().replace(/\s+/g, ' ')), opacity: Number(opacity[1]) });
+            rules.push({
+                selectors: m[1].split(',').map(s => s.trim().replace(/\s+/g, ' ')),
+                opacity: Number(opacity[1])
+            });
         }
     }
     return rules;
@@ -79,13 +82,19 @@ describe('edit pencil on hover, light grey lock', () => {
     });
 
     it('paints the shown pencil Salesforce data-table blue, and never the lock', () => {
-        const css = fs.readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+        const css = fs
+            .readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '');
         const blue = [];
         const re = /([^{}]+)\{([^}]*)\}/g;
         let m;
         while ((m = re.exec(css))) {
             const hook = /--slds-s-icon-color-foreground:\s*([^;]+);/.exec(m[2]);
-            if (hook) blue.push({ selectors: m[1].split(',').map(s => s.trim().replace(/\s+/g, ' ')), value: hook[1].trim() });
+            if (hook)
+                blue.push({
+                    selectors: m[1].split(',').map(s => s.trim().replace(/\s+/g, ' ')),
+                    value: hook[1].trim()
+                });
         }
         // The global hook SLDS uses for its own pencil, with its light-theme value as fallback.
         const accent = 'var(--slds-g-color-accent-2, #0250d9)';

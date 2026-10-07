@@ -83,7 +83,10 @@ export default class RowhouseFlow extends NavigationMixin(LightningElement) {
             const action = await screenFlow({ configName: run.grid, actionName: run.action });
             if (this._run.value !== run) return; // another run started meanwhile
             const allowed = run.on === 'selection' ? action.onSelection : action.onRow;
-            if (!allowed) throw new Error(`${action.label} does not run on ${run.on === 'selection' ? 'selected rows' : 'one row'} in this grid.`);
+            if (!allowed)
+                throw new Error(
+                    `${action.label} does not run on ${run.on === 'selection' ? 'selected rows' : 'one row'} in this grid.`
+                );
             this.title = action.label;
             this.inputs = flowInputs(action, run);
             this.flowName = action.flowName;
@@ -110,7 +113,9 @@ export default class RowhouseFlow extends NavigationMixin(LightningElement) {
     handleStatusChange(event) {
         const status = event.detail && event.detail.status;
         if (!FINISHED.has(status) || this._run.done) return;
-        this.dispatchEvent(new ShowToastEvent({ title: this.title, message: `${this.title}: finished.`, variant: 'success' }));
+        this.dispatchEvent(
+            new ShowToastEvent({ title: this.title, message: `${this.title}: finished.`, variant: 'success' })
+        );
         this.goBack();
     }
 

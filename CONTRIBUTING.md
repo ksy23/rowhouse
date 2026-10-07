@@ -16,7 +16,23 @@ twenty-nine hard rules the project is built on.
   whatever the feature. If a rule is wrong, argue it in an issue: rules change
   here, deliberately, never around it in code.
 
+## How this project runs
+
+- **Bug reports are welcome at any time.** Each one is triaged before it
+  becomes work: a real defect, or a question about setting a grid up? Setup
+  questions get an answer and, where the Grid Guide fell short, a better
+  guide page.
+- **Wrong data comes first.** A bug that silently saves or shows the wrong
+  value jumps the queue, however rare: a user who sees an error can report
+  it, but nobody reports a wrong value they never noticed.
+- **Small, focused pull requests.** One fix or one feature each, with its
+  tests, and no unrelated changes.
+- **Every pull request is reviewed** against the checklist in the pull
+  request template and the hard rules below.
+
 ## Set up
+
+Two commands, and no Salesforce org needed:
 
 ```bash
 npm ci --legacy-peer-deps
@@ -28,9 +44,16 @@ npm run verify
 1. the static-check self-test (each check must be seen to fail on a planted
    violation, or it proves nothing);
 2. the hard-rule checks in `scripts/checks/run-all.js`;
-3. ESLint, including the custom rules in `eslint-rules/`;
-4. SLDS Linter;
-5. Jest, including the accessibility assertions.
+3. the formatting check (Prettier);
+4. ESLint, including the custom rules in `eslint-rules/`;
+5. SLDS Linter;
+6. Jest, including the accessibility assertions.
+
+`npm ci` also installs a pre-commit hook that formats the files you commit
+with Prettier, so formatting never comes up in review. `npm run format`
+formats everything. Formatting Apex uses a parser that comes built for
+Windows (x64), Linux (x64) and macOS; anywhere else it needs Java 17 or
+later. Metadata XML is left as Salesforce writes it.
 
 The Apex tests run in a Salesforce org. Every test builds the users and rows it
 needs (`test-data/tests/apex/GridTestUsers.cls`), so the suite does not depend
@@ -210,5 +233,9 @@ The rule that makes "free, not freemium" sayable. The moment a Pro tier exists, 
 
 ## Reporting a security issue
 
-Do not open a public issue. Use GitHub's private vulnerability reporting on
-this repository (Security → Report a vulnerability).
+Do not open a public issue. [SECURITY.md](SECURITY.md) explains how to report
+it privately.
+
+## Code of conduct
+
+Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).

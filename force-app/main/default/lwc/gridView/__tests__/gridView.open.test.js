@@ -15,9 +15,15 @@ import saveLayout from '@salesforce/apex/GridController.saveLayout';
 
 jest.mock('@salesforce/apex/GridController.openGrid', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.fetchRows', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn(() => Promise.resolve(true)) }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn(() => Promise.resolve(true)) }), {
+    virtual: true
+});
+jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 
 const DEFINITION = {
     name: 'Deals',
@@ -82,25 +88,37 @@ afterEach(() => {
 });
 
 describe('opening with one call', () => {
-    it('asks once, with the grid\'s name, and shows the rows that came with it', async () => {
+    it("asks once, with the grid's name, and shows the rows that came with it", async () => {
         const el = mount();
         await settle();
         expect(openGrid).toHaveBeenCalledTimes(1);
-        expect(openGrid).toHaveBeenCalledWith({ configName: 'Deals', searchTerm: null, parentLink: null, parentId: null, recordId: null });
+        expect(openGrid).toHaveBeenCalledWith({
+            configName: 'Deals',
+            searchTerm: null,
+            parentLink: null,
+            parentId: null,
+            recordId: null
+        });
         expect(fetchRows).not.toHaveBeenCalled();
         expect(names(el)).toEqual(['Deal 1', 'Deal 2']);
         expect(el.shadowRoot.querySelector('h2').textContent).toBe('Deals');
         expect(el.shadowRoot.querySelector('.rh-count').textContent).toBe('2 items');
     });
 
-    it('passes a record page\'s record, and a child table\'s parent', async () => {
+    it("passes a record page's record, and a child table's parent", async () => {
         mount({ recordId: '001000000000001AAA' });
         await settle();
-        expect(openGrid).toHaveBeenLastCalledWith(expect.objectContaining({ recordId: '001000000000001AAA', parentLink: null }));
+        expect(openGrid).toHaveBeenLastCalledWith(
+            expect.objectContaining({ recordId: '001000000000001AAA', parentLink: null })
+        );
         mount({ parent: { link: 'Deals_Lines', id: '006000000000001AAA', name: 'Deal 1', level: 2 } });
         await settle();
         expect(openGrid).toHaveBeenLastCalledWith({
-            configName: 'Deals', searchTerm: null, parentLink: 'Deals_Lines', parentId: '006000000000001AAA', recordId: null
+            configName: 'Deals',
+            searchTerm: null,
+            parentLink: 'Deals_Lines',
+            parentId: '006000000000001AAA',
+            recordId: null
         });
     });
 
@@ -110,16 +128,28 @@ describe('opening with one call', () => {
         const el = mount();
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
-        expect(fetchRows).toHaveBeenCalledWith(expect.objectContaining({
-            configName: 'Deals', sortField: 'Name', sortDirection: 'asc', cursorLocator: 'locator-1', cursorToken: 'token'
-        }));
+        expect(fetchRows).toHaveBeenCalledWith(
+            expect.objectContaining({
+                configName: 'Deals',
+                sortField: 'Name',
+                sortDirection: 'asc',
+                cursorLocator: 'locator-1',
+                cursorToken: 'token'
+            })
+        );
         expect(fetchRows.mock.calls[0][0].pageSize).toBeGreaterThan(0);
         expect(names(el)).toEqual(['Deal 1', 'Deal 2', 'Deal 3']);
     });
 
     it('reads the layout that came with it: its sort, and its widths for the table', async () => {
-        const layout = JSON.stringify({ v: 1, sort: [{ field: 'CloseDate', direction: 'desc' }], widths: { Name: 220 } });
-        openGrid.mockResolvedValue(opened({ layout, start: { sortField: 'CloseDate', sortDirection: 'desc', groupBy: [] } }));
+        const layout = JSON.stringify({
+            v: 1,
+            sort: [{ field: 'CloseDate', direction: 'desc' }],
+            widths: { Name: 220 }
+        });
+        openGrid.mockResolvedValue(
+            opened({ layout, start: { sortField: 'CloseDate', sortDirection: 'desc', groupBy: [] } })
+        );
         const el = mount();
         await settle();
         expect(fetchRows).not.toHaveBeenCalled();
@@ -134,20 +164,24 @@ describe('opening with one call', () => {
         const el = mount();
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
-        expect(fetchRows).toHaveBeenCalledWith(expect.objectContaining({ sortField: 'CloseDate', sortDirection: 'desc', cursorLocator: null }));
+        expect(fetchRows).toHaveBeenCalledWith(
+            expect.objectContaining({ sortField: 'CloseDate', sortDirection: 'desc', cursorLocator: null })
+        );
         expect(names(el)).toEqual(['Deal 9']);
     });
 
     it('asks for the rows again when the server read the grouping differently', async () => {
         const layout = JSON.stringify({ v: 1, grouping: [{ field: 'CloseDate', unit: 'quarter' }] });
-        openGrid.mockResolvedValue(opened({ layout, start: { sortField: 'Name', sortDirection: 'asc', groupBy: ['CloseDate:month'] } }));
+        openGrid.mockResolvedValue(
+            opened({ layout, start: { sortField: 'Name', sortDirection: 'asc', groupBy: ['CloseDate:month'] } })
+        );
         mount();
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
         expect(fetchRows).toHaveBeenCalledWith(expect.objectContaining({ groupBy: ['CloseDate:quarter'] }));
     });
 
-    it('uses the page when the server applied the admin\'s sort the grid asks for by name', async () => {
+    it("uses the page when the server applied the admin's sort the grid asks for by name", async () => {
         // No layout: the grid asks for the admin's sort; the server reports it as applied.
         const el = mount();
         await settle();
@@ -156,10 +190,12 @@ describe('opening with one call', () => {
     });
 
     it('uses the page for a grid with no sort at all', async () => {
-        openGrid.mockResolvedValue(opened({
-            definition: { ...DEFINITION, sortField: null },
-            start: { sortField: null, sortDirection: null, groupBy: [] }
-        }));
+        openGrid.mockResolvedValue(
+            opened({
+                definition: { ...DEFINITION, sortField: null },
+                start: { sortField: null, sortDirection: null, groupBy: [] }
+            })
+        );
         mount();
         await settle();
         expect(fetchRows).not.toHaveBeenCalled();
@@ -187,7 +223,9 @@ describe('opening with one call', () => {
         const el = mount();
         await settle();
         expect(names(el)).toEqual(['Deal 1', 'Deal 2']);
-        el.shadowRoot.querySelector('c-grid-table').dispatchEvent(new CustomEvent('layoutchange', { detail: { widths: { Name: 300 } } }));
+        el.shadowRoot
+            .querySelector('c-grid-table')
+            .dispatchEvent(new CustomEvent('layoutchange', { detail: { widths: { Name: 300 } } }));
         jest.advanceTimersByTime(5000);
         await settle();
         expect(saveLayout).not.toHaveBeenCalled();
@@ -197,13 +235,19 @@ describe('opening with one call', () => {
         openGrid.mockRejectedValue({ body: { message: 'No Grid Configuration named "Deals".' } });
         const el = mount();
         await settle();
-        expect(el.shadowRoot.querySelector('.rh-load-error').textContent).toContain('No Grid Configuration named "Deals".');
+        expect(el.shadowRoot.querySelector('.rh-load-error').textContent).toContain(
+            'No Grid Configuration named "Deals".'
+        );
         expect(fetchRows).not.toHaveBeenCalled();
     });
 
     it('drops an answer for a grid it no longer shows', async () => {
         let first;
-        openGrid.mockReturnValueOnce(new Promise(resolve => { first = resolve; }));
+        openGrid.mockReturnValueOnce(
+            new Promise(resolve => {
+                first = resolve;
+            })
+        );
         openGrid.mockResolvedValueOnce(opened({ definition: { ...DEFINITION, name: 'Other', label: 'Other' } }));
         const el = mount();
         await settle();

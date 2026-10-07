@@ -15,7 +15,16 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true },
     { field: 'Amount', label: 'Amount', type: 'currency', editable: true, scale: 2 },
-    { field: 'Stage', label: 'Stage', type: 'picklist', editable: true, options: [{ value: 'Beta', label: 'Beta' }, { value: 'Gamma', label: 'Gamma' }] }
+    {
+        field: 'Stage',
+        label: 'Stage',
+        type: 'picklist',
+        editable: true,
+        options: [
+            { value: 'Beta', label: 'Beta' },
+            { value: 'Gamma', label: 'Gamma' }
+        ]
+    }
 ];
 const ROWS = [
     { Id: 'a01000000000001AAA', Name: 'Small', Amount: '5', Stage: 'Beta' },
@@ -23,9 +32,33 @@ const ROWS = [
     { Id: 'a01000000000003AAA', Name: 'Gamma', Amount: '-3', Stage: 'Gamma' }
 ];
 const RULES = [
-    { name: 'Negative', field: 'Amount', type: 'currency', operator: 'less_than', value: '0', style: 'text_red', applyTo: 'cell' },
-    { name: 'Large', field: 'Amount', type: 'currency', operator: 'greater_or_equal', value: '1000', style: 'fill_green', applyTo: 'cell' },
-    { name: 'Gamma', field: 'Stage', type: 'picklist', operator: 'equals', value: 'Gamma', style: 'fill_purple', applyTo: 'row' }
+    {
+        name: 'Negative',
+        field: 'Amount',
+        type: 'currency',
+        operator: 'less_than',
+        value: '0',
+        style: 'text_red',
+        applyTo: 'cell'
+    },
+    {
+        name: 'Large',
+        field: 'Amount',
+        type: 'currency',
+        operator: 'greater_or_equal',
+        value: '1000',
+        style: 'fill_green',
+        applyTo: 'cell'
+    },
+    {
+        name: 'Gamma',
+        field: 'Stage',
+        type: 'picklist',
+        operator: 'equals',
+        value: 'Gamma',
+        style: 'fill_purple',
+        applyTo: 'row'
+    }
 ];
 
 describe('conditional formatting in the table', () => {
@@ -48,7 +81,7 @@ describe('conditional formatting in the table', () => {
         expect(cell(0, 'Amount').className).not.toMatch(/rh-fmt_/);
     });
 
-    it('shows a row rule\'s fill as a bar down the row\'s edge, not a fill over every cell', async () => {
+    it("shows a row rule's fill as a bar down the row's edge, not a fill over every cell", async () => {
         await mount();
         const tr = el.shadowRoot.querySelector(`tr[data-row-id="${ROWS[2].Id}"]`);
         // Purple, not blue: a blue row would look selected.
@@ -62,7 +95,7 @@ describe('conditional formatting in the table', () => {
         expect(el.shadowRoot.querySelector(`tr[data-row-id="${ROWS[0].Id}"]`).classList).not.toContain('rh-row_bar');
     });
 
-    it('says what a format means: in the cell\'s title and to a screen reader', async () => {
+    it("says what a format means: in the cell's title and to a screen reader", async () => {
         await mount();
         const amount = cell(2, 'Amount');
         expect(amount.querySelector('.slds-assistive-text').textContent).toBe(', Negative');
@@ -102,10 +135,12 @@ describe('conditional formatting in the table', () => {
         expect(el.shadowRoot.querySelectorAll('td[class*="rh-fmt_"]')).toHaveLength(0);
         el.config = { columns: COLUMNS, rows: ROWS, formatRules: RULES, selection: 'multi' };
         await flush();
-        expect(el.shadowRoot.querySelector(`td[data-row-id="${ROWS[2].Id}"][data-field="__select"]`).className).not.toMatch(/rh-fmt_/);
+        expect(
+            el.shadowRoot.querySelector(`td[data-row-id="${ROWS[2].Id}"][data-field="__select"]`).className
+        ).not.toMatch(/rh-fmt_/);
     });
 
-    it('formats a card the same way: the row\'s bar down its edge, the cell rules on its values', async () => {
+    it("formats a card the same way: the row's bar down its edge, the cell rules on its values", async () => {
         await mount({ layout: 'cards' });
         const card = el.shadowRoot.querySelector(`li[data-row-id="${ROWS[2].Id}"]`);
         expect(card.classList).toContain('rh-card_bar');
@@ -117,7 +152,9 @@ describe('conditional formatting in the table', () => {
     });
 
     it('lets the selected range tint over a fill, and fills a frozen cell', () => {
-        const css = fs.readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+        const css = fs
+            .readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '');
         const at = selector => css.indexOf(selector);
         // The range tint comes after every fill, at the same specificity, so it wins.
         expect(at('.rh-grid td.rh-in-range')).toBeGreaterThan(at('.rh-grid td.rh-fmt_fill-grey'));

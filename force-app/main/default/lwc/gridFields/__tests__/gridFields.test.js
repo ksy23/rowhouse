@@ -2,12 +2,23 @@
  * Field-type rules: lookup names and links, dependent picklist values
  * (TC-037..039), and the clears an edit of a controlling field forces.
  */
-import { isLookup, lookupText, lookupHref, nameIndex, dependentOptions, isValidDependent, dependentClears } from 'c/gridFields';
+import {
+    isLookup,
+    lookupText,
+    lookupHref,
+    nameIndex,
+    dependentOptions,
+    isValidDependent,
+    dependentClears
+} from 'c/gridFields';
 
 const ACCOUNT = '001000000000001AAA';
 const QUEUE = '00G000000000001AAA';
 const DEPENDENT = {
-    field: 'Dependent_Picklist__c', type: 'picklist', editable: true, dependentOn: 'Controlling_Picklist__c',
+    field: 'Dependent_Picklist__c',
+    type: 'picklist',
+    editable: true,
+    dependentOn: 'Controlling_Picklist__c',
     options: [
         { value: 'Keyboard', label: 'Keyboard', validFor: ['Hardware'] },
         { value: 'Monitor', label: 'Monitor', validFor: ['Hardware'] },

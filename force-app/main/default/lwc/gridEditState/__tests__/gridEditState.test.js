@@ -1,7 +1,18 @@
 import {
-    applyEdit, applyEdits, draftCount, toPayload, applySaveResult, mergeSaved,
-    applyRefusedFields, carryNewEdits, clearCellError, requiredErrors, mergeErrors,
-    REFUSED_BY_PERMISSION, REFUSED_BY_CONFIG, REQUIRED_MESSAGE
+    applyEdit,
+    applyEdits,
+    draftCount,
+    toPayload,
+    applySaveResult,
+    mergeSaved,
+    applyRefusedFields,
+    carryNewEdits,
+    clearCellError,
+    requiredErrors,
+    mergeErrors,
+    REFUSED_BY_PERMISSION,
+    REFUSED_BY_CONFIG,
+    REQUIRED_MESSAGE
 } from 'c/gridEditState';
 
 describe('drafts', () => {
@@ -28,7 +39,13 @@ describe('drafts', () => {
 
 describe('save results', () => {
     const drafts = { ok: { A: 1 }, bad: { A: 2, B: 3 } };
-    const result = { successCount: 1, errors: [{ recordId: 'bad', fieldName: 'B', message: 'Too big' }, { recordId: 'bad', fieldName: null, message: 'Locked' }] };
+    const result = {
+        successCount: 1,
+        errors: [
+            { recordId: 'bad', fieldName: 'B', message: 'Too big' },
+            { recordId: 'bad', fieldName: null, message: 'Locked' }
+        ]
+    };
     it('keeps drafts only for failed records, and places each error', () => {
         const { drafts: next, errors } = applySaveResult(drafts, result);
         expect(next).toEqual({ bad: { A: 2, B: 3 } });
@@ -36,7 +53,11 @@ describe('save results', () => {
         expect(errors.bad.row).toBe('Locked');
     });
     it('merges saved values into new row objects and leaves the rest alone', () => {
-        const rows = [{ Id: 'ok', A: 0 }, { Id: 'bad', A: 0 }, { Id: 'other', A: 0 }];
+        const rows = [
+            { Id: 'ok', A: 0 },
+            { Id: 'bad', A: 0 },
+            { Id: 'other', A: 0 }
+        ];
         const merged = mergeSaved(rows, drafts, ['bad']);
         expect(merged[0]).toEqual({ Id: 'ok', A: 1 });
         expect(merged[1]).toBe(rows[1]);
@@ -50,7 +71,8 @@ describe('refused fields', () => {
     it('brings a refused edit back as a draft with the reason on the cell', () => {
         const state = applySaveResult(sent, { errors: [] });
         const next = applyRefusedFields(state, sent, {
-            strippedFields: ['Read_Only_Text__c'], rejectedFields: ['currency_field__c']
+            strippedFields: ['Read_Only_Text__c'],
+            rejectedFields: ['currency_field__c']
         });
         expect(next.drafts).toEqual({ a: { Read_Only_Text__c: 'y' }, b: { Currency_Field__c: 5 } });
         expect(next.errors.a.fields.Read_Only_Text__c).toBe(REFUSED_BY_PERMISSION);
@@ -101,7 +123,10 @@ describe('clearing a cell error on edit', () => {
 });
 
 describe('required fields', () => {
-    const cols = [{ field: 'Name', required: true }, { field: 'Text_Field__c', required: false }];
+    const cols = [
+        { field: 'Name', required: true },
+        { field: 'Text_Field__c', required: false }
+    ];
 
     it('flags a blanked required field, including whitespace only, and nothing else', () => {
         const drafts = { a: { Name: '', Text_Field__c: '' }, b: { Name: '   ' }, c: { Name: 'ok' }, d: { Name: null } };
@@ -113,7 +138,10 @@ describe('required fields', () => {
     });
 
     it('merges into existing errors without losing them', () => {
-        const merged = mergeErrors({ a: { row: 'Locked.', fields: { X: 'bad' } } }, { a: { row: null, fields: { Name: 'Complete this field.' } } });
+        const merged = mergeErrors(
+            { a: { row: 'Locked.', fields: { X: 'bad' } } },
+            { a: { row: null, fields: { Name: 'Complete this field.' } } }
+        );
         expect(merged.a).toEqual({ row: 'Locked.', fields: { X: 'bad', Name: 'Complete this field.' } });
     });
 });
@@ -129,7 +157,11 @@ describe('applyEdits', () => {
         expect(d1).toEqual({ r1: { A: 'kept', B: 'x' } });
         expect(d0).toEqual({ r1: { A: 'kept' }, r2: { B: 'draft' } });
         let d2 = d0;
-        [['r1', 'B', 'x', 'old'], ['r2', 'B', 'orig', 'orig'], ['r3', 'A', '', null]].forEach(([id, f, v, o]) => {
+        [
+            ['r1', 'B', 'x', 'old'],
+            ['r2', 'B', 'orig', 'orig'],
+            ['r3', 'A', '', null]
+        ].forEach(([id, f, v, o]) => {
             d2 = applyEdit(d2, id, f, v, o);
         });
         expect(d1).toEqual(d2);

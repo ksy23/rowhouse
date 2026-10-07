@@ -77,7 +77,11 @@ export default class CellTextarea extends LightningElement {
     async readWhole() {
         this.loading = true;
         try {
-            const text = await fetchFullText({ configName: this.configName, recordId: this.recordId, field: this.field });
+            const text = await fetchFullText({
+                configName: this.configName,
+                recordId: this.recordId,
+                field: this.field
+            });
             this.whole = text == null ? '' : text;
             this.failed = false;
         } catch (e) {
@@ -129,9 +133,11 @@ export default class CellTextarea extends LightningElement {
     }
 
     get panelClass() {
-        return 'slds-dropdown slds-p-around_small rh-textarea-panel '
-            + (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left')
-            + (this.dropdownUp ? ' slds-dropdown_bottom' : '');
+        return (
+            'slds-dropdown slds-p-around_small rh-textarea-panel ' +
+            (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left') +
+            (this.dropdownUp ? ' slds-dropdown_bottom' : '')
+        );
     }
 
     get formElementClass() {

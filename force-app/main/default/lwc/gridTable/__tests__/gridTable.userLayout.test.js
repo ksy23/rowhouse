@@ -97,7 +97,8 @@ beforeEach(() => {
     getGridConfig.mockReturnValue(new Promise(() => {})); // the child grids stay loading
     // JSDOM has no layout: every header cell reports 200.6px, as if the grid
     // had shared its space out. Pinned widths round down to 200.
-    rectSpy = jest.spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
+    rectSpy = jest
+        .spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
         .mockReturnValue({ width: 200.6, height: 33, top: 0, left: 0, right: 200.6, bottom: 33, x: 0, y: 0 });
 });
 
@@ -121,15 +122,19 @@ describe('applying a saved layout', () => {
     it('keeps a saved width within 20 to 1,000px, and ignores a column the grid no longer has or a width that is not a number', async () => {
         await mount();
         const stage = width('Stage__c');
-        await handOver({ userLayout: { key: 'k1', widths: { Name: 5, Amount__c: 5000, Gone__c: 400, Stage__c: 'wide' } } });
+        await handOver({
+            userLayout: { key: 'k1', widths: { Name: 5, Amount__c: 5000, Gone__c: 400, Stage__c: 'wide' } }
+        });
         expect(width('Name')).toBe('20px');
         expect(width('Amount__c')).toBe('1000px');
         expect(width('Stage__c')).toBe(stage);
         expect(th('Gone__c')).toBeNull();
     });
 
-    it('applies Wrap or Clip over the admin\'s default, for wrappable columns the grid has', async () => {
-        await mount({ userLayout: { key: 'k1', wrap: { Name: false, Notes__c: true, Amount__c: true, Gone__c: true } } });
+    it("applies Wrap or Clip over the admin's default, for wrappable columns the grid has", async () => {
+        await mount({
+            userLayout: { key: 'k1', wrap: { Name: false, Notes__c: true, Amount__c: true, Gone__c: true } }
+        });
         expect(wraps(id(1), 'Name')).toBe(false); // the admin wraps it; the user clipped it
         expect(wraps(id(1), 'Notes__c')).toBe(true);
         expect(wraps(id(1), 'Amount__c')).toBe(false); // a number never wraps
@@ -142,7 +147,14 @@ describe('applying a saved layout', () => {
 
     it('sets the sort it was saved with, on columns that can be sorted, without telling the parent', async () => {
         await mount({
-            userLayout: { key: 'k1', sort: [{ field: 'Amount__c', direction: 'desc' }, { field: 'Stage__c', direction: 'asc' }, { field: 'Gone__c' }] }
+            userLayout: {
+                key: 'k1',
+                sort: [
+                    { field: 'Amount__c', direction: 'desc' },
+                    { field: 'Stage__c', direction: 'asc' },
+                    { field: 'Gone__c' }
+                ]
+            }
         });
         expect(order()).toEqual([id(2), id(3), id(1)]); // 300, 200, 100
         expect(th('Amount__c').getAttribute('aria-sort')).toBe('descending');
@@ -150,8 +162,11 @@ describe('applying a saved layout', () => {
         expect(sorts).toEqual([]); // the parent asked for it
     });
 
-    it('wins over the config\'s first sort', async () => {
-        await mount({ sort: [{ field: 'Name', direction: 'asc' }], userLayout: { key: 'k1', sort: [{ field: 'Amount__c', direction: 'asc' }] } });
+    it("wins over the config's first sort", async () => {
+        await mount({
+            sort: [{ field: 'Name', direction: 'asc' }],
+            userLayout: { key: 'k1', sort: [{ field: 'Amount__c', direction: 'asc' }] }
+        });
         expect(order()).toEqual([id(1), id(3), id(2)]);
         expect(th('Amount__c').getAttribute('aria-sort')).toBe('ascending');
         expect(th('Name').getAttribute('aria-sort')).toBe('none');
@@ -185,15 +200,20 @@ describe('applying a saved layout', () => {
         item('Clip text').click();
         await flush();
         // New rows and the same layout key, even with other values in it: nothing is put back.
-        await handOver({ rows: ROWS.slice(0, 2), userLayout: { key: 'k1', widths: { Name: 999 }, wrap: { Notes__c: true } } });
+        await handOver({
+            rows: ROWS.slice(0, 2),
+            userLayout: { key: 'k1', widths: { Name: 999 }, wrap: { Notes__c: true } }
+        });
         expect(width('Name')).toBe('250px');
         expect(wraps(id(1), 'Notes__c')).toBe(false);
     });
 
-    it('a new key with nothing in it puts the admin\'s widths and wrapping back (Reset layout)', async () => {
+    it("a new key with nothing in it puts the admin's widths and wrapping back (Reset layout)", async () => {
         await mount();
         const admin = Object.fromEntries(dataHeaders().map(cell => [cell.dataset.field, cell.style.width]));
-        await handOver({ userLayout: { key: 'k1', widths: { Name: 300, Notes__c: 90 }, wrap: { Name: false, Notes__c: true } } });
+        await handOver({
+            userLayout: { key: 'k1', widths: { Name: 300, Notes__c: 90 }, wrap: { Name: false, Notes__c: true } }
+        });
         expect(width('Name')).toBe('300px');
         // What gridView hands over for Reset layout: no widths at all.
         await handOver({ userLayout: { key: 'k2', widths: null, wrap: {}, expanded: [], sort: [] } });
@@ -254,7 +274,8 @@ describe('telling the parent what to keep (layoutchange)', () => {
 
     it('after a double-click that fits a column to its values', async () => {
         await mount();
-        th('Notes__c').querySelector('.slds-resizable__handle')
+        th('Notes__c')
+            .querySelector('.slds-resizable__handle')
             .dispatchEvent(new MouseEvent('dblclick', { bubbles: true, composed: true, cancelable: true }));
         await flush();
         expect(layouts).toHaveLength(1);
@@ -298,7 +319,7 @@ describe('telling the parent what to keep (layoutchange)', () => {
         expect(layouts[0].widths).toBeNull();
     });
 
-    it('reports a saved layout\'s widths with the next change: they are still the user\'s', async () => {
+    it("reports a saved layout's widths with the next change: they are still the user's", async () => {
         await mount({ userLayout: { key: 'k1', widths: { Name: 300 } } });
         menuButton('Notes__c').click();
         await flush();
@@ -360,7 +381,7 @@ describe('open rows', () => {
         expect(layouts).toEqual([]);
     });
 
-    it('tells the parent when a card\'s related records are shown or hidden', async () => {
+    it("tells the parent when a card's related records are shown or hidden", async () => {
         await mount({ children: CHILDREN, layout: 'cards' });
         $(`.rh-card-expand[data-row-id="${id(2)}"]`).click();
         await flush();

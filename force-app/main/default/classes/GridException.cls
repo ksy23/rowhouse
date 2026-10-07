@@ -5,4 +5,5 @@
  * catch bare Exception. That makes the MESSAGE the only diagnostic they get, so
  * every throw site names the object, field or record it is about.
  */
-public with sharing class GridException extends Exception {}
+public with sharing class GridException extends Exception {
+}

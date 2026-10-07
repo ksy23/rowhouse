@@ -33,18 +33,30 @@ describe('times', () => {
 
 describe('date/times', () => {
     it('reads the grid’s own display, in the user’s time zone', () => {
-        expect(parseCell('10/1/2026, 5:30 PM', WHEN, 'en-US', 'America/New_York')).toEqual({ value: '2026-10-01T21:30:00.000Z' });
-        expect(parseCell('10/1/2026 17:30', WHEN, 'en-US', 'Asia/Kolkata')).toEqual({ value: '2026-10-01T12:00:00.000Z' });
-        expect(parseCell('2026-10-01T17:30', WHEN, 'en-US', 'America/New_York')).toEqual({ value: '2026-10-01T21:30:00.000Z' });
+        expect(parseCell('10/1/2026, 5:30 PM', WHEN, 'en-US', 'America/New_York')).toEqual({
+            value: '2026-10-01T21:30:00.000Z'
+        });
+        expect(parseCell('10/1/2026 17:30', WHEN, 'en-US', 'Asia/Kolkata')).toEqual({
+            value: '2026-10-01T12:00:00.000Z'
+        });
+        expect(parseCell('2026-10-01T17:30', WHEN, 'en-US', 'America/New_York')).toEqual({
+            value: '2026-10-01T21:30:00.000Z'
+        });
     });
 
     it('takes an instant with its own zone as it is', () => {
-        expect(parseCell('2026-10-01T17:30:00Z', WHEN, 'en-US', 'Asia/Kolkata')).toEqual({ value: '2026-10-01T17:30:00.000Z' });
-        expect(parseCell('2026-10-01T17:30:00+02:00', WHEN, 'en-US', 'Asia/Kolkata')).toEqual({ value: '2026-10-01T15:30:00.000Z' });
+        expect(parseCell('2026-10-01T17:30:00Z', WHEN, 'en-US', 'Asia/Kolkata')).toEqual({
+            value: '2026-10-01T17:30:00.000Z'
+        });
+        expect(parseCell('2026-10-01T17:30:00+02:00', WHEN, 'en-US', 'Asia/Kolkata')).toEqual({
+            value: '2026-10-01T15:30:00.000Z'
+        });
     });
 
     it('reads a date alone as that day’s midnight there', () => {
-        expect(parseCell('2026-10-01', WHEN, 'en-US', 'America/New_York')).toEqual({ value: '2026-10-01T04:00:00.000Z' });
+        expect(parseCell('2026-10-01', WHEN, 'en-US', 'America/New_York')).toEqual({
+            value: '2026-10-01T04:00:00.000Z'
+        });
     });
 
     it('clears on an empty cell, and refuses what is not a date and time', () => {

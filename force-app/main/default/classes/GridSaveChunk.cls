@@ -12,7 +12,6 @@
  * saved, with the reason.
  */
 public with sharing class GridSaveChunk implements Queueable {
-
     private final String saveId;
     private final Integer chunkIndex;
     private final Integer chunkCount;
@@ -24,7 +23,13 @@ public with sharing class GridSaveChunk implements Queueable {
         this(saveId, chunkIndex, chunkCount, records, null);
     }
 
-    public GridSaveChunk(String saveId, Integer chunkIndex, Integer chunkCount, List<SObject> records, GridAudit.Context audit) {
+    public GridSaveChunk(
+        String saveId,
+        Integer chunkIndex,
+        Integer chunkCount,
+        List<SObject> records,
+        GridAudit.Context audit
+    ) {
         this.saveId = saveId;
         this.chunkIndex = chunkIndex;
         this.chunkCount = chunkCount;
@@ -65,7 +70,9 @@ public with sharing class GridSaveChunk implements Queueable {
         if (chunkIndex == 0) {
             purgeStale();
         }
-        GridSecurity.insertOwnRecords(new List<SObject>{ GridSaveFinalizer.report(saveId, chunkIndex, chunkCount, successCount, errors) });
+        GridSecurity.insertOwnRecords(
+            new List<SObject>{ GridSaveFinalizer.report(saveId, chunkIndex, chunkCount, successCount, errors) }
+        );
     }
 
     /** HR-4: report the LOCAL name, whichever build this is. */

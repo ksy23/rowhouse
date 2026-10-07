@@ -9,7 +9,9 @@ const mount = props => {
     document.body.appendChild(el);
     return el;
 };
-afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+afterEach(() => {
+    while (document.body.firstChild) document.body.firstChild.remove();
+});
 
 describe('checkbox cell', () => {
     it('TC-042 renders checked for true', () => {

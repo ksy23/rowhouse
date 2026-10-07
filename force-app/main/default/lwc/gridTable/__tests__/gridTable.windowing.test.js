@@ -8,15 +8,18 @@ import { columns } from '../../../../../../test-data/tests/jest/fixtures/seed';
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const key = (target, k, opts = {}) =>
-    target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts }));
+    target.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts })
+    );
 
-const big = n => Array.from({ length: n }, (_, i) => ({
-    Id: 'a0' + String(i).padStart(16, '0'),
-    Name: 'Row ' + (i + 1),
-    Test_Case__c: 'BENCH',
-    Text_Field__c: 'text ' + (i + 1),
-    Number_Field__c: i + 1
-}));
+const big = n =>
+    Array.from({ length: n }, (_, i) => ({
+        Id: 'a0' + String(i).padStart(16, '0'),
+        Name: 'Row ' + (i + 1),
+        Test_Case__c: 'BENCH',
+        Text_Field__c: 'text ' + (i + 1),
+        Number_Field__c: i + 1
+    }));
 
 describe('windowing', () => {
     let el;
@@ -27,14 +30,17 @@ describe('windowing', () => {
         document.body.appendChild(el);
         await flush();
     });
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('describes the errors of rendered rows only, in row order', async () => {
         // It reads the errors and the window directly.
         const rowsNow = big(1000);
         const idOf = i => rowsNow[i].Id;
         el.config = {
-            columns, rows: rowsNow,
+            columns,
+            rows: rowsNow,
             errors: {
                 [idOf(5)]: { row: null, fields: { Name: 'Second' } },
                 [idOf(900)]: { row: null, fields: { Name: 'Not rendered' } },
@@ -45,7 +51,9 @@ describe('windowing', () => {
         const texts = [...el.shadowRoot.querySelectorAll('.slds-assistive-text span[id]')].map(s => s.textContent);
         expect(texts).toEqual(['Error: First', 'Error: Also first', 'Error: Second']);
         const td = el.shadowRoot.querySelector(`td[data-row-id="${idOf(2)}"][data-field="Name"]`);
-        expect(el.shadowRoot.querySelector(`[id="${td.getAttribute('aria-describedby')}"]`).textContent).toBe('Error: First');
+        expect(el.shadowRoot.querySelector(`[id="${td.getAttribute('aria-describedby')}"]`).textContent).toBe(
+            'Error: First'
+        );
     });
 
     it('renders a window, not every row', () => {

@@ -35,7 +35,9 @@ describe('gridTiming', () => {
         expect(markSpy).toHaveBeenCalledTimes(1);
         mark(true, 'start', 3);
         // Jest's window is the page's own, as under Lightning Web Security.
-        expect(markSpy).toHaveBeenLastCalledWith('rowhouse:runtime-lws', { detail: { window: '[object Window]', document: '[object Document]' } });
+        expect(markSpy).toHaveBeenLastCalledWith('rowhouse:runtime-lws', {
+            detail: { window: '[object Window]', document: '[object Document]' }
+        });
         mark(false, 'start');
         expect(markSpy).toHaveBeenCalledTimes(3);
     });

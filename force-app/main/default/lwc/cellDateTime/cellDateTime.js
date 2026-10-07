@@ -70,7 +70,12 @@ function formatIn(value, timeZone) {
     const instant = value ? new Date(value) : null;
     if (timeZone === TIME_ZONE || !instant || Number.isNaN(instant.getTime())) return formatDateTime(value);
     return new Intl.DateTimeFormat(LOCALE, {
-        year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone
     }).format(instant);
 }
 
@@ -171,8 +176,12 @@ export default class CellDateTime extends LightningElement {
     }
 
     get dropdownClass() {
-        return 'slds-datepicker slds-dropdown ' + (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left')
-            + (this.dropdownUp ? ' slds-dropdown_bottom' : '') + ' rh-calendar';
+        return (
+            'slds-datepicker slds-dropdown ' +
+            (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left') +
+            (this.dropdownUp ? ' slds-dropdown_bottom' : '') +
+            ' rh-calendar'
+        );
     }
 
     get monthLabel() {

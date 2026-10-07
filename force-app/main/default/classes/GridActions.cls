@@ -15,18 +15,22 @@
  * browser, in lightning-flow.
  */
 public with sharing class GridActions {
-
     /** The Action Type picklist's values, lower-cased, as the grid names them. */
     public static final Set<String> TYPES = new Set<String>{ 'screenflow', 'flow', 'apex', 'quickaction' };
 
     /** A flow's or class's API name, with an optional namespace: Name, ns__Name. */
     private static final Pattern API_NAME = Pattern.compile('^[A-Za-z][A-Za-z0-9_]{0,254}$');
     /** A quick action: Object.ActionName for an object's own, ActionName for a global one. */
-    private static final Pattern QUICK_ACTION = Pattern.compile('^(?:([A-Za-z][A-Za-z0-9_]*)\\.)?([A-Za-z][A-Za-z0-9_]*)$');
+    private static final Pattern QUICK_ACTION = Pattern.compile(
+        '^(?:([A-Za-z][A-Za-z0-9_]*)\\.)?([A-Za-z][A-Za-z0-9_]*)$'
+    );
 
     /** The actions a configuration lists, in Sort Order; one that cannot work is skipped with a warning. */
-    public static List<GridConfig.Action> actionsOf(Grid_Configuration__mdt cfg, Schema.SObjectType objectType,
-                                                    List<String> warnings) {
+    public static List<GridConfig.Action> actionsOf(
+        Grid_Configuration__mdt cfg,
+        Schema.SObjectType objectType,
+        List<String> warnings
+    ) {
         return actionsFrom(recordsOf(cfg), objectType, warnings);
     }
 
@@ -46,8 +50,11 @@ public with sharing class GridActions {
      * Admin tab), in Sort Order, leaving out any marked Inactive; one
      * that cannot work is skipped with a warning.
      */
-    public static List<GridConfig.Action> actionsFrom(List<Grid_Action__mdt> all, Schema.SObjectType objectType,
-                                                      List<String> warnings) {
+    public static List<GridConfig.Action> actionsFrom(
+        List<Grid_Action__mdt> all,
+        Schema.SObjectType objectType,
+        List<String> warnings
+    ) {
         List<Grid_Action__mdt> records = new List<Grid_Action__mdt>();
         for (Grid_Action__mdt a : all) {
             if (a.Inactive__c != true) {
@@ -136,13 +143,25 @@ public with sharing class GridActions {
     private static void requireQuickAction(String name, Schema.SObjectType objectType) {
         Matcher m = QUICK_ACTION.matcher(name);
         if (!m.matches()) {
-            throw new GridException('"' + name + '" is not a quick action name. Write Object.ActionName, or a global action\'s name.');
+            throw new GridException(
+                '"' + name + '" is not a quick action name. Write Object.ActionName, or a global action\'s name.'
+            );
         }
         String objectName = m.group(1);
-        if (objectName != null && !objectName.equalsIgnoreCase(GridDescribe.apiName(objectType))
-                && !objectName.equalsIgnoreCase(GridDescribe.localName(objectType))) {
-            throw new GridException('"' + name + '" is a quick action of ' + objectName + ', not of '
-                + GridDescribe.localName(objectType) + ', the object this grid shows.');
+        if (
+            objectName != null &&
+            !objectName.equalsIgnoreCase(GridDescribe.apiName(objectType)) &&
+            !objectName.equalsIgnoreCase(GridDescribe.localName(objectType))
+        ) {
+            throw new GridException(
+                '"' +
+                    name +
+                    '" is a quick action of ' +
+                    objectName +
+                    ', not of ' +
+                    GridDescribe.localName(objectType) +
+                    ', the object this grid shows.'
+            );
         }
     }
 

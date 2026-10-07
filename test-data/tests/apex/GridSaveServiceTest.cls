@@ -16,7 +16,6 @@
  */
 @IsTest
 private class GridSaveServiceTest {
-
     private static List<Map<String, Object>> payload(Integer n) {
         List<Rowhouse_Test_Record__c> recs = new List<Rowhouse_Test_Record__c>();
         for (Integer i = 0; i < n; i++) {
@@ -60,8 +59,11 @@ private class GridSaveServiceTest {
             GridSaveResult done = GridSaveService.status(ticket.saveId);
             System.assert(done.done, 'All three chunks must have reported: ' + done);
             System.assertEquals(450, done.successCount);
-            System.assertEquals(0, [SELECT COUNT() FROM Grid_Save_Result__c WHERE Save_Id__c = :ticket.saveId],
-                'Result rows are bookkeeping and must be deleted once read.');
+            System.assertEquals(
+                0,
+                [SELECT COUNT() FROM Grid_Save_Result__c WHERE Save_Id__c = :ticket.saveId],
+                'Result rows are bookkeeping and must be deleted once read.'
+            );
         }
     }
 
@@ -70,7 +72,7 @@ private class GridSaveServiceTest {
         System.runAs(GridTestUsers.fullUser()) {
             List<Map<String, Object>> rows = payload(10);
             // Percent_Field__c is precision 5 scale 2 — this overflows it.
-            rows[4].put('Percent_Field__c', 99999999.00);   // Decimal, not Integer:
+            rows[4].put('Percent_Field__c', 99999999.00); // Decimal, not Integer:
             // an Integer into a Decimal field can throw at put() time rather than
             // producing the per-row DML error this test is about.
 
@@ -84,8 +86,11 @@ private class GridSaveServiceTest {
             System.assertEquals(1, res.errors.size());
             GridSaveError err = res.errors[0];
             System.assertEquals((Id) rows[4].get('Id'), err.recordId);
-            System.assertEquals('Percent_Field__c', err.fieldName,
-                'The error must identify the field so the grid can mark the cell, not just the row.');
+            System.assertEquals(
+                'Percent_Field__c',
+                err.fieldName,
+                'The error must identify the field so the grid can mark the cell, not just the row.'
+            );
             System.assert(String.isNotBlank(err.message));
         }
     }
@@ -98,9 +103,10 @@ private class GridSaveServiceTest {
             Rowhouse_Test_Record__c rec = new Rowhouse_Test_Record__c(Name = 'keep me');
             insert rec;
             Test.startTest();
-            GridSaveResult res = GridSaveService.save('Test_Records', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => rec.Id, 'Name' => '' }
-            });
+            GridSaveResult res = GridSaveService.save(
+                'Test_Records',
+                new List<Map<String, Object>>{ new Map<String, Object>{ 'Id' => rec.Id, 'Name' => '' } }
+            );
             Test.stopTest();
             System.assert(res.done, 'Nothing valid was left to queue: ' + res);
             System.assertEquals(1, res.errors.size(), String.valueOf(res.errors));
@@ -115,16 +121,20 @@ private class GridSaveServiceTest {
         // TC-023. The platform stores extra decimals given through Apex or the
         // API (1.005 in a two-decimal field stays 1.005), while the grid shows
         // them rounded. The save rounds, so what is saved is what was shown.
-        Schema.SObjectField dec = Rowhouse_Test_Record__c.Decimal_Field__c;      // scale 2
-        Schema.SObjectField whole = Rowhouse_Test_Record__c.Number_Field__c;     // scale 0
-        Schema.SObjectField money = Rowhouse_Test_Record__c.Currency_Field__c;   // scale 2
+        Schema.SObjectField dec = Rowhouse_Test_Record__c.Decimal_Field__c; // scale 2
+        Schema.SObjectField whole = Rowhouse_Test_Record__c.Number_Field__c; // scale 0
+        Schema.SObjectField money = Rowhouse_Test_Record__c.Currency_Field__c; // scale 2
         System.assertEquals(1234.57, GridSaveService.coerce(dec, '1234.567'));
         System.assertEquals(1.01, GridSaveService.coerce(dec, '1.005'), 'Half up, not setScale\'s HALF_EVEN (1.00).');
         System.assertEquals(-1.01, GridSaveService.coerce(dec, '-1.005'), 'Half away from zero for negatives.');
         System.assertEquals(3, ((Decimal) GridSaveService.coerce(whole, '2.5')).intValue(), 'HALF_EVEN would give 2.');
         System.assertEquals(0.01, GridSaveService.coerce(money, 0.005));
         System.assertEquals(12.30, GridSaveService.coerce(dec, '12.30'), 'A value that fits is left alone.');
-        System.assertEquals(Decimal.valueOf('999999999999999999'), GridSaveService.coerce(whole, '999999999999999999'), 'TC-024 stays exact.');
+        System.assertEquals(
+            Decimal.valueOf('999999999999999999'),
+            GridSaveService.coerce(whole, '999999999999999999'),
+            'TC-024 stays exact.'
+        );
     }
 
     @IsTest
@@ -133,7 +143,11 @@ private class GridSaveServiceTest {
         Schema.SObjectField t = Rowhouse_Test_Record__c.Time_Field__c;
         System.assertEquals(Time.newInstance(17, 30, 0, 0), GridSaveService.coerce(t, '17:30'));
         System.assertEquals(Time.newInstance(9, 5, 7, 250), GridSaveService.coerce(t, '09:05:07.25Z'));
-        System.assertEquals(Time.newInstance(17, 30, 0, 0), GridSaveService.coerce(t, '17:30:00.000Z'), 'As Salesforce sends it.');
+        System.assertEquals(
+            Time.newInstance(17, 30, 0, 0),
+            GridSaveService.coerce(t, '17:30:00.000Z'),
+            'As Salesforce sends it.'
+        );
         System.assertEquals(null, GridSaveService.coerce(t, ''));
         for (String bad : new List<String>{ '25:00', '5:30 PM', 'noon' }) {
             try {
@@ -143,8 +157,10 @@ private class GridSaveServiceTest {
                 System.assert(e.getMessage().contains(bad), e.getMessage());
             }
         }
-        System.assertEquals(Datetime.newInstanceGmt(2026, 10, 1, 17, 30, 0),
-            GridSaveService.coerce(Rowhouse_Test_Record__c.DateTime_Field__c, '2026-10-01T17:30:00.000Z'));
+        System.assertEquals(
+            Datetime.newInstanceGmt(2026, 10, 1, 17, 30, 0),
+            GridSaveService.coerce(Rowhouse_Test_Record__c.DateTime_Field__c, '2026-10-01T17:30:00.000Z')
+        );
     }
 
     @IsTest
@@ -152,7 +168,7 @@ private class GridSaveServiceTest {
         Test.startTest();
         Integer before = Limits.getDmlStatements();
         GridSaveResult res = GridSaveService.save('Save_Test', new List<Map<String, Object>>());
-        Integer after = Limits.getDmlStatements();   // read inside the window
+        Integer after = Limits.getDmlStatements(); // read inside the window
         Test.stopTest();
         System.assertEquals(before, after, 'An empty save must issue no DML at all.');
         System.assertEquals(0, res.successCount);

@@ -8,7 +8,6 @@
  * server share one shape (GridAdmin.Draft).
  */
 public with sharing class GridAdminController {
-
     /** Every grid configuration, by label. */
     @AuraEnabled
     public static List<Map<String, Object>> listConfigs() {

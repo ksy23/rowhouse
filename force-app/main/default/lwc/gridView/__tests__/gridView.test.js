@@ -1,7 +1,16 @@
 import { createElement } from 'lwc';
 import GridView, {
-    PRELOAD_ROWS, MAX_LOADED_ROWS, FOLLOW_PAGE_SIZE, SEARCH_DELAY_MS, MAX_SELECTED, DELETE_BATCH, MAX_LEVELS, messageOf,
-    PLACEHOLDER_ROWS, COUNT_BATCH, NARROW_WIDTH
+    PRELOAD_ROWS,
+    MAX_LOADED_ROWS,
+    FOLLOW_PAGE_SIZE,
+    SEARCH_DELAY_MS,
+    MAX_SELECTED,
+    DELETE_BATCH,
+    MAX_LEVELS,
+    messageOf,
+    PLACEHOLDER_ROWS,
+    COUNT_BATCH,
+    NARROW_WIDTH
 } from 'c/gridView';
 import { childTableHeight } from 'c/gridNest';
 import getGridConfig from '@salesforce/apex/GridController.getGridConfig';
@@ -25,7 +34,9 @@ jest.mock('@salesforce/apex/GridController.save', () => ({ default: jest.fn() })
 jest.mock('@salesforce/apex/GridController.saveStatus', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.deleteRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 // Export is checked at its boundary: what gridView hands to gridCsv.
 jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.fn() }));
 
@@ -45,9 +56,21 @@ const DEFINITION = {
     ]
 };
 
-const row = (i, extra = {}) => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Number_Field__c: String(i), ...extra });
-const page = (rows, { hasMore = false, locator = null, total = rows.length, token = null } = {}) =>
-    ({ rows, hasMore, cursorLocator: locator, cursorToken: token, totalRows: total, serverMs: 5, cpuMs: 3 });
+const row = (i, extra = {}) => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Row ' + i,
+    Number_Field__c: String(i),
+    ...extra
+});
+const page = (rows, { hasMore = false, locator = null, total = rows.length, token = null } = {}) => ({
+    rows,
+    hasMore,
+    cursorLocator: locator,
+    cursorToken: token,
+    totalRows: total,
+    serverMs: 5,
+    cpuMs: 3
+});
 
 // Resolve every pending promise and any timer they schedule.
 const settle = async () => {
@@ -86,10 +109,16 @@ describe('loading', () => {
         await settle();
         expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Test_Records' });
         expect(fetchRows).toHaveBeenCalledWith({
-            configName: 'Test_Records', searchTerm: null, sortField: 'Name', sortDirection: 'asc',
-            cursorLocator: null, cursorToken: null, pageSize: null,
+            configName: 'Test_Records',
+            searchTerm: null,
+            sortField: 'Name',
+            sortDirection: 'asc',
+            cursorLocator: null,
+            cursorToken: null,
+            pageSize: null,
             // No user filters and no record page.
-            filters: null, recordId: null
+            filters: null,
+            recordId: null
         });
         const cfg = tableConfig(el);
         expect(cfg.columns).toEqual(DEFINITION.columns);
@@ -154,7 +183,11 @@ describe('loading', () => {
         let release;
         fetchRows
             .mockResolvedValueOnce(page([row(1)], { hasMore: true, locator: 'fp:1', total: 2 }))
-            .mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+            .mockReturnValueOnce(
+                new Promise(resolve => {
+                    release = resolve;
+                })
+            );
         const el = mount();
         await settle();
         expect(tableConfig(el).totalRows).toBe(-1);
@@ -165,7 +198,11 @@ describe('loading', () => {
 
     it('shows grey placeholder rows until the first rows arrive, not a spinner', async () => {
         let release;
-        fetchRows.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+        fetchRows.mockReturnValueOnce(
+            new Promise(resolve => {
+                release = resolve;
+            })
+        );
         const el = mount();
         await settle();
         const placeholder = el.shadowRoot.querySelector('.rh-placeholder');
@@ -173,7 +210,9 @@ describe('loading', () => {
         expect(placeholder.getAttribute('aria-label')).toBe('Loading');
         // A header row, then the rows.
         expect(placeholder.querySelectorAll('.rh-placeholder-head')).toHaveLength(1);
-        expect(placeholder.querySelectorAll('.rh-placeholder-row:not(.rh-placeholder-head)')).toHaveLength(PLACEHOLDER_ROWS);
+        expect(placeholder.querySelectorAll('.rh-placeholder-row:not(.rh-placeholder-head)')).toHaveLength(
+            PLACEHOLDER_ROWS
+        );
         expect(el.shadowRoot.querySelector('lightning-spinner')).toBeNull();
         expect(table(el)).toBeNull();
         release(page([row(1)]));
@@ -184,7 +223,11 @@ describe('loading', () => {
 
     it('shows at once that it is loading: a bar along the top, and grey bars for the name and icon', async () => {
         let release;
-        openGrid.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+        openGrid.mockReturnValueOnce(
+            new Promise(resolve => {
+                release = resolve;
+            })
+        );
         const el = mount();
         await settle();
         const busy = el.shadowRoot.querySelector('.rh-busy');
@@ -207,7 +250,11 @@ describe('loading', () => {
         await settle();
         expect(el.shadowRoot.querySelector('.rh-busy')).toBeNull();
         let release;
-        fetchRows.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+        fetchRows.mockReturnValueOnce(
+            new Promise(resolve => {
+                release = resolve;
+            })
+        );
         const search = el.shadowRoot.querySelector('.rh-search');
         search.value = 'Row 2';
         search.dispatchEvent(new CustomEvent('change', { detail: { value: 'Row 2' } }));
@@ -305,7 +352,11 @@ describe('search and sort', () => {
         const el = mount();
         await settle();
         let slow;
-        fetchRows.mockReturnValueOnce(new Promise(resolve => { slow = resolve; }));
+        fetchRows.mockReturnValueOnce(
+            new Promise(resolve => {
+                slow = resolve;
+            })
+        );
         fetchRows.mockResolvedValueOnce(page([row(9)]));
         const input = el.shadowRoot.querySelector('.rh-search');
         input.dispatchEvent(new CustomEvent('change', { detail: { value: 'a' } }));
@@ -322,7 +373,9 @@ describe('search and sort', () => {
         const el = mount();
         await settle();
         fetchRows.mockClear();
-        table(el).dispatchEvent(new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } }));
+        table(el).dispatchEvent(
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } })
+        );
         await settle();
         expect(fetchRows).not.toHaveBeenCalled();
     });
@@ -334,9 +387,15 @@ describe('search and sort', () => {
         await settle();
         fetchRows.mockClear();
         fetchRows.mockResolvedValue(page([row(7)]));
-        table(el).dispatchEvent(new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } }));
+        table(el).dispatchEvent(
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } })
+        );
         await settle();
-        expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Number_Field__c', sortDirection: 'desc', cursorLocator: null });
+        expect(fetchRows.mock.calls[0][0]).toMatchObject({
+            sortField: 'Number_Field__c',
+            sortDirection: 'desc',
+            cursorLocator: null
+        });
     });
 });
 
@@ -351,9 +410,14 @@ describe('loading more as you scroll', () => {
             const size = Math.min(pageSize == null ? DEFINITION.pageSize : pageSize, total - next);
             const rows = Array.from({ length: size }, () => row(++next));
             const more = next < total;
-            return Promise.resolve(page(rows, {
-                hasMore: more, locator: more ? `fp:${next}:${total}` : null, total, token: more ? 'tok-1' : null
-            }));
+            return Promise.resolve(
+                page(rows, {
+                    hasMore: more,
+                    locator: more ? `fp:${next}:${total}` : null,
+                    total,
+                    token: more ? 'tok-1' : null
+                })
+            );
         });
     }
     const settleAll = async () => {
@@ -378,8 +442,12 @@ describe('loading more as you scroll', () => {
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
         expect(fetchRows.mock.calls[0][0]).toMatchObject({
-            configName: 'Test_Records', sortField: 'Name', sortDirection: 'asc',
-            cursorLocator: 'fp:10000:50000', cursorToken: 'tok-1', pageSize: FOLLOW_PAGE_SIZE
+            configName: 'Test_Records',
+            sortField: 'Name',
+            sortDirection: 'asc',
+            cursorLocator: 'fp:10000:50000',
+            cursorToken: 'tok-1',
+            pageSize: FOLLOW_PAGE_SIZE
         });
         expect(tableConfig(el).rows.length).toBe(12000);
         expect(tableConfig(el)).toMatchObject({ hasMore: true, loadingMore: false, totalRows: 50000 });
@@ -392,7 +460,11 @@ describe('loading more as you scroll', () => {
         await settleAll();
         let release;
         fetchRows.mockClear();
-        fetchRows.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+        fetchRows.mockReturnValueOnce(
+            new Promise(resolve => {
+                release = resolve;
+            })
+        );
         loadMore(el);
         loadMore(el);
         await settle();
@@ -410,14 +482,20 @@ describe('loading more as you scroll', () => {
         const el = mount();
         await settleAll();
         let slow;
-        fetchRows.mockReturnValueOnce(new Promise(resolve => { slow = resolve; }));
+        fetchRows.mockReturnValueOnce(
+            new Promise(resolve => {
+                slow = resolve;
+            })
+        );
         fetchRows.mockResolvedValueOnce(page([row(9)]));
         loadMore(el);
         await settle();
         el.shadowRoot.querySelector('.rh-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'x' } }));
         jest.advanceTimersByTime(SEARCH_DELAY_MS);
         await settle();
-        slow(page([row(20001), row(20002)], { hasMore: true, locator: 'fp:10002:50000', total: 50000, token: 'tok-1' }));
+        slow(
+            page([row(20001), row(20002)], { hasMore: true, locator: 'fp:10002:50000', total: 50000, token: 'tok-1' })
+        );
         await settle();
         expect(tableConfig(el).rows.map(r => r.Name)).toEqual(['Row 9']);
         expect(tableConfig(el)).toMatchObject({ loadingMore: false, hasMore: false });
@@ -448,8 +526,9 @@ describe('loading more as you scroll', () => {
         fetchRows.mockRejectedValueOnce({ body: { message: 'Apex CPU time limit exceeded' } });
         loadMore(el);
         await settle();
-        expect(el.shadowRoot.querySelector('.rh-notice').textContent)
-            .toBe('More rows could not be loaded. Apex CPU time limit exceeded');
+        expect(el.shadowRoot.querySelector('.rh-notice').textContent).toBe(
+            'More rows could not be loaded. Apex CPU time limit exceeded'
+        );
         expect(tableConfig(el).rows.length).toBe(PRELOAD_ROWS);
         expect(tableConfig(el)).toMatchObject({ hasMore: true, loadingMore: false });
     });
@@ -473,17 +552,34 @@ describe('editing and saving', () => {
         const el = mount();
         await settle();
         edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
-        saveRows.mockResolvedValue({ saveId: 's1', done: false, chunkCount: 1, errors: [], rejectedFields: [], strippedFields: [] });
+        saveRows.mockResolvedValue({
+            saveId: 's1',
+            done: false,
+            chunkCount: 1,
+            errors: [],
+            rejectedFields: [],
+            strippedFields: []
+        });
         saveStatus
             .mockResolvedValueOnce({ saveId: 's1', done: false, chunkCount: 1, chunksReported: 0, errors: [] })
-            .mockResolvedValueOnce({ saveId: 's1', done: true, chunkCount: 1, chunksReported: 1, successCount: 1, errors: [] });
+            .mockResolvedValueOnce({
+                saveId: 's1',
+                done: true,
+                chunkCount: 1,
+                chunksReported: 1,
+                successCount: 1,
+                errors: []
+            });
         fetchRowsById.mockResolvedValue([row(1, { Name: 'Renamed (server)' })]);
         const toast = jest.fn();
         el.addEventListener('lightning__showtoast', toast);
 
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
-        expect(saveRows).toHaveBeenCalledWith({ configName: 'Test_Records', rows: [{ Id: row(1).Id, Name: 'Renamed' }] });
+        expect(saveRows).toHaveBeenCalledWith({
+            configName: 'Test_Records',
+            rows: [{ Id: row(1).Id, Name: 'Renamed' }]
+        });
         expect(tableConfig(el).saving).toBe(true);
         // The Save button shows the save under way.
         expect(tableConfig(el).savingEdits).toBe(true);
@@ -507,9 +603,20 @@ describe('editing and saving', () => {
         await settle();
         edit(el, row(1).Id, 'Number_Field__c', '99999999', '1');
         edit(el, row(2).Id, 'Name', 'Fine', 'Row 2');
-        saveRows.mockResolvedValue({ saveId: 's2', done: false, chunkCount: 1, errors: [], rejectedFields: [], strippedFields: [] });
+        saveRows.mockResolvedValue({
+            saveId: 's2',
+            done: false,
+            chunkCount: 1,
+            errors: [],
+            rejectedFields: [],
+            strippedFields: []
+        });
         saveStatus.mockResolvedValue({
-            saveId: 's2', done: true, chunkCount: 1, chunksReported: 1, successCount: 1,
+            saveId: 's2',
+            done: true,
+            chunkCount: 1,
+            chunksReported: 1,
+            successCount: 1,
             errors: [{ recordId: row(1).Id, fieldName: 'Number_Field__c', message: 'Value too large.' }]
         });
         fetchRowsById.mockResolvedValue([row(2, { Name: 'Fine' })]);
@@ -528,9 +635,21 @@ describe('editing and saving', () => {
         await settle();
         edit(el, row(1).Id, 'Number_Field__c', '5', '1');
         saveRows.mockResolvedValue({
-            saveId: 's3', done: false, chunkCount: 1, errors: [], rejectedFields: [], strippedFields: ['Number_Field__c']
+            saveId: 's3',
+            done: false,
+            chunkCount: 1,
+            errors: [],
+            rejectedFields: [],
+            strippedFields: ['Number_Field__c']
         });
-        saveStatus.mockResolvedValue({ saveId: 's3', done: true, chunkCount: 1, chunksReported: 1, successCount: 1, errors: [] });
+        saveStatus.mockResolvedValue({
+            saveId: 's3',
+            done: true,
+            chunkCount: 1,
+            chunksReported: 1,
+            successCount: 1,
+            errors: []
+        });
         fetchRowsById.mockResolvedValue([row(1)]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await jest.advanceTimersByTimeAsync(5000);
@@ -546,11 +665,19 @@ describe('editing and saving', () => {
         edit(el, row(1).Id, 'Number_Field__c', 'abc', '1');
         edit(el, row(2).Id, 'Name', 'x', 'Row 2');
         saveRows.mockResolvedValue({
-            saveId: 's4', done: false, chunkCount: 1, rejectedFields: [], strippedFields: [],
+            saveId: 's4',
+            done: false,
+            chunkCount: 1,
+            rejectedFields: [],
+            strippedFields: [],
             errors: [{ recordId: row(1).Id, fieldName: 'Number_Field__c', message: 'Not a number.' }]
         });
         saveStatus.mockResolvedValue({
-            saveId: 's4', done: true, chunkCount: 1, chunksReported: 1, successCount: 0,
+            saveId: 's4',
+            done: true,
+            chunkCount: 1,
+            chunksReported: 1,
+            successCount: 0,
             errors: [{ recordId: row(2).Id, fieldName: null, message: 'Record locked.' }]
         });
         table(el).dispatchEvent(new CustomEvent('save'));
@@ -572,15 +699,31 @@ describe('editing and saving', () => {
         await settle();
         expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'Renamed' } });
         expect(tableConfig(el).saving).toBe(false);
-        expect(el.shadowRoot.querySelector('.rh-notice').textContent).toBe('Your changes were not saved. Insufficient access.');
+        expect(el.shadowRoot.querySelector('.rh-notice').textContent).toBe(
+            'Your changes were not saved. Insufficient access.'
+        );
     });
 
     it('keeps an edit typed while the save was running', async () => {
         const el = mount();
         await settle();
         edit(el, row(1).Id, 'Name', 'First', 'Row 1');
-        saveRows.mockResolvedValue({ saveId: 's5', done: false, chunkCount: 1, errors: [], rejectedFields: [], strippedFields: [] });
-        saveStatus.mockResolvedValue({ saveId: 's5', done: true, chunkCount: 1, chunksReported: 1, successCount: 1, errors: [] });
+        saveRows.mockResolvedValue({
+            saveId: 's5',
+            done: false,
+            chunkCount: 1,
+            errors: [],
+            rejectedFields: [],
+            strippedFields: []
+        });
+        saveStatus.mockResolvedValue({
+            saveId: 's5',
+            done: true,
+            chunkCount: 1,
+            chunksReported: 1,
+            successCount: 1,
+            errors: []
+        });
         fetchRowsById.mockResolvedValue([row(1, { Name: 'First' })]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
@@ -595,7 +738,11 @@ describe('editing and saving', () => {
         await settle();
         edit(el, row(1).Id, 'Name', 'Bad', 'Row 1');
         saveRows.mockResolvedValue({
-            saveId: 's6', done: true, chunkCount: 0, rejectedFields: [], strippedFields: [],
+            saveId: 's6',
+            done: true,
+            chunkCount: 0,
+            rejectedFields: [],
+            strippedFields: [],
             errors: [{ recordId: row(1).Id, fieldName: 'Name', message: 'Too long.' }]
         });
         table(el).dispatchEvent(new CustomEvent('save'));
@@ -615,7 +762,9 @@ describe('editing and saving', () => {
         expect(saveRows).not.toHaveBeenCalled();
         expect(tableConfig(el).errors[row(1).Id].fields.Name).toBe('Complete this field.');
         expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: '' } });
-        expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('1 required field is blank. Complete it, then save.');
+        expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe(
+            '1 required field is blank. Complete it, then save.'
+        );
     });
 
     it('discards drafts and errors on Cancel', async () => {
@@ -668,7 +817,12 @@ describe('spreadsheet actions and undo', () => {
         });
         await settle();
         // Undo and Redo are the Save bar's: the table is told what they would do.
-        expect(tableConfig(el).history).toEqual({ canUndo: true, canRedo: false, undoLabel: 'Undo paste of 2 cells', redoLabel: 'Redo' });
+        expect(tableConfig(el).history).toEqual({
+            canUndo: true,
+            canRedo: false,
+            undoLabel: 'Undo paste of 2 cells',
+            redoLabel: 'Redo'
+        });
 
         table(el).dispatchEvent(new CustomEvent('undo'));
         await settle();
@@ -709,7 +863,15 @@ describe('spreadsheet actions and undo', () => {
         expect(tableConfig(el).history).toMatchObject({ canUndo: false, canRedo: false });
 
         edit(el, row(1).Id, 'Name', 'Again', 'Row 1');
-        saveRows.mockResolvedValue({ saveId: 's1', done: true, chunkCount: 1, successCount: 1, errors: [], rejectedFields: [], strippedFields: [] });
+        saveRows.mockResolvedValue({
+            saveId: 's1',
+            done: true,
+            chunkCount: 1,
+            successCount: 1,
+            errors: [],
+            rejectedFields: [],
+            strippedFields: []
+        });
         fetchRowsById.mockResolvedValue([row(1, { Name: 'Again' })]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
@@ -719,7 +881,10 @@ describe('spreadsheet actions and undo', () => {
     });
 
     it('passes the frozen column count to the table, and offers no undo where nothing is editable', async () => {
-        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, frozenColumns: 1, allowInlineEdit: false }, diagnostics: false });
+        getGridConfig.mockResolvedValue({
+            definition: { ...DEFINITION, frozenColumns: 1, allowInlineEdit: false },
+            diagnostics: false
+        });
         const el = mount();
         await settle();
         expect(tableConfig(el).frozenColumns).toBe(1);
@@ -744,7 +909,9 @@ describe('export', () => {
     it('exports the loaded rows, in the current sort order, with the record Id and only the configured columns', async () => {
         const el = mount();
         await settle();
-        table(el).dispatchEvent(new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } }));
+        table(el).dispatchEvent(
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } })
+        );
         await settle();
         el.shadowRoot.querySelector('.rh-export').dispatchEvent(new CustomEvent('click'));
         const [rows, columns] = toCsv.mock.calls[0];
@@ -816,9 +983,17 @@ describe('lookup names', () => {
         expect(tableConfig(el).configName).toBe('Test_Records');
 
         const other = '001000000000002AAA';
-        table(el).dispatchEvent(new CustomEvent('cellchange', {
-            detail: { recordId: row(1).Id, field: 'Lookup_Field__c', value: other, originalValue: ACC, valueLabel: 'Other Co' }
-        }));
+        table(el).dispatchEvent(
+            new CustomEvent('cellchange', {
+                detail: {
+                    recordId: row(1).Id,
+                    field: 'Lookup_Field__c',
+                    value: other,
+                    originalValue: ACC,
+                    valueLabel: 'Other Co'
+                }
+            })
+        );
         await settle();
         expect(tableConfig(el).refNames).toEqual({ [ACC]: 'Acme', [other]: 'Other Co' });
     });
@@ -828,17 +1003,28 @@ describe('lookup names', () => {
         const el = mount();
         await settle();
         const names = tableConfig(el).refNames;
-        table(el).dispatchEvent(new CustomEvent('cellchange', {
-            detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' }
-        }));
+        table(el).dispatchEvent(
+            new CustomEvent('cellchange', {
+                detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' }
+            })
+        );
         await settle();
         expect(tableConfig(el).refNames).toBe(names);
     });
 });
 
-
 describe('conditional formatting', () => {
-    const RULES = [{ name: 'Big', field: 'Number_Field__c', type: 'number', operator: 'greater_than', value: '2', style: 'bold', applyTo: 'row' }];
+    const RULES = [
+        {
+            name: 'Big',
+            field: 'Number_Field__c',
+            type: 'number',
+            operator: 'greater_than',
+            value: '2',
+            style: 'bold',
+            applyTo: 'row'
+        }
+    ];
 
     it('hands the configuration’s format rules to the table', async () => {
         getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, formatRules: RULES }, diagnostics: false });
@@ -859,8 +1045,9 @@ describe('conditional formatting', () => {
         let el = mount();
         await settle();
         // One line until opened.
-        expect(el.shadowRoot.querySelector('.rh-warnings-summary').textContent)
-            .toBe('1 configuration warning (shown with Rowhouse Grid Diagnostics only)');
+        expect(el.shadowRoot.querySelector('.rh-warnings-summary').textContent).toBe(
+            '1 configuration warning (shown with Rowhouse Grid Diagnostics only)'
+        );
         expect(el.shadowRoot.querySelectorAll('.rh-config-warnings li')).toHaveLength(0);
         const toggle = el.shadowRoot.querySelector('.rh-warnings-toggle');
         expect(toggle.getAttribute('aria-expanded')).toBe('false');
@@ -880,12 +1067,17 @@ describe('conditional formatting', () => {
 
 describe('mass update and mass delete', () => {
     const $ = (el, selector) => el.shadowRoot.querySelector(selector);
-    const select = (el, ids) => table(el).dispatchEvent(new CustomEvent('selectionchange', { detail: { selectedIds: ids } }));
+    const select = (el, ids) =>
+        table(el).dispatchEvent(new CustomEvent('selectionchange', { detail: { selectedIds: ids } }));
     const dialog = el => $(el, 'c-grid-mass-update');
     const live = el => $(el, '.rh-live').textContent;
     const edit = (el, recordId, field, value, originalValue) =>
         table(el).dispatchEvent(new CustomEvent('cellchange', { detail: { recordId, field, value, originalValue } }));
-    const withDelete = extra => getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, allowMassDelete: true, ...extra }, diagnostics: false });
+    const withDelete = extra =>
+        getGridConfig.mockResolvedValue({
+            definition: { ...DEFINITION, allowMassDelete: true, ...extra },
+            diagnostics: false
+        });
     let toasts;
     const mountWatched = () => {
         const el = mount();
@@ -994,10 +1186,15 @@ describe('mass update and mass delete', () => {
         expect(dialog(el).configName).toBe('Test_Records');
         expect(dialog(el).columns.map(c => c.field)).toEqual(['Name', 'Number_Field__c']);
 
-        dialog(el).dispatchEvent(new CustomEvent('apply', { detail: { field: 'Number_Field__c', value: 50, valueLabel: null } }));
+        dialog(el).dispatchEvent(
+            new CustomEvent('apply', { detail: { field: 'Number_Field__c', value: 50, valueLabel: null } })
+        );
         await settle();
         expect(dialog(el)).toBeNull();
-        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Number_Field__c: 50 }, [row(3).Id]: { Number_Field__c: 50 } });
+        expect(tableConfig(el).drafts).toEqual({
+            [row(1).Id]: { Number_Field__c: 50 },
+            [row(3).Id]: { Number_Field__c: 50 }
+        });
         // Undo is in the Save bar, the table's.
         expect(tableConfig(el).history.undoLabel).toBe('Undo mass update of 2 cells');
         expect(live(el)).toBe('Number changed on 2 rows. Save to keep it; Undo takes it back.');
@@ -1024,15 +1221,33 @@ describe('mass update and mass delete', () => {
 
     it('marks rows a dependent value does not suit, and clears dependents a new controlling value rules out', async () => {
         const region = {
-            field: 'Region__c', label: 'Region', type: 'picklist', editable: true,
-            options: [{ value: 'North', label: 'North' }, { value: 'South', label: 'South' }]
+            field: 'Region__c',
+            label: 'Region',
+            type: 'picklist',
+            editable: true,
+            options: [
+                { value: 'North', label: 'North' },
+                { value: 'South', label: 'South' }
+            ]
         };
         const city = {
-            field: 'City__c', label: 'City', type: 'picklist', editable: true, dependentOn: 'Region__c',
-            options: [{ value: 'Oslo', label: 'Oslo', validFor: ['North'] }, { value: 'Rome', label: 'Rome', validFor: ['South'] }]
+            field: 'City__c',
+            label: 'City',
+            type: 'picklist',
+            editable: true,
+            dependentOn: 'Region__c',
+            options: [
+                { value: 'Oslo', label: 'Oslo', validFor: ['North'] },
+                { value: 'Rome', label: 'Rome', validFor: ['South'] }
+            ]
         };
-        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, columns: [...DEFINITION.columns, region, city] }, diagnostics: false });
-        fetchRows.mockResolvedValue(page([row(1, { Region__c: 'North', City__c: null }), row(2, { Region__c: 'South', City__c: 'Rome' })]));
+        getGridConfig.mockResolvedValue({
+            definition: { ...DEFINITION, columns: [...DEFINITION.columns, region, city] },
+            diagnostics: false
+        });
+        fetchRows.mockResolvedValue(
+            page([row(1, { Region__c: 'North', City__c: null }), row(2, { Region__c: 'South', City__c: 'Rome' })])
+        );
         const el = mountWatched();
         await settle();
         select(el, [row(1).Id, row(2).Id]);
@@ -1081,15 +1296,22 @@ describe('mass update and mass delete', () => {
         const rows = Array.from({ length: 260 }, (_, i) => row(i + 1));
         fetchRows.mockResolvedValue(page(rows));
         const refused = row(7).Id;
-        deleteRows.mockImplementation(({ recordIds }) => Promise.resolve({
-            deletedIds: recordIds.filter(id => id !== refused),
-            errors: recordIds.includes(refused) ? [{ recordId: refused, fieldName: null, message: 'insufficient access rights on object id' }] : []
-        }));
+        deleteRows.mockImplementation(({ recordIds }) =>
+            Promise.resolve({
+                deletedIds: recordIds.filter(id => id !== refused),
+                errors: recordIds.includes(refused)
+                    ? [{ recordId: refused, fieldName: null, message: 'insufficient access rights on object id' }]
+                    : []
+            })
+        );
         const el = mountWatched();
         await settle();
         edit(el, row(1).Id, 'Name', 'Gone', 'Row 1');
         edit(el, row(260).Id, 'Name', 'Kept', 'Row 260');
-        select(el, rows.slice(0, 250).map(r => r.Id));
+        select(
+            el,
+            rows.slice(0, 250).map(r => r.Id)
+        );
         await settle();
         const key = tableConfig(el).selectionKey;
         await deleteSelected(el);
@@ -1105,11 +1327,13 @@ describe('mass update and mass delete', () => {
         expect(cfg.totalRows).toBe(11);
         expect(cfg.selectionKey).not.toBe(key);
         expect($(el, '.rh-count').textContent).toBe('11 items');
-        expect(toasts).toEqual([{
-            title: 'Deleted with errors',
-            message: 'Deleted 249 records. 1 could not be deleted; see the marked rows.',
-            variant: 'warning'
-        }]);
+        expect(toasts).toEqual([
+            {
+                title: 'Deleted with errors',
+                message: 'Deleted 249 records. 1 could not be deleted; see the marked rows.',
+                variant: 'warning'
+            }
+        ]);
         // The deleted row's edit left the undo history; the other stays undoable.
         expect(tableConfig(el).history.undoLabel).toBe('Undo edit');
         table(el).dispatchEvent(new CustomEvent('undo'));
@@ -1126,7 +1350,10 @@ describe('mass update and mass delete', () => {
             .mockRejectedValueOnce({ body: { message: 'This grid does not allow deleting records.' } });
         const el = mountWatched();
         await settle();
-        select(el, rows.map(r => r.Id));
+        select(
+            el,
+            rows.map(r => r.Id)
+        );
         await settle();
         await deleteSelected(el);
         await settle();
@@ -1140,7 +1367,9 @@ describe('mass update and mass delete', () => {
 
     it('says plainly when nothing was deleted', async () => {
         withDelete();
-        deleteRows.mockRejectedValue({ body: { message: 'You do not have permission to delete Rowhouse_Test_Record__c records.' } });
+        deleteRows.mockRejectedValue({
+            body: { message: 'You do not have permission to delete Rowhouse_Test_Record__c records.' }
+        });
         const el = mountWatched();
         await settle();
         select(el, [row(1).Id]);
@@ -1158,7 +1387,11 @@ describe('mass update and mass delete', () => {
 describe('import', () => {
     const $ = (el, selector) => el.shadowRoot.querySelector(selector);
     const dialog = el => $(el, 'c-grid-import-dialog');
-    const withImport = extra => getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, allowImport: true, canCreate: true, ...extra }, diagnostics: false });
+    const withImport = extra =>
+        getGridConfig.mockResolvedValue({
+            definition: { ...DEFINITION, allowImport: true, canCreate: true, ...extra },
+            diagnostics: false
+        });
 
     it('is offered only where the configuration allows it and something is editable', async () => {
         let el = mount();
@@ -1181,7 +1414,11 @@ describe('import', () => {
         withImport();
         const el = mount();
         await settle();
-        table(el).dispatchEvent(new CustomEvent('cellchange', { detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' } }));
+        table(el).dispatchEvent(
+            new CustomEvent('cellchange', {
+                detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' }
+            })
+        );
         await settle();
         expect($(el, '.rh-import').disabled).toBe(true);
         expect($(el, '.rh-import').title).toBe('Import from a file (save or cancel your changes first)');
@@ -1224,7 +1461,11 @@ describe('import', () => {
 
         // The reload disables the button, which then cannot take focus: it gets it when the rows are back.
         let release;
-        fetchRows.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+        fetchRows.mockReturnValueOnce(
+            new Promise(resolve => {
+                release = resolve;
+            })
+        );
         button.click();
         await settle();
         dialog(el).dispatchEvent(new CustomEvent('close', { detail: { changed: true } }));
@@ -1245,15 +1486,31 @@ describe('grouping and subtotals', () => {
             ...DEFINITION.columns,
             { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true },
             { field: 'Close__c', label: 'Close', type: 'date', editable: true, sortable: true, groupable: true },
-            { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true, sortable: true, subtotal: 'sum' }
+            {
+                field: 'Amount__c',
+                label: 'Amount',
+                type: 'currency',
+                scale: 2,
+                editable: true,
+                sortable: true,
+                subtotal: 'sum'
+            }
         ],
         grouping: [{ field: 'Stage__c', unit: null }]
     };
     const group = (stage, n, sum) => ({ k: [stage], l: [null], n, v: { Amount__c: { s: sum } } });
     const summaryCall = (extra = {}) => ({
-        configName: 'Test_Records', searchTerm: null, grouping: ['Stage__c'], fromId: null, toId: null, filters: null, recordId: null, ...extra
+        configName: 'Test_Records',
+        searchTerm: null,
+        grouping: ['Stage__c'],
+        fromId: null,
+        toId: null,
+        filters: null,
+        recordId: null,
+        ...extra
     });
-    const groupChange = (el, grouping) => table(el).dispatchEvent(new CustomEvent('groupchange', { detail: { grouping } }));
+    const groupChange = (el, grouping) =>
+        table(el).dispatchEvent(new CustomEvent('groupchange', { detail: { grouping } }));
     const deferred = () => {
         let resolve;
         const promise = new Promise(r => {
@@ -1264,7 +1521,11 @@ describe('grouping and subtotals', () => {
 
     beforeEach(() => {
         getGridConfig.mockResolvedValue({ definition: GROUPED, diagnostics: false });
-        summarizeGroups.mockResolvedValue({ groups: [group('Open', 2, '150'), group('Won', 1, '500')], boundaries: null, tooManyGroups: false });
+        summarizeGroups.mockResolvedValue({
+            groups: [group('Open', 2, '150'), group('Won', 1, '500')],
+            boundaries: null,
+            tooManyGroups: false
+        });
     });
 
     it('opens with the admin grouping: rows in group order, and counts and subtotals from the server', async () => {
@@ -1282,13 +1543,25 @@ describe('grouping and subtotals', () => {
 
     it('adds up the slices of a large list, each asked for by its Id range', async () => {
         summarizeGroups
-            .mockResolvedValueOnce({ groups: [group('Open', 45000, '1.5')], boundaries: ['a01A', 'a01B'], tooManyGroups: false })
-            .mockResolvedValueOnce({ groups: [group('Open', 45000, '2.25'), group('Won', 1, '7')], boundaries: null, tooManyGroups: false })
+            .mockResolvedValueOnce({
+                groups: [group('Open', 45000, '1.5')],
+                boundaries: ['a01A', 'a01B'],
+                tooManyGroups: false
+            })
+            .mockResolvedValueOnce({
+                groups: [group('Open', 45000, '2.25'), group('Won', 1, '7')],
+                boundaries: null,
+                tooManyGroups: false
+            })
             .mockResolvedValueOnce({ groups: [group('Won', 3, '0.25')], boundaries: null, tooManyGroups: false });
         const el = mount();
         await settle();
         await settle();
-        expect(summarizeGroups.mock.calls.map(c => [c[0].fromId, c[0].toId])).toEqual([[null, null], ['a01A', 'a01B'], ['a01B', null]]);
+        expect(summarizeGroups.mock.calls.map(c => [c[0].fromId, c[0].toId])).toEqual([
+            [null, null],
+            ['a01A', 'a01B'],
+            ['a01B', null]
+        ]);
         const totals = tableConfig(el).groupSummary.totals;
         expect(totals.total.count).toBe(90004);
         // 1.5 + 2.25 + 7 + 0.25, added as decimals: exact, at the widest scale.
@@ -1334,7 +1607,11 @@ describe('grouping and subtotals', () => {
         const el = mount();
         await settle();
         expect(tableConfig(el).groupSummary).toEqual({ status: 'loading' });
-        summarizeGroups.mockResolvedValueOnce({ groups: [group('Won', 1, '5')], boundaries: null, tooManyGroups: false });
+        summarizeGroups.mockResolvedValueOnce({
+            groups: [group('Won', 1, '5')],
+            boundaries: null,
+            tooManyGroups: false
+        });
         el.shadowRoot.querySelector('.rh-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'x' } }));
         jest.advanceTimersByTime(SEARCH_DELAY_MS);
         await settle();
@@ -1360,15 +1637,29 @@ describe('grouping and subtotals', () => {
         await settle();
         expect(tableConfig(el).rows).toHaveLength(3);
         expect(tableConfig(el).groupSummary).toEqual({ status: 'unavailable' });
-        expect(el.shadowRoot.querySelector('.rh-notice').textContent).toBe('Counts and subtotals could not be loaded. Cannot group by Stage.');
+        expect(el.shadowRoot.querySelector('.rh-notice').textContent).toBe(
+            'Counts and subtotals could not be loaded. Cannot group by Stage.'
+        );
     });
 
     it('asks again after a save, since saved values can move a record or change a subtotal', async () => {
         const el = mount();
         await settle();
         summarizeGroups.mockClear();
-        table(el).dispatchEvent(new CustomEvent('cellchange', { detail: { recordId: row(1).Id, field: 'Name', value: 'X', originalValue: 'Row 1' } }));
-        saveRows.mockResolvedValue({ saveId: 's1', done: true, chunkCount: 1, successCount: 1, errors: [], rejectedFields: [], strippedFields: [] });
+        table(el).dispatchEvent(
+            new CustomEvent('cellchange', {
+                detail: { recordId: row(1).Id, field: 'Name', value: 'X', originalValue: 'Row 1' }
+            })
+        );
+        saveRows.mockResolvedValue({
+            saveId: 's1',
+            done: true,
+            chunkCount: 1,
+            successCount: 1,
+            errors: [],
+            rejectedFields: [],
+            strippedFields: []
+        });
         fetchRowsById.mockResolvedValue([row(1, { Name: 'X' })]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
@@ -1388,7 +1679,15 @@ describe('grouping and subtotals', () => {
 });
 
 describe('child tables', () => {
-    const CHILDREN = [{ name: 'Test_Records_Children', label: 'Children', configName: 'Test_Children', objectApiName: 'Rowhouse_Test_Child__c', relationshipField: 'Parent__c' }];
+    const CHILDREN = [
+        {
+            name: 'Test_Records_Children',
+            label: 'Children',
+            configName: 'Test_Children',
+            objectApiName: 'Rowhouse_Test_Child__c',
+            relationshipField: 'Parent__c'
+        }
+    ];
     const PARENT = { link: 'Test_Records_Children', id: 'a00000000000000001', name: 'Row 1', level: 2, height: null };
     const $ = (el, selector) => el.shadowRoot.querySelector(selector);
     const mountChild = (parent = PARENT, configName = 'Test_Children') => {
@@ -1415,13 +1714,17 @@ describe('child tables', () => {
         expect($(el, 'article').className).toBe('slds-card rh-app');
     });
 
-    it('a child table asks for its parent\'s rows only, through the link it is shown in', async () => {
+    it("a child table asks for its parent's rows only, through the link it is shown in", async () => {
         mountChild();
         await settle();
         expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Test_Children' });
-        expect(fetchRows).toHaveBeenCalledWith(expect.objectContaining({
-            configName: 'Test_Children', parentLink: 'Test_Records_Children', parentId: PARENT.id
-        }));
+        expect(fetchRows).toHaveBeenCalledWith(
+            expect.objectContaining({
+                configName: 'Test_Children',
+                parentLink: 'Test_Records_Children',
+                parentId: PARENT.id
+            })
+        );
     });
 
     it('a child table is a fixed height, one level down, with no card box; its title is for screen readers', async () => {
@@ -1477,18 +1780,30 @@ describe('child tables', () => {
         getGridConfig.mockResolvedValue({
             definition: {
                 ...DEFINITION,
-                columns: [...DEFINITION.columns, { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, subtotal: 'sum' }]
+                columns: [
+                    ...DEFINITION.columns,
+                    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, subtotal: 'sum' }
+                ]
             },
             diagnostics: false
         });
-        summarizeGroups.mockResolvedValue({ groups: [{ k: [], l: [], n: 3, v: { Amount__c: { s: '6' } } }], boundaries: null, tooManyGroups: false });
+        summarizeGroups.mockResolvedValue({
+            groups: [{ k: [], l: [], n: 3, v: { Amount__c: { s: '6' } } }],
+            boundaries: null,
+            tooManyGroups: false
+        });
         mountChild();
         await settle();
-        expect(summarizeGroups).toHaveBeenCalledWith(expect.objectContaining({ parentLink: 'Test_Records_Children', parentId: PARENT.id }));
+        expect(summarizeGroups).toHaveBeenCalledWith(
+            expect.objectContaining({ parentLink: 'Test_Records_Children', parentId: PARENT.id })
+        );
     });
 
     it('hands the import dialog the parent, so new rows are created under it', async () => {
-        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, allowImport: true, canCreate: true }, diagnostics: false });
+        getGridConfig.mockResolvedValue({
+            definition: { ...DEFINITION, allowImport: true, canCreate: true },
+            diagnostics: false
+        });
         const el = mountChild();
         await settle();
         // A child table's actions are in one menu beside its search.
@@ -1520,9 +1835,12 @@ describe('list view details', () => {
         delete global.ResizeObserver;
     });
 
-    describe('the header, as a list view\'s', () => {
-        it('shows the object\'s icon, the count, the sort and when it was loaded', async () => {
-            getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, objectIcon: 'custom:custom57' }, diagnostics: false });
+    describe("the header, as a list view's", () => {
+        it("shows the object's icon, the count, the sort and when it was loaded", async () => {
+            getGridConfig.mockResolvedValue({
+                definition: { ...DEFINITION, objectIcon: 'custom:custom57' },
+                diagnostics: false
+            });
             const el = mount();
             await settle();
             expect($(el, '.rh-object-icon').iconName).toBe('custom:custom57');
@@ -1535,9 +1853,16 @@ describe('list view details', () => {
             const el = mount();
             await settle();
             expect($(el, '.rh-object-icon').iconName).toBe('standard:record');
-            table(el).dispatchEvent(new CustomEvent('sortchange', {
-                detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }, { field: 'Name', direction: 'asc' }] }
-            }));
+            table(el).dispatchEvent(
+                new CustomEvent('sortchange', {
+                    detail: {
+                        sort: [
+                            { field: 'Number_Field__c', direction: 'desc' },
+                            { field: 'Name', direction: 'asc' }
+                        ]
+                    }
+                })
+            );
             await settle();
             expect($(el, '.rh-sorted').textContent).toBe('Sorted by Number, then Name');
         });
@@ -1550,7 +1875,11 @@ describe('list view details', () => {
             expect($(el, '.rh-export').label).toBe('Export');
             const refresh = $(el, '.rh-refresh');
             expect(refresh.disabled).toBe(false);
-            table(el).dispatchEvent(new CustomEvent('cellchange', { detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' } }));
+            table(el).dispatchEvent(
+                new CustomEvent('cellchange', {
+                    detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' }
+                })
+            );
             await settle();
             expect(refresh.disabled).toBe(true);
             expect(refresh.alternativeText).toBe('Refresh (save or cancel your changes first)');
@@ -1614,8 +1943,26 @@ describe('list view details', () => {
 
     describe('the Display Key', () => {
         const RULES = [
-            { name: 'Late', label: 'Overdue', field: 'Number_Field__c', type: 'number', operator: 'less_than', value: '0', style: 'text_red', applyTo: 'cell' },
-            { name: 'Big', label: 'Large deal', field: 'Number_Field__c', type: 'number', operator: 'greater_than', value: '9', style: 'fill_purple', applyTo: 'row' }
+            {
+                name: 'Late',
+                label: 'Overdue',
+                field: 'Number_Field__c',
+                type: 'number',
+                operator: 'less_than',
+                value: '0',
+                style: 'text_red',
+                applyTo: 'cell'
+            },
+            {
+                name: 'Big',
+                label: 'Large deal',
+                field: 'Number_Field__c',
+                type: 'number',
+                operator: 'greater_than',
+                value: '9',
+                style: 'fill_purple',
+                applyTo: 'row'
+            }
         ];
         // One drawn frame: the key opens after the spinner is drawn, the spinner
         // goes after the key is drawn (gridView.js afterNextPaint). This file runs
@@ -1699,7 +2046,9 @@ describe('list view details', () => {
             expect($(el, '.rh-legend').getAttribute('aria-label')).toBe('Display Key');
             const items = [...el.shadowRoot.querySelectorAll('.rh-legend li')];
             expect(items.map(li => li.textContent)).toEqual(['AaOverdue: Red text, Cell', 'AaLarge deal: Purple, Row']);
-            const swatches = [...el.shadowRoot.querySelectorAll('.rh-legend .rh-legend-swatch')].map(sw => sw.className);
+            const swatches = [...el.shadowRoot.querySelectorAll('.rh-legend .rh-legend-swatch')].map(
+                sw => sw.className
+            );
             expect(swatches[0]).toContain('rh-fmt_text-red');
             expect(swatches[1]).toContain('rh-legend-swatch_bar');
             expect(swatches[1]).toContain('rh-fmt_bar-purple');
@@ -1712,7 +2061,10 @@ describe('list view details', () => {
             await settle();
             fetchRows.mockResolvedValue(page([]));
             await search(el, 'zzz');
-            expect(tableConfig(el).emptyState).toMatchObject({ title: 'No records match “zzz”', actionLabel: 'Clear search' });
+            expect(tableConfig(el).emptyState).toMatchObject({
+                title: 'No records match “zzz”',
+                actionLabel: 'Clear search'
+            });
             fetchRows.mockResolvedValue(page([row(1)]));
             table(el).dispatchEvent(new CustomEvent('emptyaction'));
             await settle();
@@ -1747,12 +2099,19 @@ describe('list view details', () => {
             countChildren.mockResolvedValue({ [row(1).Id]: { total: 2, byTab: { Test_Records_Children: 2 } } });
             const el = mount();
             await settle();
-            expect(countChildren).toHaveBeenCalledWith({ configName: 'Test_Records', parentIds: [row(1).Id, row(2).Id, row(3).Id] });
+            expect(countChildren).toHaveBeenCalledWith({
+                configName: 'Test_Records',
+                parentIds: [row(1).Id, row(2).Id, row(3).Id]
+            });
             expect(tableConfig(el).childCounts[row(1).Id]).toEqual({ total: 2, byTab: { Test_Records_Children: 2 } });
             expect(tableConfig(el).childCountsFailed).toBe(false);
 
             // A child table's own count changed: the row's follows.
-            table(el).dispatchEvent(new CustomEvent('childcount', { detail: { parentId: row(1).Id, tab: 'Test_Records_Children', count: 5 } }));
+            table(el).dispatchEvent(
+                new CustomEvent('childcount', {
+                    detail: { parentId: row(1).Id, tab: 'Test_Records_Children', count: 5 }
+                })
+            );
             await settle();
             expect(tableConfig(el).childCounts[row(1).Id]).toEqual({ total: 5, byTab: { Test_Records_Children: 5 } });
         });
@@ -1762,7 +2121,8 @@ describe('list view details', () => {
             const rows = Array.from({ length: COUNT_BATCH + 5 }, (_, i) => row(i + 1));
             fetchRows.mockResolvedValue(page(rows));
             countChildren.mockImplementation(({ parentIds }) =>
-                Promise.resolve(Object.fromEntries(parentIds.map(id => [id, { total: 0, byTab: {} }]))));
+                Promise.resolve(Object.fromEntries(parentIds.map(id => [id, { total: 0, byTab: {} }])))
+            );
             mount();
             await settle();
             await settle();
@@ -1785,7 +2145,11 @@ describe('list view details', () => {
         it('says the counts are on the way, not failed, until they arrive', async () => {
             getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, children: CHILDREN }, diagnostics: false });
             let answer;
-            countChildren.mockReturnValue(new Promise(resolve => { answer = resolve; }));
+            countChildren.mockReturnValue(
+                new Promise(resolve => {
+                    answer = resolve;
+                })
+            );
             const el = mount();
             await settle();
             // Rows are in; their counts are not: the table offers no toggle yet.
@@ -1797,7 +2161,7 @@ describe('list view details', () => {
             expect(tableConfig(el).childCounts[row(1).Id].total).toBe(1);
         });
 
-        it('a child table tells its tab its count after it loads, but not a search\'s', async () => {
+        it("a child table tells its tab its count after it loads, but not a search's", async () => {
             const el = createElement('c-grid-view', { is: GridView });
             el.configName = 'Test_Children';
             el.parent = { link: 'Test_Records_Children', id: 'a00000000000000001', name: 'Row 1', level: 2 };

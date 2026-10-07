@@ -8,7 +8,6 @@
  */
 @IsTest
 private class GridLongTextTest {
-
     private static final Integer PREVIEW = GridController.LONG_TEXT_PREVIEW;
 
     private static String longText(String seed) {
@@ -42,11 +41,21 @@ private class GridLongTextTest {
             String ownForm = 'x'.repeat(PREVIEW) + '…'; // the shortened form, typed over a short text
 
             Test.startTest();
-            GridSaveResult ticket = GridSaveService.save('Security_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => unchanged.Id, 'Long_Text__c' => shortened(whole), 'Text_Field__c' => 'LT unchanged 2' },
-                new Map<String, Object>{ 'Id' => changed.Id, 'Long_Text__c' => 'EDITED' + shortened(whole).substring(6) },
-                new Map<String, Object>{ 'Id' => ownValue.Id, 'Long_Text__c' => ownForm }
-            });
+            GridSaveResult ticket = GridSaveService.save(
+                'Security_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{
+                        'Id' => unchanged.Id,
+                        'Long_Text__c' => shortened(whole),
+                        'Text_Field__c' => 'LT unchanged 2'
+                    },
+                    new Map<String, Object>{
+                        'Id' => changed.Id,
+                        'Long_Text__c' => 'EDITED' + shortened(whole).substring(6)
+                    },
+                    new Map<String, Object>{ 'Id' => ownValue.Id, 'Long_Text__c' => ownForm }
+                }
+            );
             Test.stopTest();
 
             System.assertEquals(1, ticket.errors.size(), String.valueOf(ticket.errors));
@@ -54,11 +63,22 @@ private class GridLongTextTest {
             System.assertEquals('Long_Text__c', ticket.errors[0].fieldName);
             System.assertEquals(GridSaveService.SHORTENED_MESSAGE, ticket.errors[0].message);
 
-            System.assertEquals(whole, storedText(unchanged.Id), 'The unchanged shortened copy is left out of the write.');
-            System.assertEquals('LT unchanged 2', [SELECT Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :unchanged.Id]
-                .Text_Field__c, 'The rest of the row is saved.');
+            System.assertEquals(
+                whole,
+                storedText(unchanged.Id),
+                'The unchanged shortened copy is left out of the write.'
+            );
+            System.assertEquals(
+                'LT unchanged 2',
+                [SELECT Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :unchanged.Id].Text_Field__c,
+                'The rest of the row is saved.'
+            );
             System.assertEquals(whole, storedText(changed.Id), 'A changed shortened copy is refused, not saved.');
-            System.assertEquals(ownForm, storedText(ownValue.Id), 'Over a text that is not longer, the value is the user\'s own.');
+            System.assertEquals(
+                ownForm,
+                storedText(ownValue.Id),
+                'Over a text that is not longer, the value is the user\'s own.'
+            );
         }
     }
 
@@ -70,24 +90,39 @@ private class GridLongTextTest {
             Rowhouse_Test_Record__c changed = record('LT import changed', whole);
 
             Test.startTest();
-            GridImportService.Result result = GridImportService.importRows('Security_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => unchanged.Id, 'Long_Text__c' => shortened(whole), 'Text_Field__c' => 'LT renamed' },
-                new Map<String, Object>{ 'Id' => changed.Id, 'Long_Text__c' => 'Edited ' + shortened(whole).substring(7) },
-                new Map<String, Object>{ 'Text_Field__c' => 'LT created', 'Long_Text__c' => shortened(whole) }
-            });
+            GridImportService.Result result = GridImportService.importRows(
+                'Security_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{
+                        'Id' => unchanged.Id,
+                        'Long_Text__c' => shortened(whole),
+                        'Text_Field__c' => 'LT renamed'
+                    },
+                    new Map<String, Object>{
+                        'Id' => changed.Id,
+                        'Long_Text__c' => 'Edited ' + shortened(whole).substring(7)
+                    },
+                    new Map<String, Object>{ 'Text_Field__c' => 'LT created', 'Long_Text__c' => shortened(whole) }
+                }
+            );
             Test.stopTest();
 
             System.assert(result.rows[0].success, String.valueOf(result.rows[0]));
             System.assertEquals(whole, storedText(unchanged.Id), 'Exported and imported again, the whole text stays.');
-            System.assertEquals('LT renamed', [SELECT Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :unchanged.Id].Text_Field__c);
+            System.assertEquals(
+                'LT renamed',
+                [SELECT Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :unchanged.Id].Text_Field__c
+            );
 
             System.assert(!result.rows[1].success, 'A changed shortened copy fails its row.');
             System.assertEquals('Long_Text__c', result.rows[1].fieldName);
             System.assert(result.rows[1].message.contains(GridSaveService.SHORTENED_MESSAGE), result.rows[1].message);
             System.assertEquals(whole, storedText(changed.Id));
 
-            System.assert(result.rows[2].success && result.rows[2].created, 'A new record has no whole text to keep: '
-                + String.valueOf(result.rows[2]));
+            System.assert(
+                result.rows[2].success && result.rows[2].created,
+                'A new record has no whole text to keep: ' + String.valueOf(result.rows[2])
+            );
         }
     }
 
@@ -97,12 +132,28 @@ private class GridLongTextTest {
             // Shortened, it is as long as before: 1,000 characters and "…".
             String text = 'y'.repeat(PREVIEW + 1);
             record('LT 1001', text);
-            Map<String, Object> result = GridController.fetchRows('Security_Test', 'LT 1001', null, null, null, null, null,
-                null, null, null, null, null);
+            Map<String, Object> result = GridController.fetchRows(
+                'Security_Test',
+                'LT 1001',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) result.get('rows');
             System.assertEquals(1, rows.size());
             System.assertEquals(shortened(text), rows[0].get('Long_Text__c'));
-            System.assertEquals(new List<String>{ 'Long_Text__c' }, rows[0].get('_cut'), 'Its editor reads the whole text first.');
+            System.assertEquals(
+                new List<String>{ 'Long_Text__c' },
+                rows[0].get('_cut'),
+                'Its editor reads the whole text first.'
+            );
         }
     }
 }

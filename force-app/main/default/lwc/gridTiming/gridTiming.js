@@ -39,7 +39,9 @@ const PREFIX = 'rowhouse:';
 /** 'locker' when this code runs inside Lightning Locker, else 'lws'. */
 export function runtimeMode() {
     const seen = runtimeEvidence();
-    return /^Secure(Window|Document)\b/.test(seen.window) || /^Secure(Window|Document)\b/.test(seen.document) ? 'locker' : 'lws';
+    return /^Secure(Window|Document)\b/.test(seen.window) || /^Secure(Window|Document)\b/.test(seen.document)
+        ? 'locker'
+        : 'lws';
 }
 
 /** What `window` and `document` call themselves here, cut short. */

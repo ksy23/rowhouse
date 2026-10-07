@@ -25,10 +25,14 @@
 
 // ------------------------------------------------------------------ inflate
 
-const LENGTH_BASE = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
+const LENGTH_BASE = [
+    3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258
+];
 const LENGTH_EXTRA = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
-const DIST_BASE = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097,
-    6145, 8193, 12289, 16385, 24577];
+const DIST_BASE = [
+    1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
+    8193, 12289, 16385, 24577
+];
 const DIST_EXTRA = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13];
 const CODE_LENGTH_ORDER = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
 const MAX_BITS = 15;
@@ -244,7 +248,8 @@ export function utf8(bytes) {
         if (c < 0x80) cp = c;
         else if (c >= 0xc0 && c < 0xe0) cp = ((c & 0x1f) << 6) | (b[i++] & 0x3f);
         else if (c >= 0xe0 && c < 0xf0) cp = ((c & 0x0f) << 12) | ((b[i++] & 0x3f) << 6) | (b[i++] & 0x3f);
-        else if (c >= 0xf0) cp = ((c & 0x07) << 18) | ((b[i++] & 0x3f) << 12) | ((b[i++] & 0x3f) << 6) | (b[i++] & 0x3f);
+        else if (c >= 0xf0)
+            cp = ((c & 0x07) << 18) | ((b[i++] & 0x3f) << 12) | ((b[i++] & 0x3f) << 6) | (b[i++] & 0x3f);
         else cp = 0xfffd;
         if (cp > 0xffff) {
             cp -= 0x10000;
@@ -302,15 +307,19 @@ function elements(xml, name) {
 /** The text of a string item: every <t> run, but not phonetic guides (<rPh>). */
 function runText(body) {
     const plain = body.replace(/<(?:[\w.-]+:)?rPh\b[\s\S]*?<\/(?:[\w.-]+:)?rPh>/g, '');
-    return elements(plain, 't').map(t => xmlText(t.body)).join('');
+    return elements(plain, 't')
+        .map(t => xmlText(t.body))
+        .join('');
 }
 
 // ------------------------------------------------------------------ dates
 
 // Built-in number formats that are dates or times (ECMA-376 18.8.30), and the
 // East Asian date formats Excel writes with ids 27 to 36 and 50 to 58.
-const DATE_FORMAT_IDS = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 45, 46, 47,
-    50, 51, 52, 53, 54, 55, 56, 57, 58]);
+const DATE_FORMAT_IDS = new Set([
+    14, 15, 16, 17, 18, 19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 45, 46, 47, 50, 51, 52, 53, 54, 55, 56,
+    57, 58
+]);
 
 /** Whether a custom number format shows a date or time. */
 export function isDateFormat(code) {
@@ -416,7 +425,9 @@ function dateStyles(files) {
 export function readXlsx(bytes, sheetName = null) {
     const b = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
     if (b.length < 4 || u32(b, 0) !== 0x04034b50) {
-        throw new Error('This is not an .xlsx file. Save it from Excel as "Excel Workbook (.xlsx)" or as CSV, then try again.');
+        throw new Error(
+            'This is not an .xlsx file. Save it from Excel as "Excel Workbook (.xlsx)" or as CSV, then try again.'
+        );
     }
     const files = readZip(b);
     const sheet = findSheet(files, sheetName);

@@ -11,11 +11,21 @@ jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 const CONTROLLING = {
-    field: 'Region__c', label: 'Region', type: 'picklist', editable: true,
-    options: [{ value: 'North', label: 'North' }, { value: 'South', label: 'South' }]
+    field: 'Region__c',
+    label: 'Region',
+    type: 'picklist',
+    editable: true,
+    options: [
+        { value: 'North', label: 'North' },
+        { value: 'South', label: 'South' }
+    ]
 };
 const DEPENDENT = {
-    field: 'City__c', label: 'City', type: 'picklist', editable: true, dependentOn: 'Region__c',
+    field: 'City__c',
+    label: 'City',
+    type: 'picklist',
+    editable: true,
+    dependentOn: 'Region__c',
     options: [
         { value: 'Oslo', label: 'Oslo', validFor: ['North'] },
         { value: 'Rome', label: 'Rome', validFor: ['South'] }
@@ -26,8 +36,26 @@ const COLUMNS = [
     { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, scale: 2 },
     { field: 'Due__c', label: 'Due', type: 'date', editable: true },
     { field: 'Done__c', label: 'Done', type: 'checkbox', editable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, options: [{ value: 'Beta', label: 'Beta' }, { value: 'Gamma', label: 'Gamma' }] },
-    { field: 'Colors__c', label: 'Colors', type: 'multipicklist', editable: true, options: [{ value: 'Red', label: 'Red' }, { value: 'Blue', label: 'Blue' }] },
+    {
+        field: 'Stage__c',
+        label: 'Stage',
+        type: 'picklist',
+        editable: true,
+        options: [
+            { value: 'Beta', label: 'Beta' },
+            { value: 'Gamma', label: 'Gamma' }
+        ]
+    },
+    {
+        field: 'Colors__c',
+        label: 'Colors',
+        type: 'multipicklist',
+        editable: true,
+        options: [
+            { value: 'Red', label: 'Red' },
+            { value: 'Blue', label: 'Blue' }
+        ]
+    },
     { field: 'Account__c', label: 'Account', type: 'reference', editable: true },
     { field: 'Formula__c', label: 'Formula', type: 'number', editable: false },
     CONTROLLING,
@@ -52,7 +80,14 @@ describe('massChanges', () => {
     const rowById = new Map(rows.map(r => [r.Id, r]));
 
     it('changes the field on every selected row that is loaded, with its stored value as the original', () => {
-        const out = massChanges({ ids: ['a1', 'a3', 'gone'], column: COLUMNS[1], value: '10.00', rowById, drafts: {}, columns: COLUMNS });
+        const out = massChanges({
+            ids: ['a1', 'a3', 'gone'],
+            column: COLUMNS[1],
+            value: '10.00',
+            rowById,
+            drafts: {},
+            columns: COLUMNS
+        });
         expect(out.changes).toEqual([
             { recordId: 'a1', field: 'Amount__c', value: '10.00', originalValue: '5' },
             { recordId: 'a3', field: 'Amount__c', value: '10.00', originalValue: null }
@@ -62,13 +97,29 @@ describe('massChanges', () => {
 
     it('refuses a dependent value on rows whose controlling value does not offer it, reading unsaved edits', () => {
         const drafts = { a2: { Region__c: 'North' } }; // a2 is North now, unsaved
-        const out = massChanges({ ids: ['a1', 'a2', 'a3'], column: DEPENDENT, value: 'Oslo', rowById, drafts, columns: COLUMNS });
+        const out = massChanges({
+            ids: ['a1', 'a2', 'a3'],
+            column: DEPENDENT,
+            value: 'Oslo',
+            rowById,
+            drafts,
+            columns: COLUMNS
+        });
         expect(out.changes.map(c => c.recordId)).toEqual(['a1', 'a2']);
-        expect(out.errors).toEqual([{ recordId: 'a3', field: 'City__c', message: 'Oslo is not offered when Region is blank.' }]);
+        expect(out.errors).toEqual([
+            { recordId: 'a3', field: 'City__c', message: 'Oslo is not offered when Region is blank.' }
+        ]);
     });
 
     it('clears dependent values a new controlling value no longer allows, in the same changes', () => {
-        const out = massChanges({ ids: ['a1', 'a2'], column: CONTROLLING, value: 'North', rowById, drafts: {}, columns: COLUMNS });
+        const out = massChanges({
+            ids: ['a1', 'a2'],
+            column: CONTROLLING,
+            value: 'North',
+            rowById,
+            drafts: {},
+            columns: COLUMNS
+        });
         // a1 is already North: nothing to clear. a2's Rome is not a northern city.
         expect(out.cleared).toEqual([{ recordId: 'a2', field: 'City__c', value: null, originalValue: 'Rome' }]);
         expect(out.changes).toHaveLength(3);
@@ -147,7 +198,7 @@ describe('the dialog', () => {
             expect($('.rh-mass-current').textContent).toBe('Currently: Beta on every row');
         });
 
-        it('shows a lookup\'s current values by name', async () => {
+        it("shows a lookup's current values by name", async () => {
             await mount({ rows: ROWS, count: 4, refNames: { '001000000000001AAA': 'Alpha Corp' } });
             await choose('Account__c');
             expect($('.rh-mass-current').textContent).toBe('Currently: Alpha Corp (2), blank (2)');
@@ -163,8 +214,10 @@ describe('the dialog', () => {
             expect($('.rh-mass-body').classList).toContain('rh-mass-body_tall');
         });
 
-        it('hands the lookup its targets\' icons', async () => {
-            const columns = COLUMNS.map(c => (c.field === 'Account__c' ? { ...c, referenceIcons: { Account: 'standard:account' } } : c));
+        it("hands the lookup its targets' icons", async () => {
+            const columns = COLUMNS.map(c =>
+                c.field === 'Account__c' ? { ...c, referenceIcons: { Account: 'standard:account' } } : c
+            );
             await mount({ columns, rows: ROWS, count: 4 });
             await choose('Account__c');
             expect($('c-cell-lookup').icons).toEqual({ Account: 'standard:account' });
@@ -245,17 +298,23 @@ describe('the dialog', () => {
     it('explains a dependent picklist', async () => {
         await mount();
         await choose('City__c');
-        expect($('.rh-mass-hint').textContent).toBe('Rows where Region does not offer the value keep theirs, and are marked.');
+        expect($('.rh-mass-hint').textContent).toBe(
+            'Rows where Region does not offer the value keep theirs, and are marked.'
+        );
     });
 
     it('applies on Enter in a text box, and cancels on Escape and Cancel', async () => {
         await mount();
         await choose('Amount__c');
         await enter('5');
-        $('.rh-mass-value').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true }));
+        $('.rh-mass-value').dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })
+        );
         await flush();
         expect(applied).toEqual([{ field: 'Amount__c', value: 5, valueLabel: null }]);
-        $('.rh-mass-field').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+        $('.rh-mass-field').dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true })
+        );
         $('.rh-mass-cancel').click();
         expect(cancelled).toBe(2);
     });
@@ -282,7 +341,9 @@ describe('the dialog', () => {
     describe('date/time, time and text area', () => {
         const columns = COLUMNS.concat(D46_COLUMNS);
         const keyDown = (target, key) => {
-            $(target).dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true }));
+            $(target).dispatchEvent(
+                new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true })
+            );
         };
 
         it('offers a date and time picker in the user’s time zone, and applies the instant it gives', async () => {

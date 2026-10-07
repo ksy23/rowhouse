@@ -46,21 +46,37 @@ const TAB = (NAMESPACE ? NAMESPACE + '__' : '') + 'Rowhouse_Guide';
 
 /** The order of the pages in the guide's navigation and catalog. */
 const ORDER = [
-    'welcome', 'start', 'configure', 'features', 'using', 'tutorials',
-    'tutorial-pipeline', 'tutorial-service', 'tutorial-accounts', 'tutorial-contacts', 'tutorial-cleanup',
+    'welcome',
+    'start',
+    'configure',
+    'features',
+    'using',
+    'tutorials',
+    'tutorial-pipeline',
+    'tutorial-service',
+    'tutorial-accounts',
+    'tutorial-contacts',
+    'tutorial-cleanup',
     'reference'
 ];
 
 /** Files a page may link to, and the static resource each one ships as. */
 const FILES = {
-    'files/event-attendees.csv': { resource: 'RowhouseSampleAttendees', constant: 'SAMPLE_ATTENDEES', prop: 'sampleAttendeesUrl', download: 'event-attendees.csv' }
+    'files/event-attendees.csv': {
+        resource: 'RowhouseSampleAttendees',
+        constant: 'SAMPLE_ATTENDEES',
+        prop: 'sampleAttendeesUrl',
+        download: 'event-attendees.csv'
+    }
 };
 
 const ICONS = {
     grid: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
     edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
-    keyboard: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
-    palette: '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/>',
+    keyboard:
+        '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+    palette:
+        '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/>',
     layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
     tree: '<rect x="3" y="3" width="7" height="5" rx="1"/><rect x="14" y="10" width="7" height="5" rx="1"/><rect x="14" y="17" width="7" height="4" rx="1"/><path d="M6.5 8v10.5H14M6.5 12.5H14"/>',
     bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
@@ -84,8 +100,12 @@ const ICONS = {
 
 function icon(name) {
     if (!ICONS[name]) throw new Error('No icon called ' + name);
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
-        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + '</svg>';
+    return (
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        ICONS[name] +
+        '</svg>'
+    );
 }
 
 // ------------------------------------------------------------ field tables
@@ -93,18 +113,52 @@ function icon(name) {
 // match what Setup shows. Label rows for the standard Label and Name fields,
 // which have no field file.
 const LABEL_ROWS = {
-    Grid_Configuration__mdt: ["The grid's title, shown at the top of the grid.", 'Grid Configuration Name', 'The API name you enter in the Rowhouse Grid component in Lightning App Builder. Filled in from the Label.'],
-    Grid_Column__mdt: ["Names the record in Setup only; users never see it. Start it with the grid's name.", 'Grid Column Name', 'Unique across all Grid Column records.'],
-    Grid_Format_Rule__mdt: ["What the color means, in your words. Users see it in the Color Key, in the cell's tooltip, and screen readers read it.", 'Grid Format Rule Name', 'Unique across all Grid Format Rule records.'],
-    Grid_Child__mdt: ["Names the record in Setup. The tab shows Tab Label, or the child configuration's label.", 'Grid Child Table Name', 'Unique across all Grid Child Table records.'],
-    Grid_Action__mdt: ['What the menu item or button says.', 'Grid Action Name', 'Unique across all Grid Action records. Also what the audit log records.'],
-    Grid_Filter__mdt: ['Names the filter in Setup and on the Grid Admin tab (its Name, which the tab fills in from the field and condition when left blank). Users never see it: the grid shows the condition itself, such as "Email is not blank".', 'Grid Filter Name', 'Unique across all Grid Filter records.']
+    Grid_Configuration__mdt: [
+        "The grid's title, shown at the top of the grid.",
+        'Grid Configuration Name',
+        'The API name you enter in the Rowhouse Grid component in Lightning App Builder. Filled in from the Label.'
+    ],
+    Grid_Column__mdt: [
+        "Names the record in Setup only; users never see it. Start it with the grid's name.",
+        'Grid Column Name',
+        'Unique across all Grid Column records.'
+    ],
+    Grid_Format_Rule__mdt: [
+        "What the color means, in your words. Users see it in the Color Key, in the cell's tooltip, and screen readers read it.",
+        'Grid Format Rule Name',
+        'Unique across all Grid Format Rule records.'
+    ],
+    Grid_Child__mdt: [
+        "Names the record in Setup. The tab shows Tab Label, or the child configuration's label.",
+        'Grid Child Table Name',
+        'Unique across all Grid Child Table records.'
+    ],
+    Grid_Action__mdt: [
+        'What the menu item or button says.',
+        'Grid Action Name',
+        'Unique across all Grid Action records. Also what the audit log records.'
+    ],
+    Grid_Filter__mdt: [
+        'Names the filter in Setup and on the Grid Admin tab (its Name, which the tab fills in from the field and condition when left blank). Users never see it: the grid shows the condition itself, such as "Email is not blank".',
+        'Grid Filter Name',
+        'Unique across all Grid Filter records.'
+    ]
 };
 
-const xml = new XMLParser({ ignoreAttributes: true, parseTagValue: false, trimValues: true, isArray: name => name === 'value' || name === 'layoutItems' || name === 'layoutColumns' || name === 'layoutSections' });
+const xml = new XMLParser({
+    ignoreAttributes: true,
+    parseTagValue: false,
+    trimValues: true,
+    isArray: name => name === 'value' || name === 'layoutItems' || name === 'layoutColumns' || name === 'layoutSections'
+});
 
 function esc(s) {
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
 }
 
 function text(v) {
@@ -124,7 +178,13 @@ function fieldRows(obj) {
         const f = xml.parse(fs.readFileSync(path.join(base, 'fields', fn), 'utf8')).CustomField;
         fields[text(f.fullName)] = f;
     }
-    const names = order.filter(n => fields[n]).concat(Object.keys(fields).filter(n => !order.includes(n)).sort());
+    const names = order
+        .filter(n => fields[n])
+        .concat(
+            Object.keys(fields)
+                .filter(n => !order.includes(n))
+                .sort()
+        );
     return names.map(n => {
         const f = fields[n];
         const type = text(f.type);
@@ -139,7 +199,9 @@ function fieldRows(obj) {
             const d = values.filter(v => text(v.default) === 'true');
             def = d.length ? text(d[0].label) : '';
         } else if (type === 'MetadataRelationship') {
-            tdesc = 'Lookup to ' + (text(f.referenceTo).includes('Configuration') ? 'Grid Configuration' : text(f.referenceTo));
+            tdesc =
+                'Lookup to ' +
+                (text(f.referenceTo).includes('Configuration') ? 'Grid Configuration' : text(f.referenceTo));
         } else if (type === 'Number') {
             tdesc = 'Number';
         } else if (type === 'LongTextArea') {
@@ -147,23 +209,40 @@ function fieldRows(obj) {
         } else {
             tdesc = f.length !== undefined && text(f.length) ? 'Text (' + text(f.length) + ')' : type;
         }
-        return { label: text(f.label), api: n, type: tdesc, def: def || '—', desc: text(f.description), values: values.map(v => text(v.label)) };
+        return {
+            label: text(f.label),
+            api: n,
+            type: tdesc,
+            def: def || '—',
+            desc: text(f.description),
+            values: values.map(v => text(v.label))
+        };
     });
 }
 
 function fieldsTable(obj) {
     const rows = fieldRows(obj);
     const lr = LABEL_ROWS[obj];
-    const out = [`<div class="tbox"><table class="ref" id="ref-${obj}"><thead><tr><th>Field</th><th>Type</th><th>Default</th><th>What it does</th></tr></thead><tbody>`];
+    const out = [
+        `<div class="tbox"><table class="ref" id="ref-${obj}"><thead><tr><th>Field</th><th>Type</th><th>Default</th><th>What it does</th></tr></thead><tbody>`
+    ];
     if (lr) {
-        out.push(`<tr><td>Label</td><td class="d">Text (40)</td><td class="d">—</td><td>${esc(lr[0])} Required.</td></tr>`);
-        out.push(`<tr><td>${lr[1]}</td><td class="d">Text (40)</td><td class="d">—</td><td>${esc(lr[2])} Required.</td></tr>`);
+        out.push(
+            `<tr><td>Label</td><td class="d">Text (40)</td><td class="d">—</td><td>${esc(lr[0])} Required.</td></tr>`
+        );
+        out.push(
+            `<tr><td>${lr[1]}</td><td class="d">Text (40)</td><td class="d">—</td><td>${esc(lr[2])} Required.</td></tr>`
+        );
     }
     for (const r of rows) {
         const vals = r.values.length
-            ? '<div class="pill-row pill-row-ref">' + r.values.map(v => `<span class="ptag">${esc(v)}</span>`).join('') + '</div>'
+            ? '<div class="pill-row pill-row-ref">' +
+              r.values.map(v => `<span class="ptag">${esc(v)}</span>`).join('') +
+              '</div>'
             : '';
-        out.push(`<tr><td>${esc(r.label)}<br><code>${r.api}</code></td><td class="d">${esc(r.type)}</td><td class="d">${esc(r.def)}</td><td>${esc(r.desc)}${vals}</td></tr>`);
+        out.push(
+            `<tr><td>${esc(r.label)}<br><code>${r.api}</code></td><td class="d">${esc(r.type)}</td><td class="d">${esc(r.def)}</td><td>${esc(r.desc)}${vals}</td></tr>`
+        );
     }
     out.push('</tbody></table></div>');
     return out.join('\n');
@@ -220,7 +299,8 @@ function transform(id, body, problems) {
         const next = [];
         let isDraw = false;
         for (const [k, v] of attrs) {
-            if (v !== undefined && /[{}]/.test(v)) problems.push(`${id}: a brace in ${k}="${v}" would be read as an expression`);
+            if (v !== undefined && /[{}]/.test(v))
+                problems.push(`${id}: a brace in ${k}="${v}" would be read as an expression`);
             if (k === 'class') {
                 const classes = v.split(/\s+/).filter(Boolean);
                 if (classes.includes('draw')) isDraw = true;
@@ -243,7 +323,8 @@ function transform(id, body, problems) {
                     next.push([k, v]);
                     next.push(['data-anchor-link', v.slice(1)]);
                 } else if (link) {
-                    if (!ORDER.includes(link[1])) problems.push(`${id}: links to ${v}, which is not a page of the guide`);
+                    if (!ORDER.includes(link[1]))
+                        problems.push(`${id}: links to ${v}, which is not a page of the guide`);
                     next.push(['href', pageUrl(link[1], link[2])]);
                     next.push(['data-page', link[1]]);
                     if (link[2]) next.push(['data-section', link[2]]);
@@ -271,7 +352,10 @@ function transform(id, body, problems) {
 }
 
 function pascal(id) {
-    return id.split('-').map(p => p[0].toUpperCase() + p.slice(1)).join('');
+    return id
+        .split('-')
+        .map(p => p[0].toUpperCase() + p.slice(1))
+        .join('');
 }
 
 function componentOf(id) {
@@ -294,7 +378,10 @@ function readPage(id) {
 
 function indent(s, n) {
     const pad = ' '.repeat(n);
-    return s.split('\n').map(l => (l.trim() ? pad + l : l)).join('\n');
+    return s
+        .split('\n')
+        .map(l => (l.trim() ? pad + l : l))
+        .join('\n');
 }
 
 function metaXml(description) {
@@ -311,8 +398,12 @@ function build() {
     const files = {};
     const problems = [];
     const pages = [];
-    const present = fs.readdirSync(PAGES).filter(f => f.endsWith('.html')).map(f => f.slice(0, -5));
-    for (const id of present) if (!ORDER.includes(id)) problems.push(`guide/pages/${id}.html is not in ORDER in guide/build.js`);
+    const present = fs
+        .readdirSync(PAGES)
+        .filter(f => f.endsWith('.html'))
+        .map(f => f.slice(0, -5));
+    for (const id of present)
+        if (!ORDER.includes(id)) problems.push(`guide/pages/${id}.html is not in ORDER in guide/build.js`);
     for (const id of ORDER) {
         if (!present.includes(id)) {
             problems.push(`guide/pages/${id}.html is missing`);
@@ -329,7 +420,9 @@ function build() {
         files[path.join(dir, name + '.html')] =
             `<template>\n    <!-- ${GENERATED}${id}.html. Change the page, then run npm run guide. -->\n` +
             `    <div class="rh-page" onclick={handleClick}>\n${indent(out.trim(), 8)}\n    </div>\n</template>\n`;
-        const imports = [...used.files].map(f => `import ${FILES[f].constant} from '@salesforce/resourceUrl/${FILES[f].resource}';`);
+        const imports = [...used.files].map(
+            f => `import ${FILES[f].constant} from '@salesforce/resourceUrl/${FILES[f].resource}';`
+        );
         const props = [...used.files].map(f => `    ${FILES[f].prop} = ${FILES[f].constant};`);
         files[path.join(dir, name + '.js')] =
             `// ${GENERATED}${id}.html. Change the page, then run npm run guide.\n` +
@@ -338,8 +431,18 @@ function build() {
             `export default class ${pascal(name)} extends GuidePage${props.length ? ` {\n${props.join('\n')}\n}` : ' {}'}\n`;
         files[path.join(dir, name + '.css')] =
             `/* ${GENERATED}${id}.html. The guide's one stylesheet: */\n@import 'c/guideStyles';\n`;
-        files[path.join(dir, name + '.js-meta.xml')] = metaXml(`Grid Guide page: ${meta.title}. ${GENERATED}${id}.html.`);
-        pages.push({ id, title: meta.title, desc: meta.desc, section: meta.section, audience: meta.audience, component: name, anchors });
+        files[path.join(dir, name + '.js-meta.xml')] = metaXml(
+            `Grid Guide page: ${meta.title}. ${GENERATED}${id}.html.`
+        );
+        pages.push({
+            id,
+            title: meta.title,
+            desc: meta.desc,
+            section: meta.section,
+            audience: meta.audience,
+            component: name,
+            anchors
+        });
     }
 
     // c/guideCatalog: the pages, in order, for the tab and for help links.
@@ -348,9 +451,15 @@ function build() {
         `/**\n * The Grid Guide's pages, in order: id, title, description, the\n` +
         ` * navigation entry it belongs to, who it is for ("admin" or "all"), and the\n` +
         ` * sections a help link may open it at.\n */\n` +
-        `export const PAGES = ${JSON.stringify(pages.map(({ component, ...p }) => p), null, 4)};\n\n` +
+        `export const PAGES = ${JSON.stringify(
+            pages.map(({ component, ...p }) => p),
+            null,
+            4
+        )};\n\n` +
         `/** A page by its id, or undefined. */\nexport function pageOf(id) {\n    return PAGES.find(p => p.id === id);\n}\n`;
-    files[path.join(LWC, 'guideCatalog', 'guideCatalog.js-meta.xml')] = metaXml(`The Grid Guide's list of pages. ${GENERATED}*.html.`);
+    files[path.join(LWC, 'guideCatalog', 'guideCatalog.js-meta.xml')] = metaXml(
+        `The Grid Guide's list of pages. ${GENERATED}*.html.`
+    );
 
     // c/guideContent: which page to show.
     const branches = pages
@@ -371,11 +480,16 @@ function build() {
         `    /** The section to open it at, or nothing for the top. */\n    @api section;\n\n` +
         pages.map(p => `    get is${pascal(p.id)}() {\n        return this.page === '${p.id}';\n    }`).join('\n\n') +
         `\n}\n`;
-    files[path.join(LWC, 'guideContent', 'guideContent.js-meta.xml')] = metaXml(`Shows one Grid Guide page. ${GENERATED}*.html.`);
+    files[path.join(LWC, 'guideContent', 'guideContent.js-meta.xml')] = metaXml(
+        `Shows one Grid Guide page. ${GENERATED}*.html.`
+    );
 
     // The files pages link to, as static resources (their -meta.xml is written by hand).
     for (const [rel, f] of Object.entries(FILES)) {
-        files[path.join(META, 'staticresources', f.resource + '.resource')] = fs.readFileSync(path.join(__dirname, rel), 'utf8');
+        files[path.join(META, 'staticresources', f.resource + '.resource')] = fs.readFileSync(
+            path.join(__dirname, rel),
+            'utf8'
+        );
     }
     return { files, problems };
 }

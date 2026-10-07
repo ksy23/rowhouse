@@ -62,8 +62,16 @@ const DATE_OPS = [
     { value: 'between', label: 'Between' },
     ...BLANK_OPS
 ];
-const PICKLIST_OPS = [{ value: 'equals', label: 'Equals' }, { value: 'not_equals', label: 'Does not equal' }, ...BLANK_OPS];
-const MULTI_OPS = [{ value: 'contains', label: 'Includes' }, { value: 'not_contains', label: 'Excludes' }, ...BLANK_OPS];
+const PICKLIST_OPS = [
+    { value: 'equals', label: 'Equals' },
+    { value: 'not_equals', label: 'Does not equal' },
+    ...BLANK_OPS
+];
+const MULTI_OPS = [
+    { value: 'contains', label: 'Includes' },
+    { value: 'not_contains', label: 'Excludes' },
+    ...BLANK_OPS
+];
 const CHECKBOX_OPS = [{ value: 'equals', label: 'Is' }];
 const LOOKUP_OPS = [{ value: 'contains', label: 'Name contains' }, ...BLANK_OPS];
 /** "Is me": a lookup to users equals the person looking. */
@@ -112,7 +120,10 @@ export function inputKind(column, operator) {
 export function choicesFor(column) {
     const type = (column && column.type) || 'text';
     if (type === 'checkbox' || type === 'boolean') {
-        return [{ value: 'true', label: 'Checked' }, { value: 'false', label: 'Not checked' }];
+        return [
+            { value: 'true', label: 'Checked' },
+            { value: 'false', label: 'Not checked' }
+        ];
     }
     return (column.options || []).map(o => ({ value: o.value, label: o.label }));
 }
@@ -125,7 +136,8 @@ export function choicesFor(column) {
 export function toRequest(filter) {
     if (!filter || !filter.field || !filter.operator) return null;
     if (filter.operator === IS_ME) return { field: filter.field, operator: 'equals', value: '$User', valueTo: null };
-    if (!needsValue(filter.operator)) return { field: filter.field, operator: filter.operator, value: null, valueTo: null };
+    if (!needsValue(filter.operator))
+        return { field: filter.field, operator: filter.operator, value: null, valueTo: null };
     if (isBlank(filter.value)) return null;
     if (filter.operator === 'between' && isBlank(filter.valueTo)) return null;
     return {
@@ -144,7 +156,9 @@ export function problemOf(filter, column) {
     if (filter.operator === 'between' && isBlank(filter.valueTo)) return 'Enter both ends of the range.';
     const type = (column && column.type) || 'text';
     if (isNumericType(type)) {
-        const bad = [filter.value, filter.operator === 'between' ? filter.valueTo : 0].some(v => !/^[-+]?\d+(\.\d+)?$/.test(String(v).trim()));
+        const bad = [filter.value, filter.operator === 'between' ? filter.valueTo : 0].some(
+            v => !/^[-+]?\d+(\.\d+)?$/.test(String(v).trim())
+        );
         if (bad) return 'Enter a number, such as 1000.';
     }
     return '';
@@ -153,7 +167,8 @@ export function problemOf(filter, column) {
 /** One value as the chip shows it. */
 function shown(value, column) {
     const type = (column && column.type) || 'text';
-    if (type === 'checkbox' || type === 'boolean') return value === 'true' || value === true ? 'checked' : 'not checked';
+    if (type === 'checkbox' || type === 'boolean')
+        return value === 'true' || value === true ? 'checked' : 'not checked';
     if (type === 'picklist' || type === 'multipicklist') return picklistLabel(value, column.options);
     if (isDateType(type)) return formatDate(value);
     if (type === 'time') return formatTime(value);
@@ -167,8 +182,10 @@ export function describeFilter(filter, column) {
     const op = operatorsFor(column).find(o => o.value === filter.operator);
     const words = op ? op.label.toLowerCase() : filter.operator;
     // "Is me" goes to the server as equals $User (toRequest), and comes back so.
-    if (filter.operator === IS_ME || (filter.operator === 'equals' && filter.value === '$User')) return `${label} is me`;
-    if (column && (column.type === 'checkbox' || column.type === 'boolean')) return `${label} is ${shown(filter.value, column)}`;
+    if (filter.operator === IS_ME || (filter.operator === 'equals' && filter.value === '$User'))
+        return `${label} is me`;
+    if (column && (column.type === 'checkbox' || column.type === 'boolean'))
+        return `${label} is ${shown(filter.value, column)}`;
     if (!needsValue(filter.operator)) return `${label} ${words}`;
     const text = `${label} ${words} ${shown(filter.value, column)}`;
     return filter.operator === 'between' ? `${text} and ${shown(filter.valueTo, column)}` : text;

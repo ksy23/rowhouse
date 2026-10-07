@@ -15,14 +15,16 @@ describe('selection', () => {
         document.body.appendChild(el);
         await flush();
     };
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('renders no selection column unless asked', async () => {
         await mount({});
         expect(el.shadowRoot.querySelector('[data-field="__select"]')).toBeNull();
     });
 
-    it('lines each row\'s checkbox up under Select all: both right-aligned, as in the SLDS blueprint', async () => {
+    it("lines each row's checkbox up under Select all: both right-aligned, as in the SLDS blueprint", async () => {
         await mount({ selection: 'multi' });
         expect(el.shadowRoot.querySelector('th[data-field="__select"]').classList).toContain('slds-text-align_right');
         const cells = [...el.shadowRoot.querySelectorAll('td[data-field="__select"]')];

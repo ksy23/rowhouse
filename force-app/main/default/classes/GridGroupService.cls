@@ -40,7 +40,6 @@
  *   tooManyGroups: more than maxGroups groups. Nothing else is returned.
  */
 public with sharing class GridGroupService {
-
     /** Records per slice: the 50,000-row budget, less room for the count and the boundaries. */
     @TestVisible
     private static Integer sliceRows = 45000;
@@ -56,9 +55,12 @@ public with sharing class GridGroupService {
     private static Integer maxDays = 20000;
 
     public class Result {
-        @AuraEnabled public List<Map<String, Object>> groups = new List<Map<String, Object>>();
-        @AuraEnabled public List<String> boundaries;
-        @AuraEnabled public Boolean tooManyGroups = false;
+        @AuraEnabled
+        public List<Map<String, Object>> groups = new List<Map<String, Object>>();
+        @AuraEnabled
+        public List<String> boundaries;
+        @AuraEnabled
+        public Boolean tooManyGroups = false;
     }
 
     /** One level of the grouping, checked against the grid. */
@@ -144,7 +146,8 @@ public with sharing class GridGroupService {
         try {
             List<SObject> org = GridSecurity.query(
                 'SELECT FiscalYearStartMonth, UsesStartDateAsFiscalYearName FROM Organization LIMIT 1',
-                new Map<String, Object>());
+                new Map<String, Object>()
+            );
             if (!org.isEmpty()) {
                 out.put('startMonth', org[0].get('FiscalYearStartMonth'));
                 out.put('nameByStart', org[0].get('UsesStartDateAsFiscalYearName') == true);
@@ -154,18 +157,23 @@ public with sharing class GridGroupService {
         }
         List<Map<String, Object>> periods = new List<Map<String, Object>>();
         try {
-            for (SObject p : GridSecurity.query(
-                    'SELECT Type, Number, StartDate, EndDate, FiscalYearSettings.Name FROM Period'
-                        + ' WHERE Type IN (\'Year\', \'Quarter\') ORDER BY StartDate LIMIT 1000',
-                    new Map<String, Object>())) {
+            for (
+                SObject p : GridSecurity.query(
+                    'SELECT Type, Number, StartDate, EndDate, FiscalYearSettings.Name FROM Period' +
+                    ' WHERE Type IN (\'Year\', \'Quarter\') ORDER BY StartDate LIMIT 1000',
+                    new Map<String, Object>()
+                )
+            ) {
                 SObject settings = p.getSObject('FiscalYearSettings');
-                periods.add(new Map<String, Object>{
-                    'type' => String.valueOf(p.get('Type')).toLowerCase(),
-                    'start' => String.valueOf((Date) p.get('StartDate')),
-                    'end' => String.valueOf((Date) p.get('EndDate')),
-                    'number' => p.get('Number'),
-                    'name' => settings == null ? null : settings.get('Name')
-                });
+                periods.add(
+                    new Map<String, Object>{
+                        'type' => String.valueOf(p.get('Type')).toLowerCase(),
+                        'start' => String.valueOf((Date) p.get('StartDate')),
+                        'end' => String.valueOf((Date) p.get('EndDate')),
+                        'number' => p.get('Number'),
+                        'name' => settings == null ? null : settings.get('Name')
+                    }
+                );
             }
         } catch (Exception e) {
             // Unreadable: worked out from the start month alone.
@@ -188,13 +196,26 @@ public with sharing class GridGroupService {
      * for a later slice passes the slice's first Id (fromId) and the next
      * slice's first Id (toId, null for the last slice).
      */
-    public static Result summarize(String configName, String searchTerm, List<String> grouping, String fromId, String toId) {
+    public static Result summarize(
+        String configName,
+        String searchTerm,
+        List<String> grouping,
+        String fromId,
+        String toId
+    ) {
         return summarize(configName, searchTerm, grouping, fromId, toId, null, null);
     }
 
     /** The same, for a child grid: only the records under one parent count. */
-    public static Result summarize(String configName, String searchTerm, List<String> grouping, String fromId, String toId,
-                                   String parentLink, String parentId) {
+    public static Result summarize(
+        String configName,
+        String searchTerm,
+        List<String> grouping,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId
+    ) {
         return summarize(configName, searchTerm, grouping, fromId, toId, parentLink, parentId, null, null);
     }
 
@@ -203,8 +224,17 @@ public with sharing class GridGroupService {
      * the user's, and on a record page the page's record. So a group's count
      * is the count of its rows.
      */
-    public static Result summarize(String configName, String searchTerm, List<String> grouping, String fromId, String toId,
-                                   String parentLink, String parentId, List<Map<String, Object>> filters, String recordId) {
+    public static Result summarize(
+        String configName,
+        String searchTerm,
+        List<String> grouping,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId
+    ) {
         GridConfig.Definition def = GridConfig.forUser(configName);
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         GridSecurity.requireRead(objectType);
@@ -223,7 +253,9 @@ public with sharing class GridGroupService {
 
         Map<String, Object> binds = new Map<String, Object>();
         List<String> conditions = new List<String>();
-        String parent = scope == null ? null : GridDataService.parentCondition(scope.fieldApiName, scope.parentId, binds);
+        String parent = scope == null
+            ? null
+            : GridDataService.parentCondition(scope.fieldApiName, scope.parentId, binds);
         if (parent != null) {
             conditions.add(parent);
         }
@@ -231,7 +263,9 @@ public with sharing class GridGroupService {
         if (search != null) {
             conditions.add(search);
         }
-        conditions.addAll(GridFilters.clauses(objectType, GridFilters.forRequest(def, filters, recordId, scope != null), binds));
+        conditions.addAll(
+            GridFilters.clauses(objectType, GridFilters.forRequest(def, filters, recordId, scope != null), binds)
+        );
         String source = ' FROM ' + GridDescribe.apiName(objectType);
 
         if (fromId != null || toId != null) {
@@ -276,8 +310,13 @@ public with sharing class GridGroupService {
     }
 
     /** Limit the query to one slice. The Ids come from the browser, so they are checked (HR-6). */
-    private static void addRange(List<String> conditions, Map<String, Object> binds, Schema.SObjectType objectType,
-                                 String fromId, String toId) {
+    private static void addRange(
+        List<String> conditions,
+        Map<String, Object> binds,
+        Schema.SObjectType objectType,
+        String fromId,
+        String toId
+    ) {
         if (fromId != null) {
             binds.put('sliceFrom', recordId(fromId, objectType));
             conditions.add('Id >= :sliceFrom');
@@ -306,8 +345,14 @@ public with sharing class GridGroupService {
     }
 
     /** One aggregate query, grouped by every level, into result.groups. */
-    private static void aggregate(Result result, List<Level> levels, List<GridConfig.Column> totals,
-                                  String sourceAndWhere, Map<String, Object> binds, Schema.SObjectType objectType) {
+    private static void aggregate(
+        Result result,
+        List<Level> levels,
+        List<GridConfig.Column> totals,
+        String sourceAndWhere,
+        Map<String, Object> binds,
+        Schema.SObjectType objectType
+    ) {
         List<String> selects = new List<String>();
         List<String> groupBy = new List<String>();
         // A field grouped by its own value (a picklist, a date by day) cannot
@@ -393,7 +438,10 @@ public with sharing class GridGroupService {
             Map<String, Object> values = new Map<String, Object>();
             for (Integer i = 0; i < totals.size(); i++) {
                 if (keyAlias[i] != null) {
-                    values.put(totals[i].field, fromKey(totals[i].subtotal, ar.get(keyAlias[i]), (Integer) ar.get('n'), totalFields[i]));
+                    values.put(
+                        totals[i].field,
+                        fromKey(totals[i].subtotal, ar.get(keyAlias[i]), (Integer) ar.get('n'), totalFields[i])
+                    );
                     continue;
                 }
                 Map<String, Object> v = new Map<String, Object>();
@@ -430,8 +478,11 @@ public with sharing class GridGroupService {
      * the lowest and highest compare, as the browser adds up slices.
      */
     @TestVisible
-    private static List<Map<String, Object>> foldDays(List<Map<String, Object>> groups, List<GridConfig.Column> totals,
-                                                      List<Schema.DescribeFieldResult> totalFields) {
+    private static List<Map<String, Object>> foldDays(
+        List<Map<String, Object>> groups,
+        List<GridConfig.Column> totals,
+        List<Schema.DescribeFieldResult> totalFields
+    ) {
         Map<String, Map<String, Object>> byKey = new Map<String, Map<String, Object>>();
         List<Map<String, Object>> out = new List<Map<String, Object>>();
         for (Map<String, Object> g : groups) {
@@ -447,15 +498,25 @@ public with sharing class GridGroupService {
             Map<String, Object> fromValues = (Map<String, Object>) g.get('v');
             for (Integer i = 0; i < totals.size(); i++) {
                 String field = totals[i].field;
-                keptValues.put(field, merged((Map<String, Object>) keptValues.get(field),
-                    (Map<String, Object>) fromValues.get(field), totalFields[i]));
+                keptValues.put(
+                    field,
+                    merged(
+                        (Map<String, Object>) keptValues.get(field),
+                        (Map<String, Object>) fromValues.get(field),
+                        totalFields[i]
+                    )
+                );
             }
         }
         return out;
     }
 
     /** Two groups' { s, c, mn, mx } for one field, as one. */
-    private static Map<String, Object> merged(Map<String, Object> a, Map<String, Object> b, Schema.DescribeFieldResult d) {
+    private static Map<String, Object> merged(
+        Map<String, Object> a,
+        Map<String, Object> b,
+        Schema.DescribeFieldResult d
+    ) {
         if (a == null || b == null) {
             return a == null ? b : a;
         }

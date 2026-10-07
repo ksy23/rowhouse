@@ -5,14 +5,23 @@
                 <img class="rh-guide-logo" src={logoUrl} alt="Rowhouse" width="177" height="32" />
                 <div class="slds-col slds-m-left_medium rh-guide-title">
                     <h1 class="slds-text-heading_medium">Grid Guide</h1>
-                    <p class="slds-text-body_small slds-text-color_weak">How to set up Rowhouse grids, and how to work in them.</p>
+                    <p class="slds-text-body_small slds-text-color_weak">
+                        How to set up Rowhouse grids, and how to work in them.
+                    </p>
                 </div>
             </div>
             <nav class="rh-guide-nav" aria-label="Grid Guide">
                 <ul class="rh-guide-nav-list">
                     <template for:each={navItems} for:item="item">
                         <li key={item.id} class={item.className}>
-                            <a class="rh-guide-nav-link" href={item.url} aria-current={item.current} data-page={item.id} onclick={handleNav}>{item.label}</a>
+                            <a
+                                class="rh-guide-nav-link"
+                                href={item.url}
+                                aria-current={item.current}
+                                data-page={item.id}
+                                onclick={handleNav}
+                                >{item.label}</a
+                            >
                         </li>
                     </template>
                 </ul>
@@ -36,8 +45,9 @@
 
         <footer class="slds-card__footer rh-guide-footer">
             <p>
-                Rowhouse by Kugamon is free and open source, under the Apache 2.0 license. It is an independent project, not affiliated with,
-                endorsed by or sponsored by Salesforce, Inc. Salesforce and Lightning are trademarks of Salesforce, Inc.
+                Rowhouse by Kugamon is free and open source, under the Apache 2.0 license. It is an independent project,
+                not affiliated with, endorsed by or sponsored by Salesforce, Inc. Salesforce and Lightning are
+                trademarks of Salesforce, Inc.
             </p>
         </footer>
     </article>

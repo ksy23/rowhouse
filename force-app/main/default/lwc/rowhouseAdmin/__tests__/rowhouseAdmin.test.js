@@ -14,19 +14,33 @@ import logRetention from '@salesforce/apex/GridAdminController.logRetention';
 jest.mock('@salesforce/apex/GridAdminController.listConfigs', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.canSave', () => ({ default: jest.fn() }), { virtual: true });
 // The editor is the real one (it has its own tests); its server calls answer here.
-jest.mock('@salesforce/apex/GridAdminController.readConfig', () => ({ default: jest.fn(() => new Promise(() => {})) }), { virtual: true });
-jest.mock('@salesforce/apex/GridAdminController.listObjects', () => ({ default: jest.fn(() => Promise.resolve([])) }), { virtual: true });
+jest.mock(
+    '@salesforce/apex/GridAdminController.readConfig',
+    () => ({ default: jest.fn(() => new Promise(() => {})) }),
+    { virtual: true }
+);
+jest.mock('@salesforce/apex/GridAdminController.listObjects', () => ({ default: jest.fn(() => Promise.resolve([])) }), {
+    virtual: true
+});
 jest.mock('@salesforce/apex/GridAdminController.describeObject', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.checkDraft', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.saveDraft', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.saveStatus', () => ({ default: jest.fn() }), { virtual: true });
 // The edit log's retention is the real component too, with its own tests.
-jest.mock('@salesforce/apex/GridAdminController.logRetention', () => ({ default: jest.fn(() => new Promise(() => {})) }), { virtual: true });
+jest.mock(
+    '@salesforce/apex/GridAdminController.logRetention',
+    () => ({ default: jest.fn(() => new Promise(() => {})) }),
+    { virtual: true }
+);
 jest.mock('@salesforce/apex/GridAdminController.saveLogRetention', () => ({ default: jest.fn() }), { virtual: true });
 // The row dialog is the real one too, with its own tests.
 jest.mock('@salesforce/apex/GridAdminController.archiveConfig', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.cloneConfig', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridAdminController.setupRecords', () => ({ default: jest.fn(() => new Promise(() => {})) }), { virtual: true });
+jest.mock(
+    '@salesforce/apex/GridAdminController.setupRecords',
+    () => ({ default: jest.fn(() => new Promise(() => {})) }),
+    { virtual: true }
+);
 
 const mockGenerateUrl = jest.fn(ref => Promise.resolve('/generated?' + JSON.stringify(ref.state)));
 const mockNavigate = jest.fn();
@@ -50,8 +64,24 @@ jest.mock('lightning/navigation', () => {
 });
 
 const CONFIGS = [
-    { name: 'Deals', label: 'Deals', objectApiName: 'Deal__c', objectLabel: 'Deals', columns: 6, childTables: 2, logChanges: true },
-    { name: 'Open_Cases', label: 'Open cases', objectApiName: 'Case', objectLabel: 'Cases', columns: 1, childTables: 0, logChanges: false }
+    {
+        name: 'Deals',
+        label: 'Deals',
+        objectApiName: 'Deal__c',
+        objectLabel: 'Deals',
+        columns: 6,
+        childTables: 2,
+        logChanges: true
+    },
+    {
+        name: 'Open_Cases',
+        label: 'Open cases',
+        objectApiName: 'Case',
+        objectLabel: 'Cases',
+        columns: 1,
+        childTables: 0,
+        logChanges: false
+    }
 ];
 
 const settle = async () => {
@@ -161,7 +191,11 @@ describe('help', () => {
         expect(help.iconName).toBe('utility:help');
         help.dispatchEvent(new CustomEvent('click'));
         await settle();
-        expect(mockGenerateUrl).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'start' } });
+        expect(mockGenerateUrl).toHaveBeenCalledWith({
+            type: 'standard__navItemPage',
+            attributes: { apiName: 'Rowhouse_Guide' },
+            state: { c__page: 'start' }
+        });
         expect(open).toHaveBeenCalledWith('/generated?{"c__page":"start"}', '_blank');
         open.mockRestore();
     });
@@ -174,7 +208,11 @@ describe('help', () => {
         expect(link.textContent).toBe('Get started →');
         expect(link.getAttribute('href')).toBe('/lightning/n/Rowhouse_Guide?c__page=start');
         link.click();
-        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'start' } });
+        expect(mockNavigate).toHaveBeenCalledWith({
+            type: 'standard__navItemPage',
+            attributes: { apiName: 'Rowhouse_Guide' },
+            state: { c__page: 'start' }
+        });
     });
 });
 
@@ -214,7 +252,12 @@ describe('the side navigation', () => {
         const el = await mount();
         expect($(el, '.rh-admin-side').getAttribute('aria-label')).toBe('Grids to show');
         expect($$(el, '.rh-admin-side-k').map(k => k.textContent)).toEqual(['Grids', 'By object']);
-        expect($$(el, '.rh-admin-side-label').map(l => l.textContent)).toEqual(['Available grids', 'Archived grids', 'Cases', 'Deals']);
+        expect($$(el, '.rh-admin-side-label').map(l => l.textContent)).toEqual([
+            'Available grids',
+            'Archived grids',
+            'Cases',
+            'Deals'
+        ]);
         expect($$(el, '.rh-admin-side-count').map(c => c.textContent)).toEqual(['2', '0', '1', '1']);
         expect(side(el, '').getAttribute('aria-label')).toBe('Available grids, 2 grids');
         expect(side(el, 'Case').getAttribute('aria-label')).toBe('Cases, 1 grid');
@@ -275,7 +318,9 @@ describe('the side navigation', () => {
         listConfigs.mockResolvedValue(CONFIGS.map(c => (c.name === 'Open_Cases' ? { ...c, archived: true } : c)));
         $(el, '.rh-admin-row-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'archive' } }));
         await settle();
-        $(el, 'c-grid-admin-row-dialog').dispatchEvent(new CustomEvent('done', { detail: { action: 'archive', configName: 'Open_Cases' } }));
+        $(el, 'c-grid-admin-row-dialog').dispatchEvent(
+            new CustomEvent('done', { detail: { action: 'archive', configName: 'Open_Cases' } })
+        );
         await settle();
         expect(side(el, '').getAttribute('aria-current')).toBe('page');
         expect(side(el, 'Case')).toBeUndefined();
@@ -286,10 +331,28 @@ describe('the side navigation', () => {
 
 describe('sorting the list', () => {
     const MANY = [
-        { name: 'Pipeline_Review', label: 'Pipeline review', objectApiName: 'Opportunity', objectLabel: 'Opportunities', columns: 10 },
-        { name: 'account_people', label: 'account people', objectApiName: 'Contact', objectLabel: 'Contacts', columns: 9 },
+        {
+            name: 'Pipeline_Review',
+            label: 'Pipeline review',
+            objectApiName: 'Opportunity',
+            objectLabel: 'Opportunities',
+            columns: 10
+        },
+        {
+            name: 'account_people',
+            label: 'account people',
+            objectApiName: 'Contact',
+            objectLabel: 'Contacts',
+            columns: 9
+        },
         { name: 'Key_Accounts', label: 'Key Accounts', objectApiName: 'Account', objectLabel: 'Accounts', columns: 9 },
-        { name: 'Bench_20', label: 'Bench 20 Columns', objectApiName: 'Rowhouse_Bench__c', objectLabel: 'Rowhouse Bench Records', columns: 20 }
+        {
+            name: 'Bench_20',
+            label: 'Bench 20 Columns',
+            objectApiName: 'Rowhouse_Bench__c',
+            objectLabel: 'Rowhouse Bench Records',
+            columns: 20
+        }
     ];
     const titles = el => $$(el, '.rh-admin-open').map(b => b.textContent);
     const heads = el => $$(el, '.rh-admin-sortable');
@@ -304,7 +367,12 @@ describe('sorting the list', () => {
         listConfigs.mockResolvedValue(MANY);
         const el = await mount();
         expect(titles(el)).toEqual(['account people', 'Bench 20 Columns', 'Key Accounts', 'Pipeline review']);
-        expect($$(el, '.rh-admin-sortable .rh-admin-sort-label').map(l => l.textContent)).toEqual(['Grid Title', 'API name', 'Object', 'Columns']);
+        expect($$(el, '.rh-admin-sortable .rh-admin-sort-label').map(l => l.textContent)).toEqual([
+            'Grid Title',
+            'API name',
+            'Object',
+            'Columns'
+        ]);
         expect(heads(el).map(th => th.getAttribute('aria-sort'))).toEqual(['ascending', 'none', 'none', 'none']);
         const first = heads(el)[0].querySelector('.rh-admin-sort');
         expect(first.getAttribute('aria-label')).toBe('Sort by Grid Title');
@@ -338,10 +406,25 @@ describe('sorting the list', () => {
     });
 
     it('sorts API names as a person reads them, and keeps the sort through search and the side navigation', async () => {
-        listConfigs.mockResolvedValue([...MANY, { name: 'Bench_5', label: 'Bench 5 Columns', objectApiName: 'Rowhouse_Bench__c', objectLabel: 'Rowhouse Bench Records', columns: 5 }]);
+        listConfigs.mockResolvedValue([
+            ...MANY,
+            {
+                name: 'Bench_5',
+                label: 'Bench 5 Columns',
+                objectApiName: 'Rowhouse_Bench__c',
+                objectLabel: 'Rowhouse Bench Records',
+                columns: 5
+            }
+        ]);
         const el = await mount();
         await sortBy(el, 'API name');
-        expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual(['account_people', 'Bench_5', 'Bench_20', 'Key_Accounts', 'Pipeline_Review']);
+        expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual([
+            'account_people',
+            'Bench_5',
+            'Bench_20',
+            'Key_Accounts',
+            'Pipeline_Review'
+        ]);
         await sortBy(el, 'API name');
         $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'bench' } }));
         await settle();
@@ -394,7 +477,16 @@ describe('Settings', () => {
 describe('the row menu', () => {
     const WITH_ARCHIVED = [
         ...CONFIGS.map(c => (c.name === 'Deals' ? { ...c, usedBy: ['Accounts'] } : c)),
-        { name: 'Old_Deals', label: 'Old deals', objectApiName: 'Deal__c', objectLabel: 'Deals', columns: 3, childTables: 0, logChanges: true, archived: true }
+        {
+            name: 'Old_Deals',
+            label: 'Old deals',
+            objectApiName: 'Deal__c',
+            objectLabel: 'Deals',
+            columns: 3,
+            childTables: 0,
+            logChanges: true,
+            archived: true
+        }
     ];
     const menus = el => $$(el, '.rh-admin-row-menu');
     const items = menu => [...menu.querySelectorAll('lightning-menu-item')];
@@ -407,7 +499,11 @@ describe('the row menu', () => {
         const el = await mount();
         expect(menus(el).map(m => m.alternativeText)).toEqual(['Actions for Deals', 'Actions for Open cases']);
         expect(items(menus(el)[0]).map(i => i.label)).toEqual(['Edit', 'Clone', 'Archive']);
-        expect(items(menus(el)[0]).map(i => i.prefixIconName)).toEqual(['utility:edit', 'utility:copy', 'utility:archive']);
+        expect(items(menus(el)[0]).map(i => i.prefixIconName)).toEqual([
+            'utility:edit',
+            'utility:copy',
+            'utility:archive'
+        ]);
         expect(items(menus(el)[0]).map(i => i.disabled)).toEqual([undefined, false, false]);
     });
 
@@ -445,10 +541,14 @@ describe('the row menu', () => {
         const toasts = [];
         el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
         await pick(menus(el)[0], 'clone');
-        $(el, 'c-grid-admin-row-dialog').dispatchEvent(new CustomEvent('done', { detail: { action: 'clone', configName: 'Copy_of_Deals' } }));
+        $(el, 'c-grid-admin-row-dialog').dispatchEvent(
+            new CustomEvent('done', { detail: { action: 'clone', configName: 'Copy_of_Deals' } })
+        );
         await settle();
         expect($(el, 'c-grid-admin-row-dialog')).toBeNull();
-        expect(toasts).toEqual([{ title: 'Grid cloned', message: 'Copy_of_Deals is a copy of Deals.', variant: 'success' }]);
+        expect(toasts).toEqual([
+            { title: 'Grid cloned', message: 'Copy_of_Deals is a copy of Deals.', variant: 'success' }
+        ]);
         expect($(el, 'c-grid-config-editor').configName).toBe('Copy_of_Deals');
         expect(listConfigs).toHaveBeenCalledTimes(2);
     });
@@ -479,7 +579,9 @@ describe('the row menu', () => {
         await choose(el, '__archived__');
         await pick(menus(el)[0], 'restore');
         listConfigs.mockResolvedValue(WITH_ARCHIVED.map(c => ({ ...c, archived: false })));
-        $(el, 'c-grid-admin-row-dialog').dispatchEvent(new CustomEvent('done', { detail: { action: 'restore', configName: 'Old_Deals' } }));
+        $(el, 'c-grid-admin-row-dialog').dispatchEvent(
+            new CustomEvent('done', { detail: { action: 'restore', configName: 'Old_Deals' } })
+        );
         await settle();
         expect(side(el, '__archived__').getAttribute('aria-current')).toBe('page');
         expect($(el, '.rh-admin-no-archived')).not.toBeNull();
@@ -487,4 +589,3 @@ describe('the row menu', () => {
         expect($(el, 'c-grid-config-editor')).toBeNull();
     });
 });
-

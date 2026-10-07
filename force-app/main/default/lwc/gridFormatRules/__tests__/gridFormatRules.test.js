@@ -5,7 +5,8 @@
 import { compileRules, formatsFor, legendFor, resolveDate, dateIn, STYLES } from 'c/gridFormatRules';
 
 const CONTEXT = { today: '2026-09-28', timeZone: 'America/New_York', userId: '005000000000001AAA' };
-const one = (rule, value) => compileRules([{ field: 'F', style: 'bold', applyTo: 'cell', ...rule }], CONTEXT)[0].test(value);
+const one = (rule, value) =>
+    compileRules([{ field: 'F', style: 'bold', applyTo: 'cell', ...rule }], CONTEXT)[0].test(value);
 
 describe('dates', () => {
     it('resolves TODAY and an offset in days, across month and year ends', () => {
@@ -114,11 +115,54 @@ describe('blank values', () => {
 
 describe('which classes a cell takes', () => {
     const RULES = [
-        { name: 'Negative', label: 'Negative amount', field: 'Amount', type: 'currency', operator: 'less_than', value: '0', style: 'text_red', applyTo: 'cell' },
-        { name: 'Large', label: 'Large amount', field: 'Amount', type: 'currency', operator: 'greater_or_equal', value: '1000', style: 'fill_green', applyTo: 'cell' },
-        { name: 'Gamma', label: 'Gamma stage', field: 'Stage', type: 'picklist', operator: 'equals', value: 'Gamma', style: 'fill_purple', applyTo: 'row' },
-        { name: 'Late', field: 'Due', type: 'date', operator: 'less_than', value: 'TODAY', style: 'fill_red', applyTo: 'row' },
-        { name: 'Heavy', label: 'Has a stage', field: 'Stage', type: 'picklist', operator: 'is_not_blank', style: 'bold', applyTo: 'row' }
+        {
+            name: 'Negative',
+            label: 'Negative amount',
+            field: 'Amount',
+            type: 'currency',
+            operator: 'less_than',
+            value: '0',
+            style: 'text_red',
+            applyTo: 'cell'
+        },
+        {
+            name: 'Large',
+            label: 'Large amount',
+            field: 'Amount',
+            type: 'currency',
+            operator: 'greater_or_equal',
+            value: '1000',
+            style: 'fill_green',
+            applyTo: 'cell'
+        },
+        {
+            name: 'Gamma',
+            label: 'Gamma stage',
+            field: 'Stage',
+            type: 'picklist',
+            operator: 'equals',
+            value: 'Gamma',
+            style: 'fill_purple',
+            applyTo: 'row'
+        },
+        {
+            name: 'Late',
+            field: 'Due',
+            type: 'date',
+            operator: 'less_than',
+            value: 'TODAY',
+            style: 'fill_red',
+            applyTo: 'row'
+        },
+        {
+            name: 'Heavy',
+            label: 'Has a stage',
+            field: 'Stage',
+            type: 'picklist',
+            operator: 'is_not_blank',
+            style: 'bold',
+            applyTo: 'row'
+        }
     ];
     const FIELDS = ['Name', 'Amount', 'Stage', 'Due'];
     const compiled = compileRules(RULES, CONTEXT);

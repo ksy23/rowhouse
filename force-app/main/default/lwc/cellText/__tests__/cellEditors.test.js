@@ -16,7 +16,9 @@ import CellMultiPicklist from 'c/cellMultiPicklist';
 import CellLookup from 'c/cellLookup';
 import searchLookup from '@salesforce/apex/GridController.searchLookup';
 
-jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest.fn(() => Promise.resolve([])) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest.fn(() => Promise.resolve([])) }), {
+    virtual: true
+});
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const mount = (Ctor, props) => {
@@ -65,7 +67,7 @@ describe('a required field left blank', () => {
         expect(alertOf(el)).toBeNull();
     });
 
-    it('uses the record form\'s words', () => {
+    it("uses the record form's words", () => {
         expect(REQUIRED_MESSAGE).toBe('Complete this field.');
     });
 
@@ -75,7 +77,9 @@ describe('a required field left blank', () => {
         el.commit();
         await flush();
         expect(alertOf(el)).not.toBeNull();
-        el.shadowRoot.querySelector('lightning-input').dispatchEvent(new CustomEvent('change', { detail: { value: 'x' } }));
+        el.shadowRoot
+            .querySelector('lightning-input')
+            .dispatchEvent(new CustomEvent('change', { detail: { value: 'x' } }));
         await flush();
         expect(alertOf(el)).toBeNull();
         const heard = jest.fn();
@@ -85,7 +89,13 @@ describe('a required field left blank', () => {
     });
 
     it('marks the picklist invalid for a screen reader while it refuses', async () => {
-        const el = mount(CellPicklist, { mode: 'edit', label: 'Field', required: true, value: null, options: [{ value: 'A', label: 'A' }] });
+        const el = mount(CellPicklist, {
+            mode: 'edit',
+            label: 'Field',
+            required: true,
+            value: null,
+            options: [{ value: 'A', label: 'A' }]
+        });
         await flush();
         el.commit();
         await flush();
@@ -119,14 +129,29 @@ describe('typing on a cell starts the edit with what was typed', () => {
     });
 
     it('the lookup editor keeps the typed character: the caret goes after it, not a selection over it', async () => {
-        const el = mount(CellLookup, { mode: 'edit', label: 'Account', value: null, valueLabel: 'Old Co', configName: 'Test_Records', field: 'Lookup_Field__c', seed: 'a' });
+        const el = mount(CellLookup, {
+            mode: 'edit',
+            label: 'Account',
+            value: null,
+            valueLabel: 'Old Co',
+            configName: 'Test_Records',
+            field: 'Lookup_Field__c',
+            seed: 'a'
+        });
         await flush();
         el.focus();
         const input = el.shadowRoot.querySelector('input');
         expect(input.selectionStart).toBe(1);
         expect(input.selectionEnd).toBe(1);
         // Without a seed the name is selected, so typing replaces it.
-        const plain = mount(CellLookup, { mode: 'edit', label: 'Account', value: '001000000000001AAA', valueLabel: 'Old Co', configName: 'Test_Records', field: 'Lookup_Field__c' });
+        const plain = mount(CellLookup, {
+            mode: 'edit',
+            label: 'Account',
+            value: '001000000000001AAA',
+            valueLabel: 'Old Co',
+            configName: 'Test_Records',
+            field: 'Lookup_Field__c'
+        });
         await flush();
         plain.focus();
         const box = plain.shadowRoot.querySelector('input');
@@ -135,7 +160,14 @@ describe('typing on a cell starts the edit with what was typed', () => {
 
     it('the lookup editor searches for the typed character', async () => {
         jest.useFakeTimers();
-        const el = mount(CellLookup, { mode: 'edit', label: 'Account', value: null, configName: 'Test_Records', field: 'Lookup_Field__c', seed: 'a' });
+        const el = mount(CellLookup, {
+            mode: 'edit',
+            label: 'Account',
+            value: null,
+            configName: 'Test_Records',
+            field: 'Lookup_Field__c',
+            seed: 'a'
+        });
         await Promise.resolve();
         expect(el.shadowRoot.querySelector('input').value).toBe('a');
         jest.runOnlyPendingTimers();

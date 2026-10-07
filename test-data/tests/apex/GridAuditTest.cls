@@ -12,11 +12,17 @@
  */
 @IsTest
 private class GridAuditTest {
-
     private static List<Rowhouse_Test_Record__c> newRecords(List<String> names) {
         List<Rowhouse_Test_Record__c> out = new List<Rowhouse_Test_Record__c>();
         for (String name : names) {
-            out.add(new Rowhouse_Test_Record__c(Name = name, Text_Field__c = 'old', Number_Field__c = 1, Checkbox_Field__c = false));
+            out.add(
+                new Rowhouse_Test_Record__c(
+                    Name = name,
+                    Text_Field__c = 'old',
+                    Number_Field__c = 1,
+                    Checkbox_Field__c = false
+                )
+            );
         }
         insert out;
         return out;
@@ -28,10 +34,25 @@ private class GridAuditTest {
             ids.add(String.valueOf(i));
         }
         return [
-            SELECT Id, Grid_Configuration__c, Object__c, Record_Id__c, Record_Name__c, Operation__c, Field__c,
-                   Field_Label__c, Old_Value__c, New_Value__c, Values_Hidden__c, Action__c, Action_Label__c,
-                   Save_Id__c, CreatedById
-            FROM Grid_Edit_Log__c WHERE Record_Id__c IN :ids ORDER BY Record_Name__c, Operation__c, Field__c
+            SELECT
+                Id,
+                Grid_Configuration__c,
+                Object__c,
+                Record_Id__c,
+                Record_Name__c,
+                Operation__c,
+                Field__c,
+                Field_Label__c,
+                Old_Value__c,
+                New_Value__c,
+                Values_Hidden__c,
+                Action__c,
+                Action_Label__c,
+                Save_Id__c,
+                CreatedById
+            FROM Grid_Edit_Log__c
+            WHERE Record_Id__c IN :ids
+            ORDER BY Record_Name__c, Operation__c, Field__c
         ];
     }
 
@@ -59,8 +80,13 @@ private class GridAuditTest {
             update recs[1];
             List<Map<String, Object>> rows = new List<Map<String, Object>>{
                 // Name and Number sent unchanged, Text and Active changed.
-                new Map<String, Object>{ 'Id' => recs[0].Id, 'Name' => 'Audit A', 'Text_Field__c' => 'new',
-                    'Number_Field__c' => '1', 'Checkbox_Field__c' => true },
+                new Map<String, Object>{
+                    'Id' => recs[0].Id,
+                    'Name' => 'Audit A',
+                    'Text_Field__c' => 'new',
+                    'Number_Field__c' => '1',
+                    'Checkbox_Field__c' => true
+                },
                 // Only the case of the text changes: still a change.
                 new Map<String, Object>{ 'Id' => recs[1].Id, 'Text_Field__c' => 'Smith' }
             };
@@ -70,10 +96,17 @@ private class GridAuditTest {
             System.assert(GridSaveService.status(ticket.saveId).done, 'The save reported.');
 
             List<Grid_Edit_Log__c> entries = entriesFor(idsOf(recs));
-            System.assertEquals(3, entries.size(), 'Two fields on A, one on B; unchanged fields are not logged: ' + entries);
+            System.assertEquals(
+                3,
+                entries.size(),
+                'Two fields on A, one on B; unchanged fields are not logged: ' + entries
+            );
             Grid_Edit_Log__c active = entries[0];
             System.assertEquals('Checkbox_Field__c', active.Field__c);
-            System.assertEquals(Rowhouse_Test_Record__c.Checkbox_Field__c.getDescribe().getLabel(), active.Field_Label__c);
+            System.assertEquals(
+                Rowhouse_Test_Record__c.Checkbox_Field__c.getDescribe().getLabel(),
+                active.Field_Label__c
+            );
             System.assertEquals('false', active.Old_Value__c);
             System.assertEquals('true', active.New_Value__c);
             Grid_Edit_Log__c text = entries[1];
@@ -123,11 +156,17 @@ private class GridAuditTest {
         System.runAs(GridTestUsers.fullUser()) {
             List<Rowhouse_Test_Record__c> recs = newRecords(new List<String>{ 'Quiet' });
             Test.startTest();
-            GridSaveService.save('Save_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => recs[0].Id, 'Number_Field__c' => '42' }
-            });
+            GridSaveService.save(
+                'Save_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'Id' => recs[0].Id, 'Number_Field__c' => '42' }
+                }
+            );
             Test.stopTest();
-            System.assertEquals(42, [SELECT Number_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :recs[0].Id].Number_Field__c);
+            System.assertEquals(
+                42,
+                [SELECT Number_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :recs[0].Id].Number_Field__c
+            );
             System.assert(entriesFor(idsOf(recs)).isEmpty(), 'Save_Test does not set Log Changes.');
         }
     }
@@ -138,10 +177,13 @@ private class GridAuditTest {
     static void anImportLogsTheFieldsItUpdatesAndEachRecordItCreates() {
         System.runAs(GridTestUsers.fullUser()) {
             List<Rowhouse_Test_Record__c> recs = newRecords(new List<String>{ 'Imported over' });
-            GridImportService.Result result = GridImportService.importRows('Audit_Test', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => recs[0].Id, 'Text_Field__c' => 'from the file' },
-                new Map<String, Object>{ 'Name' => 'Imported new', 'Text_Field__c' => 'x' }
-            });
+            GridImportService.Result result = GridImportService.importRows(
+                'Audit_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'Id' => recs[0].Id, 'Text_Field__c' => 'from the file' },
+                    new Map<String, Object>{ 'Name' => 'Imported new', 'Text_Field__c' => 'x' }
+                }
+            );
             System.assert(result.rows[0].success && result.rows[1].success, String.valueOf(result.rows));
             Id createdId = result.rows[1].recordId;
             List<Grid_Edit_Log__c> entries = entriesFor(new Set<Id>{ recs[0].Id, createdId });
@@ -166,15 +208,19 @@ private class GridAuditTest {
         // name is given on insert: the record the grid wrote carries no Name.
         System.runAs(GridTestUsers.fullUser()) {
             List<Rowhouse_Test_Record__c> recs = newRecords(new List<String>{ 'Named on insert' });
-            List<Database.SaveResult> results = Database.update(new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Id = recs[0].Id)
-            });
+            List<Database.SaveResult> results = Database.update(
+                new List<Rowhouse_Test_Record__c>{ new Rowhouse_Test_Record__c(Id = recs[0].Id) }
+            );
             GridAudit.Context ctx = new GridAudit.Context();
             ctx.configName = 'Audit_Test';
             ctx.objectName = 'Rowhouse_Test_Record__c';
             ctx.saveId = 'test-save';
-            List<Grid_Edit_Log__c> entries = GridAudit.creates(ctx, Rowhouse_Test_Record__c.SObjectType,
-                new List<SObject>{ new Rowhouse_Test_Record__c(Text_Field__c = 'x') }, results);
+            List<Grid_Edit_Log__c> entries = GridAudit.creates(
+                ctx,
+                Rowhouse_Test_Record__c.SObjectType,
+                new List<SObject>{ new Rowhouse_Test_Record__c(Text_Field__c = 'x') },
+                results
+            );
             System.assertEquals(1, entries.size(), String.valueOf(entries));
             System.assertEquals('Create', entries[0].Operation__c);
             System.assertEquals('Named on insert', entries[0].Record_Name__c, 'The name is read back from the record.');
@@ -189,7 +235,11 @@ private class GridAuditTest {
             System.assertEquals(2, result.deletedIds.size(), String.valueOf(result.errors));
             List<Grid_Edit_Log__c> entries = entriesFor(idsOf(recs));
             System.assertEquals(2, entries.size(), String.valueOf(entries));
-            System.assertEquals('Deleted 1', entries[0].Record_Name__c, 'The entry keeps the name of a record now in the Recycle Bin.');
+            System.assertEquals(
+                'Deleted 1',
+                entries[0].Record_Name__c,
+                'The entry keeps the name of a record now in the Recycle Bin.'
+            );
             System.assertEquals('Deleted 2', entries[1].Record_Name__c);
             for (Grid_Edit_Log__c e : entries) {
                 System.assertEquals('Delete', e.Operation__c);
@@ -203,7 +253,10 @@ private class GridAuditTest {
         System.runAs(GridTestUsers.fullUser()) {
             List<Rowhouse_Test_Record__c> recs = newRecords(new List<String>{ 'Back 1', 'Back 2' });
             GridDeleteService.deleteRows('Audit_Test', new List<Id>(idsOf(recs)));
-            GridDeleteService.RestoreResult result = GridDeleteService.restoreRows('Audit_Test', new List<Id>(idsOf(recs)));
+            GridDeleteService.RestoreResult result = GridDeleteService.restoreRows(
+                'Audit_Test',
+                new List<Id>(idsOf(recs))
+            );
             System.assertEquals(2, result.restoredIds.size(), String.valueOf(result.errors));
             List<Grid_Edit_Log__c> restores = new List<Grid_Edit_Log__c>();
             for (Grid_Edit_Log__c e : entriesFor(idsOf(recs))) {
@@ -221,7 +274,11 @@ private class GridAuditTest {
     static void anActionLogsEachRecordItRanOnAndNotOneItFailedOn() {
         System.runAs(GridTestUsers.fullUser()) {
             List<Rowhouse_Test_Record__c> recs = newRecords(new List<String>{ 'Acted on', 'Fail me' });
-            GridActionService.Result result = GridActionService.run('Audit_Test', 'Audit_Test_Mark_Seen', new List<Id>(idsOf(recs)));
+            GridActionService.Result result = GridActionService.run(
+                'Audit_Test',
+                'Audit_Test_Mark_Seen',
+                new List<Id>(idsOf(recs))
+            );
             System.assertEquals(new List<Id>{ recs[0].Id }, result.succeededIds, String.valueOf(result.errors));
             List<Grid_Edit_Log__c> entries = entriesFor(idsOf(recs));
             System.assertEquals(1, entries.size(), 'A record the action failed on is not logged: ' + entries);
@@ -259,7 +316,11 @@ private class GridAuditTest {
             System.assert(acted != null && acted.contains(expected), 'An action: ' + acted);
         }
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c after = [SELECT Id, Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :recordId];
+            Rowhouse_Test_Record__c after = [
+                SELECT Id, Text_Field__c
+                FROM Rowhouse_Test_Record__c
+                WHERE Id = :recordId
+            ];
             System.assertEquals('old', after.Text_Field__c, 'Not saved, imported over, deleted or acted on.');
         }
     }
@@ -277,10 +338,18 @@ private class GridAuditTest {
                 new Map<String, Object>{ 'Id' => recordId, 'Text_Field__c' => 'changed' }
             };
             switch on kind {
-                when 'save' { return GridSaveService.save('Audit_Test', rows); }
-                when 'import' { return GridImportService.importRows('Audit_Test', rows); }
-                when 'delete' { return GridDeleteService.deleteRows('Audit_Test', new List<Id>{ recordId }); }
-                when else { return GridActionService.run('Audit_Test', 'Audit_Test_Mark_Seen', new List<Id>{ recordId }); }
+                when 'save' {
+                    return GridSaveService.save('Audit_Test', rows);
+                }
+                when 'import' {
+                    return GridImportService.importRows('Audit_Test', rows);
+                }
+                when 'delete' {
+                    return GridDeleteService.deleteRows('Audit_Test', new List<Id>{ recordId });
+                }
+                when else {
+                    return GridActionService.run('Audit_Test', 'Audit_Test_Mark_Seen', new List<Id>{ recordId });
+                }
             }
         }
     }
@@ -312,7 +381,10 @@ private class GridAuditTest {
         Object day = Date.newInstance(2026, 9, 30); // held as an Object, a Date is also an instanceof Datetime
         System.assertEquals('2026-09-30', GridAudit.text(day));
         System.assertEquals('2026-01-05', GridAudit.text(Date.newInstance(2026, 1, 5)));
-        System.assertEquals('2026-09-30T23:30:00.000Z', GridAudit.text(Datetime.newInstanceGmt(2026, 9, 30, 23, 30, 0)));
+        System.assertEquals(
+            '2026-09-30T23:30:00.000Z',
+            GridAudit.text(Datetime.newInstanceGmt(2026, 9, 30, 23, 30, 0))
+        );
         System.assertEquals('1234.50', GridAudit.text(1234.50));
         System.assertEquals('100000000000000000000', GridAudit.text(Double.valueOf('1.0E20')), 'In full, not 1.0E20.');
         System.assertEquals('5', GridAudit.text(5));
@@ -344,8 +416,16 @@ private class GridAuditTest {
         for (List<SObject> chunk : GridSaveService.chunksOf(records, 10)) {
             sizes.add(chunk.size());
         }
-        System.assertEquals(new List<Integer>{ 3, 3, 1 }, sizes, 'Three fields each: three records are 9 cells, four would be 12.');
-        System.assertEquals(1, GridSaveService.chunksOf(records, null).size(), 'Without logging, only the 200-record chunk size applies.');
+        System.assertEquals(
+            new List<Integer>{ 3, 3, 1 },
+            sizes,
+            'Three fields each: three records are 9 cells, four would be 12.'
+        );
+        System.assertEquals(
+            1,
+            GridSaveService.chunksOf(records, null).size(),
+            'Without logging, only the 200-record chunk size applies.'
+        );
 
         List<SObject> many = new List<SObject>();
         for (Integer i = 0; i < 450; i++) {
@@ -357,12 +437,25 @@ private class GridAuditTest {
         }
         System.assertEquals(new List<Integer>{ 200, 200, 50 }, sizes, 'A narrow save chunks as it always has.');
 
-        List<SObject> wide = new List<SObject>{ records[0], new Rowhouse_Test_Record__c(Name = 'w', Text_Field__c = 'a',
-            Number_Field__c = 1, Checkbox_Field__c = true, Percent_Field__c = 2), records[1] };
+        List<SObject> wide = new List<SObject>{
+            records[0],
+            new Rowhouse_Test_Record__c(
+                Name = 'w',
+                Text_Field__c = 'a',
+                Number_Field__c = 1,
+                Checkbox_Field__c = true,
+                Percent_Field__c = 2
+            ),
+            records[1]
+        };
         sizes.clear();
         for (List<SObject> chunk : GridSaveService.chunksOf(wide, 4)) {
             sizes.add(chunk.size());
         }
-        System.assertEquals(new List<Integer>{ 1, 1, 1 }, sizes, 'A record wider than the budget is never split: it goes alone.');
+        System.assertEquals(
+            new List<Integer>{ 1, 1, 1 },
+            sizes,
+            'A record wider than the budget is never split: it goes alone.'
+        );
     }
 }

@@ -18,14 +18,16 @@
  * Rowhouse Grid User permission set) gets none, and the grid works as before.
  */
 public with sharing class GridLayouts {
-
     /** Characters a layout may hold: well inside the field's 32,768. */
     public static final Integer MAX_LENGTH = 30000;
 
     /** This user's layout of the grid, as JSON, or null. */
     public static String read(String configName) {
         String name = configNamed(configName);
-        if (!GridSecurity.canRead(Grid_User_Layout__c.SObjectType) || !GridSecurity.canRead(Grid_User_Layout__c.Layout__c)) {
+        if (
+            !GridSecurity.canRead(Grid_User_Layout__c.SObjectType) ||
+            !GridSecurity.canRead(Grid_User_Layout__c.Layout__c)
+        ) {
             return null;
         }
         List<Grid_User_Layout__c> rows = own(name);
@@ -42,7 +44,9 @@ public with sharing class GridLayouts {
             throw new GridException('There is no layout to keep.');
         }
         if (layout.length() > MAX_LENGTH) {
-            throw new GridException('A layout is ' + MAX_LENGTH + ' characters at most; this one is ' + layout.length() + '.');
+            throw new GridException(
+                'A layout is ' + MAX_LENGTH + ' characters at most; this one is ' + layout.length() + '.'
+            );
         }
         Object parsed;
         try {
@@ -53,8 +57,11 @@ public with sharing class GridLayouts {
         if (!(parsed instanceof Map<String, Object>)) {
             throw new GridException('A layout must be a JSON object.');
         }
-        if (!GridSecurity.canCreate(Grid_User_Layout__c.SObjectType) || !GridSecurity.canUpdate(Grid_User_Layout__c.SObjectType)
-                || !GridSecurity.canEdit(Grid_User_Layout__c.Layout__c)) {
+        if (
+            !GridSecurity.canCreate(Grid_User_Layout__c.SObjectType) ||
+            !GridSecurity.canUpdate(Grid_User_Layout__c.SObjectType) ||
+            !GridSecurity.canEdit(Grid_User_Layout__c.Layout__c)
+        ) {
             return false;
         }
         Grid_User_Layout__c record = new Grid_User_Layout__c(Name = name, Key__c = keyFor(name), Layout__c = layout);
@@ -65,7 +72,10 @@ public with sharing class GridLayouts {
     /** Forget this user's layout of the grid (Reset layout). */
     public static void reset(String configName) {
         String name = configNamed(configName);
-        if (!GridSecurity.canRead(Grid_User_Layout__c.SObjectType) || !GridSecurity.canDelete(Grid_User_Layout__c.SObjectType)) {
+        if (
+            !GridSecurity.canRead(Grid_User_Layout__c.SObjectType) ||
+            !GridSecurity.canDelete(Grid_User_Layout__c.SObjectType)
+        ) {
             return;
         }
         GridSecurity.deleteOwnRecords(own(name));
@@ -101,7 +111,9 @@ public with sharing class GridLayouts {
         if (savedSort instanceof List<Object>) {
             for (Object key : (List<Object>) savedSort) {
                 Map<String, Object> k = key instanceof Map<String, Object> ? (Map<String, Object>) key : null;
-                GridConfig.Column c = k != null && k.get('field') instanceof String ? byField.get((String) k.get('field')) : null;
+                GridConfig.Column c = k != null && k.get('field') instanceof String
+                    ? byField.get((String) k.get('field'))
+                    : null;
                 if (c != null && c.sortable != false) {
                     sortField = c.field;
                     sortDirection = 'desc'.equals(k.get('direction')) ? 'desc' : 'asc';
@@ -125,7 +137,11 @@ public with sharing class GridLayouts {
             }
             groupBy = groupingThatFits(admin, byField);
         }
-        return new Map<String, Object>{ 'sortField' => sortField, 'sortDirection' => sortDirection, 'groupBy' => groupBy };
+        return new Map<String, Object>{
+            'sortField' => sortField,
+            'sortDirection' => sortDirection,
+            'groupBy' => groupBy
+        };
     }
 
     /** gridGroups' normalizeGrouping, as fetchRows takes the levels. */
@@ -134,14 +150,27 @@ public with sharing class GridLayouts {
         Set<String> seen = new Set<String>();
         for (Object entry : levels) {
             Map<String, Object> level = entry instanceof Map<String, Object> ? (Map<String, Object>) entry : null;
-            GridConfig.Column c = level != null && level.get('field') instanceof String ? byField.get((String) level.get('field')) : null;
-            if (c == null || c.groupable != true || out.size() >= GridConfig.MAX_GROUP_LEVELS || seen.contains(c.field)) {
+            GridConfig.Column c = level != null && level.get('field') instanceof String
+                ? byField.get((String) level.get('field'))
+                : null;
+            if (
+                c == null ||
+                c.groupable != true ||
+                out.size() >= GridConfig.MAX_GROUP_LEVELS ||
+                seen.contains(c.field)
+            ) {
                 continue;
             }
             seen.add(c.field);
             if ('date'.equals(c.type) || 'datetime'.equals(c.type)) {
                 Object unit = level.get('unit');
-                out.add(c.field + ':' + (unit instanceof String && GridConfig.GROUP_UNITS.contains((String) unit) ? (String) unit : 'month'));
+                out.add(
+                    c.field +
+                        ':' +
+                        (unit instanceof String && GridConfig.GROUP_UNITS.contains((String) unit)
+                            ? (String) unit
+                            : 'month')
+                );
             } else {
                 out.add(c.field);
             }

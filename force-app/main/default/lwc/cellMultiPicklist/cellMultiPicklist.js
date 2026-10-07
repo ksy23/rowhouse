@@ -56,9 +56,11 @@ export default class CellMultiPicklist extends LightningElement {
     }
 
     get panelClass() {
-        return 'slds-dropdown slds-p-around_small rh-multi-panel '
-            + (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left')
-            + (this.dropdownUp ? ' slds-dropdown_bottom' : '');
+        return (
+            'slds-dropdown slds-p-around_small rh-multi-panel ' +
+            (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left') +
+            (this.dropdownUp ? ' slds-dropdown_bottom' : '')
+        );
     }
 
     /** The box only reports: a click on it leaves focus in the lists. */

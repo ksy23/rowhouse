@@ -87,7 +87,12 @@ export function dependentClears(changes, columns, current, original) {
             if (touched.has(key)) return;
             if (!isValidDependent(dependent, current(change.recordId, dependent.field), change.value)) {
                 touched.add(key);
-                out.push({ recordId: change.recordId, field: dependent.field, value: null, originalValue: original(change.recordId, dependent.field) });
+                out.push({
+                    recordId: change.recordId,
+                    field: dependent.field,
+                    value: null,
+                    originalValue: original(change.recordId, dependent.field)
+                });
             }
         });
     });

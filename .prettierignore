@@ -1,0 +1,29 @@
+# Prettier formats the code: Apex, JavaScript, LWC templates, CSS and the
+# workflow YAML. Metadata XML is left as Salesforce writes it: the XML
+# formatter breaks long descriptions across two lines in an odd way, and the
+# hard-rule checks read those descriptions. These stay as they are too:
+
+# Built by `npm run guide` from guide/pages; the build check compares them
+# byte for byte with what the generator writes.
+force-app/main/default/lwc/guidePage*/
+force-app/main/default/lwc/guideContent/
+force-app/main/default/lwc/guideCatalog/
+
+# The Grid Guide's page sources and files, hand-written and tested word for word.
+guide/pages/
+guide/files/
+
+# Prose, data and binary-like assets.
+*.md
+*.json
+*.csv
+docs/
+**/staticresources/
+**/contentassets/
+
+# Tooling output.
+node_modules/
+coverage/
+.sfdx/
+.sf/
+.husky/_/

@@ -3,10 +3,31 @@
  * count or a subtotal, each group's share of the whole list, and subtotals
  * that follow unsaved edits.
  */
-import { keyFor, groupLabel, weekStart, fiscalOf, buildView, rollUp, withDrafts, shareOf, shareText, normalizeOrder, subtotalFor } from 'c/gridGroups';
+import {
+    keyFor,
+    groupLabel,
+    weekStart,
+    fiscalOf,
+    buildView,
+    rollUp,
+    withDrafts,
+    shareOf,
+    shareText,
+    normalizeOrder,
+    subtotalFor
+} from 'c/gridGroups';
 
 const DATE = { field: 'Close__c', label: 'Close', type: 'date' };
-const STAGE = { field: 'Stage__c', label: 'Stage', type: 'picklist', options: [{ value: 'Open', label: 'Open' }, { value: 'Won', label: 'Won' }, { value: 'Lost', label: 'Lost' }] };
+const STAGE = {
+    field: 'Stage__c',
+    label: 'Stage',
+    type: 'picklist',
+    options: [
+        { value: 'Open', label: 'Open' },
+        { value: 'Won', label: 'Won' },
+        { value: 'Lost', label: 'Lost' }
+    ]
+};
 const AMOUNT = { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, subtotal: 'sum' };
 const LOW = { field: 'Low__c', label: 'Low', type: 'number', scale: 0, subtotal: 'min' };
 const COLUMNS = [STAGE, DATE, AMOUNT, LOW];
@@ -24,8 +45,10 @@ describe('weeks', () => {
         expect(groupLabel('2026-10-04', DATE, 'week')).toMatch(/^Week of /);
     });
 
-    it('key a date/time by the week of its day in the user\'s time zone', () => {
-        expect(keyFor('2026-10-07T12:00:00.000Z', { field: 'When__c', type: 'datetime' }, 'week', 'UTC')).toBe('2026-10-04');
+    it("key a date/time by the week of its day in the user's time zone", () => {
+        expect(keyFor('2026-10-07T12:00:00.000Z', { field: 'When__c', type: 'datetime' }, 'week', 'UTC')).toBe(
+            '2026-10-04'
+        );
     });
 });
 
@@ -44,7 +67,7 @@ describe('fiscal periods', () => {
         expect(fiscalOf('2026-05-01', { startMonth: 4, nameByStart: true })).toEqual({ year: '2026', quarter: 1 });
     });
 
-    it('take the org\'s own years and quarters where it has defined them', () => {
+    it("take the org's own years and quarters where it has defined them", () => {
         const fiscal = {
             startMonth: 1,
             periods: [
@@ -79,36 +102,51 @@ const SERVER = [
 const totals = () => rollUp(SERVER, LEVELS, COLUMNS);
 const groupNames = view => view.items.filter(r => r.__group).map(r => r.__group.label);
 
-describe('the groups\' order', () => {
+describe("the groups' order", () => {
     it('is by name until the user asks otherwise; anything unknown is by name', () => {
         expect(normalizeOrder(null, COLUMNS)).toEqual({ by: 'name', direction: 'asc' });
         expect(normalizeOrder({ by: 'Nope__c' }, COLUMNS)).toEqual({ by: 'name', direction: 'asc' });
         expect(normalizeOrder({ by: 'count' }, COLUMNS)).toEqual({ by: 'count', direction: 'desc' });
-        expect(normalizeOrder({ by: 'Amount__c', direction: 'asc' }, COLUMNS)).toEqual({ by: 'Amount__c', direction: 'asc' });
+        expect(normalizeOrder({ by: 'Amount__c', direction: 'asc' }, COLUMNS)).toEqual({
+            by: 'Amount__c',
+            direction: 'asc'
+        });
     });
 
     it('can be by a subtotal, largest first or smallest first', () => {
         const options = { columns: COLUMNS, totals: totals() };
         expect(groupNames(buildView(ROWS, LEVELS, options))).toEqual(['Open', 'Won', 'Lost']); // the picklist's order
-        expect(groupNames(buildView(ROWS, LEVELS, { ...options, order: { by: 'Amount__c', direction: 'desc' } }))).toEqual(['Won', 'Open', 'Lost']);
-        expect(groupNames(buildView(ROWS, LEVELS, { ...options, order: { by: 'Amount__c', direction: 'asc' } }))).toEqual(['Lost', 'Open', 'Won']);
+        expect(
+            groupNames(buildView(ROWS, LEVELS, { ...options, order: { by: 'Amount__c', direction: 'desc' } }))
+        ).toEqual(['Won', 'Open', 'Lost']);
+        expect(
+            groupNames(buildView(ROWS, LEVELS, { ...options, order: { by: 'Amount__c', direction: 'asc' } }))
+        ).toEqual(['Lost', 'Open', 'Won']);
     });
 
     it('can be by record count, ties keeping their order by name', () => {
-        const view = buildView(ROWS, LEVELS, { columns: COLUMNS, totals: totals(), order: { by: 'count', direction: 'desc' } });
+        const view = buildView(ROWS, LEVELS, {
+            columns: COLUMNS,
+            totals: totals(),
+            order: { by: 'count', direction: 'desc' }
+        });
         expect(groupNames(view)).toEqual(['Open', 'Won', 'Lost']);
     });
 
     it('keeps blank last', () => {
         const rows = ROWS.concat([{ Id: 'r5', Stage__c: null, Amount__c: '9999' }]);
         const server = SERVER.concat([{ k: [''], n: 1, v: { Amount__c: { s: '9999' } } }]);
-        const view = buildView(rows, LEVELS, { columns: COLUMNS, totals: rollUp(server, LEVELS, COLUMNS), order: { by: 'Amount__c', direction: 'desc' } });
+        const view = buildView(rows, LEVELS, {
+            columns: COLUMNS,
+            totals: rollUp(server, LEVELS, COLUMNS),
+            order: { by: 'Amount__c', direction: 'desc' }
+        });
         expect(groupNames(view)).toEqual(['Won', 'Open', 'Lost', '(blank)']);
     });
 });
 
 describe('percent of total', () => {
-    it('is a group\'s count, or its sum, over the whole list\'s', () => {
+    it("is a group's count, or its sum, over the whole list's", () => {
         const t = totals();
         const open = t.byPath.get('open');
         expect(shareOf(open, t.total, null)).toBeCloseTo(0.5);
@@ -124,7 +162,7 @@ describe('subtotals with unsaved edits', () => {
     const t = totals();
     const sum = (agg, column = AMOUNT) => Number(subtotalFor(agg, column).value);
 
-    it('are the server\'s when nothing is edited', () => {
+    it("are the server's when nothing is edited", () => {
         expect(withDrafts(t, ROWS, {}, LEVELS, COLUMNS)).toBe(t);
         expect(withDrafts(t, ROWS, { r1: { Stage__c: 'Won' } }, LEVELS, COLUMNS)).toBe(t); // no subtotal moved
     });

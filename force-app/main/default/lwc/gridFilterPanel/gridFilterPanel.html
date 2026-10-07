@@ -1,5 +1,10 @@
 <template>
-    <section class="slds-dropdown slds-dropdown_right slds-p-around_small rh-filter-panel" role="dialog" aria-label={heading} onkeydown={handleKeyDown}>
+    <section
+        class="slds-dropdown slds-dropdown_right slds-p-around_small rh-filter-panel"
+        role="dialog"
+        aria-label={heading}
+        onkeydown={handleKeyDown}
+    >
         <h2 class="slds-text-heading_small slds-m-bottom_x-small rh-filter-heading">{heading}</h2>
         <div class="slds-form-element slds-m-bottom_x-small">
             <label class="slds-form-element__label" for="filter-operator">Condition</label>
@@ -20,7 +25,11 @@
                     <label class="slds-form-element__label" for="filter-value-select">{valueLabel}</label>
                     <div class="slds-form-element__control">
                         <div class="slds-select_container">
-                            <select class="slds-select rh-filter-value" id="filter-value-select" onchange={handleValueChange}>
+                            <select
+                                class="slds-select rh-filter-value"
+                                id="filter-value-select"
+                                onchange={handleValueChange}
+                            >
                                 <template for:each={choices} for:item="c">
                                     <option key={c.value} value={c.value} selected={c.selected}>{c.label}</option>
                                 </template>
@@ -31,7 +40,14 @@
                 <template lwc:else>
                     <label class="slds-form-element__label" for="filter-value-input">{valueLabel}</label>
                     <div class="slds-form-element__control">
-                        <input class="slds-input rh-filter-value" id="filter-value-input" type={inputType} step="any" value={draft.value} oninput={handleValueChange} />
+                        <input
+                            class="slds-input rh-filter-value"
+                            id="filter-value-input"
+                            type={inputType}
+                            step="any"
+                            value={draft.value}
+                            oninput={handleValueChange}
+                        />
                     </div>
                 </template>
             </div>
@@ -39,13 +55,25 @@
                 <div class="slds-form-element slds-m-bottom_x-small">
                     <label class="slds-form-element__label" for="filter-value-to">And</label>
                     <div class="slds-form-element__control">
-                        <input class="slds-input rh-filter-value-to" id="filter-value-to" type={inputType} step="any" value={draft.valueTo} oninput={handleValueToChange} />
+                        <input
+                            class="slds-input rh-filter-value-to"
+                            id="filter-value-to"
+                            type={inputType}
+                            step="any"
+                            value={draft.valueTo}
+                            oninput={handleValueToChange}
+                        />
                     </div>
                 </div>
             </template>
         </template>
         <template lwc:if={problem}>
-            <p class="slds-form-element__help slds-text-color_error slds-m-bottom_x-small rh-filter-problem" role="alert">{problem}</p>
+            <p
+                class="slds-form-element__help slds-text-color_error slds-m-bottom_x-small rh-filter-problem"
+                role="alert"
+            >
+                {problem}
+            </p>
         </template>
         <div class="slds-grid slds-grid_align-spread slds-m-top_x-small">
             <div>

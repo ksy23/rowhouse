@@ -34,16 +34,25 @@
                         <p class="slds-text-body_small slds-text-color_weak rh-meta">
                             <span class="rh-count">{countLabel}</span>
                             <template lwc:if={isFiltered}>
-                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-filtered">Filtered</span>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span
+                                ><span class="rh-filtered">Filtered</span>
                             </template>
                             <template lwc:if={isTruncated}>
-                                <lightning-helptext class="slds-m-left_xx-small rh-truncated" content={truncatedMessage}></lightning-helptext>
+                                <lightning-helptext
+                                    class="slds-m-left_xx-small rh-truncated"
+                                    content={truncatedMessage}
+                                ></lightning-helptext>
                             </template>
                             <template lwc:if={sortedByText}>
-                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-sorted">{sortedByText}</span>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span
+                                ><span class="rh-sorted">{sortedByText}</span>
                             </template>
                             <template lwc:if={loadedAt}>
-                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-updated">Updated <lightning-relative-date-time value={loadedAt}></lightning-relative-date-time></span>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span
+                                ><span class="rh-updated"
+                                    >Updated
+                                    <lightning-relative-date-time value={loadedAt}></lightning-relative-date-time
+                                ></span>
                             </template>
                         </p>
                     </template>
@@ -73,15 +82,22 @@
                                  icon: the same 16px, so the button keeps its width. Spans, as a button
                                  may hold only phrasing content. -->
                             <template lwc:if={legendBusy}>
-                                <span role="status" class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-legend-spinner">
+                                <span
+                                    role="status"
+                                    class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-legend-spinner"
+                                >
                                     <span class="slds-assistive-text">{legendBusy}</span>
                                     <span class="slds-spinner__dot-a"></span>
                                     <span class="slds-spinner__dot-b"></span>
                                 </span>
                             </template>
                             <template lwc:else>
-                                <lightning-icon icon-name="utility:color_swatch" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                            </template>Display Key
+                                <lightning-icon
+                                    icon-name="utility:color_swatch"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                ></lightning-icon> </template
+                            >Display Key
                         </button>
                     </template>
                     <lightning-button-icon
@@ -166,7 +182,12 @@
                         onselect={handleMenuSelect}
                     >
                         <template for:each={menuItems} for:item="m">
-                            <lightning-menu-item key={m.key} value={m.value} label={m.label} disabled={m.disabled}></lightning-menu-item>
+                            <lightning-menu-item
+                                key={m.key}
+                                value={m.value}
+                                label={m.label}
+                                disabled={m.disabled}
+                            ></lightning-menu-item>
                         </template>
                     </lightning-button-menu>
                 </template>
@@ -175,7 +196,11 @@
                  under the header, rather than pushing the table down, so the row just
                  clicked stays under the pointer and the header stays in view. -->
             <template lwc:if={hasSelectionBar}>
-                <div class="slds-grid slds-wrap slds-grid_vertical-align-center slds-p-horizontal_small rh-selection-bar" role="region" aria-label="Selected rows">
+                <div
+                    class="slds-grid slds-wrap slds-grid_vertical-align-center slds-p-horizontal_small rh-selection-bar"
+                    role="region"
+                    aria-label="Selected rows"
+                >
                     <span class="slds-text-title_bold slds-m-right_small rh-selection-count">{selectedText}</span>
                     <template lwc:if={canMassUpdate}>
                         <lightning-button
@@ -229,19 +254,37 @@
                             onclick={handleSelectAllMatching}
                         ></lightning-button>
                     </template>
-                    <lightning-button class="rh-clear-selection" label="Clear" title="Clear selection" variant="base" onclick={handleClearSelection}></lightning-button>
+                    <lightning-button
+                        class="rh-clear-selection"
+                        label="Clear"
+                        title="Clear selection"
+                        variant="base"
+                        onclick={handleClearSelection}
+                    ></lightning-button>
                 </div>
             </template>
         </div>
 
         <template lwc:if={legendOpen}>
-            <div class="slds-p-horizontal_medium slds-p-bottom_x-small rh-legend" id="legend" role="region" aria-label="Display Key">
+            <div
+                class="slds-p-horizontal_medium slds-p-bottom_x-small rh-legend"
+                id="legend"
+                role="region"
+                aria-label="Display Key"
+            >
                 <ul class="slds-grid slds-wrap">
                     <template for:each={legendItems} for:item="l">
-                        <li key={l.key} class="slds-grid slds-grid_vertical-align-center slds-m-right_medium slds-m-bottom_xx-small">
+                        <li
+                            key={l.key}
+                            class="slds-grid slds-grid_vertical-align-center slds-m-right_medium slds-m-bottom_xx-small"
+                        >
                             <span class={l.swatchCls} aria-hidden="true">
                                 <template lwc:if={l.hasIcon}>
-                                    <lightning-icon icon-name={l.icon} variant={l.variant} size="xx-small"></lightning-icon>
+                                    <lightning-icon
+                                        icon-name={l.icon}
+                                        variant={l.variant}
+                                        size="xx-small"
+                                    ></lightning-icon>
                                 </template>
                                 <template lwc:else>Aa</template>
                             </span>
@@ -267,24 +310,53 @@
             </template>
             <!-- After a delete: what went, and Undo. -->
             <template lwc:if={undoDelete}>
-                <div class="slds-scoped-notification slds-scoped-notification_light slds-media slds-media_center slds-m-bottom_x-small rh-undo-delete" role="status">
+                <div
+                    class="slds-scoped-notification slds-scoped-notification_light slds-media slds-media_center slds-m-bottom_x-small rh-undo-delete"
+                    role="status"
+                >
                     <div class="slds-media__figure">
-                        <lightning-icon icon-name="utility:success" variant="success" size="x-small" alternative-text="Done"></lightning-icon>
+                        <lightning-icon
+                            icon-name="utility:success"
+                            variant="success"
+                            size="x-small"
+                            alternative-text="Done"
+                        ></lightning-icon>
                     </div>
                     <div class="slds-media__body">
                         <span class="rh-undo-delete-text">{undoDeleteText}</span>
-                        <lightning-button class="slds-m-left_small rh-undo-delete-button" label="Undo" disabled={undoDeleteDisabled} onclick={handleUndoDelete}></lightning-button>
+                        <lightning-button
+                            class="slds-m-left_small rh-undo-delete-button"
+                            label="Undo"
+                            disabled={undoDeleteDisabled}
+                            onclick={handleUndoDelete}
+                        ></lightning-button>
                     </div>
                     <div class="slds-media__figure slds-media__figure_reverse">
-                        <lightning-button-icon class="rh-undo-delete-close" icon-name="utility:close" variant="bare" alternative-text="Close" title="Close" onclick={handleUndoDeleteClose}></lightning-button-icon>
+                        <lightning-button-icon
+                            class="rh-undo-delete-close"
+                            icon-name="utility:close"
+                            variant="bare"
+                            alternative-text="Close"
+                            title="Close"
+                            onclick={handleUndoDeleteClose}
+                        ></lightning-button-icon>
                     </div>
                 </div>
             </template>
             <template lwc:if={configWarnings}>
-                <div class="slds-scoped-notification slds-scoped-notification_light slds-m-bottom_x-small rh-config-warnings" role="status">
+                <div
+                    class="slds-scoped-notification slds-scoped-notification_light slds-m-bottom_x-small rh-config-warnings"
+                    role="status"
+                >
                     <p>
                         <span class="rh-warnings-summary">{warningsSummary}</span>
-                        <button class="slds-button slds-m-left_x-small rh-warnings-toggle" aria-expanded={warningsExpanded} onclick={handleWarningsToggle}>{warningsToggleLabel}</button>
+                        <button
+                            class="slds-button slds-m-left_x-small rh-warnings-toggle"
+                            aria-expanded={warningsExpanded}
+                            onclick={handleWarningsToggle}
+                        >
+                            {warningsToggleLabel}
+                        </button>
                     </p>
                     <template lwc:if={warningsOpen}>
                         <ul class="slds-list_dotted slds-m-top_xx-small">

@@ -2,7 +2,15 @@
  * Times of day and the wall clock in a time zone: what the time and
  * date/time editors, paste and import read and write.
  */
-import { parseTimeText, timeValue, formatTimeOfDay, timeOptions, wallClock, instantToZoned, zonedToInstant } from 'c/gridCalendar';
+import {
+    parseTimeText,
+    timeValue,
+    formatTimeOfDay,
+    timeOptions,
+    wallClock,
+    instantToZoned,
+    zonedToInstant
+} from 'c/gridCalendar';
 
 describe('a time of day', () => {
     it('reads 24-hour and 12-hour times, with or without minutes and seconds', () => {
@@ -39,29 +47,49 @@ describe('a time of day', () => {
 
 describe('the wall clock in a time zone', () => {
     it('reads an instant as the clock there shows it', () => {
-        expect(wallClock(Date.parse('2026-10-01T00:30:00Z'), 'Asia/Kolkata')).toEqual({ date: '2026-10-01', hour: 6, minute: 0, second: 0 });
-        expect(instantToZoned('2026-02-01T04:30:00.000Z', 'America/New_York')).toEqual({ date: '2026-01-31', hour: 23, minute: 30, second: 0 });
+        expect(wallClock(Date.parse('2026-10-01T00:30:00Z'), 'Asia/Kolkata')).toEqual({
+            date: '2026-10-01',
+            hour: 6,
+            minute: 0,
+            second: 0
+        });
+        expect(instantToZoned('2026-02-01T04:30:00.000Z', 'America/New_York')).toEqual({
+            date: '2026-01-31',
+            hour: 23,
+            minute: 30,
+            second: 0
+        });
         expect(instantToZoned('not a date', 'UTC')).toBeNull();
     });
 
     it('finds the instant a wall clock shows, on ordinary days', () => {
         expect(zonedToInstant('2026-10-01', { hour: 6, minute: 0 }, 'Asia/Kolkata')).toBe('2026-10-01T00:30:00.000Z');
-        expect(zonedToInstant('2026-07-04', { hour: 9, minute: 15 }, 'America/New_York')).toBe('2026-07-04T13:15:00.000Z');
-        expect(zonedToInstant('2026-01-15', { hour: 9, minute: 15 }, 'America/New_York')).toBe('2026-01-15T14:15:00.000Z');
+        expect(zonedToInstant('2026-07-04', { hour: 9, minute: 15 }, 'America/New_York')).toBe(
+            '2026-07-04T13:15:00.000Z'
+        );
+        expect(zonedToInstant('2026-01-15', { hour: 9, minute: 15 }, 'America/New_York')).toBe(
+            '2026-01-15T14:15:00.000Z'
+        );
         // Chatham's offset has 45 minutes in it.
-        expect(zonedToInstant('2026-10-01', { hour: 0, minute: 15 }, 'Pacific/Chatham')).toBe('2026-09-30T10:30:00.000Z');
+        expect(zonedToInstant('2026-10-01', { hour: 0, minute: 15 }, 'Pacific/Chatham')).toBe(
+            '2026-09-30T10:30:00.000Z'
+        );
         expect(zonedToInstant('2026-02-30', { hour: 1, minute: 0 }, 'UTC')).toBeNull();
     });
 
     it('takes a time the clock skips (spring forward) as the same time an hour on, east or west', () => {
         // 2:30 AM never happens in New York on 8 March 2026: it is 3:30 AM EDT.
-        expect(zonedToInstant('2026-03-08', { hour: 2, minute: 30 }, 'America/New_York')).toBe('2026-03-08T07:30:00.000Z');
+        expect(zonedToInstant('2026-03-08', { hour: 2, minute: 30 }, 'America/New_York')).toBe(
+            '2026-03-08T07:30:00.000Z'
+        );
         // Nor in Berlin on 29 March 2026: 3:30 AM CEST.
         expect(zonedToInstant('2026-03-29', { hour: 2, minute: 30 }, 'Europe/Berlin')).toBe('2026-03-29T01:30:00.000Z');
     });
 
     it('takes a time the clock shows twice (fall back) as the first of the two, east or west', () => {
-        expect(zonedToInstant('2026-11-01', { hour: 1, minute: 30 }, 'America/New_York')).toBe('2026-11-01T05:30:00.000Z');
+        expect(zonedToInstant('2026-11-01', { hour: 1, minute: 30 }, 'America/New_York')).toBe(
+            '2026-11-01T05:30:00.000Z'
+        );
         expect(zonedToInstant('2026-10-25', { hour: 2, minute: 30 }, 'Europe/Berlin')).toBe('2026-10-25T00:30:00.000Z');
     });
 });

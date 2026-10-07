@@ -18,14 +18,20 @@ const mount = async config => {
     await flush();
 };
 const cards = () => [...el.shadowRoot.querySelectorAll('li.rh-card')];
-const editButton = (id, field) => el.shadowRoot.querySelector(`[data-card-edit][data-row-id="${id}"][data-field="${field}"]`);
+const editButton = (id, field) =>
+    el.shadowRoot.querySelector(`[data-card-edit][data-row-id="${id}"][data-field="${field}"]`);
 
 afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
     delete global.ResizeObserver;
 });
 
-const manyRows = n => Array.from({ length: n }, (_, i) => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + (i + 1), Number_Field__c: String(i) }));
+const manyRows = n =>
+    Array.from({ length: n }, (_, i) => ({
+        Id: 'a00' + String(i).padStart(15, '0'),
+        Name: 'Row ' + (i + 1),
+        Number_Field__c: String(i)
+    }));
 
 describe('choosing the layout', () => {
     it('renders cards, not a grid, when the config asks for them', async () => {
@@ -73,9 +79,16 @@ describe('choosing the layout', () => {
     it('switches when its own width crosses the breakpoint (ResizeObserver)', async () => {
         const observers = [];
         global.ResizeObserver = class {
-            constructor(cb) { this.cb = cb; observers.push(this); }
-            observe(target) { this.target = target; }
-            disconnect() { this.disconnected = true; }
+            constructor(cb) {
+                this.cb = cb;
+                observers.push(this);
+            }
+            observe(target) {
+                this.target = target;
+            }
+            disconnect() {
+                this.disconnected = true;
+            }
         };
         await mount({ columns, rows: seedRows.slice(0, 3) });
         expect(el.shadowRoot.querySelector('[role="grid"]')).not.toBeNull();
@@ -108,7 +121,10 @@ describe('choosing the layout', () => {
     it('stays a table when the config pins it, whatever the width', async () => {
         const observers = [];
         global.ResizeObserver = class {
-            constructor(cb) { this.cb = cb; observers.push(this); }
+            constructor(cb) {
+                this.cb = cb;
+                observers.push(this);
+            }
             observe() {}
             disconnect() {}
         };
@@ -230,12 +246,23 @@ describe('paging and sorting cards', () => {
         el.shadowRoot.querySelector('.rh-card-direction').click();
         await flush();
         expect(handler.mock.calls[1][0].detail.sort).toEqual([{ field: 'Number_Field__c', direction: 'desc' }]);
-        expect([...el.shadowRoot.querySelectorAll('li.rh-card h3')].map(h => h.textContent)).toEqual(['Row 5', 'Row 4', 'Row 3', 'Row 2', 'Row 1']);
+        expect([...el.shadowRoot.querySelectorAll('li.rh-card h3')].map(h => h.textContent)).toEqual([
+            'Row 5',
+            'Row 4',
+            'Row 3',
+            'Row 2',
+            'Row 1'
+        ]);
     });
 
     it('leaves arrow keys to the browser: the grid keyboard model is for the table only', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3), layout: 'cards' });
-        const event = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true, cancelable: true });
+        const event = new KeyboardEvent('keydown', {
+            key: 'ArrowDown',
+            bubbles: true,
+            composed: true,
+            cancelable: true
+        });
         el.shadowRoot.querySelector('[data-grid-root]').dispatchEvent(event);
         expect(event.defaultPrevented).toBe(false);
     });

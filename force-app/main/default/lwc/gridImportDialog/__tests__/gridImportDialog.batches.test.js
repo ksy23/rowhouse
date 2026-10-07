@@ -50,7 +50,11 @@ describe('batchesOf', () => {
 
     it('keeps the rows in their order, and sends nothing for no rows', () => {
         const input = rows(5, 2).map((row, i) => ({ ...row, Name: 'Row ' + i }));
-        expect(batchesOf(input).flat().map(r => r.Name)).toEqual(['Row 0', 'Row 1', 'Row 2', 'Row 3', 'Row 4']);
+        expect(
+            batchesOf(input)
+                .flat()
+                .map(r => r.Name)
+        ).toEqual(['Row 0', 'Row 1', 'Row 2', 'Row 3', 'Row 4']);
         expect(batchesOf([])).toEqual([]);
     });
 });

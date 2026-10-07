@@ -59,7 +59,7 @@ describe('API names', () => {
 });
 
 describe('picklist values', () => {
-    it('are the Custom Metadata fields\' own values', () => {
+    it("are the Custom Metadata fields' own values", () => {
         expect(values(ACTION_TYPES)).toEqual(['ScreenFlow', 'Flow', 'Apex', 'QuickAction']);
         expect(values(SHOW_IN)).toEqual(['Both', 'Row', 'Selection']);
         expect(values(STYLES)).not.toContain('fill_blue');
@@ -70,10 +70,26 @@ describe('picklist values', () => {
 describe('operators by field type', () => {
     it('offers what the server accepts', () => {
         expect(values(operatorsFor('checkbox'))).toEqual(['equals', 'not_equals']);
-        expect(values(operatorsFor('currency'))).toEqual(
-            ['equals', 'not_equals', 'greater_than', 'greater_or_equal', 'less_than', 'less_or_equal', 'between', 'is_blank', 'is_not_blank']);
-        expect(values(operatorsFor('text'))).toEqual(
-            ['equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'is_blank', 'is_not_blank']);
+        expect(values(operatorsFor('currency'))).toEqual([
+            'equals',
+            'not_equals',
+            'greater_than',
+            'greater_or_equal',
+            'less_than',
+            'less_or_equal',
+            'between',
+            'is_blank',
+            'is_not_blank'
+        ]);
+        expect(values(operatorsFor('text'))).toEqual([
+            'equals',
+            'not_equals',
+            'contains',
+            'not_contains',
+            'starts_with',
+            'is_blank',
+            'is_not_blank'
+        ]);
         expect(values(operatorsFor('multipicklist'))).not.toContain('starts_with');
         expect(values(operatorsFor('reference'))).toEqual(['equals', 'not_equals', 'is_blank', 'is_not_blank']);
     });
@@ -88,7 +104,13 @@ describe('operators by field type', () => {
 
 describe('the draft', () => {
     it('gives every entry a template key and takes it off for the server', () => {
-        const draft = withKeys({ config: { name: 'X', label: 'X', isNew: false }, columns: [{ name: 'X_Name', field: 'Name' }], rules: [], actions: [], children: [] });
+        const draft = withKeys({
+            config: { name: 'X', label: 'X', isNew: false },
+            columns: [{ name: 'X_Name', field: 'Name' }],
+            rules: [],
+            actions: [],
+            children: []
+        });
         expect(draft.columns[0]._key).toMatch(/^col\d+$/);
         const server = toServer(draft);
         expect(server.columns[0]._key).toBeUndefined();
@@ -121,13 +143,27 @@ describe('the draft', () => {
 
     it('clears column settings the new field cannot take', () => {
         const col = { ...newColumn('Amount'), editable: true, groupLevel: 1, groupUnit: 'month', subtotal: 'sum' };
-        const name = { name: 'Name', type: 'text', editable: true, sortable: true, groupable: true, subtotals: ['count'] };
+        const name = {
+            name: 'Name',
+            type: 'text',
+            editable: true,
+            sortable: true,
+            groupable: true,
+            subtotals: ['count']
+        };
         const fitted = fitColumnToField(col, name);
         expect(fitted.editable).toBe(true);
         expect(fitted.groupLevel).toBe(1);
         expect(fitted.groupUnit).toBeNull();
         expect(fitted.subtotal).toBeNull();
-        const formula = { name: 'F', type: 'number', editable: false, sortable: true, groupable: false, subtotals: ['sum'] };
+        const formula = {
+            name: 'F',
+            type: 'number',
+            editable: false,
+            sortable: true,
+            groupable: false,
+            subtotals: ['sum']
+        };
         expect(fitColumnToField(col, formula)).toMatchObject({ editable: false, groupLevel: null, subtotal: 'sum' });
     });
 
@@ -163,8 +199,16 @@ describe('the new rule and column options', () => {
         expect(STYLES).toHaveLength(16);
     });
 
-    it('lists what a formula column can return, as Formula Type\'s values', () => {
-        expect(values(FORMULA_TYPES)).toEqual(['text', 'number', 'currency', 'percent', 'date', 'datetime', 'checkbox']);
+    it("lists what a formula column can return, as Formula Type's values", () => {
+        expect(values(FORMULA_TYPES)).toEqual([
+            'text',
+            'number',
+            'currency',
+            'percent',
+            'date',
+            'datetime',
+            'checkbox'
+        ]);
         expect(FORMULA_TYPES.find(t => t.value === 'datetime').label).toBe('Date/Time');
     });
 
@@ -181,16 +225,33 @@ describe('the new rule and column options', () => {
         ['text', 'textarea', 'email', 'picklist', 'multipicklist', 'checkbox', 'reference', 'owner'].forEach(type => {
             expect(values(operatorsFor(type))).not.toContain('between');
         });
-        expect(values(operatorsFor('time'))).toEqual(
-            ['equals', 'not_equals', 'greater_than', 'greater_or_equal', 'less_than', 'less_or_equal', 'between', 'is_blank', 'is_not_blank']);
+        expect(values(operatorsFor('time'))).toEqual([
+            'equals',
+            'not_equals',
+            'greater_than',
+            'greater_or_equal',
+            'less_than',
+            'less_or_equal',
+            'between',
+            'is_blank',
+            'is_not_blank'
+        ]);
     });
 
     it('lets two fields be compared only by equals and the comparisons', () => {
-        expect([...COMPARE_OPERATORS].sort()).toEqual(
-            ['equals', 'greater_or_equal', 'greater_than', 'less_or_equal', 'less_than', 'not_equals']);
-        ['between', 'contains', 'not_contains', 'starts_with', 'is_blank', 'is_not_blank', FORMULA_OPERATOR].forEach(op => {
-            expect(COMPARE_OPERATORS.has(op)).toBe(false);
-        });
+        expect([...COMPARE_OPERATORS].sort()).toEqual([
+            'equals',
+            'greater_or_equal',
+            'greater_than',
+            'less_or_equal',
+            'less_than',
+            'not_equals'
+        ]);
+        ['between', 'contains', 'not_contains', 'starts_with', 'is_blank', 'is_not_blank', FORMULA_OPERATOR].forEach(
+            op => {
+                expect(COMPARE_OPERATORS.has(op)).toBe(false);
+            }
+        );
     });
 
     it('sorts field types into the kinds that compare with each other', () => {
@@ -200,8 +261,16 @@ describe('the new rule and column options', () => {
         // Times, checkboxes and multi-select picklists only compare with their own type.
         expect(['time', 'checkbox', 'multipicklist'].map(compareKind)).toEqual(['time', 'checkbox', 'multipicklist']);
         // Everything else is text.
-        expect(['text', 'textarea', 'email', 'phone', 'url', 'id', 'picklist', undefined].map(compareKind))
-            .toEqual(['text', 'text', 'text', 'text', 'text', 'text', 'text', 'text']);
+        expect(['text', 'textarea', 'email', 'phone', 'url', 'id', 'picklist', undefined].map(compareKind)).toEqual([
+            'text',
+            'text',
+            'text',
+            'text',
+            'text',
+            'text',
+            'text',
+            'text'
+        ]);
     });
 
     it('knows a formula rule by its formula, even one not written yet', () => {
@@ -245,12 +314,27 @@ describe('new entries', () => {
     });
 
     it('starts a field column with no formula', () => {
-        expect(newColumn('Amount__c')).toMatchObject({ field: 'Amount__c', formula: null, formulaType: null, decimalPlaces: null, sortable: true });
+        expect(newColumn('Amount__c')).toMatchObject({
+            field: 'Amount__c',
+            formula: null,
+            formulaType: null,
+            decimalPlaces: null,
+            sortable: true
+        });
     });
 
     it('starts a rule with no upper value, no field to compare with and no formula', () => {
         const rule = newRule();
-        expect(rule).toMatchObject({ operator: 'equals', value: '', valueTo: '', compareField: null, formula: null, style: 'fill_green', applyTo: 'cell', active: true });
+        expect(rule).toMatchObject({
+            operator: 'equals',
+            value: '',
+            valueTo: '',
+            compareField: null,
+            formula: null,
+            style: 'fill_green',
+            applyTo: 'cell',
+            active: true
+        });
         expect(rule._key).toMatch(/^rule\d+$/);
     });
 
@@ -258,7 +342,15 @@ describe('new entries', () => {
         const filter = newFilter();
         const { _key, ...rest } = filter;
         expect(_key).toMatch(/^flt\d+$/);
-        expect(rest).toEqual({ name: null, label: '', field: null, operator: 'equals', value: '', valueTo: '', inactive: false });
+        expect(rest).toEqual({
+            name: null,
+            label: '',
+            field: null,
+            operator: 'equals',
+            value: '',
+            valueTo: '',
+            inactive: false
+        });
         expect(newFilter()._key).not.toBe(_key);
     });
 });
@@ -288,39 +380,82 @@ describe('filters and the record page field in the draft', () => {
 
     it('sends filters and the record page field to the server, without keys and with blank text as null', () => {
         const d = withKeys({ config: { name: 'X', label: 'X', recordPageField: 'AccountId' }, columns: [] });
-        d.filters = [{ ...newFilter(), field: 'Amount__c', operator: 'between', value: ' 100 ', valueTo: '500', label: '  ' }];
+        d.filters = [
+            { ...newFilter(), field: 'Amount__c', operator: 'between', value: ' 100 ', valueTo: '500', label: '  ' }
+        ];
         const server = toServer(d);
         expect(server.config.recordPageField).toBe('AccountId');
         expect(server.filters).toEqual([
-            { name: null, label: null, field: 'Amount__c', operator: 'between', value: '100', valueTo: '500', inactive: false }
+            {
+                name: null,
+                label: null,
+                field: 'Amount__c',
+                operator: 'between',
+                value: '100',
+                valueTo: '500',
+                inactive: false
+            }
         ]);
         expect(JSON.stringify(server)).not.toContain('_key');
     });
 
     it('sends a formula column and the new rule settings as they are', () => {
         const d = emptyDraft();
-        d.columns = [{ ...newFormulaColumn(), formula: 'Amount__c * 0.2', columnLabel: 'Bonus', formulaType: 'currency', decimalPlaces: 2 }];
+        d.columns = [
+            {
+                ...newFormulaColumn(),
+                formula: 'Amount__c * 0.2',
+                columnLabel: 'Bonus',
+                formulaType: 'currency',
+                decimalPlaces: 2
+            }
+        ];
         d.rules = [
             { ...newRule(), field: 'Amount__c', operator: 'between', value: '10', valueTo: '20' },
             { ...newRule(), field: 'Amount__c', operator: 'greater_than', compareField: 'Budget__c' },
             { ...newRule(), formula: 'Amount__c > Budget__c', applyTo: 'row' }
         ];
         const server = toServer(d);
-        expect(server.columns[0]).toMatchObject({ field: null, formula: 'Amount__c * 0.2', formulaType: 'currency', decimalPlaces: 2, columnLabel: 'Bonus', sortable: false });
-        expect(server.rules[0]).toMatchObject({ operator: 'between', value: '10', valueTo: '20', compareField: null, formula: null });
+        expect(server.columns[0]).toMatchObject({
+            field: null,
+            formula: 'Amount__c * 0.2',
+            formulaType: 'currency',
+            decimalPlaces: 2,
+            columnLabel: 'Bonus',
+            sortable: false
+        });
+        expect(server.rules[0]).toMatchObject({
+            operator: 'between',
+            value: '10',
+            valueTo: '20',
+            compareField: null,
+            formula: null
+        });
         expect(server.rules[1]).toMatchObject({ compareField: 'Budget__c', value: null, valueTo: null });
         expect(server.rules[2]).toMatchObject({ formula: 'Amount__c > Budget__c', field: null, applyTo: 'row' });
     });
 
     it('sends a formula not written yet as nothing, which is why the editor checks it itself', () => {
-        const server = toServer({ ...emptyDraft(), columns: [newFormulaColumn()], rules: [{ ...newRule(), formula: '' }] });
+        const server = toServer({
+            ...emptyDraft(),
+            columns: [newFormulaColumn()],
+            rules: [{ ...newRule(), formula: '' }]
+        });
         expect(server.columns[0].formula).toBeNull();
         expect(server.rules[0].formula).toBeNull();
     });
 
     it('sees a change to the filters or the record page field', () => {
-        const a = withKeys({ config: { name: 'X' }, columns: [{ field: 'Name' }], filters: [{ field: 'Stage__c', operator: 'equals', value: 'Won' }] });
-        const b = withKeys({ config: { name: 'X' }, columns: [{ field: 'Name' }], filters: [{ field: 'Stage__c', operator: 'equals', value: 'Won' }] });
+        const a = withKeys({
+            config: { name: 'X' },
+            columns: [{ field: 'Name' }],
+            filters: [{ field: 'Stage__c', operator: 'equals', value: 'Won' }]
+        });
+        const b = withKeys({
+            config: { name: 'X' },
+            columns: [{ field: 'Name' }],
+            filters: [{ field: 'Stage__c', operator: 'equals', value: 'Won' }]
+        });
         expect(sameDraft(a, b)).toBe(true);
         expect(sameDraft(a, { ...b, filters: [] })).toBe(false);
         expect(sameDraft(a, { ...b, filters: [{ ...b.filters[0], inactive: true }] })).toBe(false);
@@ -328,7 +463,10 @@ describe('filters and the record page field in the draft', () => {
     });
 
     it('moves a filter like any other entry', () => {
-        const filters = [{ ...newFilter(), field: 'A' }, { ...newFilter(), field: 'B' }];
+        const filters = [
+            { ...newFilter(), field: 'A' },
+            { ...newFilter(), field: 'B' }
+        ];
         expect(moveItem(filters, 1, -1).map(f => f.field)).toEqual(['B', 'A']);
     });
 });
@@ -378,4 +516,3 @@ describe('fitting a rule or a filter to a new field', () => {
         expect(fitted).not.toBe(rule);
     });
 });
-

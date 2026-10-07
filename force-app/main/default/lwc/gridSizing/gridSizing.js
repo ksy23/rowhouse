@@ -74,7 +74,8 @@ export function textWidth(text) {
         else if (NARROW.test(ch)) w += 3.8;
         else if (WIDE.test(ch)) w += 10.5;
         else if (UPPER.test(ch)) w += 8.6;
-        else if (ch.codePointAt(0) > 0x2e80) w += 13; // CJK and emoji take a full em
+        else if (ch.codePointAt(0) > 0x2e80)
+            w += 13; // CJK and emoji take a full em
         else w += 6.8;
     }
     return w;
@@ -106,11 +107,13 @@ export function linesNeeded(texts, width, { editable = false, max = MAX_LINES } 
     for (const t of texts || []) {
         if (t == null || t === '') continue;
         let lines = 0;
-        String(t).split('\n').forEach(part => {
-            // Short enough at the widest character: one line, without measuring.
-            if (part.length * 13 <= room) lines += 1;
-            else lines += Math.max(1, Math.ceil((textWidth(part) * 1.1) / room));
-        });
+        String(t)
+            .split('\n')
+            .forEach(part => {
+                // Short enough at the widest character: one line, without measuring.
+                if (part.length * 13 <= room) lines += 1;
+                else lines += Math.max(1, Math.ceil((textWidth(part) * 1.1) / room));
+            });
         most = Math.max(most, lines);
         if (most >= max) return max;
     }

@@ -16,7 +16,13 @@ describe('spreadsheet feel', () => {
     let changes;
     const cell = (i, field) => el.shadowRoot.querySelector(`td[data-row-id="${ROWS[i].Id}"][data-field="${field}"]`);
     const key = async (target, k, mods = {}) => {
-        const event = new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods });
+        const event = new KeyboardEvent('keydown', {
+            key: k,
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            ...mods
+        });
         target.dispatchEvent(event);
         await flush();
         return event;
@@ -27,8 +33,10 @@ describe('spreadsheet feel', () => {
         await flush();
         return c;
     };
-    const selectedFields = () => [...el.shadowRoot.querySelectorAll('td[aria-selected="true"]')]
-        .map(td => `${ROWS.findIndex(r => r.Id === td.dataset.rowId)}:${td.dataset.field}`);
+    const selectedFields = () =>
+        [...el.shadowRoot.querySelectorAll('td[aria-selected="true"]')].map(
+            td => `${ROWS.findIndex(r => r.Id === td.dataset.rowId)}:${td.dataset.field}`
+        );
     const announcement = () => el.shadowRoot.querySelector('[aria-live="polite"][aria-atomic="true"]').textContent;
 
     beforeEach(async () => {
@@ -48,7 +56,12 @@ describe('spreadsheet feel', () => {
             await focusOn(0, 'Text_Field__c');
             await key(cell(0, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
             await key(cell(1, 'Text_Field__c'), 'ArrowRight', { shiftKey: true });
-            expect(selectedFields().sort()).toEqual(['0:Number_Field__c', '0:Text_Field__c', '1:Number_Field__c', '1:Text_Field__c']);
+            expect(selectedFields().sort()).toEqual([
+                '0:Number_Field__c',
+                '0:Text_Field__c',
+                '1:Number_Field__c',
+                '1:Text_Field__c'
+            ]);
             expect(cell(1, 'Number_Field__c').classList).toContain('rh-in-range');
             expect(announcement()).toBe('2 rows by 2 columns selected');
             expect(el.shadowRoot.querySelector('table').getAttribute('aria-multiselectable')).toBe('true');
@@ -65,7 +78,9 @@ describe('spreadsheet feel', () => {
 
         it('Shift+click extends the range to the clicked cell', async () => {
             await focusOn(0, 'Name');
-            cell(2, 'Text_Field__c').dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, shiftKey: true }));
+            cell(2, 'Text_Field__c').dispatchEvent(
+                new MouseEvent('mousedown', { bubbles: true, cancelable: true, shiftKey: true })
+            );
             await flush();
             expect(selectedFields()).toHaveLength(9); // rows 0-2 x Name, Test Case, Text
         });
@@ -105,16 +120,26 @@ describe('spreadsheet feel', () => {
             await key(cell(0, 'Test_Case__c'), 'ArrowDown', { shiftKey: true });
             // The browser fires the copy event straight after the keydown, in the
             // same task, so nothing is awaited in between.
-            cell(1, 'Test_Case__c').dispatchEvent(new KeyboardEvent('keydown', { key: 'c', metaKey: true, bubbles: true, composed: true, cancelable: true }));
+            cell(1, 'Test_Case__c').dispatchEvent(
+                new KeyboardEvent('keydown', {
+                    key: 'c',
+                    metaKey: true,
+                    bubbles: true,
+                    composed: true,
+                    cancelable: true
+                })
+            );
             const setData = jest.fn();
             const copy = new CustomEvent('copy', { bubbles: true, composed: true, cancelable: true });
             copy.clipboardData = { setData };
             cell(1, 'Test_Case__c').dispatchEvent(copy);
             expect(copy.defaultPrevented).toBe(true);
-            expect(setData).toHaveBeenCalledWith('text/plain', [
-                [ROWS[0].Name, ROWS[0].Test_Case__c].join('\t'),
-                [ROWS[1].Name, ROWS[1].Test_Case__c].join('\t')
-            ].join('\n'));
+            expect(setData).toHaveBeenCalledWith(
+                'text/plain',
+                [[ROWS[0].Name, ROWS[0].Test_Case__c].join('\t'), [ROWS[1].Name, ROWS[1].Test_Case__c].join('\t')].join(
+                    '\n'
+                )
+            );
             await flush();
             expect(announcement()).toBe('Copied 4 cells');
         });
@@ -159,7 +184,9 @@ describe('spreadsheet feel', () => {
             await paste(target, 'n\tread only\ttext\tnot a number');
             const detail = changes[0];
             expect(detail.changes.map(c => c.field)).toEqual(['Name', 'Text_Field__c']);
-            expect(detail.errors).toEqual([{ recordId: ROWS[0].Id, field: 'Number_Field__c', message: 'Not a number: not a number' }]);
+            expect(detail.errors).toEqual([
+                { recordId: ROWS[0].Id, field: 'Number_Field__c', message: 'Not a number: not a number' }
+            ]);
             expect(announcement()).toBe('Pasted 2 cells. 1 read-only cell skipped. 1 value could not be used.');
         });
 
@@ -190,8 +217,18 @@ describe('spreadsheet feel', () => {
             expect(event.defaultPrevented).toBe(true);
             expect(changes[0].label).toBe('fill down');
             expect(changes[0].changes).toEqual([
-                { recordId: ROWS[1].Id, field: 'Text_Field__c', value: ROWS[0].Text_Field__c, originalValue: ROWS[1].Text_Field__c },
-                { recordId: ROWS[2].Id, field: 'Text_Field__c', value: ROWS[0].Text_Field__c, originalValue: ROWS[2].Text_Field__c }
+                {
+                    recordId: ROWS[1].Id,
+                    field: 'Text_Field__c',
+                    value: ROWS[0].Text_Field__c,
+                    originalValue: ROWS[1].Text_Field__c
+                },
+                {
+                    recordId: ROWS[2].Id,
+                    field: 'Text_Field__c',
+                    value: ROWS[0].Text_Field__c,
+                    originalValue: ROWS[2].Text_Field__c
+                }
             ]);
         });
 
@@ -232,7 +269,8 @@ describe('spreadsheet feel', () => {
 describe('frozen columns', () => {
     let spy;
     beforeEach(() => {
-        spy = jest.spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
+        spy = jest
+            .spyOn(HTMLTableCellElement.prototype, 'getBoundingClientRect')
             .mockReturnValue({ width: 150, height: 33, top: 0, left: 0, right: 150, bottom: 33, x: 0, y: 0 });
     });
     afterEach(() => {

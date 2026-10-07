@@ -13,7 +13,6 @@
  */
 @IsTest
 private class GridDescribeTest {
-
     @IsTest
     static void localNameIsIdenticalInBothBuilds() {
         Test.startTest();
@@ -21,23 +20,23 @@ private class GridDescribeTest {
         Test.stopTest();
         // Asserted WITHOUT a namespace prefix on purpose. If this assertion needs
         // to change between builds, HR-4 has been violated.
-        System.assertEquals('Rowhouse_Test_Record__c', local,
-            'localName() must strip any namespace prefix so both builds agree.');
+        System.assertEquals(
+            'Rowhouse_Test_Record__c',
+            local,
+            'localName() must strip any namespace prefix so both builds agree.'
+        );
     }
 
     @IsTest
     static void fieldMapIsKeyedByLocalName() {
         Test.startTest();
-        Map<String, Schema.SObjectField> fields =
-            GridDescribe.fieldsFor('Rowhouse_Test_Record__c');
+        Map<String, Schema.SObjectField> fields = GridDescribe.fieldsFor('Rowhouse_Test_Record__c');
         Test.stopTest();
-        System.assert(fields.containsKey('Text_Field__c'),
-            'Field map must be keyed by local name in both builds.');
+        System.assert(fields.containsKey('Text_Field__c'), 'Field map must be keyed by local name in both builds.');
         for (String key : fields.keySet()) {
             // A namespaced key looks like 'rowhouse__Text_Field__c', so the check
             // is on the PREFIX. Searching for '__rowhouse' would never fire.
-            System.assert(!key.startsWithIgnoreCase('rowhouse__'),
-                'Namespaced key leaked into the field map: ' + key);
+            System.assert(!key.startsWithIgnoreCase('rowhouse__'), 'Namespaced key leaked into the field map: ' + key);
         }
     }
 
@@ -50,8 +49,7 @@ private class GridDescribeTest {
             threw = true;
             // HR-1: subscribers catch bare Exception, so the MESSAGE has to be
             // useful — it is the only diagnostic they get.
-            System.assert(e.getMessage().contains('No_Such_Object__c'),
-                'The exception message must name the object.');
+            System.assert(e.getMessage().contains('No_Such_Object__c'), 'The exception message must name the object.');
         }
         System.assert(threw, 'An unknown object must throw, not return null.');
     }
@@ -63,7 +61,11 @@ private class GridDescribeTest {
         // keep it out of the editable columns whatever the admin sets.
         Schema.DescribeFieldResult d = Rowhouse_Test_Record__c.Rollup_Total__c.getDescribe();
         System.assertEquals('currency', GridDescribe.cellType(Rowhouse_Test_Record__c.Rollup_Total__c));
-        System.assertEquals(true, d.isCalculated(), 'A roll-up must report as calculated, or GridConfig would offer an editor.');
+        System.assertEquals(
+            true,
+            d.isCalculated(),
+            'A roll-up must report as calculated, or GridConfig would offer an editor.'
+        );
         System.assertEquals(false, GridDescribe.isRequired(d), 'A roll-up is never required from the user.');
     }
 }

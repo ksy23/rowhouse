@@ -172,7 +172,13 @@ export default class CellLookup extends LightningElement {
     /** "New Account" for each object the user may create a record of, after the matches. */
     get newItems() {
         if (!this.searched || !Array.isArray(this.newTargets)) return [];
-        return this.newTargets.map(t => ({ isNew: true, object: t.object, kind: t.label, name: 'New ' + t.label, id: 'new-' + t.object }));
+        return this.newTargets.map(t => ({
+            isNew: true,
+            object: t.object,
+            kind: t.label,
+            name: 'New ' + t.label,
+            id: 'new-' + t.object
+        }));
     }
 
     /** What the list offers, in order: the matches, then the New items. */
@@ -189,9 +195,11 @@ export default class CellLookup extends LightningElement {
     }
 
     get listboxClass() {
-        return 'slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid rh-lookup-list '
-            + (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left')
-            + (this.dropdownUp ? ' slds-dropdown_bottom' : '');
+        return (
+            'slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid rh-lookup-list ' +
+            (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left') +
+            (this.dropdownUp ? ' slds-dropdown_bottom' : '')
+        );
     }
 
     get listboxId() {
@@ -205,13 +213,16 @@ export default class CellLookup extends LightningElement {
             index: i,
             domId: `${this._id}-option-${i}`,
             // The object's own icon, as Lightning's lookups show it; New is an add icon.
-            icon: r.isNew ? 'utility:add' : (this.icons && r.object && this.icons[r.object]) || ICONS[r.kind] || 'standard:record',
+            icon: r.isNew
+                ? 'utility:add'
+                : (this.icons && r.object && this.icons[r.object]) || ICONS[r.kind] || 'standard:record',
             iconSize: r.isNew ? 'x-small' : 'small',
             showKind: !r.isNew,
             selected: i === this.activeIndex ? 'true' : 'false',
-            cls: 'slds-media slds-listbox__option slds-listbox__option_entity'
-                + (r.isNew ? ' rh-lookup-new' : ' slds-listbox__option_has-meta')
-                + (i === this.activeIndex ? ' slds-has-focus' : '')
+            cls:
+                'slds-media slds-listbox__option slds-listbox__option_entity' +
+                (r.isNew ? ' rh-lookup-new' : ' slds-listbox__option_has-meta') +
+                (i === this.activeIndex ? ' slds-has-focus' : '')
         }));
     }
 
@@ -265,7 +276,8 @@ export default class CellLookup extends LightningElement {
                 const n = this.results.length;
                 this._layout.reveal = this.entries.length > 0;
                 const more = this.newItems.length ? ' Or create a record.' : '';
-                this.status = (n ? `${n} ${n === 1 ? 'match' : 'matches'}. Arrow down to choose.` : 'No matches.') + more;
+                this.status =
+                    (n ? `${n} ${n === 1 ? 'match' : 'matches'}. Arrow down to choose.` : 'No matches.') + more;
             })
             .catch(error => {
                 if (token !== this._search.token) return;

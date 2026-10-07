@@ -16,17 +16,31 @@ jest.mock('@salesforce/apex/GridController.getGridConfig', () => ({ default: jes
 jest.mock('@salesforce/apex/GridController.openGrid', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.fetchRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn(() => Promise.resolve(true)) }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.resetLayout', () => ({ default: jest.fn(() => Promise.resolve()) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn(() => Promise.resolve(true)) }), {
+    virtual: true
+});
+jest.mock('@salesforce/apex/GridController.resetLayout', () => ({ default: jest.fn(() => Promise.resolve()) }), {
+    virtual: true
+});
 
 /* global require, __dirname -- Jest runs in Node, where the test reads the stylesheet. */
 const fs = require('fs');
 const path = require('path');
 
-const rule = (name, label, style, applyTo = 'cell') =>
-    ({ name, label, field: 'Amount__c', type: 'currency', operator: 'greater_than', value: '0', style, applyTo });
+const rule = (name, label, style, applyTo = 'cell') => ({
+    name,
+    label,
+    field: 'Amount__c',
+    type: 'currency',
+    operator: 'greater_than',
+    value: '0',
+    style,
+    applyTo
+});
 const RULES = [
     rule('Risk', 'At risk', 'icon_warning'),
     rule('Note', 'Has a note', 'icon_info', 'row'),
@@ -96,8 +110,8 @@ afterEach(() => {
     jest.useRealTimers();
 });
 
-describe('the Display Key\'s samples', () => {
-    it('shows an icon rule\'s icon as its sample, in its color', async () => {
+describe("the Display Key's samples", () => {
+    it("shows an icon rule's icon as its sample, in its color", async () => {
         const [risk, note] = await openKey();
         expect(risk.icon.iconName).toBe('utility:warning');
         expect(risk.icon.variant).toBe('warning');
@@ -110,9 +124,16 @@ describe('the Display Key\'s samples', () => {
         expect(note.li.textContent).toBe('Has a note: Info icon, Row');
     });
 
-    it('shows a data bar\'s sample as a bar', async () => {
+    it("shows a data bar's sample as a bar", async () => {
         const size = (await openKey())[2];
-        expect(size.classes).toEqual(expect.arrayContaining(['rh-legend-swatch', 'rh-legend-swatch_cell', 'rh-fmt_databar', 'rh-legend-swatch_databar']));
+        expect(size.classes).toEqual(
+            expect.arrayContaining([
+                'rh-legend-swatch',
+                'rh-legend-swatch_cell',
+                'rh-fmt_databar',
+                'rh-legend-swatch_databar'
+            ])
+        );
         expect(size.icon).toBeNull();
         expect(size.li.textContent).toBe('AaDeal size: Data bar, Cell');
     });
@@ -133,8 +154,10 @@ describe('the Display Key\'s samples', () => {
         });
     });
 
-    it('draws the data bar sample part of the way: its class sets the bar\'s length', () => {
-        const css = fs.readFileSync(path.join(__dirname, '..', 'gridView.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    it("draws the data bar sample part of the way: its class sets the bar's length", () => {
+        const css = fs
+            .readFileSync(path.join(__dirname, '..', 'gridView.css'), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '');
         const block = css.match(/\.rh-legend-swatch_databar\s*\{([^}]*)\}/);
         expect(block).not.toBeNull();
         expect(block[1]).toMatch(/--rh-databar:\s*\d+%/);

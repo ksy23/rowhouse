@@ -95,7 +95,10 @@ export function readFlowState(state, storage) {
     const grid = pick('grid');
     const action = pick('action');
     const token = pick('token') || '';
-    if (!grid || !action) return { error: 'This page runs a grid\'s screen flow, but it was not told which. Go back to the grid and run it from there.' };
+    if (!grid || !action)
+        return {
+            error: "This page runs a grid's screen flow, but it was not told which. Go back to the grid and run it from there."
+        };
     let ids = null;
     let back = null;
     const inUrl = pick('ids');
@@ -110,13 +113,16 @@ export function readFlowState(state, storage) {
             kept = null;
         }
         if (!kept || !Array.isArray(kept.ids)) {
-            return { error: 'The rows this flow was to run on were not found in this browser tab. Go back to the grid and run it again.' };
+            return {
+                error: 'The rows this flow was to run on were not found in this browser tab. Go back to the grid and run it again.'
+            };
         }
         ids = kept.ids;
         back = kept.back && kept.back.type ? kept.back : null;
     }
     ids = ids.filter(id => ID_RE.test(id));
-    if (!ids.length) return { error: 'This flow was not given a row to run on. Go back to the grid and run it from there.' };
+    if (!ids.length)
+        return { error: 'This flow was not given a row to run on. Go back to the grid and run it from there.' };
     return { grid, action, on: pick('on') === 'selection' ? 'selection' : 'row', ids, back, token };
 }
 

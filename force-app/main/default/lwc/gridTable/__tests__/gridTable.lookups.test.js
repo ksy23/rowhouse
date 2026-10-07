@@ -4,7 +4,9 @@
 import { createElement } from 'lwc';
 import GridTable from 'c/gridTable';
 
-jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest.fn(() => Promise.resolve([])) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest.fn(() => Promise.resolve([])) }), {
+    virtual: true
+});
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const ACC1 = '001000000000001AAA';
@@ -14,24 +16,74 @@ const QUEUE = '00G000000000001AAA';
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-    { field: 'Lookup_Field__c', label: 'Account', type: 'reference', editable: true, sortable: true, referenceTo: ['Account'] },
+    {
+        field: 'Lookup_Field__c',
+        label: 'Account',
+        type: 'reference',
+        editable: true,
+        sortable: true,
+        referenceTo: ['Account']
+    },
     { field: 'OwnerId', label: 'Owner', type: 'owner', editable: true, sortable: true, referenceTo: ['Group', 'User'] },
-    { field: 'Controlling_Picklist__c', label: 'Category', type: 'picklist', editable: true, sortable: true,
-        options: ['Hardware', 'Software', 'Services'].map(v => ({ value: v, label: v })) },
-    { field: 'Dependent_Picklist__c', label: 'Item', type: 'picklist', editable: true, sortable: true, dependentOn: 'Controlling_Picklist__c',
+    {
+        field: 'Controlling_Picklist__c',
+        label: 'Category',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        options: ['Hardware', 'Software', 'Services'].map(v => ({ value: v, label: v }))
+    },
+    {
+        field: 'Dependent_Picklist__c',
+        label: 'Item',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        dependentOn: 'Controlling_Picklist__c',
         options: [
             { value: 'Keyboard', label: 'Keyboard', validFor: ['Hardware'] },
             { value: 'Monitor', label: 'Monitor', validFor: ['Hardware'] },
             { value: 'Licence', label: 'Licence', validFor: ['Software'] },
             { value: 'Subscription', label: 'Subscription', validFor: ['Software'] }
-        ] },
-    { field: 'Multi_Picklist__c', label: 'Colors', type: 'multipicklist', editable: true, sortable: true,
-        options: ['Red', 'Green', 'Blue'].map(v => ({ value: v, label: v })) }
+        ]
+    },
+    {
+        field: 'Multi_Picklist__c',
+        label: 'Colors',
+        type: 'multipicklist',
+        editable: true,
+        sortable: true,
+        options: ['Red', 'Green', 'Blue'].map(v => ({ value: v, label: v }))
+    }
 ];
 const ROWS = [
-    { Id: 'a01000000000001AAA', Name: 'TC-037', Lookup_Field__c: ACC2, OwnerId: USER, Controlling_Picklist__c: 'Hardware', Dependent_Picklist__c: 'Keyboard', Multi_Picklist__c: 'Red;Green;Blue' },
-    { Id: 'a01000000000002AAA', Name: 'TC-038', Lookup_Field__c: ACC1, OwnerId: QUEUE, Controlling_Picklist__c: 'Software', Dependent_Picklist__c: 'Monitor', Multi_Picklist__c: 'Green' },
-    { Id: 'a01000000000003AAA', Name: 'TC-039', Lookup_Field__c: null, OwnerId: USER, Controlling_Picklist__c: 'Services', Dependent_Picklist__c: null, Multi_Picklist__c: null }
+    {
+        Id: 'a01000000000001AAA',
+        Name: 'TC-037',
+        Lookup_Field__c: ACC2,
+        OwnerId: USER,
+        Controlling_Picklist__c: 'Hardware',
+        Dependent_Picklist__c: 'Keyboard',
+        Multi_Picklist__c: 'Red;Green;Blue'
+    },
+    {
+        Id: 'a01000000000002AAA',
+        Name: 'TC-038',
+        Lookup_Field__c: ACC1,
+        OwnerId: QUEUE,
+        Controlling_Picklist__c: 'Software',
+        Dependent_Picklist__c: 'Monitor',
+        Multi_Picklist__c: 'Green'
+    },
+    {
+        Id: 'a01000000000003AAA',
+        Name: 'TC-039',
+        Lookup_Field__c: null,
+        OwnerId: USER,
+        Controlling_Picklist__c: 'Services',
+        Dependent_Picklist__c: null,
+        Multi_Picklist__c: null
+    }
 ];
 const NAMES = { [ACC1]: 'Zeta Corp', [ACC2]: 'Alpha Corp', [USER]: 'Rowhouse Full', [QUEUE]: 'Support Queue' };
 
@@ -63,7 +115,9 @@ describe('lookups and picklist dependencies', () => {
         document.body.appendChild(el);
         await flush();
     });
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('shows a lookup as its record name, linked to the record in the same tab', () => {
         const link = cell(0, 'Lookup_Field__c').querySelector('a');
@@ -98,9 +152,20 @@ describe('lookups and picklist dependencies', () => {
 
     it('hands the editor a lookup filter and the New targets, and passes a New on with its cell', async () => {
         el.config = {
-            columns: COLUMNS.map(c => (c.field === 'Lookup_Field__c'
-                ? { ...c, filteredLookup: true, fieldApiName: 'Lookup_Field__c', newTargets: [{ object: 'Account', label: 'Account' }] } : c)),
-            rows: ROWS, refNames: NAMES, configName: 'Test_Records', objectApiName: 'Rowhouse_Test_Record__c'
+            columns: COLUMNS.map(c =>
+                c.field === 'Lookup_Field__c'
+                    ? {
+                          ...c,
+                          filteredLookup: true,
+                          fieldApiName: 'Lookup_Field__c',
+                          newTargets: [{ object: 'Account', label: 'Account' }]
+                      }
+                    : c
+            ),
+            rows: ROWS,
+            refNames: NAMES,
+            configName: 'Test_Records',
+            objectApiName: 'Rowhouse_Test_Record__c'
         };
         await flush();
         await edit(0, 'Lookup_Field__c');
@@ -112,9 +177,17 @@ describe('lookups and picklist dependencies', () => {
         expect(editor.newTargets).toEqual([{ object: 'Account', label: 'Account' }]);
         const asked = jest.fn();
         el.addEventListener('newrecord', asked);
-        editor.dispatchEvent(new CustomEvent('newrecord', { detail: { object: 'Account', label: 'Account', term: 'Ze' } }));
+        editor.dispatchEvent(
+            new CustomEvent('newrecord', { detail: { object: 'Account', label: 'Account', term: 'Ze' } })
+        );
         await flush();
-        expect(asked.mock.calls[0][0].detail).toEqual({ recordId: ROWS[0].Id, field: 'Lookup_Field__c', object: 'Account', objectLabel: 'Account', term: 'Ze' });
+        expect(asked.mock.calls[0][0].detail).toEqual({
+            recordId: ROWS[0].Id,
+            field: 'Lookup_Field__c',
+            object: 'Account',
+            objectLabel: 'Account',
+            term: 'Ze'
+        });
         expect(el.shadowRoot.querySelector('c-cell-lookup[data-editor]')).toBeNull(); // the editor closed
     });
 
@@ -133,7 +206,9 @@ describe('lookups and picklist dependencies', () => {
     it('copies a lookup as its name', async () => {
         cell(0, 'Lookup_Field__c').focus();
         await flush();
-        cell(0, 'Lookup_Field__c').dispatchEvent(new KeyboardEvent('keydown', { key: 'c', metaKey: true, bubbles: true, composed: true, cancelable: true }));
+        cell(0, 'Lookup_Field__c').dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'c', metaKey: true, bubbles: true, composed: true, cancelable: true })
+        );
         const setData = jest.fn();
         const copy = new CustomEvent('copy', { bubbles: true, composed: true, cancelable: true });
         copy.clipboardData = { setData };
@@ -168,22 +243,28 @@ describe('lookups and picklist dependencies', () => {
 
     it('editing the controlling field clears a dependent value it invalidates, in one step', async () => {
         await edit(0, 'Controlling_Picklist__c');
-        el.shadowRoot.querySelector('c-cell-picklist[data-editor]').dispatchEvent(new CustomEvent('commit', { detail: { value: 'Software' } }));
+        el.shadowRoot
+            .querySelector('c-cell-picklist[data-editor]')
+            .dispatchEvent(new CustomEvent('commit', { detail: { value: 'Software' } }));
         await flush();
         expect(change).not.toHaveBeenCalled();
-        expect(changes).toEqual([{
-            label: 'edit',
-            errors: [],
-            changes: [
-                expect.objectContaining({ field: 'Controlling_Picklist__c', value: 'Software' }),
-                { recordId: ROWS[0].Id, field: 'Dependent_Picklist__c', value: null, originalValue: 'Keyboard' }
-            ]
-        }]);
+        expect(changes).toEqual([
+            {
+                label: 'edit',
+                errors: [],
+                changes: [
+                    expect.objectContaining({ field: 'Controlling_Picklist__c', value: 'Software' }),
+                    { recordId: ROWS[0].Id, field: 'Dependent_Picklist__c', value: null, originalValue: 'Keyboard' }
+                ]
+            }
+        ]);
     });
 
     it('a controlling edit that keeps the dependent value valid changes nothing else', async () => {
         await edit(1, 'Controlling_Picklist__c');
-        el.shadowRoot.querySelector('c-cell-picklist[data-editor]').dispatchEvent(new CustomEvent('commit', { detail: { value: 'Hardware' } }));
+        el.shadowRoot
+            .querySelector('c-cell-picklist[data-editor]')
+            .dispatchEvent(new CustomEvent('commit', { detail: { value: 'Hardware' } }));
         await flush();
         expect(changes).toEqual([]);
         expect(change).toHaveBeenCalledTimes(1);

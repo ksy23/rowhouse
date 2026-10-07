@@ -128,7 +128,10 @@ export function parseCsv(input) {
 
 // ------------------------------------------------------------------ plan
 
-const norm = s => String(s == null ? '' : s).trim().toLowerCase();
+const norm = s =>
+    String(s == null ? '' : s)
+        .trim()
+        .toLowerCase();
 const cellText = cell => (cell == null ? '' : typeof cell === 'string' ? cell : String(cell.v));
 const isEmptyRow = row => !row || row.every(c => cellText(c).trim() === '');
 
@@ -157,7 +160,11 @@ export function mapHeaders(header, columns, overrides = {}) {
     // Hand mappings first, so a header matched automatically never takes a
     // column the user gave to another file column.
     const order = (header || []).map((cell, index) => index);
-    order.sort((a, b) => Number(Object.prototype.hasOwnProperty.call(chosen, b)) - Number(Object.prototype.hasOwnProperty.call(chosen, a)));
+    order.sort(
+        (a, b) =>
+            Number(Object.prototype.hasOwnProperty.call(chosen, b)) -
+            Number(Object.prototype.hasOwnProperty.call(chosen, a))
+    );
     order.forEach(index => {
         const name = cellText((header || [])[index]).trim();
         const choice = Object.prototype.hasOwnProperty.call(chosen, index) ? chosen[index] : undefined;
@@ -174,8 +181,10 @@ export function mapHeaders(header, columns, overrides = {}) {
         }
         const column = choice !== undefined ? byField.get(choice) : byName.get(norm(name));
         if (!column) out.ignored.push({ index, header: label, reason: 'Not a column of this grid.' });
-        else if (!column.editable) out.ignored.push({ index, header: label, reason: `${column.label} is read-only here.` });
-        else if (used.has(column.field)) out.ignored.push({ index, header: label, reason: `${column.label} is already in another column.` });
+        else if (!column.editable)
+            out.ignored.push({ index, header: label, reason: `${column.label} is read-only here.` });
+        else if (used.has(column.field))
+            out.ignored.push({ index, header: label, reason: `${column.label} is already in another column.` });
         else {
             used.add(column.field);
             out.fields.push({ index, column });
@@ -188,9 +197,10 @@ export function mapHeaders(header, columns, overrides = {}) {
 
 /** The choices a file column can be mapped to by hand: not imported, the record Id, or an editable column. */
 export function mappingChoices(columns) {
-    return [{ value: MAP_SKIP, label: '(Not imported)' }, { value: MAP_ID, label: 'Record Id' }].concat(
-        (columns || []).filter(c => c.editable).map(c => ({ value: c.field, label: c.label || c.field }))
-    );
+    return [
+        { value: MAP_SKIP, label: '(Not imported)' },
+        { value: MAP_ID, label: 'Record Id' }
+    ].concat((columns || []).filter(c => c.editable).map(c => ({ value: c.field, label: c.label || c.field })));
 }
 
 /** What a file column is mapped to in a mapping: MAP_ID, MAP_SKIP or a field. */
@@ -219,22 +229,52 @@ export function mappedTo(mapping, index) {
  * cannot be imported; `unmapped` too when that is only because no header
  * names a column, which a hand mapping can put right.
  */
-export function planImport(table, { columns = [], rows = [], refNames = {}, canCreate = false, locale = LOCALE, overrides = {}, matchField = null } = {}) {
+export function planImport(
+    table,
+    {
+        columns = [],
+        rows = [],
+        refNames = {},
+        canCreate = false,
+        locale = LOCALE,
+        overrides = {},
+        matchField = null
+    } = {}
+) {
     const all = table || [];
     const start = all.findIndex(r => !isEmptyRow(r));
-    const empty = { mapping: { idIndex: -1, fields: [], ignored: [] }, items: [], counts: { update: 0, create: 0, match: 0, error: 0 }, header: [] };
+    const empty = {
+        mapping: { idIndex: -1, fields: [], ignored: [] },
+        items: [],
+        counts: { update: 0, create: 0, match: 0, error: 0 },
+        header: []
+    };
     if (start < 0) return { ...empty, error: 'The file is empty.' };
     const mapping = mapHeaders(all[start], columns, overrides);
     // Matching by an External Id needs that column in the file.
-    const match = matchField && mapping.fields.some(f => f.column.field === matchField && f.column.externalId) ? matchField : null;
+    const match =
+        matchField && mapping.fields.some(f => f.column.field === matchField && f.column.externalId)
+            ? matchField
+            : null;
     if (!mapping.fields.length) {
         // The user can still map the columns by hand: `unmapped` says so.
-        return { ...empty, mapping, header: all[start], unmapped: true, error: 'None of the file’s columns is an editable column of this grid. The first row must hold the column names.' };
+        return {
+            ...empty,
+            mapping,
+            header: all[start],
+            unmapped: true,
+            error: 'None of the file’s columns is an editable column of this grid. The first row must hold the column names.'
+        };
     }
     const body = [];
     for (let i = start + 1; i < all.length; i++) if (!isEmptyRow(all[i])) body.push({ line: i + 1, cells: all[i] });
     if (body.length > MAX_IMPORT_ROWS) {
-        return { ...empty, mapping, header: all[start], error: `The file has ${body.length} rows; one import takes at most ${MAX_IMPORT_ROWS}.` };
+        return {
+            ...empty,
+            mapping,
+            header: all[start],
+            error: `The file has ${body.length} rows; one import takes at most ${MAX_IMPORT_ROWS}.`
+        };
     }
 
     const loaded = new Map(rows.map(r => [String(r.Id).slice(0, 15), r])); // a file may hold 15- or 18-character Ids
@@ -255,20 +295,63 @@ export function planImport(table, { columns = [], rows = [], refNames = {}, canC
             if (key) {
                 item.action = 'match';
                 if (seenKeys.has(key.toLowerCase())) {
-                    item.errors.push(problem(match, keyCell.column.label, key, `Also on line ${seenKeys.get(key.toLowerCase())}.`, `${key} is also on line ${seenKeys.get(key.toLowerCase())}.`));
+                    item.errors.push(
+                        problem(
+                            match,
+                            keyCell.column.label,
+                            key,
+                            `Also on line ${seenKeys.get(key.toLowerCase())}.`,
+                            `${key} is also on line ${seenKeys.get(key.toLowerCase())}.`
+                        )
+                    );
                 } else seenKeys.set(key.toLowerCase(), line);
             } else if (!canCreate) {
-                item.errors.push(problem(match, keyCell.column.label, '', 'No value to match, and you cannot create records here.', 'This row has nothing to match by, and you cannot create records here.'));
+                item.errors.push(
+                    problem(
+                        match,
+                        keyCell.column.label,
+                        '',
+                        'No value to match, and you cannot create records here.',
+                        'This row has nothing to match by, and you cannot create records here.'
+                    )
+                );
             }
         } else if (rawId) {
             item.action = 'update';
             item.id = rawId;
-            if (!RECORD_ID.test(rawId)) item.errors.push(problem(null, 'Id', rawId, 'Not a record Id.', `Not a record Id: ${rawId}`));
-            else if (prefix && rawId.slice(0, 3) !== prefix) item.errors.push(problem(null, 'Id', rawId, 'Not a record of this grid\'s object.', `${rawId} is not a record of this grid's object.`));
-            else if (seenIds.has(rawId.slice(0, 15))) item.errors.push(problem(null, 'Id', rawId, `Also on line ${seenIds.get(rawId.slice(0, 15))}.`, `This record is also on line ${seenIds.get(rawId.slice(0, 15))}.`));
+            if (!RECORD_ID.test(rawId))
+                item.errors.push(problem(null, 'Id', rawId, 'Not a record Id.', `Not a record Id: ${rawId}`));
+            else if (prefix && rawId.slice(0, 3) !== prefix)
+                item.errors.push(
+                    problem(
+                        null,
+                        'Id',
+                        rawId,
+                        "Not a record of this grid's object.",
+                        `${rawId} is not a record of this grid's object.`
+                    )
+                );
+            else if (seenIds.has(rawId.slice(0, 15)))
+                item.errors.push(
+                    problem(
+                        null,
+                        'Id',
+                        rawId,
+                        `Also on line ${seenIds.get(rawId.slice(0, 15))}.`,
+                        `This record is also on line ${seenIds.get(rawId.slice(0, 15))}.`
+                    )
+                );
             else seenIds.set(rawId.slice(0, 15), line);
         } else if (!canCreate) {
-            item.errors.push(problem(null, 'Id', '', 'No record Id, and you cannot create records here.', 'This row has no record Id, and you cannot create records here.'));
+            item.errors.push(
+                problem(
+                    null,
+                    'Id',
+                    '',
+                    'No record Id, and you cannot create records here.',
+                    'This row has no record Id, and you cannot create records here.'
+                )
+            );
         }
         // A required field the file leaves out is not checked here: on a new
         // record the platform fills some (Owner is the importing user) and
@@ -276,8 +359,14 @@ export function planImport(table, { columns = [], rows = [], refNames = {}, canC
         mapping.fields.forEach(({ index, column }) => {
             const read = readValue(cells[index], column, names, locale);
             const raw = cellText(cells[index]);
-            if (read.error) item.errors.push(problem(column.field, column.label, raw, read.error, `${column.label}: ${read.error}`));
-            else if (column.required && isBlank(read.value)) item.errors.push(problem(column.field, column.label, raw, REQUIRED_MESSAGE, `${column.label}: ${REQUIRED_MESSAGE}`));
+            if (read.error)
+                item.errors.push(
+                    problem(column.field, column.label, raw, read.error, `${column.label}: ${read.error}`)
+                );
+            else if (column.required && isBlank(read.value))
+                item.errors.push(
+                    problem(column.field, column.label, raw, REQUIRED_MESSAGE, `${column.label}: ${REQUIRED_MESSAGE}`)
+                );
             else item.values[column.field] = read.value;
         });
         checkDependents(item, byField, item.id ? loaded.get(item.id.slice(0, 15)) : null);
@@ -319,15 +408,23 @@ function checkDependents(item, byField, record) {
         const column = byField.get(field);
         if (!column || !column.dependentOn) return;
         let controlling;
-        if (Object.prototype.hasOwnProperty.call(item.values, column.dependentOn)) controlling = item.values[column.dependentOn];
+        if (Object.prototype.hasOwnProperty.call(item.values, column.dependentOn))
+            controlling = item.values[column.dependentOn];
         else if (record) controlling = record[column.dependentOn];
         else if (item.action === 'create') controlling = null;
         else return;
         if (!isValidDependent(column, item.values[field], controlling)) {
             const controller = (byField.get(column.dependentOn) || {}).label || column.dependentOn;
             const why = `Not offered when ${controller} is ${isBlank(controlling) ? 'blank' : controlling}.`;
-            item.errors.push(problem(field, column.label, String(item.values[field]), why,
-                `${column.label}: ${item.values[field]} is not offered when ${controller} is ${isBlank(controlling) ? 'blank' : controlling}.`));
+            item.errors.push(
+                problem(
+                    field,
+                    column.label,
+                    String(item.values[field]),
+                    why,
+                    `${column.label}: ${item.values[field]} is not offered when ${controller} is ${isBlank(controlling) ? 'blank' : controlling}.`
+                )
+            );
             delete item.values[field];
         }
     });

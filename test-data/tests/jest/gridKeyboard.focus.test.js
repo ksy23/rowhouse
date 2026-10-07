@@ -35,21 +35,22 @@ const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
  * HR-11 explicitly allows a cell that is not itself focusable — so activeElement
  * can legitimately be null and the assertion has to say so.
  */
-const activeIn = (el) => {
+const activeIn = el => {
     const a = el.shadowRoot.activeElement;
     if (!a) {
         throw new Error(
-            'Nothing is focused. In JSDOM, focus() is a no-op on an element with no '
-            + 'tabindex — check that the cell or its child carries one (HR-11).'
+            'Nothing is focused. In JSDOM, focus() is a no-op on an element with no ' +
+                'tabindex — check that the cell or its child carries one (HR-11).'
         );
     }
     return a;
 };
 
-
 describe('focus restoration (HR-13)', () => {
     let el;
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     const focusCell = (recordId, field) => {
         const cell = el.shadowRoot.querySelector(`[data-row-id="${recordId}"][data-field="${field}"]`);
@@ -74,7 +75,7 @@ describe('focus restoration (HR-13)', () => {
         await flushPromises();
 
         const active = activeIn(el);
-        expect(active.dataset.rowId).toBe(target.Id);      // the record, not the position
+        expect(active.dataset.rowId).toBe(target.Id); // the record, not the position
         expect(active.dataset.field).toBe('Text_Field__c');
     });
 

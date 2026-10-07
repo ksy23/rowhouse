@@ -9,7 +9,6 @@
  */
 @IsTest
 private class GridLookupTest {
-
     private static Map<String, Id> accounts(List<String> names) {
         List<Account> recs = new List<Account>();
         for (String n : names) {
@@ -104,7 +103,20 @@ private class GridLookupTest {
                 new Rowhouse_Test_Record__c(Name = 'LK-1', Lookup_Field__c = ids.get('Zeta Corp')),
                 new Rowhouse_Test_Record__c(Name = 'LK-2', Lookup_Field__c = ids.get('Alpha Corp'))
             };
-            Map<String, Object> result = GridController.fetchRows('Test_Records', 'Corp', 'Lookup_Field__c', 'asc', null, null, null, null, null, null, null, null);
+            Map<String, Object> result = GridController.fetchRows(
+                'Test_Records',
+                'Corp',
+                'Lookup_Field__c',
+                'asc',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) result.get('rows');
             System.assertEquals(2, rows.size(), 'Quick search matches the lookup name.');
             System.assertEquals('LK-2', rows[0].get('Name'), 'Sorted by the name shown, Alpha before Zeta.');
@@ -120,9 +132,12 @@ private class GridLookupTest {
         System.runAs(GridTestUsers.fullUser()) {
             Rowhouse_Test_Record__c rec = new Rowhouse_Test_Record__c(Name = 'LK-save');
             insert rec;
-            GridSaveResult res = GridSaveService.save('Test_Records', new List<Map<String, Object>>{
-                new Map<String, Object>{ 'Id' => rec.Id, 'Lookup_Field__c' => UserInfo.getUserId() }
-            });
+            GridSaveResult res = GridSaveService.save(
+                'Test_Records',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Lookup_Field__c' => UserInfo.getUserId() }
+                }
+            );
             System.assertEquals(1, res.errors.size(), String.valueOf(res.errors));
             System.assertEquals('Lookup_Field__c', res.errors[0].fieldName);
             System.assert(res.errors[0].message.contains('is not a Account record'), res.errors[0].message);

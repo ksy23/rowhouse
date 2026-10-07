@@ -20,8 +20,10 @@ jobs:
     name: Hard rules, lint and Jest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -43,8 +45,10 @@ jobs:
       - name: Skip without a Dev Hub
         if: env.SFDX_AUTH_URL == ''
         run: echo "::notice::No SFDX_AUTH_URL secret; run the Apex suite in a Developer Edition org instead."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.SFDX_AUTH_URL != ''
+        with:
+          persist-credentials: false
       - name: Install the Salesforce CLI
         if: env.SFDX_AUTH_URL != ''
         run: npm install -g @salesforce/cli
@@ -62,6 +66,7 @@ jobs:
         run: |
           sf project deploy start -d force-app -o ci -w 20
           sf project deploy start -d test-data/metadata -o ci -w 10
+          sf project deploy start -d test-data/actions -o ci -w 10
           sf project deploy start -d test-data/config -o ci -w 10
           sf project deploy start -d test-data/bench -o ci -w 10
           sf project deploy start -d test-data/tests/apex -o ci -w 10

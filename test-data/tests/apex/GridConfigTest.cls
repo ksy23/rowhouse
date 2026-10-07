@@ -5,7 +5,6 @@
  */
 @IsTest
 private class GridConfigTest {
-
     @IsTest
     static void loadsColumnsInSortOrderWithDescribeDetail() {
         GridConfig.Definition def = GridConfig.load('Test_Records');
@@ -20,9 +19,12 @@ private class GridConfigTest {
         GridConfig.Column formulaCol;
         GridConfig.Column picklistCol;
         for (GridConfig.Column c : def.columns) {
-            if (c.field == 'Currency_Field__c') currencyCol = c;
-            if (c.field == 'Formula_Number__c') formulaCol = c;
-            if (c.field == 'Picklist_Field__c') picklistCol = c;
+            if (c.field == 'Currency_Field__c')
+                currencyCol = c;
+            if (c.field == 'Formula_Number__c')
+                formulaCol = c;
+            if (c.field == 'Picklist_Field__c')
+                picklistCol = c;
         }
         System.assertEquals('currency', currencyCol.type);
         System.assertEquals(2, currencyCol.scale);
@@ -57,7 +59,9 @@ private class GridConfigTest {
         System.assert(byField.get('OwnerId').referenceTo.contains('User'));
         System.assertEquals('multipicklist', byField.get('Multi_Picklist__c').type);
         System.assertEquals(5, byField.get('Multi_Picklist__c').options.size());
-        for (String f : new List<String>{ 'Lookup_Field__c', 'OwnerId', 'Multi_Picklist__c', 'Dependent_Picklist__c' }) {
+        for (
+            String f : new List<String>{ 'Lookup_Field__c', 'OwnerId', 'Multi_Picklist__c', 'Dependent_Picklist__c' }
+        ) {
             System.assertEquals(true, byField.get(f).editable, f + ' has an editor now.');
         }
 
@@ -71,7 +75,11 @@ private class GridConfigTest {
         System.assertEquals(new List<String>{ 'Hardware' }, validFor.get('Monitor'));
         System.assertEquals(new List<String>{ 'Software' }, validFor.get('Licence'));
         System.assertEquals(null, byField.get('Controlling_Picklist__c').dependentOn);
-        System.assertEquals(null, byField.get('Picklist_Field__c').options[0].get('validFor'), 'Only dependent values carry validFor.');
+        System.assertEquals(
+            null,
+            byField.get('Picklist_Field__c').options[0].get('validFor'),
+            'Only dependent values carry validFor.'
+        );
     }
 
     @IsTest
@@ -80,7 +88,11 @@ private class GridConfigTest {
         System.assertEquals(new List<String>{ 'a' }, GridDescribe.validFor('gAAA', nine), '0x80: the first value.');
         System.assertEquals(new List<String>{ 'b' }, GridDescribe.validFor('QAAA', nine), '0x40: the second.');
         System.assertEquals(new List<String>{ 'a', 'b' }, GridDescribe.validFor('wAAA', nine), '0xC0: both.');
-        System.assertEquals(new List<String>{ 'i' }, GridDescribe.validFor('AIAA', nine), 'The ninth is in the second byte.');
+        System.assertEquals(
+            new List<String>{ 'i' },
+            GridDescribe.validFor('AIAA', nine),
+            'The ninth is in the second byte.'
+        );
         System.assertEquals(new List<String>(), GridDescribe.validFor(null, nine));
     }
 
@@ -89,7 +101,8 @@ private class GridConfigTest {
         List<String> names = GridConfig.load('Test_Records').fieldNames();
         Integer count = 0;
         for (String n : names) {
-            if (n == 'Controlling_Picklist__c') count++;
+            if (n == 'Controlling_Picklist__c')
+                count++;
         }
         System.assertEquals(1, count, String.valueOf(names));
     }
@@ -98,7 +111,10 @@ private class GridConfigTest {
     static void theAllowListIsTheAdminsEditableColumns() {
         Set<String> allowed = GridConfig.load('Security_Test').editableFields();
         System.assertEquals(new Set<String>{ 'text_field__c', 'read_only_text__c', 'long_text__c' }, allowed);
-        System.assert(!allowed.contains('currency_field__c'), 'Not a column of Security_Test, so never writable through it.');
+        System.assert(
+            !allowed.contains('currency_field__c'),
+            'Not a column of Security_Test, so never writable through it.'
+        );
     }
 
     @IsTest
@@ -108,11 +124,16 @@ private class GridConfigTest {
         // shortened copy is never what is saved, and the column is offered.
         GridConfig.Column longText;
         for (GridConfig.Column c : GridConfig.load('Security_Test').columns) {
-            if (c.field == 'Long_Text__c') longText = c;
+            if (c.field == 'Long_Text__c')
+                longText = c;
         }
         System.assertEquals(true, longText.adminEditable);
         System.assertEquals(true, longText.editable);
-        System.assertEquals('text', longText.type, 'The fixture shows it as text (Cell Type); its editor still reads the whole value.');
+        System.assertEquals(
+            'text',
+            longText.type,
+            'The fixture shows it as text (Cell Type); its editor still reads the whole value.'
+        );
     }
 
     @IsTest
@@ -120,9 +141,15 @@ private class GridConfigTest {
         // Describe labels standard lookups "Account ID", "Owner ID".
         System.assertEquals('Account', GridConfig.defaultLabel(Contact.AccountId.getDescribe()));
         System.assertEquals('Owner', GridConfig.defaultLabel(Rowhouse_Test_Record__c.OwnerId.getDescribe()));
-        System.assertEquals('Related Account', GridConfig.defaultLabel(Rowhouse_Test_Record__c.Lookup_Field__c.getDescribe()),
-            'A custom lookup has no " ID" to drop.');
-        System.assertEquals('Number Field', GridConfig.defaultLabel(Rowhouse_Test_Record__c.Number_Field__c.getDescribe()));
+        System.assertEquals(
+            'Related Account',
+            GridConfig.defaultLabel(Rowhouse_Test_Record__c.Lookup_Field__c.getDescribe()),
+            'A custom lookup has no " ID" to drop.'
+        );
+        System.assertEquals(
+            'Number Field',
+            GridConfig.defaultLabel(Rowhouse_Test_Record__c.Number_Field__c.getDescribe())
+        );
         Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
         for (GridConfig.Column c : GridConfig.load('Test_Records').columns) {
             byField.put(c.field, c);

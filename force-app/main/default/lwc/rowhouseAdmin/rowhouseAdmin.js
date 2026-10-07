@@ -65,7 +65,10 @@ function compareBy(a, b, key) {
 
 const DONE_TOASTS = {
     clone: (label, configName) => ({ title: 'Grid cloned', message: `${configName} is a copy of ${label}.` }),
-    archive: label => ({ title: 'Grid archived', message: `${label} is under Archived grids, in the side navigation.` }),
+    archive: label => ({
+        title: 'Grid archived',
+        message: `${label} is under Archived grids, in the side navigation.`
+    }),
     restore: label => ({ title: 'Grid restored', message: `${label} is back under Available grids.` })
 };
 
@@ -74,7 +77,11 @@ function messageOf(error) {
     if (!error) return 'Unknown error.';
     const body = error.body;
     if (body && typeof body.message === 'string' && body.message) return body.message;
-    if (Array.isArray(body)) return body.map(e => e && e.message).filter(Boolean).join(' ');
+    if (Array.isArray(body))
+        return body
+            .map(e => e && e.message)
+            .filter(Boolean)
+            .join(' ');
     return error.message || String(error);
 }
 
@@ -131,7 +138,11 @@ export default class RowhouseAdmin extends NavigationMixin(LightningElement) {
     handleHelp() {
         openGuide(this, namespaceOf(this.template.host), 'start').catch(() => {
             this.dispatchEvent(
-                new ShowToastEvent({ title: 'The Grid Guide did not open', message: 'Open the Grid Guide tab in the Rowhouse app.', variant: 'warning' })
+                new ShowToastEvent({
+                    title: 'The Grid Guide did not open',
+                    message: 'Open the Grid Guide tab in the Rowhouse app.',
+                    variant: 'warning'
+                })
             );
         });
     }
@@ -275,7 +286,11 @@ export default class RowhouseAdmin extends NavigationMixin(LightningElement) {
     get objectCounts() {
         const counts = new Map();
         this.activeConfigs.forEach(c => {
-            const entry = counts.get(c.objectApiName) || { value: c.objectApiName, label: c.objectLabel || c.objectApiName, count: 0 };
+            const entry = counts.get(c.objectApiName) || {
+                value: c.objectApiName,
+                label: c.objectLabel || c.objectApiName,
+                count: 0
+            };
             entry.count++;
             counts.set(c.objectApiName, entry);
         });
@@ -304,11 +319,19 @@ export default class RowhouseAdmin extends NavigationMixin(LightningElement) {
             {
                 key: 'grids',
                 label: 'Grids',
-                items: [item(AVAILABLE, 'Available grids', this.activeConfigs.length), item(ARCHIVED, 'Archived grids', this.archivedConfigs.length)]
+                items: [
+                    item(AVAILABLE, 'Available grids', this.activeConfigs.length),
+                    item(ARCHIVED, 'Archived grids', this.archivedConfigs.length)
+                ]
             }
         ];
         const objects = this.objectCounts;
-        if (objects.length) groups.push({ key: 'objects', label: 'By object', items: objects.map(o => item(o.value, o.label, o.count)) });
+        if (objects.length)
+            groups.push({
+                key: 'objects',
+                label: 'By object',
+                items: objects.map(o => item(o.value, o.label, o.count))
+            });
         return groups;
     }
 
@@ -326,7 +349,14 @@ export default class RowhouseAdmin extends NavigationMixin(LightningElement) {
         const q = this.search.trim().toLowerCase();
         return this.listSource.filter(c => {
             if (!q) return true;
-            return String(c.label || '').toLowerCase().includes(q) || String(c.name || '').toLowerCase().includes(q);
+            return (
+                String(c.label || '')
+                    .toLowerCase()
+                    .includes(q) ||
+                String(c.name || '')
+                    .toLowerCase()
+                    .includes(q)
+            );
         });
     }
 

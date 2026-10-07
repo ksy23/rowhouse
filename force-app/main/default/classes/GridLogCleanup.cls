@@ -28,7 +28,6 @@
  * delete stay, and are counted as not removed.
  */
 public with sharing class GridLogCleanup implements Queueable {
-
     /** Entries a step deletes; a test makes it small. */
     @TestVisible
     private static Integer slice = 4000;
@@ -93,9 +92,13 @@ public with sharing class GridLogCleanup implements Queueable {
             return false;
         }
         List<Id> old = new List<Id>();
-        for (SObject entry : GridSecurity.query(
-                'SELECT Id FROM Grid_Edit_Log__c WHERE CreatedDate < :cutoff AND Id NOT IN :skip ORDER BY CreatedDate LIMIT '
-                + slice, new Map<String, Object>{ 'cutoff' => cutoff, 'skip' => skip })) {
+        for (
+            SObject entry : GridSecurity.query(
+                'SELECT Id FROM Grid_Edit_Log__c WHERE CreatedDate < :cutoff AND Id NOT IN :skip ORDER BY CreatedDate LIMIT ' +
+                slice,
+                new Map<String, Object>{ 'cutoff' => cutoff, 'skip' => skip }
+            )
+        ) {
             old.add(entry.Id);
         }
         List<Id> deleted = new List<Id>();
@@ -130,7 +133,8 @@ public with sharing class GridLogCleanup implements Queueable {
         }
         String said = removed + (removed == 1 ? ' entry' : ' entries') + ' removed';
         if (notRemoved != 0) {
-            said += notRemoved < 0 ? '; none could be: ' + firstProblem
+            said += notRemoved < 0
+                ? '; none could be: ' + firstProblem
                 : '; ' + notRemoved + ' could not be: ' + firstProblem;
         }
         if (more) {
@@ -139,8 +143,12 @@ public with sharing class GridLogCleanup implements Queueable {
         Grid_Edit_Log__c entry = new Grid_Edit_Log__c(
             Operation__c = GridAudit.OP_CLEANUP,
             Object__c = 'Grid_Edit_Log__c',
-            Record_Name__c = ('Entries older than ' + GridLogRetention.label(days) + ' (before '
-                + cutoff.format('yyyy-MM-dd') + ')').left(255),
+            Record_Name__c = ('Entries older than ' +
+                GridLogRetention.label(days) +
+                ' (before ' +
+                cutoff.format('yyyy-MM-dd') +
+                ')')
+                .left(255),
             New_Value__c = said.left(131072),
             Save_Id__c = EncodingUtil.convertToHex(Crypto.generateAesKey(128))
         );

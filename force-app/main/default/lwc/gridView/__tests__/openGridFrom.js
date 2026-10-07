@@ -28,14 +28,22 @@ export function openGridFrom({ getGridConfig, getLayout, fetchRows }) {
         ]);
         const d = config.definition;
         const saved = readLayout(layout.json, d.columns);
-        const adminSort = d.sortField ? [{ field: d.sortField, direction: d.sortDirection === 'desc' ? 'desc' : 'asc' }] : [];
+        const adminSort = d.sortField
+            ? [{ field: d.sortField, direction: d.sortDirection === 'desc' ? 'desc' : 'asc' }]
+            : [];
         const sort = saved && saved.sort ? saved.sort : adminSort;
         const grouping = saved && saved.grouping ? saved.grouping : normalizeGrouping(d.grouping, d.columns);
         const primary = sort[0];
         const sortField = primary ? primary.field : d.sortField || null;
         const start = {
             sortField,
-            sortDirection: primary ? primary.direction : sortField ? (d.sortDirection === 'desc' ? 'desc' : 'asc') : null,
+            sortDirection: primary
+                ? primary.direction
+                : sortField
+                  ? d.sortDirection === 'desc'
+                      ? 'desc'
+                      : 'asc'
+                  : null,
             groupBy: grouping.map(levelParam)
         };
         const answer = { ...config, layout: layout.json, start };

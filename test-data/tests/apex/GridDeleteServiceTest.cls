@@ -9,7 +9,6 @@
  */
 @IsTest
 private class GridDeleteServiceTest {
-
     private static List<Rowhouse_Test_Record__c> newRecords(String name, Integer count) {
         List<Rowhouse_Test_Record__c> out = new List<Rowhouse_Test_Record__c>();
         for (Integer i = 0; i < count; i++) {
@@ -33,15 +32,23 @@ private class GridDeleteServiceTest {
             List<Rowhouse_Test_Record__c> recs = newRecords('Delete me', 3);
             insert recs;
             Test.startTest();
-            GridDeleteService.Result result = GridDeleteService.deleteRows('Test_Records',
-                new List<Id>{ recs[0].Id, recs[1].Id, recs[0].Id }); // a repeated Id is deleted once
+            GridDeleteService.Result result = GridDeleteService.deleteRows(
+                'Test_Records',
+                new List<Id>{ recs[0].Id, recs[1].Id, recs[0].Id }
+            ); // a repeated Id is deleted once
             Test.stopTest();
             System.assertEquals(new List<Id>{ recs[0].Id, recs[1].Id }, result.deletedIds);
             System.assert(result.errors.isEmpty(), String.valueOf(result.errors));
-            System.assertEquals(1, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs],
-                'Only the selected rows are deleted.');
-            System.assertEquals(2, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs AND IsDeleted = true ALL ROWS],
-                'Deleted rows go to the Recycle Bin, where they can be restored.');
+            System.assertEquals(
+                1,
+                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs],
+                'Only the selected rows are deleted.'
+            );
+            System.assertEquals(
+                2,
+                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs AND IsDeleted = TRUE ALL ROWS],
+                'Deleted rows go to the Recycle Bin, where they can be restored.'
+            );
         }
     }
 
@@ -70,8 +77,11 @@ private class GridDeleteServiceTest {
         System.assertEquals(null, result.errors[0].fieldName, 'A delete error belongs to the row, not a cell.');
         System.assert(String.isNotBlank(result.errors[0].message), 'The row error must say why.');
         System.runAs(owner) {
-            System.assertEquals(1, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :theirs.Id],
-                'The row the user may not delete is still there.');
+            System.assertEquals(
+                1,
+                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :theirs.Id],
+                'The row the user may not delete is still there.'
+            );
         }
     }
 
@@ -117,8 +127,11 @@ private class GridDeleteServiceTest {
             String message = refusal('Test_Records', new List<Id>{ rec.Id, UserInfo.getUserId() });
             Test.stopTest();
             System.assert(message != null && message.contains('is not a Rowhouse_Test_Record__c'), message);
-            System.assertEquals(1, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :rec.Id],
-                'A request with a foreign Id is refused whole.');
+            System.assertEquals(
+                1,
+                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :rec.Id],
+                'A request with a foreign Id is refused whole.'
+            );
         }
     }
 
@@ -146,13 +159,19 @@ private class GridDeleteServiceTest {
             insert recs;
             GridDeleteService.deleteRows('Test_Records', new List<Id>{ recs[0].Id, recs[1].Id });
             Test.startTest();
-            GridDeleteService.RestoreResult result = GridController.restoreRows('Test_Records',
-                new List<Id>{ recs[0].Id, recs[1].Id, recs[2].Id });
+            GridDeleteService.RestoreResult result = GridController.restoreRows(
+                'Test_Records',
+                new List<Id>{ recs[0].Id, recs[1].Id, recs[2].Id }
+            );
             Test.stopTest();
             System.assertEquals(new List<Id>{ recs[0].Id, recs[1].Id }, result.restoredIds);
             System.assertEquals(1, result.errors.size(), 'A record that was never deleted cannot be put back.');
             System.assertEquals(recs[2].Id, result.errors[0].recordId);
-            System.assertEquals(3, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs], 'All three are back.');
+            System.assertEquals(
+                3,
+                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs],
+                'All three are back.'
+            );
         }
     }
 
@@ -189,14 +208,34 @@ private class GridDeleteServiceTest {
             recs.add(new Rowhouse_Test_Record__c(Name = 'Not this one'));
             insert recs;
             Test.startTest();
-            List<Object> first = (List<Object>) GridController.matchingIds('Test_Records', 'Match every', null, null, null, null, null).get('ids');
-            List<Object> rest = (List<Object>) GridController.matchingIds('Test_Records', 'Match every', null, null, null, null,
-                String.valueOf(first[0])).get('ids');
+            List<Object> first = (List<Object>) GridController.matchingIds(
+                    'Test_Records',
+                    'Match every',
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                )
+                .get('ids');
+            List<Object> rest = (List<Object>) GridController.matchingIds(
+                    'Test_Records',
+                    'Match every',
+                    null,
+                    null,
+                    null,
+                    null,
+                    String.valueOf(first[0])
+                )
+                .get('ids');
             Test.stopTest();
             List<Id> expected = new List<Id>{ recs[0].Id, recs[1].Id, recs[2].Id };
             expected.sort();
-            System.assertEquals(expected, (List<Id>) JSON.deserialize(JSON.serialize(first), List<Id>.class),
-                'Only the records the search matches, in Id order.');
+            System.assertEquals(
+                expected,
+                (List<Id>) JSON.deserialize(JSON.serialize(first), List<Id>.class),
+                'Only the records the search matches, in Id order.'
+            );
             System.assertEquals(2, rest.size(), 'After an Id: the ones after it.');
         }
     }

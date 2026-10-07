@@ -109,7 +109,9 @@ export default class CellNumber extends LightningElement {
         const typed = this.draft !== undefined;
         this.draft = undefined;
         if (typed && value !== null) value = roundDecimal(value, this.scale);
-        this.dispatchEvent(new CustomEvent('commit', { detail: { value: value === null ? null : toSafeNumeric(value) } }));
+        this.dispatchEvent(
+            new CustomEvent('commit', { detail: { value: value === null ? null : toSafeNumeric(value) } })
+        );
         return true;
     }
 }

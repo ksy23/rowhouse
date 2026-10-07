@@ -84,7 +84,7 @@ describe('rowTop and rowAt', () => {
         expect(rowAt(100, 0, H)).toBe(0);
     });
 
-    it('the whole height is the last row\'s top plus its own', () => {
+    it("the whole height is the last row's top plus its own", () => {
         const details = [1];
         expect(rowTop(3, H, details)).toBe(H + DETAIL_HEIGHT + H);
     });
@@ -100,12 +100,12 @@ describe('heights by level', () => {
         expect(detailHeight(undefined)).toBe(DETAIL_HEIGHT);
     });
 
-    it('sizes each child grid to its parent\'s panel, less the tabs and its header', () => {
+    it("sizes each child grid to its parent's panel, less the tabs and its header", () => {
         expect(childTableHeight(2)).toBe(DETAIL_HEIGHT - PANEL_CHROME);
         expect(childTableHeight(3)).toBe(NESTED_DETAIL_HEIGHT - PANEL_CHROME);
     });
 
-    it('fits a level-2 row\'s whole panel inside a level-2 grid, with its header and a row', () => {
+    it("fits a level-2 row's whole panel inside a level-2 grid, with its header and a row", () => {
         // With one height for every level, a 420px panel sat in a 240px box and
         // the level-3 grid was below the fold.
         expect(detailHeight(2) + HEADER_AND_ROW).toBeLessThanOrEqual(childTableHeight(2));
@@ -135,11 +135,11 @@ describe('panels sized to their content', () => {
         expect(rowAt(rowTop(4, H, details, heights), 6, H, details, heights)).toBe(4);
     });
 
-    it('uses the level\'s maximum for a height it does not have', () => {
+    it("uses the level's maximum for a height it does not have", () => {
         expect(rowTop(2, H, [1], [])).toBe(2 * H + (DETAIL_HEIGHT - H));
     });
 
-    it('clamps a measured content height between the minimum and the level\'s maximum', () => {
+    it("clamps a measured content height between the minimum and the level's maximum", () => {
         expect(panelHeightFor(null, 1)).toBe(DETAIL_HEIGHT); // not measured yet
         expect(panelHeightFor(0, 1)).toBe(DETAIL_HEIGHT);
         expect(panelHeightFor(250.2, 1)).toBe(Math.ceil(250.2 + PANEL_PADDING)); // the panel's padding and border round it
@@ -149,8 +149,8 @@ describe('panels sized to their content', () => {
     });
 });
 
-describe('the admin\'s heights', () => {
-    it('size a child grid to its tab\'s Height, or to the standard', () => {
+describe("the admin's heights", () => {
+    it("size a child grid to its tab's Height, or to the standard", () => {
         expect(childTableHeight(2, 600)).toBe(600);
         expect(childTableHeight(2, null)).toBe(DETAIL_HEIGHT - PANEL_CHROME);
         expect(childTableHeight(3, 0)).toBe(NESTED_DETAIL_HEIGHT - PANEL_CHROME);

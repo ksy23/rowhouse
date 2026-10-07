@@ -138,7 +138,8 @@
  * would otherwise lose to under the pointer.
  */
 .rh-grid .rh-frozen_last.rh-cell_focus {
-    box-shadow: inset 0 0 0 2px var(--slds-g-color-accent-2, #0250d9),
+    box-shadow:
+        inset 0 0 0 2px var(--slds-g-color-accent-2, #0250d9),
         inset -1px 0 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
 }
 
@@ -168,7 +169,11 @@
  */
 .rh-grid :where(tr.rh-row_open) > td {
     background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
-    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+    background-color: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%,
+        var(--slds-g-color-neutral-base-100, rgb(255, 255, 255))
+    );
 }
 
 /*
@@ -309,7 +314,10 @@
 
 /* A record's Group cell draws a guide line at its innermost group's indent. */
 .rh-grid td.rh-group-cell_record {
-    background-image: linear-gradient(var(--slds-g-color-neutral-base-80, #c9c9c9), var(--slds-g-color-neutral-base-80, #c9c9c9));
+    background-image: linear-gradient(
+        var(--slds-g-color-neutral-base-80, #c9c9c9),
+        var(--slds-g-color-neutral-base-80, #c9c9c9)
+    );
     background-size: 1px 100%;
     background-repeat: no-repeat;
     background-position: var(--rh-guide, 18px) 0;
@@ -373,7 +381,11 @@
     vertical-align: top;
     white-space: normal;
     background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
-    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+    background-color: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%,
+        var(--slds-g-color-neutral-base-100, rgb(255, 255, 255))
+    );
 }
 
 .rh-detail-panel {
@@ -416,7 +428,11 @@
 .rh-card-detail {
     white-space: normal;
     background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
-    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+    background-color: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%,
+        var(--slds-g-color-neutral-base-100, rgb(255, 255, 255))
+    );
 }
 
 /* A subtotal: "Sum" in small grey type, then the value. */
@@ -473,7 +489,8 @@
 
 /* Both lines on the last frozen cell of the Total row. */
 .rh-grid .rh-totals td.rh-frozen_last {
-    box-shadow: inset 0 2px 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201)),
+    box-shadow:
+        inset 0 2px 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201)),
         inset -1px 0 0 var(--slds-g-color-neutral-base-80, rgb(201, 201, 201));
 }
 
@@ -524,7 +541,11 @@
     border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-brand-base-80, #aacbff);
     border-radius: var(--slds-g-radius-border-4, 1rem);
     background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
-    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+    background-color: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%,
+        var(--slds-g-color-neutral-base-100, rgb(255, 255, 255))
+    );
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
 }
 
@@ -542,7 +563,7 @@
     transform: translateY(50%);
 }
 
-.rh-footer-save[aria-disabled="true"] {
+.rh-footer-save[aria-disabled='true'] {
     cursor: progress;
 }
 

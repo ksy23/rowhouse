@@ -41,7 +41,7 @@ describe('benchmark timings', () => {
         expect(measureSpy).not.toHaveBeenCalled();
     });
 
-    it('measures an arrow key\'s move, which is done without a redraw', async () => {
+    it("measures an arrow key's move, which is done without a redraw", async () => {
         const el = await mount(true);
         const cell = el.shadowRoot.querySelector('td[data-field="Name"]');
         cell.focus();
@@ -121,7 +121,8 @@ describe('benchmark timings', () => {
         const id = seedRows[0].Id;
         el.shadowRoot.querySelector(`td[data-row-id="${id}"][data-field="Text_Field__c"] button`).click();
         await flush();
-        el.shadowRoot.querySelector('c-cell-text[data-editor]')
+        el.shadowRoot
+            .querySelector('c-cell-text[data-editor]')
             .dispatchEvent(new CustomEvent('commit', { detail: { value: 'changed' } }));
         expect(markSpy).toHaveBeenCalledWith('rowhouse:commit-start');
         await flush();

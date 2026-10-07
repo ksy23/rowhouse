@@ -42,7 +42,11 @@
     border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-brand-base-80, #aacbff);
     border-radius: var(--slds-g-radius-border-4, 1rem);
     background-color: var(--slds-g-color-palette-blue-95, rgb(238, 244, 255));
-    background-color: color-mix(in srgb, var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%, var(--slds-g-color-neutral-base-100, rgb(255, 255, 255)));
+    background-color: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-blue-95, rgb(238, 244, 255)) 50%,
+        var(--slds-g-color-neutral-base-100, rgb(255, 255, 255))
+    );
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
 }
 

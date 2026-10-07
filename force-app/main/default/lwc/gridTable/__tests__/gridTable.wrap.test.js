@@ -19,7 +19,10 @@ const mount = async config => {
 };
 const $ = selector => el.shadowRoot.querySelector(selector);
 const $$ = selector => [...el.shadowRoot.querySelectorAll(selector)];
-const cellText = (id, field) => $(`td[data-row-id="${id}"][data-field="${field}"] .slds-grid > span, td[data-row-id="${id}"][data-field="${field}"] .slds-grid > a`);
+const cellText = (id, field) =>
+    $(
+        `td[data-row-id="${id}"][data-field="${field}"] .slds-grid > span, td[data-row-id="${id}"][data-field="${field}"] .slds-grid > a`
+    );
 const menuButton = field => $(`[data-menu-button][data-field="${field}"]`);
 const items = () => $$('[role="menuitemradio"]');
 const key = (target, k) => {
@@ -98,7 +101,12 @@ describe('the column header menu', () => {
         const menu = $('[role="menu"]');
         expect(menu.getAttribute('aria-label')).toBe('Test Case column actions');
         // Sorting first, as in a list view's column menu, then the text choice.
-        expect(items().map(i => i.textContent.trim())).toEqual(['Sort ascending', 'Sort descending', 'Wrap text', 'Clip text']);
+        expect(items().map(i => i.textContent.trim())).toEqual([
+            'Sort ascending',
+            'Sort descending',
+            'Wrap text',
+            'Clip text'
+        ]);
         expect(items().map(i => i.getAttribute('aria-checked'))).toEqual(['false', 'false', 'false', 'true']);
         expect(items()[3].closest('li').classList).toContain('slds-is-selected');
         expect(items()[2].closest('li').classList).toContain('slds-has-divider_top-space');
@@ -166,7 +174,9 @@ describe('the column header menu', () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
         menuButton('Text_Field__c').click();
         await flush();
-        items()[0].dispatchEvent(new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: $('th[data-field="Name"]') }));
+        items()[0].dispatchEvent(
+            new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: $('th[data-field="Name"]') })
+        );
         await flush();
         expect($('[role="menu"]')).toBeNull();
     });

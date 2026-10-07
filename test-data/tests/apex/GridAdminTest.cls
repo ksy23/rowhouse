@@ -7,7 +7,6 @@
  */
 @IsTest
 private class GridAdminTest {
-
     private class Kept implements GridAdmin.Deployer {
         public Metadata.DeployContainer container;
         public Metadata.DeployCallback callback;
@@ -58,16 +57,22 @@ private class GridAdminTest {
         System.runAs(GridTestUsers.fullUser()) {
             for (Integer i = 0; i < 3; i++) {
                 try {
-                    if (i == 0) GridAdmin.listConfigs();
-                    if (i == 1) GridAdmin.readConfig('Test_Records');
-                    if (i == 2) GridAdmin.save(newDraft('Not_Allowed'));
+                    if (i == 0)
+                        GridAdmin.listConfigs();
+                    if (i == 1)
+                        GridAdmin.readConfig('Test_Records');
+                    if (i == 2)
+                        GridAdmin.save(newDraft('Not_Allowed'));
                     System.assert(false, 'Call ' + i + ' should have been refused.');
                 } catch (GridException e) {
                     System.assert(e.getMessage().contains('Rowhouse Grid Admin'), e.getMessage());
                 }
             }
-            System.assertEquals(false, GridController.getGridConfig('Test_Records').get('canConfigure'),
-                'No gear without Rowhouse Grid Admin.');
+            System.assertEquals(
+                false,
+                GridController.getGridConfig('Test_Records').get('canConfigure'),
+                'No gear without Rowhouse Grid Admin.'
+            );
         }
     }
 
@@ -76,7 +81,11 @@ private class GridAdminTest {
         System.runAs(GridTestUsers.adminViewer()) {
             Map<String, Object> read = GridAdmin.readConfig('Test_Records');
             System.assertEquals(false, read.get('canSave'));
-            System.assertEquals(true, GridController.getGridConfig('Test_Records').get('canConfigure'), 'The gear shows.');
+            System.assertEquals(
+                true,
+                GridController.getGridConfig('Test_Records').get('canConfigure'),
+                'The gear shows.'
+            );
             GridAdmin.deployWith = new Kept();
             try {
                 GridAdmin.save((GridAdmin.Draft) read.get('draft'));
@@ -100,12 +109,21 @@ private class GridAdminTest {
             GridConfig.Definition def = GridConfig.load('Test_Records');
             System.assertEquals(def.columns.size(), d.columns.size());
             for (Integer i = 0; i < d.columns.size(); i++) {
-                System.assertEquals(def.columns[i].field.toLowerCase(), d.columns[i].field.toLowerCase(), 'Column ' + i);
-                System.assertEquals(def.columns[i].alwaysShown, d.columns[i].alwaysShown, 'Always Shown reads back: ' + def.columns[i].field);
+                System.assertEquals(
+                    def.columns[i].field.toLowerCase(),
+                    d.columns[i].field.toLowerCase(),
+                    'Column ' + i
+                );
+                System.assertEquals(
+                    def.columns[i].alwaysShown,
+                    d.columns[i].alwaysShown,
+                    'Always Shown reads back: ' + def.columns[i].field
+                );
             }
             Boolean switchedOff = false;
             for (GridAdmin.RuleDraft r : d.rules) {
-                if (r.active == false) switchedOff = true;
+                if (r.active == false)
+                    switchedOff = true;
             }
             System.assert(switchedOff, 'A rule that is off is in the draft, so it can be turned back on.');
             System.assertEquals(1, d.children.size());
@@ -125,12 +143,19 @@ private class GridAdminTest {
             GridAdmin.deployWith = new Kept();
             GridAdmin.save(d);
             Map<String, Metadata.CustomMetadata> sent = byName(((Kept) GridAdmin.deployWith).container);
-            System.assertEquals(true, valueOf(sent.get('Grid_Column__mdt.Off_Test_Currency_Field'), 'Inactive__c'),
-                'A turned-off column is saved off, not left out: Apex cannot delete it.');
+            System.assertEquals(
+                true,
+                valueOf(sent.get('Grid_Column__mdt.Off_Test_Currency_Field'), 'Inactive__c'),
+                'A turned-off column is saved off, not left out: Apex cannot delete it.'
+            );
 
             GridConfig.Definition def = GridConfig.build(
-                GridAdmin.configRecord(d), GridAdmin.columnRecords(d), new List<Grid_Format_Rule__mdt>(),
-                new List<Grid_Child__mdt>(), new List<Grid_Action__mdt>());
+                GridAdmin.configRecord(d),
+                GridAdmin.columnRecords(d),
+                new List<Grid_Format_Rule__mdt>(),
+                new List<Grid_Child__mdt>(),
+                new List<Grid_Action__mdt>()
+            );
             System.assertEquals(1, def.columns.size(), 'The grid leaves the turned-off column out.');
             System.assertEquals('Name', def.columns[0].field);
         }
@@ -254,7 +279,11 @@ private class GridAdminTest {
             System.assertEquals(null, valueOf(cfg, 'Height_Px__c'), 'Every field is sent, blank ones as null.');
 
             Metadata.CustomMetadata nameCol = sent.get('Grid_Column__mdt.Brand_New_Name');
-            System.assertEquals('Brand_New', valueOf(nameCol, 'Grid_Configuration__c'), 'Linked by the grid\'s API name.');
+            System.assertEquals(
+                'Brand_New',
+                valueOf(nameCol, 'Grid_Configuration__c'),
+                'Linked by the grid\'s API name.'
+            );
             System.assertEquals(Decimal.valueOf(10), valueOf(nameCol, 'Sort_Order__c'));
             System.assertEquals(false, valueOf(nameCol, 'Inactive__c'));
             System.assertEquals(true, valueOf(nameCol, 'Always_Shown__c'), 'Always Shown is saved.');
@@ -275,7 +304,11 @@ private class GridAdminTest {
             Metadata.CustomMetadata link = sent.get('Grid_Child__mdt.Brand_New_Children');
             System.assertEquals('Test_Children', valueOf(link, 'Child_Configuration__c'));
             System.assertEquals('Brand_New', valueOf(link, 'Grid_Configuration__c'));
-            System.assertEquals(Decimal.valueOf(300), valueOf(link, 'Height_Px__c'), 'A child table\'s Height is saved.');
+            System.assertEquals(
+                Decimal.valueOf(300),
+                valueOf(link, 'Height_Px__c'),
+                'A child table\'s Height is saved.'
+            );
         }
     }
 
@@ -298,10 +331,12 @@ private class GridAdminTest {
 
     @IsTest
     static void newRecordNamesAreCleanUniqueAndShort() {
-        List<String> names = GridAdmin.names('Pipeline',
+        List<String> names = GridAdmin.names(
+            'Pipeline',
             new List<String>{ null, null, 'Kept_Name', null },
             new List<String>{ 'Amount', 'Amount', 'x', 'A very long field label that will not fit in forty' },
-            new Set<String>{ 'Pipeline_Amount' });
+            new Set<String>{ 'Pipeline_Amount' }
+        );
         System.assertEquals('Pipeline_Amount_2', names[0], 'Taken in the org.');
         System.assertEquals('Pipeline_Amount_3', names[1], 'Taken in the draft.');
         System.assertEquals('Kept_Name', names[2]);
@@ -338,7 +373,11 @@ private class GridAdminTest {
             System.assertEquals('pending', GridAdmin.saveStatus('0Afhk0000000003').get('status'));
             Map<String, Object> first = GridAdmin.saveStatus(String.valueOf(ok.id));
             System.assertEquals('Succeeded', first.get('status'));
-            System.assertEquals('pending', GridAdmin.saveStatus(String.valueOf(ok.id)).get('status'), 'Read once, then gone.');
+            System.assertEquals(
+                'pending',
+                GridAdmin.saveStatus(String.valueOf(ok.id)).get('status'),
+                'Read once, then gone.'
+            );
             Map<String, Object> second = GridAdmin.saveStatus(String.valueOf(failed.id));
             System.assertEquals('Failed', second.get('status'));
             System.assertEquals(new List<String>{ 'Grid_Column__mdt.X: Something went wrong' }, second.get('messages'));
@@ -428,8 +467,10 @@ private class GridAdminTest {
             GridAdmin.deployWith = new Kept();
             GridAdmin.save(d);
             Map<String, Metadata.CustomMetadata> sent = byName(((Kept) GridAdmin.deployWith).container);
-            System.assertEquals('Lookup_Field__c',
-                valueOf(sent.get('Grid_Configuration__mdt.New_Settings'), 'Record_Page_Field__c'));
+            System.assertEquals(
+                'Lookup_Field__c',
+                valueOf(sent.get('Grid_Configuration__mdt.New_Settings'), 'Record_Page_Field__c')
+            );
             Metadata.CustomMetadata savedFilter = sent.get('Grid_Filter__mdt.New_Settings_Number_Field');
             System.assertNotEquals(null, savedFilter, String.valueOf(sent.keySet()));
             System.assertEquals('greater_than', valueOf(savedFilter, 'Operator__c'));
@@ -528,7 +569,10 @@ private class GridAdminTest {
 
             total.childField = null;
             GridAdmin.Check missing = GridAdmin.check(d);
-            System.assert(String.join(missing.errors, ' | ').contains('a sum needs the Child Field to work out.'), String.join(missing.errors, ' | '));
+            System.assert(
+                String.join(missing.errors, ' | ').contains('a sum needs the Child Field to work out.'),
+                String.join(missing.errors, ' | ')
+            );
             total.childField = 'Amount__c';
             total.childTable = null;
             total.childTotal = 'sum';
@@ -562,8 +606,10 @@ private class GridAdminTest {
                     archived = c;
                 }
                 if (c.get('name') == 'Test_Children') {
-                    System.assert(((List<String>) c.get('usedBy')).contains('Test Records'),
-                        'Test Records shows Test Children as a child table: ' + c.get('usedBy'));
+                    System.assert(
+                        ((List<String>) c.get('usedBy')).contains('Test Records'),
+                        'Test Records shows Test Children as a child table: ' + c.get('usedBy')
+                    );
                 }
                 if (c.get('name') == 'Test_Records') {
                     System.assertEquals(false, c.get('archived'));
@@ -577,10 +623,19 @@ private class GridAdminTest {
             } catch (GridException e) {
                 System.assert(e.getMessage().contains('Test Archived is archived'), e.getMessage());
             }
-            System.assertEquals('Rowhouse_Test_Child__c', GridConfig.load('Test_Archived', true).objectApiName,
-                'A parent grid\'s child total still reads it.');
-            System.assert(!GridLogRetention.loggingGrids().contains('Test Archived'), 'An archived grid writes nothing to the edit log.');
-            for (Map<String, Object> c : (List<Map<String, Object>>) GridAdmin.describeObject('Rowhouse_Test_Record__c').get('children')) {
+            System.assertEquals(
+                'Rowhouse_Test_Child__c',
+                GridConfig.load('Test_Archived', true).objectApiName,
+                'A parent grid\'s child total still reads it.'
+            );
+            System.assert(
+                !GridLogRetention.loggingGrids().contains('Test Archived'),
+                'An archived grid writes nothing to the edit log.'
+            );
+            for (
+                Map<String, Object> c : (List<Map<String, Object>>) GridAdmin.describeObject('Rowhouse_Test_Record__c')
+                    .get('children')
+            ) {
                 System.assertNotEquals('Test_Archived', c.get('config'), 'Not offered as a new child table.');
             }
             // A child table that shows it is skipped, with a warning that says why.
@@ -588,12 +643,18 @@ private class GridAdminTest {
                 'DeveloperName' => 'X_Archived_Tab',
                 'MasterLabel' => 'X',
                 GridDescribe.apiName(Grid_Child__mdt.Relationship_Field__c) => 'Parent__c',
-                GridDescribe.apiName(Grid_Child__mdt.Child_Configuration__c) => Grid_Configuration__mdt.getInstance('Test_Archived').Id
+                GridDescribe.apiName(Grid_Child__mdt.Child_Configuration__c) => Grid_Configuration__mdt.getInstance(
+                        'Test_Archived'
+                    )
+                    .Id
             };
             Grid_Child__mdt link = (Grid_Child__mdt) JSON.deserialize(JSON.serialize(m), Grid_Child__mdt.class);
             List<String> warnings = new List<String>();
-            List<GridConfig.Child> tabs = GridNesting.childrenFrom(new List<Grid_Child__mdt>{ link },
-                Rowhouse_Test_Record__c.SObjectType, warnings);
+            List<GridConfig.Child> tabs = GridNesting.childrenFrom(
+                new List<Grid_Child__mdt>{ link },
+                Rowhouse_Test_Record__c.SObjectType,
+                warnings
+            );
             System.assertEquals(0, tabs.size(), 'The tab is hidden.');
             System.assert(String.join(warnings, ' ').contains('Test_Archived is archived'), String.join(warnings, ' '));
         }
@@ -606,19 +667,32 @@ private class GridAdminTest {
             GridAdmin.deployWith = spy;
             GridAdmin.setArchived('Test_Records', true);
             Map<String, Metadata.CustomMetadata> sent = byName(spy.container);
-            System.assertEquals(new Set<String>{ 'Grid_Configuration__mdt.Test_Records' }, sent.keySet(),
-                'Its columns and the rest are untouched.');
+            System.assertEquals(
+                new Set<String>{ 'Grid_Configuration__mdt.Test_Records' },
+                sent.keySet(),
+                'Its columns and the rest are untouched.'
+            );
             Metadata.CustomMetadata cfg = sent.get('Grid_Configuration__mdt.Test_Records');
             System.assertEquals(true, valueOf(cfg, 'Archived__c'));
-            System.assertEquals('Rowhouse_Test_Record__c', valueOf(cfg, 'Object_API_Name__c'), 'Every field, as the org has it.');
+            System.assertEquals(
+                'Rowhouse_Test_Record__c',
+                valueOf(cfg, 'Object_API_Name__c'),
+                'Every field, as the org has it.'
+            );
             System.assertEquals('Test Records', cfg.label);
             System.assert(spy.callback instanceof GridAdminDeploy, 'Its outcome is read like a save\'s.');
 
             GridAdmin.setArchived('Test_Archived', false);
-            System.assertEquals(false, valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Archived__c'),
-                'Restored.');
-            System.assertEquals(true, valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Log_Changes__c'),
-                'The rest as it was.');
+            System.assertEquals(
+                false,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Archived__c'),
+                'Restored.'
+            );
+            System.assertEquals(
+                true,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Log_Changes__c'),
+                'The rest as it was.'
+            );
         }
     }
 
@@ -631,15 +705,21 @@ private class GridAdminTest {
             Kept spy = new Kept();
             GridAdmin.deployWith = spy;
             GridAdmin.save(d);
-            System.assertEquals(false, valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Records'), 'Archived__c'),
-                'Only archive changes it.');
+            System.assertEquals(
+                false,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Records'), 'Archived__c'),
+                'Only archive changes it.'
+            );
 
             GridAdmin.Draft archived = (GridAdmin.Draft) GridAdmin.readConfig('Test_Archived').get('draft');
             System.assertEquals(true, archived.config.archived);
             archived.config.archived = false;
             GridAdmin.save(archived);
-            System.assertEquals(true, valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Archived__c'),
-                'Saving an archived grid keeps it archived.');
+            System.assertEquals(
+                true,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Archived__c'),
+                'Saving an archived grid keeps it archived.'
+            );
         }
     }
 
@@ -651,8 +731,13 @@ private class GridAdminTest {
             GridAdmin.deployWith = spy;
             GridAdmin.cloneConfig('Nest_Accounts', 'Copy of Nest Accounts', 'Copy_of_Nest_Accounts');
             Map<String, Metadata.CustomMetadata> sent = byName(spy.container);
-            Integer records = 1 + source.columns.size() + source.rules.size() + source.filters.size()
-                + source.actions.size() + source.children.size();
+            Integer records =
+                1 +
+                source.columns.size() +
+                source.rules.size() +
+                source.filters.size() +
+                source.actions.size() +
+                source.children.size();
             System.assertEquals(records, sent.size(), String.valueOf(sent.keySet()));
             Metadata.CustomMetadata cfg = sent.get('Grid_Configuration__mdt.Copy_of_Nest_Accounts');
             System.assertEquals('Copy of Nest Accounts', cfg.label);
@@ -663,7 +748,10 @@ private class GridAdminTest {
                 if (fullName == 'Grid_Configuration__mdt.Copy_of_Nest_Accounts') {
                     continue;
                 }
-                System.assert(fullName.substringAfter('.').startsWith('Copy_of_Nest_Accounts_'), 'A new record, named after the copy: ' + fullName);
+                System.assert(
+                    fullName.substringAfter('.').startsWith('Copy_of_Nest_Accounts_'),
+                    'A new record, named after the copy: ' + fullName
+                );
                 System.assertEquals('Copy_of_Nest_Accounts', valueOf(sent.get(fullName), 'Grid_Configuration__c'));
                 if (fullName.startsWith('Grid_Child__mdt.')) {
                     links.add(fullName.substringAfter('.'));
@@ -671,10 +759,15 @@ private class GridAdminTest {
             }
             Integer totals = 0;
             for (String fullName : sent.keySet()) {
-                Object table = fullName.startsWith('Grid_Column__mdt.') ? valueOf(sent.get(fullName), 'Child_Table__c') : null;
+                Object table = fullName.startsWith('Grid_Column__mdt.')
+                    ? valueOf(sent.get(fullName), 'Child_Table__c')
+                    : null;
                 if (table != null) {
                     totals++;
-                    System.assert(links.contains((String) table), 'A child total column totals the copy\'s child table: ' + table + ' in ' + links);
+                    System.assert(
+                        links.contains((String) table),
+                        'A child total column totals the copy\'s child table: ' + table + ' in ' + links
+                    );
                 }
             }
             System.assertEquals(2, totals, 'Both child total columns are copied.');
@@ -700,15 +793,20 @@ private class GridAdminTest {
             GridAdmin.deployWith = new Kept();
             for (Integer i = 0; i < 2; i++) {
                 try {
-                    if (i == 0) GridAdmin.setArchived('Test_Records', true);
-                    if (i == 1) GridAdmin.cloneConfig('Test_Records', 'Copy', 'Copy_Records');
+                    if (i == 0)
+                        GridAdmin.setArchived('Test_Records', true);
+                    if (i == 1)
+                        GridAdmin.cloneConfig('Test_Records', 'Copy', 'Copy_Records');
                     System.assert(false, 'Call ' + i + ' needs Customize Application.');
                 } catch (GridException e) {
                     System.assert(e.getMessage().contains('Customize Application'), e.getMessage());
                 }
             }
             System.assertEquals(null, ((Kept) GridAdmin.deployWith).container, 'Nothing was deployed.');
-            System.assert(!GridAdmin.setupRecords('Test_Records').isEmpty(), 'Seeing what to delete needs only Rowhouse Grid Admin.');
+            System.assert(
+                !GridAdmin.setupRecords('Test_Records').isEmpty(),
+                'Seeing what to delete needs only Rowhouse Grid Admin.'
+            );
         }
         System.runAs(GridTestUsers.fullUser()) {
             try {
@@ -729,7 +827,10 @@ private class GridAdminTest {
             Set<String> columns = new Set<String>();
             for (Integer i = 0; i < items.size(); i++) {
                 Map<String, String> item = items[i];
-                System.assert(item.get('url').startsWith('/lightning/setup/CustomMetadata/page?address=%2F'), item.get('url'));
+                System.assert(
+                    item.get('url').startsWith('/lightning/setup/CustomMetadata/page?address=%2F'),
+                    item.get('url')
+                );
                 if (item.get('note') != null && item.get('note').startsWith('A child table of')) {
                     System.assertEquals(null, firstOwn, 'Other grids\' child tables come before its own records.');
                     others.add(item.get('name'));
@@ -741,11 +842,17 @@ private class GridAdminTest {
                 }
             }
             System.assert(others.contains('Test_Records_Children'), 'Test Records\' child table shows it: ' + others);
-            System.assert(columns.contains('Test_Children_Name') && columns.contains('Test_Children_Amount'), String.valueOf(columns));
+            System.assert(
+                columns.contains('Test_Children_Name') && columns.contains('Test_Children_Amount'),
+                String.valueOf(columns)
+            );
             Map<String, String> last = items[items.size() - 1];
             System.assertEquals('Test_Children', last.get('name'), 'The grid itself is last.');
             System.assertEquals('Grid Configuration', last.get('kind'));
-            System.assert(last.get('url').endsWith(String.valueOf(Grid_Configuration__mdt.getInstance('Test_Children').Id)), last.get('url'));
+            System.assert(
+                last.get('url').endsWith(String.valueOf(Grid_Configuration__mdt.getInstance('Test_Children').Id)),
+                last.get('url')
+            );
         }
     }
 }

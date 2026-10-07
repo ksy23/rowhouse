@@ -42,7 +42,6 @@
  * fit).
  */
 public with sharing class GridAudit {
-
     /** Entries one transaction may write. */
     public static final Integer MAX_ENTRIES = 5000;
     /** The largest value a Long Text Area holds. */
@@ -58,10 +57,18 @@ public with sharing class GridAudit {
 
     /** Every field an entry is written with: the user must be able to set each one. */
     private static final List<Schema.SObjectField> LOG_FIELDS = new List<Schema.SObjectField>{
-        Grid_Edit_Log__c.Grid_Configuration__c, Grid_Edit_Log__c.Object__c, Grid_Edit_Log__c.Record_Id__c,
-        Grid_Edit_Log__c.Record_Name__c, Grid_Edit_Log__c.Operation__c, Grid_Edit_Log__c.Field__c,
-        Grid_Edit_Log__c.Field_Label__c, Grid_Edit_Log__c.Old_Value__c, Grid_Edit_Log__c.New_Value__c,
-        Grid_Edit_Log__c.Values_Hidden__c, Grid_Edit_Log__c.Action__c, Grid_Edit_Log__c.Action_Label__c,
+        Grid_Edit_Log__c.Grid_Configuration__c,
+        Grid_Edit_Log__c.Object__c,
+        Grid_Edit_Log__c.Record_Id__c,
+        Grid_Edit_Log__c.Record_Name__c,
+        Grid_Edit_Log__c.Operation__c,
+        Grid_Edit_Log__c.Field__c,
+        Grid_Edit_Log__c.Field_Label__c,
+        Grid_Edit_Log__c.Old_Value__c,
+        Grid_Edit_Log__c.New_Value__c,
+        Grid_Edit_Log__c.Values_Hidden__c,
+        Grid_Edit_Log__c.Action__c,
+        Grid_Edit_Log__c.Action_Label__c,
         Grid_Edit_Log__c.Save_Id__c
     };
 
@@ -95,8 +102,10 @@ public with sharing class GridAudit {
             allowed = allowed && GridSecurity.canSetOnCreate(f);
         }
         if (!allowed) {
-            throw new GridException('This grid keeps a log of every change, and you do not have permission to write to it, '
-                + 'so nothing was changed. Ask your Salesforce admin for the Rowhouse Grid User permission set.');
+            throw new GridException(
+                'This grid keeps a log of every change, and you do not have permission to write to it, ' +
+                'so nothing was changed. Ask your Salesforce admin for the Rowhouse Grid User permission set.'
+            );
         }
     }
 
@@ -129,8 +138,12 @@ public with sharing class GridAudit {
             fields.add(GridDescribe.apiName(name));
         }
         fields.remove('Id');
-        String soql = 'SELECT Id' + (fields.isEmpty() ? '' : ', ' + String.join(new List<String>(fields), ', '))
-            + ' FROM ' + GridDescribe.apiName(objectType) + ' WHERE Id IN :ids';
+        String soql =
+            'SELECT Id' +
+            (fields.isEmpty() ? '' : ', ' + String.join(new List<String>(fields), ', ')) +
+            ' FROM ' +
+            GridDescribe.apiName(objectType) +
+            ' WHERE Id IN :ids';
         return new Map<Id, SObject>(GridSecurity.query(soql, new Map<String, Object>{ 'ids' => ids }));
     }
 
@@ -141,8 +154,16 @@ public with sharing class GridAudit {
         if (name == null || ids == null || ids.isEmpty()) {
             return out;
         }
-        for (SObject r : GridSecurity.query('SELECT Id, ' + GridDescribe.apiName(name) + ' FROM '
-                + GridDescribe.apiName(objectType) + ' WHERE Id IN :ids', new Map<String, Object>{ 'ids' => ids })) {
+        for (
+            SObject r : GridSecurity.query(
+                'SELECT Id, ' +
+                    GridDescribe.apiName(name) +
+                    ' FROM ' +
+                    GridDescribe.apiName(objectType) +
+                    ' WHERE Id IN :ids',
+                new Map<String, Object>{ 'ids' => ids }
+            )
+        ) {
             out.put(r.Id, r.get(name) == null ? null : String.valueOf(r.get(name)));
         }
         return out;
@@ -151,8 +172,13 @@ public with sharing class GridAudit {
     // ---------------------------------------------------------------- entries
 
     /** One Update entry per field that changed on each record that saved. */
-    public static List<Grid_Edit_Log__c> updates(Context ctx, Schema.SObjectType objectType, List<SObject> written,
-                                                 List<Database.SaveResult> results, Map<Id, SObject> before) {
+    public static List<Grid_Edit_Log__c> updates(
+        Context ctx,
+        Schema.SObjectType objectType,
+        List<SObject> written,
+        List<Database.SaveResult> results,
+        Map<Id, SObject> before
+    ) {
         List<Grid_Edit_Log__c> out = new List<Grid_Edit_Log__c>();
         if (ctx == null) {
             return out;
@@ -164,7 +190,11 @@ public with sharing class GridAudit {
             }
             SObject now = written[i];
             SObject was = before == null ? null : before.get(now.Id);
-            String recordName = was == null || name == null || was.get(name) == null ? null : String.valueOf(was.get(name));
+            String recordName = was == null ||
+                name == null ||
+                was.get(name) == null
+                ? null
+                : String.valueOf(was.get(name));
             for (String key : now.getPopulatedFieldsAsMap().keySet()) {
                 if (key == 'Id') {
                     continue;
@@ -186,8 +216,12 @@ public with sharing class GridAudit {
      * a Contact's Name is built from First and Last Name, and an auto-number
      * name is given on insert, so neither is on the record the grid wrote.
      */
-    public static List<Grid_Edit_Log__c> creates(Context ctx, Schema.SObjectType objectType, List<SObject> written,
-                                                 List<Database.SaveResult> results) {
+    public static List<Grid_Edit_Log__c> creates(
+        Context ctx,
+        Schema.SObjectType objectType,
+        List<SObject> written,
+        List<Database.SaveResult> results
+    ) {
         List<Grid_Edit_Log__c> out = new List<Grid_Edit_Log__c>();
         if (ctx == null) {
             return out;
@@ -235,7 +269,12 @@ public with sharing class GridAudit {
     }
 
     /** One Action entry per record the action ran on. */
-    public static List<Grid_Edit_Log__c> actions(Context ctx, GridConfig.Action action, List<Id> ranOn, Map<Id, String> names) {
+    public static List<Grid_Edit_Log__c> actions(
+        Context ctx,
+        GridConfig.Action action,
+        List<Id> ranOn,
+        Map<Id, String> names
+    ) {
         List<Grid_Edit_Log__c> out = new List<Grid_Edit_Log__c>();
         if (ctx == null) {
             return out;
@@ -258,13 +297,20 @@ public with sharing class GridAudit {
             return;
         }
         if (entries.size() > MAX_ENTRIES) {
-            throw new GridException('This change would write ' + entries.size() + ' log entries; at most ' + MAX_ENTRIES
-                + ' can be written at once. Nothing was changed.');
+            throw new GridException(
+                'This change would write ' +
+                    entries.size() +
+                    ' log entries; at most ' +
+                    MAX_ENTRIES +
+                    ' can be written at once. Nothing was changed.'
+            );
         }
         try {
             GridSecurity.insertOwnRecords(entries);
         } catch (DmlException e) {
-            throw new GridException('The change was not made because its log entry could not be written: ' + e.getDmlMessage(0));
+            throw new GridException(
+                'The change was not made because its log entry could not be written: ' + e.getDmlMessage(0)
+            );
         }
     }
 
@@ -292,8 +338,14 @@ public with sharing class GridAudit {
         );
     }
 
-    private static Grid_Edit_Log__c change(Context ctx, Id recordId, String recordName, Schema.SObjectField field,
-                                           Object oldValue, Object newValue) {
+    private static Grid_Edit_Log__c change(
+        Context ctx,
+        Id recordId,
+        String recordName,
+        Schema.SObjectField field,
+        Object oldValue,
+        Object newValue
+    ) {
         Grid_Edit_Log__c e = entry(ctx, OP_UPDATE, recordId, recordName);
         Schema.DescribeFieldResult d = field.getDescribe();
         e.Field__c = d.getLocalName();
@@ -333,7 +385,11 @@ public with sharing class GridAudit {
     }
 
     private static String dateText(Date d) {
-        return String.valueOf(d.year()) + '-' + String.valueOf(d.month()).leftPad(2, '0') + '-' + String.valueOf(d.day()).leftPad(2, '0');
+        return String.valueOf(d.year()) +
+            '-' +
+            String.valueOf(d.month()).leftPad(2, '0') +
+            '-' +
+            String.valueOf(d.day()).leftPad(2, '0');
     }
 
     /** Did the value stay the same? Text exactly (Apex's == ignores case); an empty string is blank. */

@@ -43,7 +43,9 @@ const button = rowId => $(`[data-row-menu-button][data-row-id="${rowId}"]`);
 const items = rowId => $$(`[role="menuitem"][data-row-id="${rowId}"]`);
 const cell = (rowId, field) => $(`td[data-row-id="${rowId}"][data-field="${field}"]`);
 const key = async (target, k, mods = {}) => {
-    target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods }));
+    target.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods })
+    );
     await flush();
 };
 
@@ -88,7 +90,7 @@ describe('the Actions column', () => {
     });
 });
 
-describe('a row\'s menu', () => {
+describe("a row's menu", () => {
     it('opens on a click with the actions in order, focus on the first', async () => {
         await mount();
         button(ROWS[1].Id).click();
@@ -180,13 +182,15 @@ describe('a row\'s menu', () => {
         button(ROWS[0].Id).click();
         await flush();
         const menu = $(`td[data-row-id="${ROWS[0].Id}"] [role="menu"]`);
-        menu.dispatchEvent(new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: cell(ROWS[1].Id, 'Name') }));
+        menu.dispatchEvent(
+            new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: cell(ROWS[1].Id, 'Name') })
+        );
         await flush();
         expect(items(ROWS[0].Id)).toHaveLength(0);
         expect(chosen).toEqual([]);
     });
 
-    it('leaves a group\'s row without a button', async () => {
+    it("leaves a group's row without a button", async () => {
         await mount({ grouping: [{ field: 'Stage__c', unit: null }] });
         const groupRows = $$('tbody tr[data-kind="group"]');
         expect(groupRows.length).toBeGreaterThan(0);

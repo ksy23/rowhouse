@@ -89,7 +89,11 @@ export default class GridAdminHelp extends NavigationMixin(LightningElement) {
         event.preventDefault();
         openGuide(this, namespaceOf(this.template.host), 'configure', this.section).catch(() => {
             this.dispatchEvent(
-                new ShowToastEvent({ title: 'The Grid Guide did not open', message: 'Open the Grid Guide tab in the Rowhouse app.', variant: 'warning' })
+                new ShowToastEvent({
+                    title: 'The Grid Guide did not open',
+                    message: 'Open the Grid Guide tab in the Rowhouse app.',
+                    variant: 'warning'
+                })
             );
         });
     }

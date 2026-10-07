@@ -29,7 +29,12 @@ const COLUMNS = [
     { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, sortable: true }
 ];
 const id = n => `a01${String(n).padStart(15, '0')}`;
-const ROWS = Array.from({ length: 12 }, (_, i) => ({ Id: id(i + 1), Name: 'Row ' + (i + 1), Stage__c: 'Open', Amount__c: i * 10 }));
+const ROWS = Array.from({ length: 12 }, (_, i) => ({
+    Id: id(i + 1),
+    Name: 'Row ' + (i + 1),
+    Stage__c: 'Open',
+    Amount__c: i * 10
+}));
 
 describe('the column list is built once per change', () => {
     let el;
@@ -84,7 +89,10 @@ describe('the column list is built once per change', () => {
         await flush();
         expect(built()).toBe(1);
         expect(lists[0].map(c => c.field)).toEqual(['Name', 'Stage__c']);
-        expect([...el.shadowRoot.querySelectorAll('thead th[data-field]')].map(th => th.dataset.field)).toEqual(['Name', 'Stage__c']);
+        expect([...el.shadowRoot.querySelectorAll('thead th[data-field]')].map(th => th.dataset.field)).toEqual([
+            'Name',
+            'Stage__c'
+        ]);
     });
 
     it('builds a new list when a row status column comes, and when it goes', async () => {

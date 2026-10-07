@@ -38,10 +38,46 @@ jest.mock('lightning/navigation', () => {
 });
 
 const FIELDS = [
-    { name: 'Name', label: 'Name', type: 'text', sortable: true, groupable: true, editable: true, isName: true, subtotals: ['count'] },
-    { name: 'Amount__c', label: 'Amount', type: 'currency', sortable: true, groupable: false, editable: true, isName: false, subtotals: ['sum', 'average', 'min', 'max', 'count'] },
-    { name: 'Close__c', label: 'Close Date', type: 'date', sortable: true, groupable: true, editable: true, isName: false, subtotals: ['min', 'max', 'count'] },
-    { name: 'Score__c', label: 'Score', type: 'number', sortable: true, groupable: false, editable: false, isName: false, subtotals: ['sum'] }
+    {
+        name: 'Name',
+        label: 'Name',
+        type: 'text',
+        sortable: true,
+        groupable: true,
+        editable: true,
+        isName: true,
+        subtotals: ['count']
+    },
+    {
+        name: 'Amount__c',
+        label: 'Amount',
+        type: 'currency',
+        sortable: true,
+        groupable: false,
+        editable: true,
+        isName: false,
+        subtotals: ['sum', 'average', 'min', 'max', 'count']
+    },
+    {
+        name: 'Close__c',
+        label: 'Close Date',
+        type: 'date',
+        sortable: true,
+        groupable: true,
+        editable: true,
+        isName: false,
+        subtotals: ['min', 'max', 'count']
+    },
+    {
+        name: 'Score__c',
+        label: 'Score',
+        type: 'number',
+        sortable: true,
+        groupable: false,
+        editable: false,
+        isName: false,
+        subtotals: ['sum']
+    }
 ];
 const DESCRIBED = {
     name: 'Deal__c',
@@ -51,15 +87,51 @@ const DESCRIBED = {
     children: [{ config: 'Deal_Notes', label: 'Deal Notes', fields: ['Deal__c', 'Other_Deal__c'] }]
 };
 const DRAFT = {
-    config: { name: 'Deals', label: 'Deals', isNew: false, objectApiName: 'Deal__c', sortField: 'Name', sortDirection: 'asc', allowInlineEdit: true, allowCsvExport: true },
+    config: {
+        name: 'Deals',
+        label: 'Deals',
+        isNew: false,
+        objectApiName: 'Deal__c',
+        sortField: 'Name',
+        sortDirection: 'asc',
+        allowInlineEdit: true,
+        allowCsvExport: true
+    },
     columns: [
         { name: 'Deals_Name', field: 'Name', columnLabel: null, editable: true, sortable: true, inactive: false },
-        { name: 'Deals_Amount', field: 'Amount__c', columnLabel: 'Value', editable: true, sortable: true, subtotal: 'sum', inactive: false },
+        {
+            name: 'Deals_Amount',
+            field: 'Amount__c',
+            columnLabel: 'Value',
+            editable: true,
+            sortable: true,
+            subtotal: 'sum',
+            inactive: false
+        },
         { name: 'Deals_Old', field: 'Score__c', columnLabel: null, editable: false, sortable: true, inactive: true }
     ],
-    rules: [{ name: 'Deals_Big', label: 'Big', field: 'Amount__c', operator: 'greater_than', value: '1000', style: 'fill_green', applyTo: 'row', active: true }],
+    rules: [
+        {
+            name: 'Deals_Big',
+            label: 'Big',
+            field: 'Amount__c',
+            operator: 'greater_than',
+            value: '1000',
+            style: 'fill_green',
+            applyTo: 'row',
+            active: true
+        }
+    ],
     actions: [],
-    children: [{ name: 'Deals_Notes', childConfig: 'Deal_Notes', relationshipField: 'Deal__c', tabLabel: 'Notes', inactive: false }]
+    children: [
+        {
+            name: 'Deals_Notes',
+            childConfig: 'Deal_Notes',
+            relationshipField: 'Deal__c',
+            tabLabel: 'Notes',
+            inactive: false
+        }
+    ]
 };
 
 const settle = async () => {
@@ -82,7 +154,9 @@ async function mount(configName = 'Deals', layout = 'page') {
     el.configName = configName;
     if (layout) el.layout = layout;
     events = [];
-    ['saved', 'close', 'lightning__showtoast'].forEach(type => el.addEventListener(type, e => events.push({ type, detail: e.detail })));
+    ['saved', 'close', 'lightning__showtoast'].forEach(type =>
+        el.addEventListener(type, e => events.push({ type, detail: e.detail }))
+    );
     document.body.appendChild(el);
     await settle();
     return el;
@@ -92,7 +166,10 @@ beforeEach(() => {
     jest.useFakeTimers();
     readConfig.mockResolvedValue({ draft: DRAFT, warnings: ['Grid Column Deals_Old: something'], canSave: true });
     describeObject.mockResolvedValue(DESCRIBED);
-    listObjects.mockResolvedValue([{ name: 'Account', label: 'Account' }, { name: 'Deal__c', label: 'Deal' }]);
+    listObjects.mockResolvedValue([
+        { name: 'Account', label: 'Account' },
+        { name: 'Deal__c', label: 'Deal' }
+    ]);
     canSave.mockResolvedValue(true);
     checkDraft.mockResolvedValue({ errors: [], warnings: [] });
 });
@@ -103,7 +180,6 @@ afterEach(() => {
     jest.clearAllMocks();
     jest.useRealTimers();
 });
-
 
 describe('the page layout on the Grid Admin tab', () => {
     it('heads the page with the way back, the grid, its object and API name, and Close and Save', async () => {

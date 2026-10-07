@@ -51,45 +51,74 @@ const apexFiles = files(SRC, p => /\.(cls|trigger)$/.test(p));
 // defeat a pattern that only looks for `global class`.
 apexFiles.forEach(f => {
     eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /(^|[\s(])(global|webservice)\s/i, (n, l) =>
-        fail('HR-1', f, n, 'global or webservice member — neither can ever be removed from a managed package: ' + l));
+        fail('HR-1', f, n, 'global or webservice member — neither can ever be removed from a managed package: ' + l)
+    );
 });
 
 // ---------------------------------------------------------------- HR-5
 // Every FLS/CRUD decision and every access-mode choice lives in GridSecurity.
-const ACCESS = /isUpdateable\s*\(|isCreateable\s*\(|isAccessible\s*\(|isDeletable\s*\(|stripInaccessible|AccessLevel\.|WITH\s+USER_MODE|\bas\s+(user|system)\b/i;
-apexFiles.filter(f => !/GridSecurity(Test)?\.cls$/.test(f) && !/Test\.cls$/.test(f)).forEach(f => {
-    eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), ACCESS, (n, l) =>
-        fail('HR-5', f, n, 'access decision outside GridSecurity: ' + l));
-});
+const ACCESS =
+    /isUpdateable\s*\(|isCreateable\s*\(|isAccessible\s*\(|isDeletable\s*\(|stripInaccessible|AccessLevel\.|WITH\s+USER_MODE|\bas\s+(user|system)\b/i;
+apexFiles
+    .filter(f => !/GridSecurity(Test)?\.cls$/.test(f) && !/Test\.cls$/.test(f))
+    .forEach(f => {
+        eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), ACCESS, (n, l) =>
+            fail('HR-5', f, n, 'access decision outside GridSecurity: ' + l)
+        );
+    });
 
 // ------------------------------------------------ system-mode escape hatch
 apexFiles.forEach(f => {
-    eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /AccessLevel\.SYSTEM_MODE|WITH\s+SYSTEM_MODE|\bas\s+system\b/i, (n, l) =>
-        fail('system-mode', f, n, 'system mode silently voids every FLS assertion in the Apex suite: ' + l));
+    eachLine(
+        f,
+        apexCode(fs.readFileSync(f, 'utf8')),
+        /AccessLevel\.SYSTEM_MODE|WITH\s+SYSTEM_MODE|\bas\s+system\b/i,
+        (n, l) => fail('system-mode', f, n, 'system mode silently voids every FLS assertion in the Apex suite: ' + l)
+    );
 });
 
 // ---------------------------------------------------------------- HR-8
 apexFiles.forEach(f => {
     eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /WITH\s+SECURITY_ENFORCED/i, (n, l) =>
-        fail('HR-8', f, n, 'WITH SECURITY_ENFORCED does not compile at API 67+: ' + l));
+        fail('HR-8', f, n, 'WITH SECURITY_ENFORCED does not compile at API 67+: ' + l)
+    );
     const meta = f + '-meta.xml';
     if (fs.existsSync(meta)) {
         const m = /<apiVersion>([\d.]+)<\/apiVersion>/.exec(fs.readFileSync(meta, 'utf8'));
-        if (!m || Number(m[1]) < 67) fail('HR-8', meta, 1, 'Apex must be pinned at API 67.0 or later (user mode by default); found ' + (m ? m[1] : 'none'));
+        if (!m || Number(m[1]) < 67)
+            fail(
+                'HR-8',
+                meta,
+                1,
+                'Apex must be pinned at API 67.0 or later (user mode by default); found ' + (m ? m[1] : 'none')
+            );
     } else {
         fail('HR-8', f, 1, 'missing -meta.xml, so the API version is unknown');
     }
 });
 
 // ---------------------------------------------------------------- HR-9
-apexFiles.filter(f => !/Test\.cls$/.test(f)).forEach(f => {
-    eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /\bnew\s+Http(Request)?\s*\(|\bContinuation\b|WebServiceCallout|\bcallout:/i, (n, l) =>
-        fail('HR-9', f, n, 'callout found — zero external services is both the architecture and the claim: ' + l));
-});
+apexFiles
+    .filter(f => !/Test\.cls$/.test(f))
+    .forEach(f => {
+        eachLine(
+            f,
+            apexCode(fs.readFileSync(f, 'utf8')),
+            /\bnew\s+Http(Request)?\s*\(|\bContinuation\b|WebServiceCallout|\bcallout:/i,
+            (n, l) =>
+                fail(
+                    'HR-9',
+                    f,
+                    n,
+                    'callout found — zero external services is both the architecture and the claim: ' + l
+                )
+        );
+    });
 
 // ---------------------------------------------------------------- HR-26
 files(SRC, p => /staticresources/.test(p) && /\.(js|zip|mjs)$/i.test(p)).forEach(f =>
-    fail('HR-26', f, 1, 'JavaScript static resource. No third-party JavaScript (a project rule, not a platform one).'));
+    fail('HR-26', f, 1, 'JavaScript static resource. No third-party JavaScript (a project rule, not a platform one).')
+);
 
 // ---------------------------------------------------------------- HR-2
 // Only these components are exposed, each with exactly these @api members.
@@ -104,7 +133,15 @@ files(SRC, p => p.endsWith('.js-meta.xml')).forEach(f => {
     const name = path.basename(f, '.js-meta.xml');
     if (/<isExposed>\s*false\s*<\/isExposed>/.test(xml)) return;
     if (!EXPOSED[name]) {
-        fail('HR-2', f, 1, name + ' is exposed; only ' + Object.keys(EXPOSED).join(', ') + ' may be (an exposed @api property can never be removed)');
+        fail(
+            'HR-2',
+            f,
+            1,
+            name +
+                ' is exposed; only ' +
+                Object.keys(EXPOSED).join(', ') +
+                ' may be (an exposed @api property can never be removed)'
+        );
         return;
     }
     const js = path.join(path.dirname(f), name + '.js');
@@ -112,7 +149,12 @@ files(SRC, p => p.endsWith('.js-meta.xml')).forEach(f => {
     const members = [...code.matchAll(/@api\s+(?:get\s+|set\s+|async\s+)?([A-Za-z_$][\w$]*)/g)].map(m => m[1]);
     const unique = [...new Set(members)];
     if (unique.join() !== EXPOSED[name].join()) {
-        fail('HR-2', js, 1, name + ' must expose exactly @api ' + EXPOSED[name].join(', ') + '; found ' + (unique.join(', ') || 'none'));
+        fail(
+            'HR-2',
+            js,
+            1,
+            name + ' must expose exactly @api ' + EXPOSED[name].join(', ') + '; found ' + (unique.join(', ') || 'none')
+        );
     }
 });
 
@@ -124,27 +166,49 @@ files(SRC, p => p.endsWith('.js-meta.xml')).forEach(f => {
 files(SRC, p => p.endsWith('.css')).forEach(f => {
     const css = fs.readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '));
     eachLine(f, css, /\.slds-|--slds-c-/, (n, l) =>
-        fail('HR-15', f, n, 'targets an SLDS class or a component-level hook; use an rh- class and global hooks only: ' + l));
+        fail(
+            'HR-15',
+            f,
+            n,
+            'targets an SLDS class or a component-level hook; use an rh- class and global hooks only: ' + l
+        )
+    );
 });
 
 // ---------------------------------------------------------------- HR-3
 // "Admin-editable" is a design decision, so it is recorded in a list. A CMDT
 // field that is not in the list at all also fails: someone has to decide.
 const listFile = path.join(__dirname, 'cmdt-admin-editable.json');
-const decided = fs.existsSync(listFile) ? JSON.parse(fs.readFileSync(listFile, 'utf8')) : { adminEditable: [], developerControlled: [] };
-files(path.join(SRC, 'main', 'default', 'objects'), p => /__mdt[\\/]fields[\\/].+\.field-meta\.xml$/.test(p)).forEach(f => {
-    const id = path.basename(path.dirname(path.dirname(f))) + '.' + path.basename(f, '.field-meta.xml');
-    const xml = fs.readFileSync(f, 'utf8');
-    const m = /<fieldManageability>(\w+)<\/fieldManageability>/.exec(xml);
-    const manageability = m ? m[1] : '(missing)';
-    if (decided.adminEditable.includes(id)) {
-        if (manageability !== 'SubscriberControlled') fail('HR-3', f, 1, id + ' is admin-editable, so it must be SubscriberControlled (found ' + manageability + ')');
-    } else if (decided.developerControlled.includes(id)) {
-        if (manageability === 'SubscriberControlled') fail('HR-3', f, 1, id + ' is listed as developer-controlled but is SubscriberControlled');
-    } else {
-        fail('HR-3', f, 1, id + ' is not in scripts/checks/cmdt-admin-editable.json — decide whether admins edit it');
+const decided = fs.existsSync(listFile)
+    ? JSON.parse(fs.readFileSync(listFile, 'utf8'))
+    : { adminEditable: [], developerControlled: [] };
+files(path.join(SRC, 'main', 'default', 'objects'), p => /__mdt[\\/]fields[\\/].+\.field-meta\.xml$/.test(p)).forEach(
+    f => {
+        const id = path.basename(path.dirname(path.dirname(f))) + '.' + path.basename(f, '.field-meta.xml');
+        const xml = fs.readFileSync(f, 'utf8');
+        const m = /<fieldManageability>(\w+)<\/fieldManageability>/.exec(xml);
+        const manageability = m ? m[1] : '(missing)';
+        if (decided.adminEditable.includes(id)) {
+            if (manageability !== 'SubscriberControlled')
+                fail(
+                    'HR-3',
+                    f,
+                    1,
+                    id + ' is admin-editable, so it must be SubscriberControlled (found ' + manageability + ')'
+                );
+        } else if (decided.developerControlled.includes(id)) {
+            if (manageability === 'SubscriberControlled')
+                fail('HR-3', f, 1, id + ' is listed as developer-controlled but is SubscriberControlled');
+        } else {
+            fail(
+                'HR-3',
+                f,
+                1,
+                id + ' is not in scripts/checks/cmdt-admin-editable.json — decide whether admins edit it'
+            );
+        }
     }
-});
+);
 
 // ---------------------------------------------------------------- HR-25
 const kb = path.join(SRC, 'main', 'default', 'lwc', 'gridKeyboard');
@@ -152,7 +216,8 @@ files(kb, p => /\.(js|html)$/.test(p)).forEach(f => {
     const src = fs.readFileSync(f, 'utf8');
     if (f.endsWith('.html')) fail('HR-25', f, 1, 'gridKeyboard must stay a plain module: no template');
     eachLine(f, src, /extends\s+\w+\s*\(|=>\s*class\s+extends|\bMixin\b|\bLightningElement\b/, (n, l) =>
-        fail('HR-25', f, n, 'keyboard layer must be a plain module, not a mixin or component: ' + l));
+        fail('HR-25', f, n, 'keyboard layer must be a plain module, not a mixin or component: ' + l)
+    );
 });
 
 // ---------------------------------------------------------------- HR-27
@@ -160,12 +225,24 @@ files(kb, p => /\.(js|html)$/.test(p)).forEach(f => {
 // specifier: that is what LWC source uses, so a grep for the package namespace
 // would never match anything.
 const lwcDir = path.join(SRC, 'main', 'default', 'lwc');
-const cellDirs = fs.existsSync(lwcDir) ? fs.readdirSync(lwcDir).filter(d => /^cell[A-Z]/.test(d)).map(d => path.join(lwcDir, d)) : [];
-if (!cellDirs.length) fail('HR-27', lwcDir, 1, 'no lwc/cell* components found — the boundary check would pass vacuously');
-cellDirs.forEach(dir => files(dir, p => /\.(js|html)$/.test(p)).forEach(f => {
-    eachLine(f, fs.readFileSync(f, 'utf8'), /from\s+['"]c\/(gridTable|gridKeyboard|gridEditState|gridApp)['"]|<c-grid-(table|app)\b/, (n, l) =>
-        fail('HR-27', f, n, 'a cell editor depends on the table: ' + l));
-}));
+const cellDirs = fs.existsSync(lwcDir)
+    ? fs
+          .readdirSync(lwcDir)
+          .filter(d => /^cell[A-Z]/.test(d))
+          .map(d => path.join(lwcDir, d))
+    : [];
+if (!cellDirs.length)
+    fail('HR-27', lwcDir, 1, 'no lwc/cell* components found — the boundary check would pass vacuously');
+cellDirs.forEach(dir =>
+    files(dir, p => /\.(js|html)$/.test(p)).forEach(f => {
+        eachLine(
+            f,
+            fs.readFileSync(f, 'utf8'),
+            /from\s+['"]c\/(gridTable|gridKeyboard|gridEditState|gridApp)['"]|<c-grid-(table|app)\b/,
+            (n, l) => fail('HR-27', f, n, 'a cell editor depends on the table: ' + l)
+        );
+    })
+);
 
 // ------------------------------------------------------- HR-19 and HR-22
 checkTemplates(files(lwcDir, p => p.endsWith('.html'))).forEach(v => fail(v.rule, v.file, v.line, v.message));
@@ -183,7 +260,13 @@ if (fs.existsSync(guideBuild)) {
     Object.entries(built).forEach(([f, content]) => {
         guideFiles++;
         const now = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null;
-        if (now !== content) fail('guide-build', f, 1, 'is not what guide/build.js writes from guide/pages: change the page, then run npm run guide');
+        if (now !== content)
+            fail(
+                'guide-build',
+                f,
+                1,
+                'is not what guide/build.js writes from guide/pages: change the page, then run npm run guide'
+            );
     });
 }
 
@@ -195,14 +278,21 @@ if (fs.existsSync(guideBuild)) {
 const byName = new Map(apexFiles.map(f => [path.basename(f).replace(/\.(cls|trigger)$/, ''), f]));
 const scheduled = new Set();
 apexFiles.forEach(f => {
-    for (const m of apexCode(fs.readFileSync(f, 'utf8')).matchAll(/System\.schedule\s*\([^;]*?new\s+(\w+)\s*\(/g)) scheduled.add(m[1]);
+    for (const m of apexCode(fs.readFileSync(f, 'utf8')).matchAll(/System\.schedule\s*\([^;]*?new\s+(\w+)\s*\(/g))
+        scheduled.add(m[1]);
 });
 scheduled.forEach(name => {
     const f = byName.get(name);
     if (!f) return;
     eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /\w/, (n, l) => {
         const named = [...new Set((l.match(/\b[A-Za-z_]\w*\b/g) || []).filter(w => w !== name && byName.has(w)))];
-        if (named.length) fail('scheduled-class', f, n, `is scheduled, so it may not name another Rowhouse class (${named.join(', ')}): while the job is scheduled Salesforce would refuse to deploy it. Find it by name with Type.forName instead.`);
+        if (named.length)
+            fail(
+                'scheduled-class',
+                f,
+                n,
+                `is scheduled, so it may not name another Rowhouse class (${named.join(', ')}): while the job is scheduled Salesforce would refuse to deploy it. Find it by name with Type.forName instead.`
+            );
     });
 });
 
@@ -219,11 +309,23 @@ let devOnlyFiles = 0;
         devOnlyFiles++;
         const source = fs.readFileSync(f, 'utf8');
         if (f.endsWith('.cls')) {
-            if (!/^\/\*\*\s*\n\s*\*\s*DEVELOPMENT ONLY\./.test(source)) fail('dev-only', f, 1, `never packaged: its header comment must start with ${DEV_ONLY} (python3 scripts/mark-dev-only.py)`);
+            if (!/^\/\*\*\s*\n\s*\*\s*DEVELOPMENT ONLY\./.test(source))
+                fail(
+                    'dev-only',
+                    f,
+                    1,
+                    `never packaged: its header comment must start with ${DEV_ONLY} (python3 scripts/mark-dev-only.py)`
+                );
             return;
         }
         const m = /<description>\s*([\s\S]*?)<\/description>/.exec(source);
-        if (!m || !m[1].startsWith(DEV_ONLY)) fail('dev-only', f, 1, `never packaged: its description must start with ${DEV_ONLY} (python3 scripts/mark-dev-only.py)`);
+        if (!m || !m[1].startsWith(DEV_ONLY))
+            fail(
+                'dev-only',
+                f,
+                1,
+                `never packaged: its description must start with ${DEV_ONLY} (python3 scripts/mark-dev-only.py)`
+            );
     });
 });
 
@@ -233,4 +335,6 @@ if (violations.length) {
     console.error(`\n${violations.length} hard-rule violation(s).`);
     process.exit(1);
 }
-console.log(`Static gates passed: HR-1, HR-2, HR-3, HR-5, HR-8, HR-9, HR-15, HR-19, HR-22, HR-25, HR-26, HR-27, system-mode (${apexFiles.length} Apex files, ${cellDirs.length} cell editors), the Grid Guide matches its pages (${guideFiles} files), no scheduled class names another (${scheduled.size} scheduled), and every development-only component says so (${devOnlyFiles} files).`);
+console.log(
+    `Static gates passed: HR-1, HR-2, HR-3, HR-5, HR-8, HR-9, HR-15, HR-19, HR-22, HR-25, HR-26, HR-27, system-mode (${apexFiles.length} Apex files, ${cellDirs.length} cell editors), the Grid Guide matches its pages (${guideFiles} files), no scheduled class names another (${scheduled.size} scheduled), and every development-only component says so (${devOnlyFiles} files).`
+);

@@ -23,19 +23,21 @@ afterEach(() => {
 });
 
 describe('gridNewRecord', () => {
-    it('is a labelled dialog with Salesforce\'s own form for the object', async () => {
+    it("is a labelled dialog with Salesforce's own form for the object", async () => {
         await mount({ objectApiName: 'Account', objectLabel: 'Account', fieldLabel: 'Related Account' });
         expect($('section').getAttribute('role')).toBe('dialog');
         expect($('section').getAttribute('aria-modal')).toBe('true');
         expect($('h1').textContent).toBe('New Account');
-        expect($('.rh-new-record-where').textContent).toBe('When it is saved, it goes in Related Account as an unsaved change.');
+        expect($('.rh-new-record-where').textContent).toBe(
+            'When it is saved, it goes in Related Account as an unsaved change.'
+        );
         const form = $('lightning-record-form');
         expect(form.objectApiName).toBe('Account');
         expect(form.layoutType).toBe('Full');
         expect(form.mode).toBe('edit');
     });
 
-    it('says the new record\'s Id when the form saves it', async () => {
+    it("says the new record's Id when the form saves it", async () => {
         await mount({ objectApiName: 'Account', objectLabel: 'Account' });
         $('lightning-record-form').dispatchEvent(new CustomEvent('success', { detail: { id: '001000000000001AAA' } }));
         expect(events).toEqual([{ name: 'created', detail: { id: '001000000000001AAA' } }]);

@@ -84,14 +84,19 @@ export function roundDecimal(value, scale) {
     const [whole, fraction = ''] = text.replace(/^[-+]/, '').split('.');
     if (fraction.length <= scale) return value;
     const digits = (whole + fraction.slice(0, scale)).split('');
-    if (fraction.charCodeAt(scale) >= 53) { // the first dropped digit is 5 or more
+    if (fraction.charCodeAt(scale) >= 53) {
+        // the first dropped digit is 5 or more
         let i = digits.length - 1;
         while (i >= 0 && digits[i] === '9') digits[i--] = '0';
         if (i < 0) digits.unshift('1');
         else digits[i] = String(Number(digits[i]) + 1);
     }
     const cut = digits.length - scale;
-    let out = digits.slice(0, cut).join('').replace(/^0+(?=\d)/, '') || '0';
+    let out =
+        digits
+            .slice(0, cut)
+            .join('')
+            .replace(/^0+(?=\d)/, '') || '0';
     if (scale > 0) out += '.' + digits.slice(cut).join('');
     return negative && /[1-9]/.test(out) ? '-' + out : out;
 }
@@ -170,13 +175,19 @@ export function formatNumber(value, { type = 'number', scale, currencyCode } = {
         : { maximumFractionDigits: 6 };
     if (type === 'currency') {
         const currency = currencyCode || CURRENCY;
-        return formatter('currency|' + currency + '|' + (hasScale ? scale : ''), () => new Intl.NumberFormat(LOCALE, {
-            style: 'currency',
-            currency,
-            ...(hasScale ? options : {})
-        })).format(safe);
+        return formatter(
+            'currency|' + currency + '|' + (hasScale ? scale : ''),
+            () =>
+                new Intl.NumberFormat(LOCALE, {
+                    style: 'currency',
+                    currency,
+                    ...(hasScale ? options : {})
+                })
+        ).format(safe);
     }
-    const text = formatter('number|' + (hasScale ? scale : ''), () => new Intl.NumberFormat(LOCALE, options)).format(safe);
+    const text = formatter('number|' + (hasScale ? scale : ''), () => new Intl.NumberFormat(LOCALE, options)).format(
+        safe
+    );
     return type === 'percent' ? text + '%' : text;
 }
 
@@ -194,9 +205,16 @@ export function formatDate(value) {
     if (!m) return String(value);
     const instant = new Date(0);
     instant.setUTCFullYear(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return formatter('date', () => new Intl.DateTimeFormat(LOCALE, {
-        year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC'
-    })).format(instant);
+    return formatter(
+        'date',
+        () =>
+            new Intl.DateTimeFormat(LOCALE, {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                timeZone: 'UTC'
+            })
+    ).format(instant);
 }
 
 /** A DateTime is an instant, shown in the running user's timezone (TC-029..031). */
@@ -204,10 +222,18 @@ export function formatDateTime(value) {
     if (isBlank(value)) return '';
     const instant = new Date(value);
     if (Number.isNaN(instant.getTime())) return String(value);
-    return formatter('datetime', () => new Intl.DateTimeFormat(LOCALE, {
-        year: 'numeric', month: 'numeric', day: 'numeric',
-        hour: 'numeric', minute: '2-digit', timeZone: TIME_ZONE
-    })).format(instant);
+    return formatter(
+        'datetime',
+        () =>
+            new Intl.DateTimeFormat(LOCALE, {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZone: TIME_ZONE
+            })
+    ).format(instant);
 }
 
 const TIME_VALUE_RE = /^(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?Z?$/;
@@ -222,7 +248,10 @@ export function formatTime(value) {
     const m = TIME_VALUE_RE.exec(String(value).trim());
     if (!m) return String(value);
     const instant = new Date(Date.UTC(1970, 0, 1, Number(m[1]), Number(m[2])));
-    return formatter('time', () => new Intl.DateTimeFormat(LOCALE, { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })).format(instant);
+    return formatter(
+        'time',
+        () => new Intl.DateTimeFormat(LOCALE, { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })
+    ).format(instant);
 }
 
 // ------------------------------------------------------------------- links
@@ -276,7 +305,10 @@ export function formatValue(value, column = {}) {
         case 'picklist':
             return picklistLabel(value, column.options);
         case 'multipicklist':
-            return String(value).split(';').map(v => picklistLabel(v, column.options)).join(', ');
+            return String(value)
+                .split(';')
+                .map(v => picklistLabel(v, column.options))
+                .join(', ');
         default:
             return String(value);
     }
@@ -396,7 +428,8 @@ export function sortRows(rows, keys, keyField = 'Id') {
     if (!keys || !keys.length) return rows.slice();
     // A lookup sorts by the name shown, not the Id stored: `names` is
     // { [recordId]: name } for keys on a lookup or owner column.
-    const valueOf = (row, k) => (k.names && !isBlank(row[k.field]) ? k.names[row[k.field]] || row[k.field] : row[k.field]);
+    const valueOf = (row, k) =>
+        k.names && !isBlank(row[k.field]) ? k.names[row[k.field]] || row[k.field] : row[k.field];
     return rows.slice().sort((r1, r2) => {
         for (const k of keys) {
             const c = compareValues(valueOf(r1, k), valueOf(r2, k), k.type, k.direction, k.ranks || null);

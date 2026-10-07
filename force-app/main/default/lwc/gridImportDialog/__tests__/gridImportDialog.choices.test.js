@@ -32,8 +32,14 @@ async function until(check) {
 function xlsx(sheets) {
     const names = Object.keys(sheets);
     const parts = {
-        'xl/workbook.xml': '<workbook><sheets>' + names.map((n, i) => `<sheet name="${n}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('') + '</sheets></workbook>',
-        'xl/_rels/workbook.xml.rels': '<Relationships>' + names.map((n, i) => `<Relationship Id="rId${i + 1}" Target="worksheets/sheet${i + 1}.xml"/>`).join('') + '</Relationships>'
+        'xl/workbook.xml':
+            '<workbook><sheets>' +
+            names.map((n, i) => `<sheet name="${n}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('') +
+            '</sheets></workbook>',
+        'xl/_rels/workbook.xml.rels':
+            '<Relationships>' +
+            names.map((n, i) => `<Relationship Id="rId${i + 1}" Target="worksheets/sheet${i + 1}.xml"/>`).join('') +
+            '</Relationships>'
     };
     names.forEach((n, i) => {
         parts[`xl/worksheets/sheet${i + 1}.xml`] = sheets[n];
@@ -71,8 +77,21 @@ function xlsx(sheets) {
     end.writeUInt32LE(offset, 16);
     return Buffer.concat([...chunks, dir, end]);
 }
-const sheetOf = rows => '<worksheet><sheetData>' + rows.map((cells, r) => `<row r="${r + 1}">`
-    + cells.map((v, c) => `<c r="${String.fromCharCode(65 + c)}${r + 1}" t="inlineStr"><is><t>${v}</t></is></c>`).join('') + '</row>').join('') + '</sheetData></worksheet>';
+const sheetOf = rows =>
+    '<worksheet><sheetData>' +
+    rows
+        .map(
+            (cells, r) =>
+                `<row r="${r + 1}">` +
+                cells
+                    .map(
+                        (v, c) => `<c r="${String.fromCharCode(65 + c)}${r + 1}" t="inlineStr"><is><t>${v}</t></is></c>`
+                    )
+                    .join('') +
+                '</row>'
+        )
+        .join('') +
+    '</sheetData></worksheet>';
 
 describe('gridImportDialog choices and undo', () => {
     let el;
@@ -81,7 +100,13 @@ describe('gridImportDialog choices and undo', () => {
     const text = selector => ($(selector) ? $(selector).textContent : null);
     const mount = async () => {
         el = createElement('c-grid-import-dialog', { is: GridImportDialog });
-        Object.assign(el, { columns: COLUMNS, rows: [{ Id: ID1, Name: 'One', Amount__c: '1' }], refNames: {}, canCreate: true, configName: 'Import_Test' });
+        Object.assign(el, {
+            columns: COLUMNS,
+            rows: [{ Id: ID1, Name: 'One', Amount__c: '1' }],
+            refNames: {},
+            canCreate: true,
+            configName: 'Import_Test'
+        });
         document.body.appendChild(el);
         await tick();
     };
@@ -101,9 +126,16 @@ describe('gridImportDialog choices and undo', () => {
         jest.clearAllMocks();
     });
 
-    it('offers a workbook\'s sheets and checks the one chosen', async () => {
+    it("offers a workbook's sheets and checks the one chosen", async () => {
         await mount();
-        const book = xlsx({ First: sheetOf([['Name'], ['From the first']]), Second: sheetOf([['Name', 'Amount'], ['From the second', '7'], ['Also', '8']]) });
+        const book = xlsx({
+            First: sheetOf([['Name'], ['From the first']]),
+            Second: sheetOf([
+                ['Name', 'Amount'],
+                ['From the second', '7'],
+                ['Also', '8']
+            ])
+        });
         await choose(new File([book], 'book.xlsx'));
         expect($$('.rh-import-sheet select option').map(o => o.value)).toEqual(['First', 'Second']);
         expect($('.rh-import-sheet select').value).toBe('First');
@@ -121,7 +153,9 @@ describe('gridImportDialog choices and undo', () => {
         expect($('.rh-import-sheet select').value).toBe('Data');
         expect(text('.rh-import-summary')).toBe('book.xlsx: 2 rows create records.');
         await select($('.rh-import-sheet select'), 'Notes');
-        expect(text('.rh-import-error')).toBe('None of the file’s column names is a column of this grid. Choose below what each column is imported as.');
+        expect(text('.rh-import-error')).toBe(
+            'None of the file’s column names is a column of this grid. Choose below what each column is imported as.'
+        );
         expect($('.rh-import-summary')).toBeNull();
     });
 
@@ -138,22 +172,37 @@ describe('gridImportDialog choices and undo', () => {
     });
 
     it('matches records by an External Id column when asked, and sends the server that column', async () => {
-        importRows.mockResolvedValue({ rows: [{ index: 0, success: true, created: false, recordId: ID1, previous: { Amount__c: '1' } }] });
+        importRows.mockResolvedValue({
+            rows: [{ index: 0, success: true, created: false, recordId: ID1, previous: { Amount__c: '1' } }]
+        });
         await mount();
         await choose(csv('Key,Amount\nK-1,9\n'));
         expect($$('.rh-import-match select option').map(o => o.textContent)).toEqual(['Record Id', 'Key']);
         // No Id column: matched by the key to begin with, so no record is copied by mistake.
         expect($('.rh-import-match select').value).toBe('Key__c');
         expect(text('.rh-import-summary')).toBe('records.csv: 1 row updates the record with Key, or creates one.');
-        expect($$('.rh-import-count p').map(p => p.textContent)).toEqual(['1', 'update or create', '0', 'rows with problems']);
+        expect($$('.rh-import-count p').map(p => p.textContent)).toEqual([
+            '1',
+            'update or create',
+            '0',
+            'rows with problems'
+        ]);
         await select($('.rh-import-match select'), '');
         expect(text('.rh-import-summary')).toBe('records.csv: 1 row creates a record.');
         await select($('.rh-import-match select'), 'Key__c');
         expect(text('.rh-import-id-text')).toContain('Records are matched by Key');
-        expect([...$$('.rh-import-preview tbody td')].map(td => td.textContent).slice(0, 2)).toEqual(['2', 'Update or create']);
+        expect([...$$('.rh-import-preview tbody td')].map(td => td.textContent).slice(0, 2)).toEqual([
+            '2',
+            'Update or create'
+        ]);
         $('.rh-import-go').click();
         await until(() => $('.rh-import-result'));
-        expect(importRows).toHaveBeenCalledWith({ configName: 'Import_Test', rows: [{ Key__c: 'K-1', Amount__c: 9 }], recordId: null, matchField: 'Key__c' });
+        expect(importRows).toHaveBeenCalledWith({
+            configName: 'Import_Test',
+            rows: [{ Key__c: 'K-1', Amount__c: 9 }],
+            recordId: null,
+            matchField: 'Key__c'
+        });
     });
 
     it('keeps matching by the record Id when the file has one, whatever else it has', async () => {
@@ -178,12 +227,18 @@ describe('gridImportDialog choices and undo', () => {
         expect($('.rh-import-undo')).not.toBeNull();
         $('.rh-import-undo').click();
         await tick();
-        expect(text('.rh-import-undo-confirm')).toBe('Undo puts the 1 record it updated back as they were and deletes the 1 record it created (to the Recycle Bin). Any change made to those records since the import is overwritten.');
+        expect(text('.rh-import-undo-confirm')).toBe(
+            'Undo puts the 1 record it updated back as they were and deletes the 1 record it created (to the Recycle Bin). Any change made to those records since the import is overwritten.'
+        );
         importRows.mockResolvedValueOnce({ rows: [{ index: 0, success: true, created: false, recordId: ID1 }] });
         undoImport.mockResolvedValue({ deletedIds: [NEW1], errors: [] });
         $('.rh-import-undo-go').click();
         await until(() => $('.rh-import-undo-result'));
-        expect(importRows).toHaveBeenLastCalledWith({ configName: 'Import_Test', rows: [{ Id: ID1, Name: 'One', Amount__c: null }], recordId: null });
+        expect(importRows).toHaveBeenLastCalledWith({
+            configName: 'Import_Test',
+            rows: [{ Id: ID1, Name: 'One', Amount__c: null }],
+            recordId: null
+        });
         expect(undoImport).toHaveBeenCalledWith({ configName: 'Import_Test', recordIds: [NEW1] });
         expect(text('.rh-import-undo-result')).toBe('Undo put back 1 record and deleted 1 new record.');
         expect($('.rh-import-undo')).toBeNull(); // once

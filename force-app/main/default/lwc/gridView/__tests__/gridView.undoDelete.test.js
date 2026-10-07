@@ -17,8 +17,12 @@ jest.mock('@salesforce/apex/GridController.fetchRows', () => ({ default: jest.fn
 jest.mock('@salesforce/apex/GridController.deleteRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.restoreRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.matchingIds', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 
 const DEFINITION = {
     name: 'Test_Records',
@@ -36,7 +40,15 @@ const DEFINITION = {
     ]
 };
 const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Number_Field__c: String(i) });
-const page = (rows, total = rows.length) => ({ rows, hasMore: false, cursorLocator: null, cursorToken: null, totalRows: total, serverMs: 5, cpuMs: 3 });
+const page = (rows, total = rows.length) => ({
+    rows,
+    hasMore: false,
+    cursorLocator: null,
+    cursorToken: null,
+    totalRows: total,
+    serverMs: 5,
+    cpuMs: 3
+});
 const settle = async () => {
     for (let i = 0; i < 20; i++) {
         // eslint-disable-next-line no-await-in-loop
@@ -45,7 +57,8 @@ const settle = async () => {
 };
 const $ = (el, selector) => el.shadowRoot.querySelector(selector);
 const table = el => $(el, 'c-grid-table');
-const select = (el, ids) => table(el).dispatchEvent(new CustomEvent('selectionchange', { detail: { selectedIds: ids } }));
+const select = (el, ids) =>
+    table(el).dispatchEvent(new CustomEvent('selectionchange', { detail: { selectedIds: ids } }));
 let toasts;
 function mount() {
     const el = createElement('c-grid-view', { is: GridView });
@@ -109,7 +122,10 @@ describe('undo after a delete', () => {
     });
 
     it('says which records could not be put back', async () => {
-        restoreRows.mockResolvedValue({ restoredIds: [row(1).Id], errors: [{ recordId: row(2).Id, message: 'Entity is not in the recycle bin' }] });
+        restoreRows.mockResolvedValue({
+            restoredIds: [row(1).Id],
+            errors: [{ recordId: row(2).Id, message: 'Entity is not in the recycle bin' }]
+        });
         const el = mount();
         await settle();
         select(el, [row(1).Id, row(2).Id]);
@@ -117,11 +133,13 @@ describe('undo after a delete', () => {
         await deleteSelected(el);
         $(el, '.rh-undo-delete-button').click();
         await settle();
-        expect(toasts).toEqual([{
-            title: 'Undo incomplete',
-            message: 'Put back 1 record. 1 could not be: Entity is not in the recycle bin',
-            variant: 'warning'
-        }]);
+        expect(toasts).toEqual([
+            {
+                title: 'Undo incomplete',
+                message: 'Put back 1 record. 1 could not be: Entity is not in the recycle bin',
+                variant: 'warning'
+            }
+        ]);
     });
 
     it('goes away when closed', async () => {
@@ -148,7 +166,10 @@ describe('every matching record', () => {
         select(el, [many[0].Id]);
         await settle();
         expect($(el, '.rh-select-all-matching')).toBeNull(); // not every loaded row
-        select(el, many.map(r => r.Id));
+        select(
+            el,
+            many.map(r => r.Id)
+        );
         await settle();
         const link = $(el, '.rh-select-all-matching');
         expect(link.label).toBe('Select all 4,500 matching records');
@@ -175,7 +196,10 @@ describe('every matching record', () => {
         fetchRows.mockResolvedValue(page(many, 4500));
         const other = mount();
         await settle();
-        select(other, many.map(r => r.Id));
+        select(
+            other,
+            many.map(r => r.Id)
+        );
         await settle();
         expect($(other, '.rh-select-all-matching')).toBeNull();
     });
@@ -189,7 +213,10 @@ describe('every matching record', () => {
         });
         const el = mount();
         await settle();
-        select(el, many.map(r => r.Id));
+        select(
+            el,
+            many.map(r => r.Id)
+        );
         await settle();
         $(el, '.rh-select-all-matching').click();
         await settle();
@@ -219,7 +246,10 @@ describe('every matching record', () => {
         });
         const el = mount();
         await settle();
-        select(el, many.map(r => r.Id));
+        select(
+            el,
+            many.map(r => r.Id)
+        );
         await settle();
         $(el, '.rh-select-all-matching').click();
         await settle();

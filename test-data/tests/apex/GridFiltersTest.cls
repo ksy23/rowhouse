@@ -7,7 +7,6 @@
  */
 @IsTest
 private class GridFiltersTest {
-
     private static final Schema.SObjectType TEST_RECORD = Rowhouse_Test_Record__c.SObjectType;
 
     @TestSetup
@@ -17,14 +16,31 @@ private class GridFiltersTest {
             insert acme;
             Datetime todayNoon = Datetime.newInstance(Date.today(), Time.newInstance(12, 0, 0, 0));
             insert new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Name = 'F1', Number_Field__c = 5, Picklist_Field__c = 'Alpha',
-                    Text_Field__c = 'red apple', Multi_Picklist__c = 'Red;Green', Checkbox_Field__c = true,
-                    DateTime_Field__c = todayNoon, Lookup_Field__c = acme.Id),
-                new Rowhouse_Test_Record__c(Name = 'F2', Number_Field__c = 15, Picklist_Field__c = 'Beta',
-                    Text_Field__c = 'green pear', Multi_Picklist__c = 'Blue', Checkbox_Field__c = false,
-                    DateTime_Field__c = todayNoon.addDays(-3)),
-                new Rowhouse_Test_Record__c(Name = 'F3', Number_Field__c = 25, Picklist_Field__c = 'Gamma',
-                    Text_Field__c = '50%_off'),
+                new Rowhouse_Test_Record__c(
+                    Name = 'F1',
+                    Number_Field__c = 5,
+                    Picklist_Field__c = 'Alpha',
+                    Text_Field__c = 'red apple',
+                    Multi_Picklist__c = 'Red;Green',
+                    Checkbox_Field__c = true,
+                    DateTime_Field__c = todayNoon,
+                    Lookup_Field__c = acme.Id
+                ),
+                new Rowhouse_Test_Record__c(
+                    Name = 'F2',
+                    Number_Field__c = 15,
+                    Picklist_Field__c = 'Beta',
+                    Text_Field__c = 'green pear',
+                    Multi_Picklist__c = 'Blue',
+                    Checkbox_Field__c = false,
+                    DateTime_Field__c = todayNoon.addDays(-3)
+                ),
+                new Rowhouse_Test_Record__c(
+                    Name = 'F3',
+                    Number_Field__c = 25,
+                    Picklist_Field__c = 'Gamma',
+                    Text_Field__c = '50%_off'
+                ),
                 new Rowhouse_Test_Record__c(Name = 'F4')
             };
         }
@@ -53,55 +69,121 @@ private class GridFiltersTest {
     @IsTest
     static void eachOperatorLeavesTheRightRecords() {
         System.runAs(GridTestUsers.fullUser()) {
-            System.assertEquals(new List<String>{ 'F2', 'F3' }, namesMeeting(condition('Number_Field__c', 'greater_than', '10', null)));
-            System.assertEquals(new List<String>{ 'F1', 'F2' }, namesMeeting(condition('Number_Field__c', 'between', '5', '15')),
-                'Between includes both ends.');
-            System.assertEquals(new List<String>{ 'F4' }, namesMeeting(condition('Number_Field__c', 'is_blank', null, null)));
+            System.assertEquals(
+                new List<String>{ 'F2', 'F3' },
+                namesMeeting(condition('Number_Field__c', 'greater_than', '10', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F1', 'F2' },
+                namesMeeting(condition('Number_Field__c', 'between', '5', '15')),
+                'Between includes both ends.'
+            );
+            System.assertEquals(
+                new List<String>{ 'F4' },
+                namesMeeting(condition('Number_Field__c', 'is_blank', null, null))
+            );
             // A picklist by its label, in any case, compares by API value.
-            System.assertEquals(new List<String>{ 'F2' }, namesMeeting(condition('Picklist_Field__c', 'equals', 'beta', null)));
+            System.assertEquals(
+                new List<String>{ 'F2' },
+                namesMeeting(condition('Picklist_Field__c', 'equals', 'beta', null))
+            );
             // Does not equal and does not contain include blanks, as a list view filter does.
-            System.assertEquals(new List<String>{ 'F1', 'F3', 'F4' }, namesMeeting(condition('Picklist_Field__c', 'not_equals', 'Beta', null)));
-            System.assertEquals(new List<String>{ 'F2', 'F3', 'F4' }, namesMeeting(condition('Text_Field__c', 'not_contains', 'apple', null)));
-            System.assertEquals(new List<String>{ 'F2' }, namesMeeting(condition('Text_Field__c', 'starts_with', 'GREEN', null)));
+            System.assertEquals(
+                new List<String>{ 'F1', 'F3', 'F4' },
+                namesMeeting(condition('Picklist_Field__c', 'not_equals', 'Beta', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F2', 'F3', 'F4' },
+                namesMeeting(condition('Text_Field__c', 'not_contains', 'apple', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F2' },
+                namesMeeting(condition('Text_Field__c', 'starts_with', 'GREEN', null))
+            );
             // A wildcard in the value is a character, not a wildcard (TC-021).
-            System.assertEquals(new List<String>{ 'F3' }, namesMeeting(condition('Text_Field__c', 'contains', '%_', null)));
-            System.assertEquals(new List<String>{ 'F1' }, namesMeeting(condition('Multi_Picklist__c', 'contains', 'green', null)),
-                'A multi-select contains a value: INCLUDES.');
-            System.assertEquals(new List<String>{ 'F2', 'F3', 'F4' }, namesMeeting(condition('Multi_Picklist__c', 'not_contains', 'Red', null)));
-            System.assertEquals(new List<String>{ 'F1' }, namesMeeting(condition('Checkbox_Field__c', 'equals', 'true', null)));
+            System.assertEquals(
+                new List<String>{ 'F3' },
+                namesMeeting(condition('Text_Field__c', 'contains', '%_', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F1' },
+                namesMeeting(condition('Multi_Picklist__c', 'contains', 'green', null)),
+                'A multi-select contains a value: INCLUDES.'
+            );
+            System.assertEquals(
+                new List<String>{ 'F2', 'F3', 'F4' },
+                namesMeeting(condition('Multi_Picklist__c', 'not_contains', 'Red', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F1' },
+                namesMeeting(condition('Checkbox_Field__c', 'equals', 'true', null))
+            );
         }
     }
 
     @IsTest
     static void aDateTimeIsFilteredByTheUsersCalendarDay() {
         System.runAs(GridTestUsers.fullUser()) {
-            System.assertEquals(new List<String>{ 'F1' }, namesMeeting(condition('DateTime_Field__c', 'equals', 'TODAY', null)));
-            System.assertEquals(new List<String>{ 'F2' }, namesMeeting(condition('DateTime_Field__c', 'less_than', 'TODAY-1', null)));
-            System.assertEquals(new List<String>{ 'F1', 'F2' },
-                namesMeeting(condition('DateTime_Field__c', 'between', 'TODAY-3', 'TODAY')), 'Both days included.');
-            System.assertEquals(new List<String>{ 'F2', 'F3', 'F4' }, namesMeeting(condition('DateTime_Field__c', 'not_equals', 'TODAY', null)),
-                'Does not equal includes blanks.');
+            System.assertEquals(
+                new List<String>{ 'F1' },
+                namesMeeting(condition('DateTime_Field__c', 'equals', 'TODAY', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F2' },
+                namesMeeting(condition('DateTime_Field__c', 'less_than', 'TODAY-1', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F1', 'F2' },
+                namesMeeting(condition('DateTime_Field__c', 'between', 'TODAY-3', 'TODAY')),
+                'Both days included.'
+            );
+            System.assertEquals(
+                new List<String>{ 'F2', 'F3', 'F4' },
+                namesMeeting(condition('DateTime_Field__c', 'not_equals', 'TODAY', null)),
+                'Does not equal includes blanks.'
+            );
         }
     }
 
     @IsTest
     static void everyConditionMustHold() {
         System.runAs(GridTestUsers.fullUser()) {
-            System.assertEquals(new List<String>{ 'F2' }, namesMeeting(new List<GridFilters.Condition>{
-                condition('Number_Field__c', 'greater_than', '10', null),
-                condition('Text_Field__c', 'contains', 'pear', null)
-            }));
+            System.assertEquals(
+                new List<String>{ 'F2' },
+                namesMeeting(
+                    new List<GridFilters.Condition>{
+                        condition('Number_Field__c', 'greater_than', '10', null),
+                        condition('Text_Field__c', 'contains', 'pear', null)
+                    }
+                )
+            );
         }
     }
 
     @IsTest
     static void aConditionSaysWhatItMeans() {
-        System.assertEquals('Number Field is greater than 10', condition('Number_Field__c', 'greater_than', '10', null).text);
-        System.assertEquals('Picklist Field is not Beta', condition('Picklist_Field__c', 'not_equals', 'beta', null).text);
-        System.assertEquals('Checkbox Field is not checked', condition('Checkbox_Field__c', 'equals', 'false', null).text);
-        System.assertEquals('Date Field is at least 30 days ago', condition('Date_Field__c', 'greater_or_equal', 'today - 30', null).text);
+        System.assertEquals(
+            'Number Field is greater than 10',
+            condition('Number_Field__c', 'greater_than', '10', null).text
+        );
+        System.assertEquals(
+            'Picklist Field is not Beta',
+            condition('Picklist_Field__c', 'not_equals', 'beta', null).text
+        );
+        System.assertEquals(
+            'Checkbox Field is not checked',
+            condition('Checkbox_Field__c', 'equals', 'false', null).text
+        );
+        System.assertEquals(
+            'Date Field is at least 30 days ago',
+            condition('Date_Field__c', 'greater_or_equal', 'today - 30', null).text
+        );
         System.assertEquals('Number Field is between 1 and 9', condition('Number_Field__c', 'between', '1', '9').text);
-        System.assertEquals('Owner is me', condition('OwnerId', 'equals', '$User', null).text, 'A lookup heading drops " ID".');
+        System.assertEquals(
+            'Owner is me',
+            condition('OwnerId', 'equals', '$User', null).text,
+            'A lookup heading drops " ID".'
+        );
         // TODAY and $User mean something only for a date and a lookup: in a text
         // filter they are just text, and must not stop the grid.
         System.assert(condition('Text_Field__c', 'starts_with', 'TODAYS', null).text.endsWith('TODAYS'));
@@ -112,8 +194,12 @@ private class GridFiltersTest {
     @IsTest
     static void anAdminFilterThatCannotWorkStopsTheGridAndSaysWhich() {
         List<Grid_Filter__mdt> records = new List<Grid_Filter__mdt>{
-            new Grid_Filter__mdt(DeveloperName = 'Bad_Value', Field_API_Name__c = 'Number_Field__c',
-                Operator__c = 'greater_than', Value__c = 'lots')
+            new Grid_Filter__mdt(
+                DeveloperName = 'Bad_Value',
+                Field_API_Name__c = 'Number_Field__c',
+                Operator__c = 'greater_than',
+                Value__c = 'lots'
+            )
         };
         try {
             GridFilters.fromRecords(records, TEST_RECORD);
@@ -123,11 +209,14 @@ private class GridFiltersTest {
             System.assert(e.getMessage().contains('is not a number'), e.getMessage());
         }
         List<String> refusals = new List<String>();
-        for (List<String> bad : new List<List<String>>{
+        for (
+            List<String> bad : new List<List<String>>{
                 new List<String>{ 'Long_Text__c', 'equals', 'x', null },
                 new List<String>{ 'Text_Field__c', 'greater_than', 'x', null },
                 new List<String>{ 'Number_Field__c', 'between', '1', null },
-                new List<String>{ 'No_Such__c', 'equals', 'x', null } }) {
+                new List<String>{ 'No_Such__c', 'equals', 'x', null }
+            }
+        ) {
             try {
                 condition(bad[0], bad[1], bad[2], bad[3]);
                 refusals.add('accepted');
@@ -143,11 +232,29 @@ private class GridFiltersTest {
 
     @IsTest
     static void anAdminFilterTurnedOffIsLeftOutAndTheRestAreInOrder() {
-        List<GridFilters.Condition> got = GridFilters.fromRecords(new List<Grid_Filter__mdt>{
-            new Grid_Filter__mdt(DeveloperName = 'Second', Field_API_Name__c = 'Number_Field__c', Operator__c = 'is_not_blank', Sort_Order__c = 20),
-            new Grid_Filter__mdt(DeveloperName = 'Off', Field_API_Name__c = 'No_Such__c', Operator__c = 'equals', Inactive__c = true),
-            new Grid_Filter__mdt(DeveloperName = 'First', Field_API_Name__c = 'Text_Field__c', Operator__c = 'is_blank', Sort_Order__c = 10)
-        }, TEST_RECORD);
+        List<GridFilters.Condition> got = GridFilters.fromRecords(
+            new List<Grid_Filter__mdt>{
+                new Grid_Filter__mdt(
+                    DeveloperName = 'Second',
+                    Field_API_Name__c = 'Number_Field__c',
+                    Operator__c = 'is_not_blank',
+                    Sort_Order__c = 20
+                ),
+                new Grid_Filter__mdt(
+                    DeveloperName = 'Off',
+                    Field_API_Name__c = 'No_Such__c',
+                    Operator__c = 'equals',
+                    Inactive__c = true
+                ),
+                new Grid_Filter__mdt(
+                    DeveloperName = 'First',
+                    Field_API_Name__c = 'Text_Field__c',
+                    Operator__c = 'is_blank',
+                    Sort_Order__c = 10
+                )
+            },
+            TEST_RECORD
+        );
         System.assertEquals(2, got.size(), 'An inactive filter is not there, even a broken one.');
         System.assertEquals('First', got[0].name);
         System.assertEquals('Second', got[1].name);
@@ -157,16 +264,27 @@ private class GridFiltersTest {
     static void aUserFiltersOnlyByTheGridsOwnFilterableColumns() {
         System.runAs(GridTestUsers.fullUser()) {
             GridConfig.Definition def = GridConfig.forUser('Test_Records');
-            List<GridFilters.Condition> ok = GridFilters.userConditions(def, new List<Map<String, Object>>{
-                new Map<String, Object>{ 'field' => 'Number_Field__c', 'operator' => 'between', 'value' => '1', 'valueTo' => 9 }
-            });
+            List<GridFilters.Condition> ok = GridFilters.userConditions(
+                def,
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{
+                        'field' => 'Number_Field__c',
+                        'operator' => 'between',
+                        'value' => '1',
+                        'valueTo' => 9
+                    }
+                }
+            );
             System.assertEquals('9', ok[0].valueTo, 'Values arrive as anything; they are read as text.');
 
             List<String> refusals = new List<String>();
-            for (Map<String, Object> bad : new List<Map<String, Object>>{
+            for (
+                Map<String, Object> bad : new List<Map<String, Object>>{
                     new Map<String, Object>{ 'field' => 'Read_Only_Text__c', 'operator' => 'equals', 'value' => 'x' },
                     new Map<String, Object>{ 'field' => 'Id', 'operator' => 'equals', 'value' => 'x' },
-                    new Map<String, Object>{ 'operator' => 'equals', 'value' => 'x' } }) {
+                    new Map<String, Object>{ 'operator' => 'equals', 'value' => 'x' }
+                }
+            ) {
                 Boolean isColumn = false;
                 for (GridConfig.Column c : def.columns) {
                     isColumn = isColumn || c.field == bad.get('field');
@@ -179,7 +297,10 @@ private class GridFiltersTest {
                 }
             }
             for (String r : refusals) {
-                System.assert(r == 'column' || r.startsWith('Cannot filter by'), 'HR-6: only the grid\'s own columns: ' + r);
+                System.assert(
+                    r == 'column' || r.startsWith('Cannot filter by'),
+                    'HR-6: only the grid\'s own columns: ' + r
+                );
             }
             List<Map<String, Object>> tooMany = new List<Map<String, Object>>();
             for (Integer i = 0; i <= GridFilters.MAX_USER_FILTERS; i++) {
@@ -200,12 +321,27 @@ private class GridFiltersTest {
             List<Map<String, Object>> filters = new List<Map<String, Object>>{
                 new Map<String, Object>{ 'field' => 'Number_Field__c', 'operator' => 'greater_than', 'value' => '10' }
             };
-            Map<String, Object> page = GridController.fetchRows('Test_Records', null, 'Name', 'asc', null, null, null, null,
-                null, null, filters, null);
+            Map<String, Object> page = GridController.fetchRows(
+                'Test_Records',
+                null,
+                'Name',
+                'asc',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                filters,
+                null
+            );
             List<String> names = new List<String>();
             for (Map<String, Object> r : (List<Map<String, Object>>) page.get('rows')) {
                 Object n = r.get('Number_Field__c');
-                System.assert(n != null && Decimal.valueOf(String.valueOf(n)) > 10, 'Only rows that meet the filter: ' + r);
+                System.assert(
+                    n != null && Decimal.valueOf(String.valueOf(n)) > 10,
+                    'Only rows that meet the filter: ' + r
+                );
                 names.add((String) r.get('Name'));
             }
             System.assert(names.contains('F2') && names.contains('F3') && !names.contains('F1'), String.valueOf(names));
@@ -223,9 +359,12 @@ private class GridFiltersTest {
             if (!hasLookup) {
                 return; // the fixture grid has no lookup column to filter by
             }
-            List<GridFilters.Condition> c = GridFilters.userConditions(def, new List<Map<String, Object>>{
-                new Map<String, Object>{ 'field' => 'Lookup_Field__c', 'operator' => 'contains', 'value' => 'acme' }
-            });
+            List<GridFilters.Condition> c = GridFilters.userConditions(
+                def,
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'field' => 'Lookup_Field__c', 'operator' => 'contains', 'value' => 'acme' }
+                }
+            );
             System.assertEquals(new List<String>{ 'F1' }, namesMeeting(c));
         }
     }
@@ -258,8 +397,11 @@ private class GridFiltersTest {
             } catch (GridException e) {
                 System.assert(e.getMessage().contains('is not a lookup'), e.getMessage());
             }
-            System.assertEquals(new List<GridFilters.Condition>(def.filters).size(),
-                GridFilters.forRequest(def, null, acme.Id, true).size(), 'A child table ignores the page.');
+            System.assertEquals(
+                new List<GridFilters.Condition>(def.filters).size(),
+                GridFilters.forRequest(def, null, acme.Id, true).size(),
+                'A child table ignores the page.'
+            );
         }
     }
 
@@ -270,10 +412,28 @@ private class GridFiltersTest {
                 new Map<String, Object>{ 'field' => 'Number_Field__c', 'operator' => 'greater_than', 'value' => '10' }
             };
             List<String> byPicklist = new List<String>{ 'Picklist_Field__c' };
-            GridGroupService.Result unfiltered = GridGroupService.summarize('Test_Records', null, byPicklist, null, null,
-                null, null, null, null);
-            GridGroupService.Result filtered = GridGroupService.summarize('Test_Records', null, byPicklist, null, null,
-                null, null, filters, null);
+            GridGroupService.Result unfiltered = GridGroupService.summarize(
+                'Test_Records',
+                null,
+                byPicklist,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
+            GridGroupService.Result filtered = GridGroupService.summarize(
+                'Test_Records',
+                null,
+                byPicklist,
+                null,
+                null,
+                null,
+                null,
+                filters,
+                null
+            );
             System.assertEquals(4, unfiltered.groups.size(), 'Alpha, Beta, Gamma and blank.');
             System.assertEquals(2, filtered.groups.size(), 'Only the groups of the filtered records: Beta and Gamma.');
             Integer counted = 0;

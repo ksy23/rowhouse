@@ -49,7 +49,11 @@ function messageOf(error) {
     if (!error) return 'Unknown error.';
     const body = error.body;
     if (body && typeof body.message === 'string' && body.message) return body.message;
-    if (Array.isArray(body)) return body.map(e => e && e.message).filter(Boolean).join(' ');
+    if (Array.isArray(body))
+        return body
+            .map(e => e && e.message)
+            .filter(Boolean)
+            .join(' ');
     return error.message || String(error);
 }
 

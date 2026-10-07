@@ -1,0 +1,65 @@
+name: Bug report
+description: Something in Rowhouse doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. A security problem? Please don't file it here: see the [security policy](https://github.com/kugamon/rowhouse/security/policy).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Steps someone else can follow, as short as you can make them.
+      placeholder: |
+        1. Open the grid ...
+        2. Edit the ... column
+        3. Save
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Rowhouse version
+      description: Setup → Installed Packages.
+    validations:
+      required: true
+  - type: input
+    id: org
+    attributes:
+      label: Salesforce org
+      description: Edition, release (Setup → Company Information), and whether Lightning Web Security is on (Setup → Session Settings).
+      placeholder: Enterprise Edition, Winter '27, Lightning Web Security on
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+    validations:
+      required: true
+  - type: textarea
+    id: grid
+    attributes:
+      label: The grid
+      description: The grid's object, its columns and settings, and roughly how many rows it shows.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostic lines (optional)
+      description: Assign the Rowhouse_Diagnostics permission set to the affected user, reproduce the problem, and paste the browser console lines that start with [rowhouse]. They carry timings and counts, never record data.
+      render: text
+  - type: checkboxes
+    id: searched
+    attributes:
+      label: Before you file
+      options:
+        - label: I searched the open and closed issues, and this one is new.
+          required: true

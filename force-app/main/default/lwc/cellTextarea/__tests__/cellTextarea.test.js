@@ -247,13 +247,20 @@ describe('text area cell', () => {
 
         it('reads the whole text for this grid, record and field, and is read only until it arrives', async () => {
             let arrive;
-            fetchFullText.mockImplementation(() => new Promise(resolve => {
-                arrive = resolve;
-            }));
+            fetchFullText.mockImplementation(
+                () =>
+                    new Promise(resolve => {
+                        arrive = resolve;
+                    })
+            );
             const el = mount({ value: 'A'.repeat(1000), ...CUT });
             await flush();
             expect(fetchFullText).toHaveBeenCalledTimes(1);
-            expect(fetchFullText).toHaveBeenCalledWith({ configName: 'Test_Records', recordId: 'a01000000000001AAA', field: 'Notes__c' });
+            expect(fetchFullText).toHaveBeenCalledWith({
+                configName: 'Test_Records',
+                recordId: 'a01000000000001AAA',
+                field: 'Notes__c'
+            });
             expect(area(el).disabled).toBe(true);
             expect($(el, 'button[data-done]').disabled).toBe(true);
             expect($(el, '.rh-loading').textContent).toBe('Loading the whole text…');
@@ -301,8 +308,9 @@ describe('text area cell', () => {
             fetchFullText.mockRejectedValue({ body: { message: 'Insufficient access.' } });
             const el = mount({ value: 'A'.repeat(1000), ...CUT });
             await flush();
-            expect($(el, '[role="alert"]').textContent)
-                .toBe('The whole text could not be read, so it cannot be edited here. Insufficient access.');
+            expect($(el, '[role="alert"]').textContent).toBe(
+                'The whole text could not be read, so it cannot be edited here. Insufficient access.'
+            );
             expect($(el, '.rh-loading')).toBeNull();
             // Read-only, not disabled: it keeps focus, so Escape still leaves it.
             expect(area(el).readOnly).toBe(true);
@@ -324,8 +332,9 @@ describe('text area cell', () => {
             fetchFullText.mockRejectedValue(new Error('Network down'));
             const el = mount({ value: 'A'.repeat(1000), ...CUT });
             await flush();
-            expect($(el, '[role="alert"]').textContent)
-                .toBe('The whole text could not be read, so it cannot be edited here. Network down');
+            expect($(el, '[role="alert"]').textContent).toBe(
+                'The whole text could not be read, so it cannot be edited here. Network down'
+            );
         });
 
         it('does not read anything for a value that was not shortened', async () => {

@@ -157,7 +157,14 @@ export function operatorsFor(type) {
 }
 
 /** Operators a two-field rule may use: equals and the comparisons. */
-export const COMPARE_OPERATORS = new Set(['equals', 'not_equals', 'greater_than', 'greater_or_equal', 'less_than', 'less_or_equal']);
+export const COMPARE_OPERATORS = new Set([
+    'equals',
+    'not_equals',
+    'greater_than',
+    'greater_or_equal',
+    'less_than',
+    'less_or_equal'
+]);
 
 /** Which fields compare with which, as GridConfig.kindOf says. */
 export function compareKind(type) {
@@ -175,7 +182,10 @@ export function isFormulaRule(rule) {
 
 /** Is a column a child total column? One added as one, or one with a child table. */
 export function isChildTotalColumn(column) {
-    return Boolean(column) && ((column.childTotal !== null && column.childTotal !== undefined) || Boolean(column.childTable));
+    return (
+        Boolean(column) &&
+        ((column.childTotal !== null && column.childTotal !== undefined) || Boolean(column.childTable))
+    );
 }
 
 /** Is a column a formula column? */
@@ -261,7 +271,13 @@ export function newColumn(field) {
 
 /** A child total column: a child table of the grid, a kind of total and, but for a count, a field. */
 export function newChildTotalColumn(childTable) {
-    return { ...newColumn(null), _key: nextKey('col'), sortable: false, childTable: childTable || null, childTotal: 'count' };
+    return {
+        ...newColumn(null),
+        _key: nextKey('col'),
+        sortable: false,
+        childTable: childTable || null,
+        childTotal: 'count'
+    };
 }
 
 /** A formula column: a header, a formula and what it returns; no field. */
@@ -288,7 +304,16 @@ export function newRule() {
 
 /** An admin's filter: every active one holds. */
 export function newFilter() {
-    return { _key: nextKey('flt'), name: null, label: '', field: null, operator: 'equals', value: '', valueTo: '', inactive: false };
+    return {
+        _key: nextKey('flt'),
+        name: null,
+        label: '',
+        field: null,
+        operator: 'equals',
+        value: '',
+        valueTo: '',
+        inactive: false
+    };
 }
 
 export function newAction() {
@@ -307,7 +332,15 @@ export function newAction() {
 }
 
 export function newChild() {
-    return { _key: nextKey('child'), name: null, childConfig: null, relationshipField: null, tabLabel: '', height: null, inactive: false };
+    return {
+        _key: nextKey('child'),
+        name: null,
+        childConfig: null,
+        relationshipField: null,
+        tabLabel: '',
+        height: null,
+        inactive: false
+    };
 }
 
 /** A new grid: its name column comes once the object is chosen. */
@@ -422,8 +455,10 @@ export function fitRuleToField(rule, field, compareType) {
     if (!field) return out;
     const allowed = operatorsFor(field.type).map(o => o.value);
     if (!allowed.includes(out.operator)) out.operator = allowed[0] || 'equals';
-    if (out.compareField && compareType !== undefined && compareKind(compareType) !== compareKind(field.type)) out.compareField = null;
+    if (out.compareField && compareType !== undefined && compareKind(compareType) !== compareKind(field.type))
+        out.compareField = null;
     // A field is not compared with itself: the server skips such a rule.
-    if (out.compareField && field.name && String(out.compareField).toLowerCase() === String(field.name).toLowerCase()) out.compareField = null;
+    if (out.compareField && field.name && String(out.compareField).toLowerCase() === String(field.name).toLowerCase())
+        out.compareField = null;
     return out;
 }

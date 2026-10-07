@@ -14,7 +14,15 @@ const fs = require('fs');
 const path = require('path');
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
-const css = fs.readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+// Comments out, and the layout flattened (a long value such as color-mix(...)
+// may be broken over several lines by the formatter), so the patterns below
+// test what the CSS says rather than how it is laid out.
+const css = fs
+    .readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\(\s+/g, '(')
+    .replace(/\s+\)/g, ')');
 /** The declarations of the rule whose selector list is exactly `selector`. */
 const ruleFor = selector => {
     const re = /([^{}]+)\{([^}]*)\}/g;
@@ -30,9 +38,12 @@ const COLUMNS = [
     { field: 'Stage__c', label: 'Stage', type: 'text', editable: true, sortable: true }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
-const ROWS = [{ Id: id(1), Name: 'One', Stage__c: 'Open' }, { Id: id(2), Name: 'Two', Stage__c: 'Won' }];
+const ROWS = [
+    { Id: id(1), Name: 'One', Stage__c: 'Open' },
+    { Id: id(2), Name: 'Two', Stage__c: 'Won' }
+];
 
-describe('frozen cells take the row\'s colors', () => {
+describe("frozen cells take the row's colors", () => {
     it('paints a frozen cell white only while its row is at rest', () => {
         const rule = ruleFor('.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open)) > td.rh-frozen');
         expect(rule).not.toBeNull();
@@ -51,7 +62,8 @@ describe('frozen cells take the row\'s colors', () => {
 
     it('shades an open row and its panel the same very light blue: blue 95 mixed half with white', () => {
         // Light blue, not grey, and lighter than blue 95.
-        const mix = /background-color:\s*color-mix\(in srgb, var\(--slds-g-color-palette-blue-95[^;]* 50%, var\(--slds-g-color-neutral-base-100/;
+        const mix =
+            /background-color:\s*color-mix\(in srgb, var\(--slds-g-color-palette-blue-95[^;]* 50%, var\(--slds-g-color-neutral-base-100/;
         [
             '.rh-grid :where(tr.rh-row_open) > td',
             '.rh-grid td.rh-detail-cell, .rh-grid tr.rh-detail-row:hover > td.rh-detail-cell',
@@ -70,10 +82,12 @@ describe('frozen cells take the row\'s colors', () => {
     });
 
     it('draws a line under the header row, in the color of the row lines', () => {
-        expect(ruleFor('.rh-grid .rh-thead th')).toMatch(/border-bottom:\s*var\(--slds-g-sizing-border-1[^;]*solid var\(--slds-g-color-neutral-base-80/);
+        expect(ruleFor('.rh-grid .rh-thead th')).toMatch(
+            /border-bottom:\s*var\(--slds-g-sizing-border-1[^;]*solid var\(--slds-g-color-neutral-base-80/
+        );
     });
 
-    it('draws a focused header cell\'s ring over its content, where SLDS\'s white control cannot cover it', () => {
+    it("draws a focused header cell's ring over its content, where SLDS's white control cannot cover it", () => {
         // Found in Lightning Experience: a focused column header showed
         // no ring, and Select all a clipped piece of one.
         const rule = ruleFor('.rh-grid th.rh-cell_focus::after');
@@ -107,7 +121,7 @@ describe('the row classes those rules rely on', () => {
     });
     const tr = rowId => el.shadowRoot.querySelector(`tr[data-row-id="${rowId}"]`);
 
-    it('marks a selected row rh-row_selected, beside SLDS\'s own class', async () => {
+    it("marks a selected row rh-row_selected, beside SLDS's own class", async () => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = { columns: COLUMNS, rows: ROWS, selection: 'multi', selectedIds: [id(1)] };
         document.body.appendChild(el);
@@ -121,7 +135,7 @@ describe('the row classes those rules rely on', () => {
         expect(tr(other).classList).not.toContain('rh-row_selected');
     });
 
-    it('marks a focused cell rh-cell_focus, beside SLDS\'s slds-has-focus', async () => {
+    it("marks a focused cell rh-cell_focus, beside SLDS's slds-has-focus", async () => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = { columns: COLUMNS, rows: ROWS };
         document.body.appendChild(el);

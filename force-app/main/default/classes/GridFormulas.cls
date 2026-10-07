@@ -21,7 +21,6 @@
  * (GridConfig.forUser), as with a column on a field they cannot read.
  */
 public with sharing class GridFormulas {
-
     /** Formulas one grid may have, columns and rules together: a 2,000-row page stays well inside the CPU limit. */
     public static final Integer MAX_FORMULAS = 10;
     /** A formula column's key in the browser: a field name cannot start with an underscore. */
@@ -47,7 +46,11 @@ public with sharing class GridFormulas {
      * Build a formula for an object. Throws a GridException whose message is
      * the platform's own, in an admin's terms.
      */
-    public static Compiled compile(Schema.SObjectType objectType, String source, FormulaEval.FormulaReturnType returnType) {
+    public static Compiled compile(
+        Schema.SObjectType objectType,
+        String source,
+        FormulaEval.FormulaReturnType returnType
+    ) {
         // The text is not called "formula": that name would hide the Formula class.
         if (String.isBlank(source)) {
             throw new GridException('it has no formula.');
@@ -64,8 +67,12 @@ public with sharing class GridFormulas {
         }
         for (String path : c.instance.getReferencedFields()) {
             if (path.contains(':')) {
-                throw new GridException('the formula reads ' + path + ', a field through a lookup that can point to more than'
-                    + ' one object (such as an owner). A grid formula cannot read those; use the lookup\'s Id instead.');
+                throw new GridException(
+                    'the formula reads ' +
+                        path +
+                        ', a field through a lookup that can point to more than' +
+                        ' one object (such as an owner). A grid formula cannot read those; use the lookup\'s Id instead.'
+                );
             }
             c.paths.add(path);
         }
@@ -113,8 +120,11 @@ public with sharing class GridFormulas {
     private static Schema.SObjectField lookupNamed(Schema.SObjectType objectType, String relationshipName) {
         for (Schema.SObjectField f : GridDescribe.fieldsFor(GridDescribe.apiName(objectType)).values()) {
             Schema.DescribeFieldResult d = f.getDescribe();
-            if (d.getType() == Schema.DisplayType.REFERENCE && d.getRelationshipName() != null
-                    && d.getRelationshipName().equalsIgnoreCase(relationshipName)) {
+            if (
+                d.getType() == Schema.DisplayType.REFERENCE &&
+                d.getRelationshipName() != null &&
+                d.getRelationshipName().equalsIgnoreCase(relationshipName)
+            ) {
                 return f;
             }
         }

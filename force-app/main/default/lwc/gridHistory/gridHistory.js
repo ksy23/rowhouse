@@ -39,8 +39,11 @@ export function stepBetween(label, before, after, cells) {
         seen.add(key);
         const b = draftState(before, recordId, field);
         const a = draftState(after, recordId, field);
-        const same = b.has === a.has && (!b.has || b.value === a.value
-            || (b.value != null && a.value != null && String(b.value) === String(a.value)));
+        const same =
+            b.has === a.has &&
+            (!b.has ||
+                b.value === a.value ||
+                (b.value != null && a.value != null && String(b.value) === String(a.value)));
         if (!same) changed.push({ recordId, field, before: b, after: a });
     });
     return changed.length ? { label, cells: changed } : null;
@@ -93,9 +96,14 @@ export function redo(history, drafts) {
  */
 export function withoutRecords(history, recordIds) {
     const gone = new Set(recordIds);
-    const prune = steps => steps
-        .map(step => (step.cells.some(c => gone.has(c.recordId)) ? { ...step, cells: step.cells.filter(c => !gone.has(c.recordId)) } : step))
-        .filter(step => step.cells.length);
+    const prune = steps =>
+        steps
+            .map(step =>
+                step.cells.some(c => gone.has(c.recordId))
+                    ? { ...step, cells: step.cells.filter(c => !gone.has(c.recordId)) }
+                    : step
+            )
+            .filter(step => step.cells.length);
     return { undo: prune(history.undo), redo: prune(history.redo) };
 }
 

@@ -13,7 +13,6 @@
  * change. A check in scripts/checks/run-all.js holds it to this.
  */
 public with sharing class GridLogSchedule implements Schedulable {
-
     public void execute(SchedulableContext context) {
         // This class's namespace, if Rowhouse is installed with one, so the
         // name is found in Rowhouse and not in the org's own code.

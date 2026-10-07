@@ -64,26 +64,102 @@ const ACCOUNT_DESCRIBED = {
     name: 'Account',
     label: 'Account',
     labelPlural: 'Accounts',
-    fields: [field('Name', 'Account Name', 'text', { isName: true }), field('ParentId', 'Parent Account ID', 'reference', { heading: 'Parent Account', referenceTo: ['Account'] })],
+    fields: [
+        field('Name', 'Account Name', 'text', { isName: true }),
+        field('ParentId', 'Parent Account ID', 'reference', { heading: 'Parent Account', referenceTo: ['Account'] })
+    ],
     children: []
 };
 
 const DRAFT = {
-    config: { name: 'Deals', label: 'Deals', isNew: false, objectApiName: 'Deal__c', sortField: 'Name', sortDirection: 'asc', allowInlineEdit: true, allowCsvExport: true, recordPageField: null },
+    config: {
+        name: 'Deals',
+        label: 'Deals',
+        isNew: false,
+        objectApiName: 'Deal__c',
+        sortField: 'Name',
+        sortDirection: 'asc',
+        allowInlineEdit: true,
+        allowCsvExport: true,
+        recordPageField: null
+    },
     columns: [
-        { name: 'Deals_Name', field: 'Name', columnLabel: null, editable: true, sortable: true, inactive: false, formula: null },
-        { name: 'Deals_Account', field: 'AccountId', columnLabel: null, editable: true, sortable: true, inactive: false, formula: null },
-        { name: 'Deals_Amount', field: 'Amount__c', columnLabel: 'Value', editable: true, sortable: true, subtotal: 'sum', inactive: false, formula: null },
-        { name: 'Deals_Commission', field: null, columnLabel: 'Commission', editable: false, sortable: false, inactive: false, formula: 'Amount__c * 0.1', formulaType: 'currency', decimalPlaces: 2 }
+        {
+            name: 'Deals_Name',
+            field: 'Name',
+            columnLabel: null,
+            editable: true,
+            sortable: true,
+            inactive: false,
+            formula: null
+        },
+        {
+            name: 'Deals_Account',
+            field: 'AccountId',
+            columnLabel: null,
+            editable: true,
+            sortable: true,
+            inactive: false,
+            formula: null
+        },
+        {
+            name: 'Deals_Amount',
+            field: 'Amount__c',
+            columnLabel: 'Value',
+            editable: true,
+            sortable: true,
+            subtotal: 'sum',
+            inactive: false,
+            formula: null
+        },
+        {
+            name: 'Deals_Commission',
+            field: null,
+            columnLabel: 'Commission',
+            editable: false,
+            sortable: false,
+            inactive: false,
+            formula: 'Amount__c * 0.1',
+            formulaType: 'currency',
+            decimalPlaces: 2
+        }
     ],
     rules: [
-        { name: 'Deals_Big', label: 'Big', field: 'Amount__c', operator: 'greater_than', value: '1000', valueTo: null, compareField: null, formula: null, style: 'fill_green', applyTo: 'row', active: true }
+        {
+            name: 'Deals_Big',
+            label: 'Big',
+            field: 'Amount__c',
+            operator: 'greater_than',
+            value: '1000',
+            valueTo: null,
+            compareField: null,
+            formula: null,
+            style: 'fill_green',
+            applyTo: 'row',
+            active: true
+        }
     ],
     actions: [],
     children: [],
     filters: [
-        { name: 'Deals_Open', label: 'Open', field: 'Stage__c', operator: 'not_equals', value: 'Closed', valueTo: null, inactive: false },
-        { name: 'Deals_Recent', label: 'Recent', field: 'Close__c', operator: 'greater_than', value: 'TODAY-30', valueTo: null, inactive: true }
+        {
+            name: 'Deals_Open',
+            label: 'Open',
+            field: 'Stage__c',
+            operator: 'not_equals',
+            value: 'Closed',
+            valueTo: null,
+            inactive: false
+        },
+        {
+            name: 'Deals_Recent',
+            label: 'Recent',
+            field: 'Close__c',
+            operator: 'greater_than',
+            value: 'TODAY-30',
+            valueTo: null,
+            inactive: true
+        }
     ]
 };
 /** A copy of the saved draft, changed by `edit`, so no test changes another's. */
@@ -128,8 +204,13 @@ const afterCheck = async () => {
 beforeEach(() => {
     jest.useFakeTimers();
     readConfig.mockResolvedValue({ draft: draftWith(), warnings: [], canSave: true });
-    describeObject.mockImplementation(({ objectApiName }) => Promise.resolve(objectApiName === 'Account' ? ACCOUNT_DESCRIBED : DESCRIBED));
-    listObjects.mockResolvedValue([{ name: 'Account', label: 'Account' }, { name: 'Deal__c', label: 'Deal' }]);
+    describeObject.mockImplementation(({ objectApiName }) =>
+        Promise.resolve(objectApiName === 'Account' ? ACCOUNT_DESCRIBED : DESCRIBED)
+    );
+    listObjects.mockResolvedValue([
+        { name: 'Account', label: 'Account' },
+        { name: 'Deal__c', label: 'Deal' }
+    ]);
     canSave.mockResolvedValue(true);
     checkDraft.mockResolvedValue({ errors: [], warnings: [] });
 });
@@ -144,7 +225,14 @@ describe('the Filters tab', () => {
     it('sits between the display rules and the actions, and counts the filters that are on', async () => {
         const el = await mount();
         const tabs = $$(el, 'lightning-tab').map(t => t.label);
-        expect(tabs).toEqual(['Grid', 'Columns (4)', 'Display rules (1)', 'Filters (1)', 'Actions (0)', 'Child tables (0)']);
+        expect(tabs).toEqual([
+            'Grid',
+            'Columns (4)',
+            'Display rules (1)',
+            'Filters (1)',
+            'Actions (0)',
+            'Child tables (0)'
+        ]);
     });
 
     it('lists the saved filters in order, with their field, condition, value and switch', async () => {
@@ -168,7 +256,13 @@ describe('the Filters tab', () => {
     });
 
     it('shows no table and only the Add button when the grid has no filters', async () => {
-        readConfig.mockResolvedValue({ draft: draftWith(d => { d.filters = []; }), warnings: [], canSave: true });
+        readConfig.mockResolvedValue({
+            draft: draftWith(d => {
+                d.filters = [];
+            }),
+            warnings: [],
+            canSave: true
+        });
         const el = await mount();
         expect($(el, '.rh-filters')).toBeNull();
         expect($(el, '.rh-add-filter')).not.toBeNull();
@@ -176,7 +270,13 @@ describe('the Filters tab', () => {
     });
 
     it('accepts a draft from before filters, with none', async () => {
-        readConfig.mockResolvedValue({ draft: draftWith(d => { delete d.filters; }), warnings: [], canSave: true });
+        readConfig.mockResolvedValue({
+            draft: draftWith(d => {
+                delete d.filters;
+            }),
+            warnings: [],
+            canSave: true
+        });
         const el = await mount();
         expect($$(el, 'lightning-tab')[3].label).toBe('Filters (0)');
         expect($(el, '.rh-filters')).toBeNull();
@@ -200,7 +300,15 @@ describe('the Filters tab', () => {
         change($(el, '.rh-filter-value-to'), '500');
         await afterCheck();
         expect(lastDraft().filters).toHaveLength(3);
-        expect(lastDraft().filters[2]).toEqual({ name: null, label: 'Mid-size', field: 'Amount__c', operator: 'between', value: '100', valueTo: '500', inactive: false });
+        expect(lastDraft().filters[2]).toEqual({
+            name: null,
+            label: 'Mid-size',
+            field: 'Amount__c',
+            operator: 'between',
+            value: '100',
+            valueTo: '500',
+            inactive: false
+        });
         expect($$(el, 'lightning-tab')[3].label).toBe('Filters (2)');
         expect($(el, '.rh-editor-save').disabled).toBe(false);
     });
@@ -244,7 +352,10 @@ describe('the Filters tab', () => {
         click(up[1]);
         await afterCheck();
         expect($$(el, '.rh-filter-label').map(i => i.value)).toEqual(['Recent', 'Open']);
-        expect(lastDraft().filters.map(f => [f.name, f.inactive])).toEqual([['Deals_Recent', true], ['Deals_Open', true]]);
+        expect(lastDraft().filters.map(f => [f.name, f.inactive])).toEqual([
+            ['Deals_Recent', true],
+            ['Deals_Open', true]
+        ]);
     });
 });
 
@@ -274,7 +385,13 @@ describe('the record page field', () => {
     });
 
     it('still shows a saved field the object no longer has', async () => {
-        readConfig.mockResolvedValue({ draft: draftWith(d => { d.config.recordPageField = 'Gone__c'; }), warnings: [], canSave: true });
+        readConfig.mockResolvedValue({
+            draft: draftWith(d => {
+                d.config.recordPageField = 'Gone__c';
+            }),
+            warnings: [],
+            canSave: true
+        });
         const el = await mount();
         const box = $(el, '.rh-config-record-page');
         expect(box.value).toBe('Gone__c');
@@ -335,17 +452,19 @@ describe('formula columns', () => {
         await afterCheck();
         expect($(el, '.rh-editor-errors')).toBeNull();
         expect($(el, '.rh-editor-save').disabled).toBe(false);
-        expect(lastDraft().columns[4]).toEqual(expect.objectContaining({
-            name: null,
-            field: null,
-            formula: 'Amount__c * 0.2',
-            formulaType: 'number',
-            decimalPlaces: 0,
-            columnLabel: 'Bonus',
-            editable: false,
-            sortable: false,
-            inactive: false
-        }));
+        expect(lastDraft().columns[4]).toEqual(
+            expect.objectContaining({
+                name: null,
+                field: null,
+                formula: 'Amount__c * 0.2',
+                formulaType: 'number',
+                decimalPlaces: 0,
+                columnLabel: 'Bonus',
+                editable: false,
+                sortable: false,
+                inactive: false
+            })
+        );
     });
 
     it('names a formula column by its header in its own error', async () => {
@@ -407,7 +526,15 @@ describe('formula columns', () => {
             draft: draftWith(d => {
                 d.columns = [d.columns[0]];
                 for (let i = 1; i <= 10; i++) {
-                    d.columns.push({ name: `Deals_F${i}`, field: null, columnLabel: `F${i}`, sortable: false, inactive: false, formula: `Amount__c * ${i}`, formulaType: 'number' });
+                    d.columns.push({
+                        name: `Deals_F${i}`,
+                        field: null,
+                        columnLabel: `F${i}`,
+                        sortable: false,
+                        inactive: false,
+                        formula: `Amount__c * ${i}`,
+                        formulaType: 'number'
+                    });
                 }
             }),
             warnings: [],
@@ -421,7 +548,9 @@ describe('formula columns', () => {
         await settle();
         change($(el, '.rh-rule-formula'), 'Done__c');
         await settle();
-        expect(errorsText(el)).toContain('A grid has at most 10 formulas, columns and rules together; this one has 11.');
+        expect(errorsText(el)).toContain(
+            'A grid has at most 10 formulas, columns and rules together; this one has 11.'
+        );
         await afterCheck();
         expect($(el, '.rh-editor-save').disabled).toBe(true);
         // One turned off: within the limit again.
@@ -433,7 +562,7 @@ describe('formula columns', () => {
 });
 
 describe('column headers', () => {
-    it('suggest what the grid shows for the field, not the field\'s label', async () => {
+    it("suggest what the grid shows for the field, not the field's label", async () => {
         const el = await mount();
         const placeholders = $$(el, '.rh-column-label').map(i => i.placeholder);
         expect(placeholders.slice(0, 3)).toEqual(['Deal Name', 'Account', 'Amount']);
@@ -470,15 +599,17 @@ describe('display rules', () => {
     it('offer the icons and the data bar as looks', async () => {
         const el = await mount();
         const looks = $(el, '.rh-rule-style').options;
-        expect(looks).toEqual(expect.arrayContaining([
-            { value: 'icon_warning', label: 'Warning icon' },
-            { value: 'icon_error', label: 'Error icon' },
-            { value: 'icon_success', label: 'Success icon' },
-            { value: 'icon_info', label: 'Info icon' },
-            { value: 'icon_up', label: 'Up arrow' },
-            { value: 'icon_down', label: 'Down arrow' },
-            { value: 'data_bar', label: 'Data bar' }
-        ]));
+        expect(looks).toEqual(
+            expect.arrayContaining([
+                { value: 'icon_warning', label: 'Warning icon' },
+                { value: 'icon_error', label: 'Error icon' },
+                { value: 'icon_success', label: 'Success icon' },
+                { value: 'icon_info', label: 'Info icon' },
+                { value: 'icon_up', label: 'Up arrow' },
+                { value: 'icon_down', label: 'Down arrow' },
+                { value: 'data_bar', label: 'Data bar' }
+            ])
+        );
         change($(el, '.rh-rule-style'), 'data_bar');
         await afterCheck();
         expect(lastDraft().rules[0].style).toBe('data_bar');
@@ -502,7 +633,12 @@ describe('display rules', () => {
         change($(el, '.rh-rule-field'), '');
         await afterCheck();
         expect($(el, '.rh-editor-errors')).toBeNull();
-        expect(lastDraft().rules[0]).toMatchObject({ formula: 'Amount__c > Budget__c', field: null, compareField: null, applyTo: 'row' });
+        expect(lastDraft().rules[0]).toMatchObject({
+            formula: 'Amount__c > Budget__c',
+            field: null,
+            compareField: null,
+            applyTo: 'row'
+        });
         expect($(el, '.rh-editor-save').disabled).toBe(false);
 
         change($(el, '.rh-rule-operator'), 'equals');
@@ -516,7 +652,19 @@ describe('display rules', () => {
     it('read a saved formula rule as one', async () => {
         readConfig.mockResolvedValue({
             draft: draftWith(d => {
-                d.rules = [{ name: 'Deals_Done', label: 'Done', field: null, operator: null, value: null, formula: 'Done__c', style: 'icon_success', applyTo: 'row', active: true }];
+                d.rules = [
+                    {
+                        name: 'Deals_Done',
+                        label: 'Done',
+                        field: null,
+                        operator: null,
+                        value: null,
+                        formula: 'Done__c',
+                        style: 'icon_success',
+                        applyTo: 'row',
+                        active: true
+                    }
+                ];
             }),
             warnings: [],
             canSave: true
@@ -548,7 +696,12 @@ describe('display rules', () => {
         expect($(el, '.rh-rule-compare')).toBeNull();
         change($(el, '.rh-rule-value-to'), '5000');
         await afterCheck();
-        expect(lastDraft().rules[0]).toMatchObject({ operator: 'between', value: '1000', valueTo: '5000', compareField: null });
+        expect(lastDraft().rules[0]).toMatchObject({
+            operator: 'between',
+            value: '1000',
+            valueTo: '5000',
+            compareField: null
+        });
     });
 
     it('compare with a value, or with another field of the same kind', async () => {
@@ -564,7 +717,11 @@ describe('display rules', () => {
         await afterCheck();
         expect($(el, '.rh-rule-value')).toBeNull();
         expect($(el, '.rh-rule-compare').value).toBe('Budget__c');
-        expect(lastDraft().rules[0]).toMatchObject({ field: 'Amount__c', operator: 'greater_than', compareField: 'Budget__c' });
+        expect(lastDraft().rules[0]).toMatchObject({
+            field: 'Amount__c',
+            operator: 'greater_than',
+            compareField: 'Budget__c'
+        });
         change($(el, '.rh-rule-compare'), '');
         await afterCheck();
         expect($(el, '.rh-rule-value')).not.toBeNull();
@@ -726,16 +883,73 @@ describe('saving', () => {
         expect(json).not.toContain('_key');
         const sent = JSON.parse(json);
         expect(sent.config.recordPageField).toBe('AccountId');
-        expect(sent.columns[4]).toMatchObject({ field: null, formula: 'Amount__c - Budget__c', formulaType: 'currency', columnLabel: 'Over budget by', sortable: false });
-        expect(sent.columns[3]).toMatchObject({ name: 'Deals_Commission', formula: 'Amount__c * 0.1', formulaType: 'currency', decimalPlaces: 2 });
+        expect(sent.columns[4]).toMatchObject({
+            field: null,
+            formula: 'Amount__c - Budget__c',
+            formulaType: 'currency',
+            columnLabel: 'Over budget by',
+            sortable: false
+        });
+        expect(sent.columns[3]).toMatchObject({
+            name: 'Deals_Commission',
+            formula: 'Amount__c * 0.1',
+            formulaType: 'currency',
+            decimalPlaces: 2
+        });
         expect(sent.rules).toHaveLength(3);
-        expect(sent.rules[0]).toMatchObject({ name: 'Deals_Big', operator: 'between', value: '1000', valueTo: '5000', compareField: null, formula: null });
-        expect(sent.rules[1]).toMatchObject({ name: null, label: 'Over budget', field: 'Amount__c', operator: 'greater_than', compareField: 'Budget__c', value: null, style: 'icon_warning', formula: null });
-        expect(sent.rules[2]).toMatchObject({ name: null, label: 'Done', field: null, formula: 'Done__c', applyTo: 'row' });
+        expect(sent.rules[0]).toMatchObject({
+            name: 'Deals_Big',
+            operator: 'between',
+            value: '1000',
+            valueTo: '5000',
+            compareField: null,
+            formula: null
+        });
+        expect(sent.rules[1]).toMatchObject({
+            name: null,
+            label: 'Over budget',
+            field: 'Amount__c',
+            operator: 'greater_than',
+            compareField: 'Budget__c',
+            value: null,
+            style: 'icon_warning',
+            formula: null
+        });
+        expect(sent.rules[2]).toMatchObject({
+            name: null,
+            label: 'Done',
+            field: null,
+            formula: 'Done__c',
+            applyTo: 'row'
+        });
         expect(sent.filters).toEqual([
-            { name: 'Deals_Open', label: 'Open', field: 'Stage__c', operator: 'not_equals', value: 'Closed', valueTo: null, inactive: false },
-            { name: 'Deals_Recent', label: 'Recent', field: 'Close__c', operator: 'greater_than', value: 'TODAY-30', valueTo: null, inactive: true },
-            { name: null, label: null, field: 'Close__c', operator: 'between', value: 'TODAY-30', valueTo: 'TODAY', inactive: false }
+            {
+                name: 'Deals_Open',
+                label: 'Open',
+                field: 'Stage__c',
+                operator: 'not_equals',
+                value: 'Closed',
+                valueTo: null,
+                inactive: false
+            },
+            {
+                name: 'Deals_Recent',
+                label: 'Recent',
+                field: 'Close__c',
+                operator: 'greater_than',
+                value: 'TODAY-30',
+                valueTo: null,
+                inactive: true
+            },
+            {
+                name: null,
+                label: null,
+                field: 'Close__c',
+                operator: 'between',
+                value: 'TODAY-30',
+                valueTo: 'TODAY',
+                inactive: false
+            }
         ]);
     });
 
@@ -754,7 +968,15 @@ describe('grouping options', () => {
     it('offer Users can group only for a groupable column whose type is not offered anyway, and send it', async () => {
         readConfig.mockResolvedValue({
             draft: draftWith(d => {
-                d.columns.push({ name: 'Deals_Stage', field: 'Stage__c', columnLabel: null, editable: true, sortable: true, inactive: false, formula: null });
+                d.columns.push({
+                    name: 'Deals_Stage',
+                    field: 'Stage__c',
+                    columnLabel: null,
+                    editable: true,
+                    sortable: true,
+                    inactive: false,
+                    formula: null
+                });
             }),
             warnings: [],
             canSave: true
@@ -773,7 +995,17 @@ describe('grouping options', () => {
     it('offer a date the week and the fiscal periods as units', async () => {
         readConfig.mockResolvedValue({
             draft: draftWith(d => {
-                d.columns.push({ name: 'Deals_Close', field: 'Close__c', columnLabel: null, editable: true, sortable: true, groupLevel: 1, groupUnit: 'fiscal_quarter', inactive: false, formula: null });
+                d.columns.push({
+                    name: 'Deals_Close',
+                    field: 'Close__c',
+                    columnLabel: null,
+                    editable: true,
+                    sortable: true,
+                    groupLevel: 1,
+                    groupUnit: 'fiscal_quarter',
+                    inactive: false,
+                    formula: null
+                });
             }),
             warnings: [],
             canSave: true
@@ -781,7 +1013,15 @@ describe('grouping options', () => {
         const el = await mount();
         const unit = $(el, '.rh-column-unit');
         expect(unit.value).toBe('fiscal_quarter');
-        expect(values(unit.options)).toEqual(['day', 'week', 'month', 'quarter', 'year', 'fiscal_quarter', 'fiscal_year']);
+        expect(values(unit.options)).toEqual([
+            'day',
+            'week',
+            'month',
+            'quarter',
+            'year',
+            'fiscal_quarter',
+            'fiscal_year'
+        ]);
     });
 });
 
@@ -791,14 +1031,31 @@ describe('child tables and child total columns', () => {
         field('Amount__c', 'Line Amount', 'currency', { subtotals: ['sum', 'average', 'min', 'max', 'count'] }),
         field('Deal__c', 'Deal', 'reference', { referenceTo: ['Deal__c'], subtotals: ['count'] })
     ];
-    const WITH_CHILD = { ...DESCRIBED, children: [{ config: 'Deal_Lines', label: 'Deal Lines', fields: ['Deal__c'], objectApiName: 'Line__c' }] };
-    const withChild = edit => draftWith(d => {
-        d.children = [{ name: 'Deals_Lines', childConfig: 'Deal_Lines', relationshipField: 'Deal__c', tabLabel: 'Lines', height: null, inactive: false }];
-        if (edit) edit(d);
-    });
+    const WITH_CHILD = {
+        ...DESCRIBED,
+        children: [{ config: 'Deal_Lines', label: 'Deal Lines', fields: ['Deal__c'], objectApiName: 'Line__c' }]
+    };
+    const withChild = edit =>
+        draftWith(d => {
+            d.children = [
+                {
+                    name: 'Deals_Lines',
+                    childConfig: 'Deal_Lines',
+                    relationshipField: 'Deal__c',
+                    tabLabel: 'Lines',
+                    height: null,
+                    inactive: false
+                }
+            ];
+            if (edit) edit(d);
+        });
 
     beforeEach(() => {
-        describeObject.mockImplementation(({ objectApiName }) => Promise.resolve(objectApiName === 'Line__c' ? { name: 'Line__c', fields: LINE_FIELDS, children: [] } : WITH_CHILD));
+        describeObject.mockImplementation(({ objectApiName }) =>
+            Promise.resolve(
+                objectApiName === 'Line__c' ? { name: 'Line__c', fields: LINE_FIELDS, children: [] } : WITH_CHILD
+            )
+        );
     });
 
     it('take a Height for each child table, and send it', async () => {
@@ -823,7 +1080,12 @@ describe('child tables and child total columns', () => {
         const added = lastDraft().columns[lastDraft().columns.length - 1];
         expect(added).toMatchObject({ childTable: 'Deals_Lines', childTotal: 'count', childField: null, field: null });
         expect($(el, '.rh-column-child-table').value).toBe('Deals_Lines');
-        expect($(el, '.rh-column-child-field').options.map(o => o.label)).toEqual(['Records', 'Line Name (Name)', 'Line Amount (Amount__c)', 'Deal (Deal__c)']);
+        expect($(el, '.rh-column-child-field').options.map(o => o.label)).toEqual([
+            'Records',
+            'Line Name (Name)',
+            'Line Amount (Amount__c)',
+            'Deal (Deal__c)'
+        ]);
         // Its header says what it shows until the admin writes one.
         const headers = $$(el, '.rh-column-label');
         expect(headers[headers.length - 1].placeholder).toBe('Lines');
@@ -832,7 +1094,16 @@ describe('child tables and child total columns', () => {
     it('offer only the fields a total fits, and drop a field the new total does not fit', async () => {
         readConfig.mockResolvedValue({
             draft: withChild(d => {
-                d.columns.push({ name: 'Deals_Total', field: null, columnLabel: null, childTable: 'Deals_Lines', childTotal: 'count', childField: 'Name', inactive: false, formula: null });
+                d.columns.push({
+                    name: 'Deals_Total',
+                    field: null,
+                    columnLabel: null,
+                    childTable: 'Deals_Lines',
+                    childTotal: 'count',
+                    childField: 'Name',
+                    inactive: false,
+                    formula: null
+                });
             }),
             warnings: [],
             canSave: true

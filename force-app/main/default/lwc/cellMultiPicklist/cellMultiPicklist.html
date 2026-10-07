@@ -3,7 +3,14 @@
         <!-- The box, the cell's width, says what is chosen so far; the lists hang
              below it, too wide for a narrow cell. -->
         <div class="rh-multi-picklist" onkeydown={handleKeyDown}>
-            <div class="slds-input slds-truncate rh-multi-summary" title={summary} aria-hidden="true" onmousedown={handleSummaryMouseDown}>{summary}</div>
+            <div
+                class="slds-input slds-truncate rh-multi-summary"
+                title={summary}
+                aria-hidden="true"
+                onmousedown={handleSummaryMouseDown}
+            >
+                {summary}
+            </div>
             <div class={panelClass}>
                 <lightning-dual-listbox
                     label={label}

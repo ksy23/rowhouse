@@ -37,14 +37,21 @@ describe('copy', () => {
     });
 
     it('quotes a value with a tab, a line break or a quote, as Excel does', () => {
-        expect(toTsv([['a', 'b\tc'], ['line one\nline two', 'say "hi"']]))
-            .toBe('a\t"b\tc"\n"line one\nline two"\t"say ""hi"""');
+        expect(
+            toTsv([
+                ['a', 'b\tc'],
+                ['line one\nline two', 'say "hi"']
+            ])
+        ).toBe('a\t"b\tc"\n"line one\nline two"\t"say ""hi"""');
     });
 });
 
 describe('parseTsv', () => {
     it('reads rows and columns, ignoring the line break Excel adds at the end', () => {
-        expect(parseTsv('a\tb\r\nc\td\r\n')).toEqual([['a', 'b'], ['c', 'd']]);
+        expect(parseTsv('a\tb\r\nc\td\r\n')).toEqual([
+            ['a', 'b'],
+            ['c', 'd']
+        ]);
         expect(parseTsv('one')).toEqual([['one']]);
         expect(parseTsv('a\t')).toEqual([['a', '']]);
     });
@@ -57,7 +64,11 @@ describe('parseTsv', () => {
     });
 
     it('round-trips whatever toTsv writes', () => {
-        const matrix = [['=1+1', 'tab\there'], ['', '"quoted"'], ['multi\r\nline', 'é 🎉']];
+        const matrix = [
+            ['=1+1', 'tab\there'],
+            ['', '"quoted"'],
+            ['multi\r\nline', 'é 🎉']
+        ];
         expect(parseTsv(toTsv(matrix))).toEqual(matrix);
     });
 
@@ -79,7 +90,9 @@ describe('parseCell', () => {
     });
 
     it('keeps an 18-digit number exact (TC-024) and reads a percent sign', () => {
-        expect(parseCell('999999999999999999', col('number', { scale: 0 }), 'en-US')).toEqual({ value: '999999999999999999' });
+        expect(parseCell('999999999999999999', col('number', { scale: 0 }), 'en-US')).toEqual({
+            value: '999999999999999999'
+        });
         expect(parseCell('50%', col('percent', { scale: 2 }), 'en-US')).toEqual({ value: 50 });
     });
 
@@ -116,7 +129,7 @@ describe('parseCell', () => {
         expect(parseCell('Obsolete', p)).toEqual({ error: 'Not a value of this picklist: Obsolete' });
     });
 
-    it('takes text exactly as pasted (TC-005) and undoes copy\'s neutralising apostrophe', () => {
+    it("takes text exactly as pasted (TC-005) and undoes copy's neutralising apostrophe", () => {
         expect(parseCell('  padded  ', col('text'))).toEqual({ value: '  padded  ' });
         expect(parseCell("'=1+1", col('text'))).toEqual({ value: '=1+1' });
         expect(parseCell("'plain", col('text'))).toEqual({ value: "'plain" });
@@ -154,10 +167,19 @@ describe('pastePlan', () => {
     });
 
     it('pastes a block once from the top-left when the range is not a multiple', () => {
-        const plan = pastePlan([['a', 'b'], ['c', 'd']], { top: 3, left: 2, bottom: 3, right: 2 }, bounds);
+        const plan = pastePlan(
+            [
+                ['a', 'b'],
+                ['c', 'd']
+            ],
+            { top: 3, left: 2, bottom: 3, right: 2 },
+            bounds
+        );
         expect(plan.cells).toEqual([
-            { row: 3, col: 2, text: 'a' }, { row: 3, col: 3, text: 'b' },
-            { row: 4, col: 2, text: 'c' }, { row: 4, col: 3, text: 'd' }
+            { row: 3, col: 2, text: 'a' },
+            { row: 3, col: 3, text: 'b' },
+            { row: 4, col: 2, text: 'c' },
+            { row: 4, col: 3, text: 'd' }
         ]);
     });
 

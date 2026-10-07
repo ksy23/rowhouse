@@ -3,7 +3,12 @@
     <template lwc:if={useSalesforceLookup}>
         <div class={formElementClass} onkeydown={handleFormKeyDown}>
             <lightning-record-edit-form object-api-name={objectApiName} record-id={formRecordId} class="rh-lookup-form">
-                <lightning-input-field field-name={fieldApiName} variant="label-hidden" value={value} onchange={handleFormChange}></lightning-input-field>
+                <lightning-input-field
+                    field-name={fieldApiName}
+                    variant="label-hidden"
+                    value={value}
+                    onchange={handleFormChange}
+                ></lightning-input-field>
             </lightning-record-edit-form>
             <template lwc:if={error}>
                 <p class="slds-form-element__help rh-editor-error" role="alert">{error}</p>
@@ -17,7 +22,10 @@
             <div class="slds-form-element__control">
                 <div class="slds-combobox_container">
                     <div class={comboboxClass}>
-                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <div
+                            class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right"
+                            role="none"
+                        >
                             <input
                                 type="text"
                                 class="slds-input slds-combobox__input"
@@ -53,12 +61,21 @@
                                             onclick={handleOptionClick}
                                         >
                                             <span class="slds-media__figure slds-listbox__option-icon">
-                                                <lightning-icon icon-name={o.icon} size={o.iconSize} alternative-text={o.kind}></lightning-icon>
+                                                <lightning-icon
+                                                    icon-name={o.icon}
+                                                    size={o.iconSize}
+                                                    alternative-text={o.kind}
+                                                ></lightning-icon>
                                             </span>
                                             <span class="slds-media__body">
-                                                <span class="slds-listbox__option-text slds-listbox__option-text_entity">{o.name}</span>
+                                                <span class="slds-listbox__option-text slds-listbox__option-text_entity"
+                                                    >{o.name}</span
+                                                >
                                                 <template lwc:if={o.showKind}>
-                                                    <span class="slds-listbox__option-meta slds-listbox__option-meta_entity">{o.kind}</span>
+                                                    <span
+                                                        class="slds-listbox__option-meta slds-listbox__option-meta_entity"
+                                                        >{o.kind}</span
+                                                    >
                                                 </template>
                                             </span>
                                         </div>

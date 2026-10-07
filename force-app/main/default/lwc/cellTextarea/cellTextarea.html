@@ -2,7 +2,14 @@
     <template lwc:if={isEdit}>
         <!-- The box, the cell's width, shows the start of the text; the text area hangs below it (see cellTextarea.js). -->
         <div class="rh-textarea" onkeydown={handleKeyDown}>
-            <div class="slds-input slds-truncate rh-textarea-summary" title={summary} aria-hidden="true" onmousedown={handleSummaryMouseDown}>{summary}</div>
+            <div
+                class="slds-input slds-truncate rh-textarea-summary"
+                title={summary}
+                aria-hidden="true"
+                onmousedown={handleSummaryMouseDown}
+            >
+                {summary}
+            </div>
             <div class={panelClass}>
                 <div class={formElementClass}>
                     <label class="slds-form-element__label" for="textarea-input">{label}</label>
@@ -35,7 +42,9 @@
                 </div>
                 <div class="slds-m-top_x-small slds-text-align_right">
                     <button class="slds-button slds-button_neutral" onclick={handleCancel}>Cancel</button>
-                    <button class="slds-button slds-button_brand" data-done disabled={loading} onclick={handleDone}>Done</button>
+                    <button class="slds-button slds-button_brand" data-done disabled={loading} onclick={handleDone}>
+                        Done
+                    </button>
                 </div>
             </div>
         </div>

@@ -18,7 +18,14 @@ const COLUMNS = [
     { field: 'Close__c', label: 'Close', type: 'date', editable: true, sortable: true, width: 60 },
     { field: 'Notes__c', label: 'Notes', type: 'text', editable: true, sortable: true, wrap: true, width: 200 }
 ];
-const row = (n, extra = {}) => ({ Id: `a01000000000000${n}AA`.slice(0, 18), Name: 'Row ' + n, Amount__c: 10, Close__c: '2026-09-29', Notes__c: 'short', ...extra });
+const row = (n, extra = {}) => ({
+    Id: `a01000000000000${n}AA`.slice(0, 18),
+    Name: 'Row ' + n,
+    Amount__c: 10,
+    Close__c: '2026-09-29',
+    Notes__c: 'short',
+    ...extra
+});
 
 let el;
 const mount = async (config = {}) => {
@@ -62,7 +69,10 @@ describe('column widths', () => {
 
     it('is never narrower than its columns: it scrolls sideways instead', async () => {
         await mount();
-        const total = [...el.shadowRoot.querySelectorAll('thead th[data-field]')].reduce((sum, h) => sum + parseInt(h.style.width, 10), 0);
+        const total = [...el.shadowRoot.querySelectorAll('thead th[data-field]')].reduce(
+            (sum, h) => sum + parseInt(h.style.width, 10),
+            0
+        );
         expect(table().style.minWidth).toBe(`${total}px`);
         expect(table().style.width).toBe(''); // not pinned: it still fills the grid
     });
@@ -97,7 +107,7 @@ describe('wrapped rows sized to their data (revisits)', () => {
         expect(lines()).toBe('3');
     });
 
-    it('follows the user\'s choice to clip the column', async () => {
+    it("follows the user's choice to clip the column", async () => {
         await mount({ rows: [row(1), row(2, { Notes__c: 'first line\nsecond line' })] });
         expect(el.shadowRoot.querySelector('td[data-field="Notes__c"] .rh-wrap-text')).not.toBeNull();
         const clipped = COLUMNS.map(c => (c.field === 'Notes__c' ? { ...c, wrap: false } : c));

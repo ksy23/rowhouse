@@ -22,6 +22,13 @@ module.exports = [
         }
     },
     {
+        // Prettier owns layout. When it breaks a long arrow function over two
+        // lines it drops the parentheses this rule asks for, so the two would
+        // disagree forever (eslint-config-prettier turns it off for the same
+        // reason).
+        rules: { 'no-confusing-arrow': 'off' }
+    },
+    {
         files: ['**/__tests__/**/*.js', 'test-data/tests/jest/**/*.js'],
         rules: {
             '@lwc/lwc/no-async-operation': 'off',

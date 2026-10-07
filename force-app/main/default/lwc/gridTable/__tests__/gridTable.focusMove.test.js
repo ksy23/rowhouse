@@ -13,7 +13,9 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 // and redraws once for them; counting starts after that.
 const settled = () => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
 const key = (target, k, opts = {}) =>
-    target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts }));
+    target.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts })
+    );
 
 // Count the table's redraws by the rows it builds: every render reads renderRows.
 let draws = 0;
@@ -124,16 +126,30 @@ describe('moving focus without a redraw', () => {
 
     it('keeps one ring and one tab stop through moves, ranges and moves again', async () => {
         await mount();
-        const moves = [['ArrowRight'], ['ArrowDown'], ['ArrowDown', true], ['ArrowRight', true], ['ArrowLeft'], ['ArrowUp'],
-            ['ArrowRight'], ['ArrowUp', true], ['ArrowDown'], ['ArrowLeft']];
+        const moves = [
+            ['ArrowRight'],
+            ['ArrowDown'],
+            ['ArrowDown', true],
+            ['ArrowRight', true],
+            ['ArrowLeft'],
+            ['ArrowUp'],
+            ['ArrowRight'],
+            ['ArrowUp', true],
+            ['ArrowDown'],
+            ['ArrowLeft']
+        ];
         // One after another: each move starts from where the last one left focus.
-        await moves.reduce((done, [k, shiftKey]) => done.then(async () => {
-            key(el.shadowRoot.activeElement, k, { shiftKey: Boolean(shiftKey) });
-            await flush();
-            const active = el.shadowRoot.activeElement;
-            expect(tabStops()).toEqual([active]);
-            expect(ringed()).toEqual([active]);
-        }), Promise.resolve());
+        await moves.reduce(
+            (done, [k, shiftKey]) =>
+                done.then(async () => {
+                    key(el.shadowRoot.activeElement, k, { shiftKey: Boolean(shiftKey) });
+                    await flush();
+                    const active = el.shadowRoot.activeElement;
+                    expect(tabStops()).toEqual([active]);
+                    expect(ringed()).toEqual([active]);
+                }),
+            Promise.resolve()
+        );
     });
 
     it('redraws for a cell with an error, whose message shows only while it has focus', async () => {
@@ -153,7 +169,10 @@ describe('moving focus without a redraw', () => {
         key(cell(ids[0], 'Name'), 'ArrowDown', { shiftKey: true });
         await flush();
         expect(draws).toBe(0);
-        const shaded = () => [...el.shadowRoot.querySelectorAll('.rh-in-range')].map(c => `${ids.indexOf(c.dataset.rowId)}:${c.dataset.field}`).sort();
+        const shaded = () =>
+            [...el.shadowRoot.querySelectorAll('.rh-in-range')]
+                .map(c => `${ids.indexOf(c.dataset.rowId)}:${c.dataset.field}`)
+                .sort();
         expect(shaded()).toEqual(['0:Name', '1:Name']);
         expect(cell(ids[1], 'Name').getAttribute('aria-selected')).toBe('true');
         expect(cell(ids[1], 'Name').getAttribute('tabindex')).toBe('0'); // focus went with the range's corner
@@ -182,7 +201,10 @@ describe('moving focus without a redraw', () => {
     });
 
     it('redraws to bring a row outside the drawn window into view', async () => {
-        const many = Array.from({ length: 400 }, (_, i) => ({ Id: 'a0' + String(i).padStart(16, '0'), Name: 'Row ' + i }));
+        const many = Array.from({ length: 400 }, (_, i) => ({
+            Id: 'a0' + String(i).padStart(16, '0'),
+            Name: 'Row ' + i
+        }));
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = { columns, rows: many };
         document.body.appendChild(el);

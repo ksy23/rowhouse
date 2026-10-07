@@ -39,7 +39,6 @@
  *                    include nulls)
  */
 public with sharing class GridFilters {
-
     /** Filters one user may add to one grid. */
     public static final Integer MAX_USER_FILTERS = 10;
 
@@ -62,18 +61,25 @@ public with sharing class GridFilters {
     /** One condition, checked and normalised. */
     public class Condition {
         /** The Grid Filter's API name; null for a user's filter or the record page. */
-        @AuraEnabled public String name;
+        @AuraEnabled
+        public String name;
         /** The field, local name (HR-4). */
-        @AuraEnabled public String field;
+        @AuraEnabled
+        public String field;
         /** The grid's type for the field: text, picklist, date, reference and so on. */
-        @AuraEnabled public String type;
-        @AuraEnabled public String operator;
+        @AuraEnabled
+        public String type;
+        @AuraEnabled
+        public String operator;
         /** Normalised; null for the blank tests. */
-        @AuraEnabled public String value;
+        @AuraEnabled
+        public String value;
         /** Between's upper end; null otherwise. */
-        @AuraEnabled public String valueTo;
+        @AuraEnabled
+        public String valueTo;
         /** What it means, in words: "Stage is not Closed Lost". For the grid to show. */
-        @AuraEnabled public String text;
+        @AuraEnabled
+        public String text;
         /** A lookup filtered by its record's name (a user's filter only). */
         public Boolean byName = false;
     }
@@ -120,7 +126,13 @@ public with sharing class GridFilters {
 
     /** One condition, checked against the schema and normalised. Throws in an admin's terms. */
     @TestVisible
-    private static Condition condition(Schema.SObjectType objectType, String fieldName, String operator, String value, String valueTo) {
+    private static Condition condition(
+        Schema.SObjectType objectType,
+        String fieldName,
+        String operator,
+        String value,
+        String valueTo
+    ) {
         if (String.isBlank(fieldName)) {
             throw new GridException('it has no Field API Name.');
         }
@@ -226,10 +238,15 @@ public with sharing class GridFilters {
         }
         Schema.DescribeFieldResult d = f.getDescribe();
         if (!d.getReferenceTo().contains(parsed.getSObjectType())) {
-            throw new GridException('This grid shows ' + def.objectLabel + ' related to '
-                + String.join(GridDescribe.referenceTargets(f), ' or ') + ' records, and this page shows '
-                + parsed.getSObjectType().getDescribe(SObjectDescribeOptions.DEFERRED).getLabel()
-                + '. Ask your Salesforce admin to place it on a matching page, or to clear its Record Page Field.');
+            throw new GridException(
+                'This grid shows ' +
+                    def.objectLabel +
+                    ' related to ' +
+                    String.join(GridDescribe.referenceTargets(f), ' or ') +
+                    ' records, and this page shows ' +
+                    parsed.getSObjectType().getDescribe(SObjectDescribeOptions.DEFERRED).getLabel() +
+                    '. Ask your Salesforce admin to place it on a matching page, or to clear its Record Page Field.'
+            );
         }
         if (!GridSecurity.canRead(f)) {
             throw new GridException('You do not have access to ' + def.objectApiName + '.' + d.getLocalName() + '.');
@@ -283,8 +300,12 @@ public with sharing class GridFilters {
      * filters, the user's, and the record page's (a top-level grid only; a
      * child table is narrowed by its parent instead).
      */
-    public static List<Condition> forRequest(GridConfig.Definition def, List<Map<String, Object>> userFilters,
-                                             String recordId, Boolean nested) {
+    public static List<Condition> forRequest(
+        GridConfig.Definition def,
+        List<Map<String, Object>> userFilters,
+        String recordId,
+        Boolean nested
+    ) {
         List<Condition> out = new List<Condition>(def.filters);
         out.addAll(userConditions(def, userFilters));
         if (nested != true) {
@@ -302,7 +323,11 @@ public with sharing class GridFilters {
      * The conditions as SOQL, one string each, their values in `binds` under
      * names (flt0, flt0b...) that cannot meet any other bind's.
      */
-    public static List<String> clauses(Schema.SObjectType objectType, List<Condition> conditions, Map<String, Object> binds) {
+    public static List<String> clauses(
+        Schema.SObjectType objectType,
+        List<Condition> conditions,
+        Map<String, Object> binds
+    ) {
         List<String> out = new List<String>();
         if (conditions == null) {
             return out;
@@ -393,7 +418,8 @@ public with sharing class GridFilters {
             when 'less_or_equal' {
                 return api + ' < :' + key + 'n';
             }
-            when else { // between, both days included
+            when else {
+                // between, both days included
                 binds.put(key + 'e', Datetime.newInstance(toDate(c.valueTo).addDays(1), Time.newInstance(0, 0, 0, 0)));
                 return '(' + api + ' >= :' + key + ' AND ' + api + ' < :' + key + 'e)';
             }
@@ -426,7 +452,9 @@ public with sharing class GridFilters {
     private static Date toDate(String value) {
         if (value.startsWith('TODAY')) {
             String offset = value.removeStart('TODAY');
-            return String.isBlank(offset) ? Date.today() : Date.today().addDays(Integer.valueOf(offset.removeStart('+')));
+            return String.isBlank(offset)
+                ? Date.today()
+                : Date.today().addDays(Integer.valueOf(offset.removeStart('+')));
         }
         return Date.valueOf(value);
     }
@@ -465,7 +493,9 @@ public with sharing class GridFilters {
                 return 'today';
             }
             Integer days = Integer.valueOf(offset.removeStart('+'));
-            return String.valueOf(Math.abs(days)) + (Math.abs(days) == 1 ? ' day ' : ' days ') + (days < 0 ? 'ago' : 'from today');
+            return String.valueOf(Math.abs(days)) +
+                (Math.abs(days) == 1 ? ' day ' : ' days ') +
+                (days < 0 ? 'ago' : 'from today');
         }
         if (type == 'picklist' || type == 'multipicklist') {
             List<String> labels = new List<String>();

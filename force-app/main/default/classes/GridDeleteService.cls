@@ -32,22 +32,25 @@
  * the browser deletes each slice through deleteRows as above.
  */
 public with sharing class GridDeleteService {
-
     /** One DML statement's worth, as for a save chunk. */
     public static final Integer MAX_IDS = 200;
 
     /** What happened to one batch. */
     public class Result {
-        @AuraEnabled public List<Id> deletedIds = new List<Id>();
+        @AuraEnabled
+        public List<Id> deletedIds = new List<Id>();
         /** Row errors: recordId and message, never a field. */
-        @AuraEnabled public List<GridSaveError> errors = new List<GridSaveError>();
+        @AuraEnabled
+        public List<GridSaveError> errors = new List<GridSaveError>();
     }
 
     /** What one restore did. */
     public class RestoreResult {
-        @AuraEnabled public List<Id> restoredIds = new List<Id>();
+        @AuraEnabled
+        public List<Id> restoredIds = new List<Id>();
         /** Row errors: recordId and message. */
-        @AuraEnabled public List<GridSaveError> errors = new List<GridSaveError>();
+        @AuraEnabled
+        public List<GridSaveError> errors = new List<GridSaveError>();
     }
 
     /** Ids matchingIds lists in one call: one query page. */
@@ -139,15 +142,17 @@ public with sharing class GridDeleteService {
     private static List<Id> checkedIds(GridConfig.Definition def, List<Id> recordIds) {
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         if (recordIds.size() > MAX_IDS) {
-            throw new GridException('Delete at most ' + MAX_IDS + ' records at a time; this request has '
-                + recordIds.size() + '.');
+            throw new GridException(
+                'Delete at most ' + MAX_IDS + ' records at a time; this request has ' + recordIds.size() + '.'
+            );
         }
         List<Id> ids = new List<Id>();
         Set<Id> seen = new Set<Id>();
         for (Id recordId : recordIds) {
             if (recordId == null || recordId.getSObjectType() != objectType) {
-                throw new GridException('Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType)
-                    + '. Nothing was changed.');
+                throw new GridException(
+                    'Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType) + '. Nothing was changed.'
+                );
             }
             if (seen.add(recordId)) {
                 ids.add(recordId);

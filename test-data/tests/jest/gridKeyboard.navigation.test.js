@@ -30,20 +30,21 @@ const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
  * HR-11 explicitly allows a cell that is not itself focusable — so activeElement
  * can legitimately be null and the assertion has to say so.
  */
-const activeIn = (el) => {
+const activeIn = el => {
     const a = el.shadowRoot.activeElement;
     if (!a) {
         throw new Error(
-            'Nothing is focused. In JSDOM, focus() is a no-op on an element with no '
-            + 'tabindex — check that the cell or its child carries one (HR-11).'
+            'Nothing is focused. In JSDOM, focus() is a no-op on an element with no ' +
+                'tabindex — check that the cell or its child carries one (HR-11).'
         );
     }
     return a;
 };
 
-
 const key = (el, k, opts = {}) =>
-    el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts }));
+    el.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts })
+    );
 
 describe('keyboard navigation edges', () => {
     let el;
@@ -53,16 +54,16 @@ describe('keyboard navigation edges', () => {
         document.body.appendChild(el);
         await flushPromises();
     });
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     const at = () => {
         const a = activeIn(el);
         return { row: a.dataset.rowIndex, col: a.dataset.colIndex };
     };
     const focusAt = async (rowIndex, colIndex) => {
-        el.shadowRoot
-          .querySelector(`[data-row-index="${rowIndex}"][data-col-index="${colIndex}"]`)
-          .focus();
+        el.shadowRoot.querySelector(`[data-row-index="${rowIndex}"][data-col-index="${colIndex}"]`).focus();
         await flushPromises();
     };
 

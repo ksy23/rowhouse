@@ -13,7 +13,6 @@
  * seconds and returns nothing for custom objects that do not allow search.
  */
 public with sharing class GridLookup {
-
     public static final Integer MAX_RESULTS = 20;
     public static final Integer MAX_TERM = 255;
 
@@ -30,13 +29,26 @@ public with sharing class GridLookup {
         List<Map<String, String>> out = new List<Map<String, String>>();
         for (Schema.SObjectType target : field.getDescribe().getReferenceTo()) {
             Schema.SObjectField name = GridDescribe.nameField(target);
-            if (name == null || !GridSecurity.canRead(target) || !GridSecurity.canRead(name) || out.size() >= MAX_RESULTS) {
+            if (
+                name == null ||
+                !GridSecurity.canRead(target) ||
+                !GridSecurity.canRead(name) ||
+                out.size() >= MAX_RESULTS
+            ) {
                 continue;
             }
             String nameApi = GridDescribe.apiName(name);
             List<SObject> rows = GridSecurity.query(
-                'SELECT Id, ' + nameApi + ' FROM ' + GridDescribe.apiName(target)
-                + ' WHERE ' + nameApi + ' LIKE :term ORDER BY ' + nameApi + ' ASC NULLS LAST, Id ASC LIMIT ' + (MAX_RESULTS - out.size()),
+                'SELECT Id, ' +
+                    nameApi +
+                    ' FROM ' +
+                    GridDescribe.apiName(target) +
+                    ' WHERE ' +
+                    nameApi +
+                    ' LIKE :term ORDER BY ' +
+                    nameApi +
+                    ' ASC NULLS LAST, Id ASC LIMIT ' +
+                    (MAX_RESULTS - out.size()),
                 new Map<String, Object>{ 'term' => contains }
             );
             String kind = target.getDescribe(SObjectDescribeOptions.DEFERRED).getLabel();
@@ -55,18 +67,26 @@ public with sharing class GridLookup {
      */
     private static List<Map<String, String>> owners(Schema.SObjectType objectType, String contains) {
         List<Map<String, String>> out = new List<Map<String, String>>();
-        for (SObject u : GridSecurity.query(
-                'SELECT Id, Name FROM User WHERE IsActive = true AND UserType IN (\'Standard\', \'PowerPartner\')'
-                + ' AND Name LIKE :term ORDER BY Name ASC, Id ASC LIMIT ' + MAX_RESULTS,
-                new Map<String, Object>{ 'term' => contains })) {
+        for (
+            SObject u : GridSecurity.query(
+                'SELECT Id, Name FROM User WHERE IsActive = true AND UserType IN (\'Standard\', \'PowerPartner\')' +
+                    ' AND Name LIKE :term ORDER BY Name ASC, Id ASC LIMIT ' +
+                    MAX_RESULTS,
+                new Map<String, Object>{ 'term' => contains }
+            )
+        ) {
             out.add(result(u.Id, (String) u.get('Name'), 'User', 'User'));
         }
         if (out.size() < MAX_RESULTS) {
-            for (SObject q : GridSecurity.query(
-                    'SELECT Id, Name FROM Group WHERE Type = \'Queue\' AND Name LIKE :term'
-                    + ' AND Id IN (SELECT QueueId FROM QueueSobject WHERE SobjectType = :objectName)'
-                    + ' ORDER BY Name ASC, Id ASC LIMIT ' + (MAX_RESULTS - out.size()),
-                    new Map<String, Object>{ 'term' => contains, 'objectName' => GridDescribe.apiName(objectType) })) {
+            for (
+                SObject q : GridSecurity.query(
+                    'SELECT Id, Name FROM Group WHERE Type = \'Queue\' AND Name LIKE :term' +
+                        ' AND Id IN (SELECT QueueId FROM QueueSobject WHERE SobjectType = :objectName)' +
+                        ' ORDER BY Name ASC, Id ASC LIMIT ' +
+                        (MAX_RESULTS - out.size()),
+                    new Map<String, Object>{ 'term' => contains, 'objectName' => GridDescribe.apiName(objectType) }
+                )
+            ) {
                 out.add(result(q.Id, (String) q.get('Name'), 'Queue', 'Group'));
             }
         }
@@ -93,8 +113,10 @@ public with sharing class GridLookup {
             return null;
         }
         String nameApi = GridDescribe.apiName(name);
-        List<SObject> rows = GridSecurity.query('SELECT Id, ' + nameApi + ' FROM ' + GridDescribe.apiName(target)
-            + ' WHERE Id = :recordId', new Map<String, Object>{ 'recordId' => recordId });
+        List<SObject> rows = GridSecurity.query(
+            'SELECT Id, ' + nameApi + ' FROM ' + GridDescribe.apiName(target) + ' WHERE Id = :recordId',
+            new Map<String, Object>{ 'recordId' => recordId }
+        );
         return rows.isEmpty() ? null : (String) rows[0].get(nameApi);
     }
 

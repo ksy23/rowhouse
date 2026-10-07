@@ -83,8 +83,12 @@ export default class CellTime extends LightningElement {
     }
 
     get dropdownClass() {
-        return 'slds-dropdown ' + (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left')
-            + (this.dropdownUp ? ' slds-dropdown_bottom' : '') + ' rh-time-list';
+        return (
+            'slds-dropdown ' +
+            (this.dropdownAlign === 'right' ? 'slds-dropdown_right' : 'slds-dropdown_left') +
+            (this.dropdownUp ? ' slds-dropdown_bottom' : '') +
+            ' rh-time-list'
+        );
     }
 
     /** The time the box holds ("HH:MM"), or null. */
@@ -111,8 +115,10 @@ export default class CellTime extends LightningElement {
             ...o,
             selected: o.value === chosen ? 'true' : 'false',
             tabIndex: o.value === active ? '0' : '-1',
-            cls: 'slds-media slds-listbox__option slds-listbox__option_plain slds-media_small'
-                + (o.value === chosen ? ' slds-is-selected' : '') + (o.value === active ? ' slds-has-focus' : '')
+            cls:
+                'slds-media slds-listbox__option slds-listbox__option_plain slds-media_small' +
+                (o.value === chosen ? ' slds-is-selected' : '') +
+                (o.value === active ? ' slds-has-focus' : '')
         }));
     }
 

@@ -4,10 +4,12 @@
  */
 @IsTest
 private class GridIconsTest {
-
     @IsTest
     static void readsTheIconNameFromItsUrl() {
-        System.assertEquals('standard:account', GridIcons.fromUrl('https://x.my.salesforce.com/img/icon/t4v35/standard/account_120.png'));
+        System.assertEquals(
+            'standard:account',
+            GridIcons.fromUrl('https://x.my.salesforce.com/img/icon/t4v35/standard/account_120.png')
+        );
         System.assertEquals('standard:account', GridIcons.fromUrl('/img/icon/t4v35/standard/account.svg'));
         System.assertEquals('custom:custom57', GridIcons.fromUrl('https://x/img/icon/t4v35/custom/custom57_120.png'));
         System.assertEquals('standard:work_order', GridIcons.fromUrl('/img/icon/t4v35/standard/work_order_60.png?v=2'));

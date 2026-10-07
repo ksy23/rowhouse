@@ -55,7 +55,9 @@ export function childTableHeight(level, height) {
  * panel is still sized to what it holds, up to this (panelHeightFor).
  */
 export function panelMax(level, tabs) {
-    const heights = (Array.isArray(tabs) ? tabs : []).map(t => Number(t && t.height)).filter(h => Number.isFinite(h) && h > 0);
+    const heights = (Array.isArray(tabs) ? tabs : [])
+        .map(t => Number(t && t.height))
+        .filter(h => Number.isFinite(h) && h > 0);
     return heights.length ? Math.max(...heights) + PANEL_CHROME : detailHeight(level);
 }
 

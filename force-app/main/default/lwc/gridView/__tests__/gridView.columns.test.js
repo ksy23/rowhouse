@@ -30,7 +30,9 @@ jest.mock('@salesforce/apex/GridController.save', () => ({ default: jest.fn() })
 jest.mock('@salesforce/apex/GridController.saveStatus', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.deleteRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 jest.mock('@salesforce/apex/GridController.runAction', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn() }), { virtual: true });
@@ -61,8 +63,13 @@ const DEFINITION = {
 const ADMIN_SORT = [{ field: 'Name', direction: 'asc' }];
 
 const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Amount__c: i, Stage__c: 'Open' });
-const page = (rows, { hasMore = false, locator = null, total = rows.length } = {}) =>
-    ({ rows, hasMore, cursorLocator: locator, cursorToken: null, totalRows: total });
+const page = (rows, { hasMore = false, locator = null, total = rows.length } = {}) => ({
+    rows,
+    hasMore,
+    cursorLocator: locator,
+    cursorToken: null,
+    totalRows: total
+});
 
 // Resolve every pending promise.
 const settle = async () => {
@@ -113,8 +120,9 @@ afterEach(() => {
     delete global.ResizeObserver;
 });
 
-describe('the user\'s own columns', () => {
-    const columnsChange = (el, choice) => table(el).dispatchEvent(new CustomEvent('columnschange', { detail: { choice } }));
+describe("the user's own columns", () => {
+    const columnsChange = (el, choice) =>
+        table(el).dispatchEvent(new CustomEvent('columnschange', { detail: { choice } }));
     const dialog = el => $(el, 'c-grid-columns-dialog');
     const HIDE_NOTES = { order: ['Name', 'Amount__c', 'Stage__c', 'Close__c', 'Notes__c'], hidden: ['Notes__c'] };
 
@@ -183,7 +191,10 @@ describe('the user\'s own columns', () => {
     it('exports the columns the user sees, in their order, the record Id first', async () => {
         const el = mount();
         await settle();
-        columnsChange(el, { order: ['Amount__c', 'Name', 'Stage__c', 'Close__c', 'Notes__c'], hidden: ['Stage__c', 'Close__c', 'Notes__c'] });
+        columnsChange(el, {
+            order: ['Amount__c', 'Name', 'Stage__c', 'Close__c', 'Notes__c'],
+            hidden: ['Stage__c', 'Close__c', 'Notes__c']
+        });
         await settle();
         $(el, '.rh-export').click();
         await settle();
@@ -191,7 +202,7 @@ describe('the user\'s own columns', () => {
         expect(columns.map(c => c.field)).toEqual(['Id', 'Amount__c', 'Name']);
     });
 
-    it('Reset layout puts back the admin\'s columns', async () => {
+    it("Reset layout puts back the admin's columns", async () => {
         getLayout.mockResolvedValue(JSON.stringify({ v: 1, sort: ADMIN_SORT, grouping: [], columns: HIDE_NOTES }));
         const el = mount();
         await settle();

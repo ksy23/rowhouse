@@ -17,10 +17,16 @@ jest.mock('@salesforce/apex/GridController.save', () => ({ default: jest.fn() })
 jest.mock('@salesforce/apex/GridController.saveStatus', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.deleteRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 jest.mock('@salesforce/apex/GridController.runAction', () => ({ default: jest.fn() }), { virtual: true });
 // The dialog's editor never finishes loading here; the dialog has its own tests.
-jest.mock('@salesforce/apex/GridAdminController.readConfig', () => ({ default: jest.fn(() => new Promise(() => {})) }), { virtual: true });
+jest.mock(
+    '@salesforce/apex/GridAdminController.readConfig',
+    () => ({ default: jest.fn(() => new Promise(() => {})) }),
+    { virtual: true }
+);
 
 const mockGenerateUrl = jest.fn(ref => Promise.resolve('/generated?' + JSON.stringify(ref.state)));
 jest.mock('lightning/navigation', () => {
@@ -93,7 +99,11 @@ it('opens the User guide in a new browser tab', async () => {
     expect(help.alternativeText).toBe('Help');
     help.dispatchEvent(new CustomEvent('click'));
     await settle();
-    expect(mockGenerateUrl).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'using' } });
+    expect(mockGenerateUrl).toHaveBeenCalledWith({
+        type: 'standard__navItemPage',
+        attributes: { apiName: 'Rowhouse_Guide' },
+        state: { c__page: 'using' }
+    });
     expect(open).toHaveBeenCalledWith('/generated?{"c__page":"using"}', '_blank');
     open.mockRestore();
 });

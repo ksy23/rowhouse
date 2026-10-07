@@ -15,9 +15,28 @@ const frame = () => new Promise(resolve => requestAnimationFrame(() => resolve()
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, filterable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, filterable: true,
-        options: [{ value: 'Open', label: 'Open' }, { value: 'Won', label: 'Won' }, { value: 'Lost', label: 'Lost' }] },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true, sortable: true, filterable: true },
+    {
+        field: 'Stage__c',
+        label: 'Stage',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        filterable: true,
+        options: [
+            { value: 'Open', label: 'Open' },
+            { value: 'Won', label: 'Won' },
+            { value: 'Lost', label: 'Lost' }
+        ]
+    },
+    {
+        field: 'Amount__c',
+        label: 'Amount',
+        type: 'currency',
+        scale: 2,
+        editable: true,
+        sortable: true,
+        filterable: true
+    },
     { field: 'Notes__c', label: 'Notes', type: 'text', editable: true, sortable: true },
     { field: 'Region__c', label: 'Region', type: 'text', sortable: true, filterable: true },
     { field: 'Count__c', label: 'Count', type: 'number', sortable: false, filterable: true },
@@ -25,8 +44,24 @@ const COLUMNS = [
     { field: 'Score__c', label: 'Score', type: 'number', sortable: true, filterable: true, isFormula: true }
 ];
 const ROWS = [
-    { Id: 'a01000000000001AAA', Name: 'Acme', Stage__c: 'Open', Amount__c: 100, Notes__c: 'First', Region__c: 'North', Score__c: 3 },
-    { Id: 'a01000000000002AAA', Name: 'Globex', Stage__c: 'Won', Amount__c: 900, Notes__c: 'Second', Region__c: 'South', Score__c: 7 }
+    {
+        Id: 'a01000000000001AAA',
+        Name: 'Acme',
+        Stage__c: 'Open',
+        Amount__c: 100,
+        Notes__c: 'First',
+        Region__c: 'North',
+        Score__c: 3
+    },
+    {
+        Id: 'a01000000000002AAA',
+        Name: 'Globex',
+        Stage__c: 'Won',
+        Amount__c: 900,
+        Notes__c: 'Second',
+        Region__c: 'South',
+        Score__c: 7
+    }
 ];
 const column = field => COLUMNS.find(c => c.field === field);
 const STAGE_WON = { field: 'Stage__c', operator: 'equals', value: 'Won', valueTo: null };
@@ -83,7 +118,14 @@ describe('Filter… in the column menu', () => {
     it('is offered on a filterable column, after sorting and wrapping, with a divider above it', async () => {
         await mount();
         await openMenu('Name');
-        expect(labels()).toEqual(['Sort ascending', 'Sort descending', 'Wrap text', 'Clip text', 'Filter…', 'Hide column']);
+        expect(labels()).toEqual([
+            'Sort ascending',
+            'Sort descending',
+            'Wrap text',
+            'Clip text',
+            'Filter…',
+            'Hide column'
+        ]);
         const filter = item('Filter…');
         expect(filter.getAttribute('role')).toBe('menuitem'); // an action, not a choice
         expect(filter.closest('li').classList).toContain('slds-has-divider_top-space');
@@ -129,7 +171,7 @@ describe('Filter… in the column menu', () => {
 });
 
 describe('the filter panel', () => {
-    it('opens under the column\'s header, for that column, and the menu closes', async () => {
+    it("opens under the column's header, for that column, and the menu closes", async () => {
         await mount();
         await openPanel('Stage__c');
         expect($('[role="menu"]')).toBeNull();
@@ -150,7 +192,7 @@ describe('the filter panel', () => {
         expect(panel().shadowRoot.activeElement).toBe(panel().shadowRoot.querySelector('select.rh-filter-operator'));
     });
 
-    it('opens on the column\'s filter when it has one', async () => {
+    it("opens on the column's filter when it has one", async () => {
         await mount({ filters: [NAME_ACME, STAGE_WON] });
         await openPanel('Stage__c', 'Edit filter…');
         expect(panel().filter).toEqual(STAGE_WON);
@@ -177,7 +219,7 @@ describe('the filter panel', () => {
         expect(changes).toEqual([{ filters: [next, STAGE_WON] }]);
     });
 
-    it('remove: the table tells the parent the list without that column\'s filter', async () => {
+    it("remove: the table tells the parent the list without that column's filter", async () => {
         await mount({ filters: [NAME_ACME, STAGE_WON] });
         await openPanel('Stage__c', 'Edit filter…');
         panel().dispatchEvent(new CustomEvent('remove'));
@@ -200,7 +242,9 @@ describe('the filter panel', () => {
     it('closes, changing nothing, when focus leaves it for the page', async () => {
         await mount();
         await openPanel('Name');
-        panel().dispatchEvent(new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body }));
+        panel().dispatchEvent(
+            new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body })
+        );
         await flush();
         expect(panel()).toBeNull();
         expect(changes).toEqual([]);
@@ -274,7 +318,9 @@ describe('from the keyboard', () => {
         // A picklist filter opens complete: Equals, the first value.
         const operator = panel().shadowRoot.querySelector('select.rh-filter-operator');
         await key(operator, 'Enter');
-        expect(changes).toEqual([{ filters: [{ field: 'Stage__c', operator: 'equals', value: 'Open', valueTo: null }] }]);
+        expect(changes).toEqual([
+            { filters: [{ field: 'Stage__c', operator: 'equals', value: 'Open', valueTo: null }] }
+        ]);
         expect(panel()).toBeNull();
         expect(el.shadowRoot.activeElement).toBe(menuButton('Stage__c'));
     });
@@ -298,7 +344,7 @@ describe('from the keyboard', () => {
         expect(panel()).not.toBeNull();
     });
 
-    it('Remove filter in the menu takes the column\'s filter off at once', async () => {
+    it("Remove filter in the menu takes the column's filter off at once", async () => {
         await mount({ filters: [NAME_ACME, STAGE_WON] });
         await key(menuButton('Name'), 'ArrowUp'); // the last item: Hide column
         await key(item('Hide column'), 'ArrowUp');
@@ -326,9 +372,11 @@ describe('a filtered column', () => {
         expect(th('Name').getAttribute('aria-label')).toBe('Name');
     });
 
-    it('shows the filter in its label\'s tooltip', async () => {
+    it("shows the filter in its label's tooltip", async () => {
         await mount({ filters: [STAGE_WON] });
-        expect(th('Stage__c').querySelector('.slds-truncate[title]').getAttribute('title')).toBe('Stage: Stage equals Won');
+        expect(th('Stage__c').querySelector('.slds-truncate[title]').getAttribute('title')).toBe(
+            'Stage: Stage equals Won'
+        );
         expect(th('Name').querySelector('.slds-truncate[title]').getAttribute('title')).toBe('Name');
     });
 
@@ -350,21 +398,26 @@ describe('the chips above the table', () => {
         expect($('.rh-filter-chips')).toBeNull();
     });
 
-    it('show the admin\'s filters first, locked: a lock, no remove button, and who set them', async () => {
+    it("show the admin's filters first, locked: a lock, no remove button, and who set them", async () => {
         await mount({ adminFilters: ADMIN, filters: [STAGE_WON] });
         const group = $('.rh-filter-chips');
         expect(group.getAttribute('role')).toBe('group');
         expect(group.getAttribute('aria-label')).toBe('Filters');
-        expect(chips().map(chipText))
-            .toEqual(['Status equals Active', 'Created in the last 90 days', 'Stage equals Won']);
+        expect(chips().map(chipText)).toEqual([
+            'Status equals Active',
+            'Created in the last 90 days',
+            'Stage equals Won'
+        ]);
         const admin = chips()[0];
         expect(admin.querySelector('.rh-filter-lock')).not.toBeNull();
         expect(admin.querySelector('button')).toBeNull();
         expect(admin.querySelector('.slds-assistive-text').textContent).toBe(', set by your Salesforce admin');
-        expect(admin.querySelector('.slds-pill__label').getAttribute('title')).toBe('Status equals Active. Set by your Salesforce admin.');
+        expect(admin.querySelector('.slds-pill__label').getAttribute('title')).toBe(
+            'Status equals Active. Set by your Salesforce admin.'
+        );
     });
 
-    it('show each of the user\'s filters with a button that removes it', async () => {
+    it("show each of the user's filters with a button that removes it", async () => {
         await mount({ adminFilters: ADMIN, filters: [NAME_ACME, STAGE_WON] });
         const user = chips()[3];
         expect(user.querySelector('.rh-filter-lock')).toBeNull();
@@ -378,14 +431,18 @@ describe('the chips above the table', () => {
     });
 
     it('describe a filter in words, with the value as the column shows it', async () => {
-        await mount({ filters: [NAME_ACME, { field: 'Amount__c', operator: 'greater_than', value: '500', valueTo: null }] });
+        await mount({
+            filters: [NAME_ACME, { field: 'Amount__c', operator: 'greater_than', value: '500', valueTo: null }]
+        });
         const text = chips().map(chipText);
         expect(text[0]).toBe('Name contains “Acme”');
-        expect(text[1]).toBe(describeFilter({ field: 'Amount__c', operator: 'greater_than', value: '500' }, column('Amount__c')));
+        expect(text[1]).toBe(
+            describeFilter({ field: 'Amount__c', operator: 'greater_than', value: '500' }, column('Amount__c'))
+        );
         expect(text[1]).toMatch(/^Amount greater than .*500\.00$/);
     });
 
-    it('Clear filters takes off every one of the user\'s filters, and leaves the admin\'s to the server', async () => {
+    it("Clear filters takes off every one of the user's filters, and leaves the admin's to the server", async () => {
         await mount({ adminFilters: ADMIN, filters: [NAME_ACME, STAGE_WON] });
         $('.rh-filter-clear').click();
         await flush();

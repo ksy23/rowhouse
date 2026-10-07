@@ -35,21 +35,29 @@ describe('numbers align right', () => {
     });
 
     it('covers percent columns too', async () => {
-        const cols = [...columns, { field: 'Percent_Field__c', label: 'Rate', type: 'percent', editable: true, sortable: true }];
+        const cols = [
+            ...columns,
+            { field: 'Percent_Field__c', label: 'Rate', type: 'percent', editable: true, sortable: true }
+        ];
         await mount({ columns: cols, rows: [{ ...row, Percent_Field__c: 12.5 }] });
         expect(cell('Percent_Field__c').classList).toContain('slds-text-align_right');
-        expect(header('Percent_Field__c').querySelector('.slds-has-flexi-truncate').classList).toContain('slds-grid_align-end');
+        expect(header('Percent_Field__c').querySelector('.slds-has-flexi-truncate').classList).toContain(
+            'slds-grid_align-end'
+        );
     });
 
-    it.each(['Text_Field__c', 'Date_Field__c', 'Picklist_Field__c'])('%s stays at the left, header included', async field => {
-        await mount({ columns, rows: [row] });
-        expect(cell(field).classList).not.toContain('slds-text-align_right');
-        expect(cell(field).classList).not.toContain('slds-text-align_center');
-        expect(cell(field).querySelector('.rh-cell-content > span').classList).not.toContain('slds-grow');
-        const grid = header(field).querySelector('.slds-has-flexi-truncate');
-        expect(grid.classList).not.toContain('slds-grid_align-end');
-        expect(grid.classList).not.toContain('slds-grid_align-center');
-    });
+    it.each(['Text_Field__c', 'Date_Field__c', 'Picklist_Field__c'])(
+        '%s stays at the left, header included',
+        async field => {
+            await mount({ columns, rows: [row] });
+            expect(cell(field).classList).not.toContain('slds-text-align_right');
+            expect(cell(field).classList).not.toContain('slds-text-align_center');
+            expect(cell(field).querySelector('.rh-cell-content > span').classList).not.toContain('slds-grow');
+            const grid = header(field).querySelector('.slds-has-flexi-truncate');
+            expect(grid.classList).not.toContain('slds-grid_align-end');
+            expect(grid.classList).not.toContain('slds-grid_align-center');
+        }
+    );
 
     it('right-aligns the header label, with the sort arrow before it', async () => {
         await mount({ columns, rows: [row] });
@@ -116,7 +124,9 @@ describe('checkboxes centre', () => {
     it('centres an unsortable checkbox header as well', async () => {
         const cols = columns.map(c => (c.field === 'Checkbox_Field__c' ? { ...c, sortable: false } : c));
         await mount({ columns: cols, rows: [tickRow] });
-        expect(header('Checkbox_Field__c').querySelector('.slds-th__action').classList).toContain('slds-grid_align-center');
+        expect(header('Checkbox_Field__c').querySelector('.slds-th__action').classList).toContain(
+            'slds-grid_align-center'
+        );
     });
 
     it('leaves the checkbox value where it was in cards, beside its label', async () => {

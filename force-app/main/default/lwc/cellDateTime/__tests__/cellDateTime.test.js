@@ -51,7 +51,16 @@ describe('date/time cell', () => {
         // Only the clock: 30 Sep 2026, noon in California. Timers stay real.
         jest.useFakeTimers({
             now: new Date('2026-09-30T19:00:00Z'),
-            doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'nextTick', 'queueMicrotask']
+            doNotFake: [
+                'setTimeout',
+                'clearTimeout',
+                'setInterval',
+                'clearInterval',
+                'setImmediate',
+                'clearImmediate',
+                'nextTick',
+                'queueMicrotask'
+            ]
         });
     });
     afterEach(() => {

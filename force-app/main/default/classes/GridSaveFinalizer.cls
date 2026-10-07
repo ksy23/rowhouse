@@ -5,7 +5,6 @@
  * need another try.
  */
 public with sharing class GridSaveFinalizer implements Finalizer {
-
     private final String saveId;
     private final Integer chunkIndex;
     private final Integer chunkCount;
@@ -28,14 +27,17 @@ public with sharing class GridSaveFinalizer implements Finalizer {
         for (Id recordId : recordIds) {
             errors.add(new GridSaveError(recordId, null, reason));
         }
-        GridSecurity.insertOwnRecords(new List<SObject>{
-            report(saveId, chunkIndex, chunkCount, 0, errors)
-        });
+        GridSecurity.insertOwnRecords(new List<SObject>{ report(saveId, chunkIndex, chunkCount, 0, errors) });
     }
 
     /** One chunk's outcome, as the row the grid polls for. */
-    public static Grid_Save_Result__c report(String saveId, Integer chunkIndex, Integer chunkCount,
-                                             Integer successCount, List<GridSaveError> errors) {
+    public static Grid_Save_Result__c report(
+        String saveId,
+        Integer chunkIndex,
+        Integer chunkCount,
+        Integer successCount,
+        List<GridSaveError> errors
+    ) {
         return new Grid_Save_Result__c(
             Name = saveId.left(16) + '-' + chunkIndex,
             Save_Id__c = saveId,

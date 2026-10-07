@@ -8,7 +8,9 @@ import { seedRows, columns } from '../../../../../../test-data/tests/jest/fixtur
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const key = (el, k, opts = {}) =>
-    el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts }));
+    el.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...opts })
+    );
 
 describe('inline edit', () => {
     let el;
@@ -19,7 +21,9 @@ describe('inline edit', () => {
         await flush();
     };
     const cell = (id, field) => el.shadowRoot.querySelector(`td[data-row-id="${id}"][data-field="${field}"]`);
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('opens the editor from the edit button and reports the committed value', async () => {
         await mount({ columns, rows: seedRows });
@@ -84,7 +88,8 @@ describe('inline edit', () => {
     it('marks a cell-level error slds-has-error and describes it by id', async () => {
         const id = seedRows[3].Id;
         await mount({
-            columns, rows: seedRows,
+            columns,
+            rows: seedRows,
             errors: { [id]: { row: null, fields: { Number_Field__c: 'Value out of range' } } }
         });
         const td = cell(id, 'Number_Field__c');
@@ -149,7 +154,9 @@ describe('starting an edit, as a spreadsheet does', () => {
         await flush();
         return td;
     };
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('Enter on an editable cell opens its editor', async () => {
         await mount({ columns, rows: seedRows });
@@ -231,7 +238,9 @@ describe('starting an edit, as a spreadsheet does', () => {
         const editor = el.shadowRoot.querySelector('c-cell-text[data-editor]');
         expect(editor.required).toBe(true);
         // Focus leaves the editor for the page: the blank value is refused.
-        editor.parentElement.dispatchEvent(new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body }));
+        editor.parentElement.dispatchEvent(
+            new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body })
+        );
         await flush();
         expect(handler).not.toHaveBeenCalled();
         expect(el.shadowRoot.querySelector('c-cell-text[data-editor]')).toBe(editor);

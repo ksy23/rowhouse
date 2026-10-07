@@ -58,7 +58,12 @@ export default class GridChildren extends LightningElement {
     get tabModels() {
         const tabs = Array.isArray(this.tabs) ? this.tabs : [];
         const m = this._memo;
-        if (m.tabs === tabs && m.parentId === this.parentId && m.parentName === this.parentName && m.level === this.level) {
+        if (
+            m.tabs === tabs &&
+            m.parentId === this.parentId &&
+            m.parentName === this.parentName &&
+            m.level === this.level
+        ) {
             return m.value;
         }
         m.tabs = tabs;
@@ -70,7 +75,13 @@ export default class GridChildren extends LightningElement {
             label: t.label,
             configName: t.configName,
             // The tab's Height goes with it: the child grid is that tall.
-            parent: { link: t.name, id: this.parentId, name: this.parentName, level: this.level, height: t.height || null }
+            parent: {
+                link: t.name,
+                id: this.parentId,
+                name: this.parentName,
+                level: this.level,
+                height: t.height || null
+            }
         }));
         return m.value;
     }
@@ -97,7 +108,9 @@ export default class GridChildren extends LightningElement {
     get tabItems() {
         const counts = this.counts || {};
         return this.tabModels.map(t => {
-            const n = Object.prototype.hasOwnProperty.call(this.liveCounts, t.key) ? this.liveCounts[t.key] : counts[t.key];
+            const n = Object.prototype.hasOwnProperty.call(this.liveCounts, t.key)
+                ? this.liveCounts[t.key]
+                : counts[t.key];
             return { ...t, tabLabel: n === undefined || n === null ? t.label : `${t.label} (${n})` };
         });
     }
@@ -153,8 +166,9 @@ export default class GridChildren extends LightningElement {
     @api
     focus() {
         const active = this._state.active || this._state.initial;
-        const view = (active && this.template.querySelector(`c-grid-view[data-tab="${String(active).replace(/"/g, '\\"')}"]`))
-            || this.template.querySelector('c-grid-view');
+        const view =
+            (active && this.template.querySelector(`c-grid-view[data-tab="${String(active).replace(/"/g, '\\"')}"]`)) ||
+            this.template.querySelector('c-grid-view');
         if (view && typeof view.focus === 'function') view.focus();
     }
 }

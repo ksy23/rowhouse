@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/kugamon/rowhouse/security/policy
+    about: Please don't open a public issue. Report it privately instead.
+  - name: Kugamon support
+    url: https://www.kugamon.com/support/submit-a-case/
+    about: For anything private, or a question about Kugamon.
+  - name: Website
+    url: https://rowhouse.app
+    about: What Rowhouse is, and how to get it.

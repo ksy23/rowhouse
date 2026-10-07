@@ -1,7 +1,19 @@
 /**
  * gridFormat — display, comparison and link safety, by test-case number.
  */
-import { formatValue, formatNumber, formatDate, formatCount, safeHref, compareValues, sortRows, toSafeNumeric, codePointLength, roundDecimal, alignmentFor } from 'c/gridFormat';
+import {
+    formatValue,
+    formatNumber,
+    formatDate,
+    formatCount,
+    safeHref,
+    compareValues,
+    sortRows,
+    toSafeNumeric,
+    codePointLength,
+    roundDecimal,
+    alignmentFor
+} from 'c/gridFormat';
 
 describe('numbers', () => {
     it('TC-003 zero is "0", and "0.00" at scale 2 — never blank', () => {
@@ -76,7 +88,9 @@ describe('links (TC-045 / TC-046)', () => {
 
 describe('display', () => {
     it('TC-036 an inactive picklist value is shown as stored', () => {
-        expect(formatValue('Obsolete', { type: 'picklist', options: [{ value: 'Alpha', label: 'Alpha' }] })).toBe('Obsolete');
+        expect(formatValue('Obsolete', { type: 'picklist', options: [{ value: 'Alpha', label: 'Alpha' }] })).toBe(
+            'Obsolete'
+        );
     });
     it('TC-040 multi-select renders as a list without a trailing separator (TC-041)', () => {
         expect(formatValue('Red;Green;Blue', { type: 'multipicklist' })).toBe('Red, Green, Blue');
@@ -102,7 +116,10 @@ describe('comparison', () => {
         expect(compareValues('10.50', '10.5', 'number')).toBe(0);
     });
     it('sorts deterministically with an Id tiebreak', () => {
-        const rows = [{ Id: 'b', v: 1 }, { Id: 'a', v: 1 }];
+        const rows = [
+            { Id: 'b', v: 1 },
+            { Id: 'a', v: 1 }
+        ];
         expect(sortRows(rows, [{ field: 'v', type: 'number', direction: 'asc' }]).map(r => r.Id)).toEqual(['a', 'b']);
         expect(rows.map(r => r.Id)).toEqual(['b', 'a']); // input untouched
     });
@@ -144,9 +161,19 @@ describe('TC-023: rounding to the field scale', () => {
 
 describe('alignmentFor', () => {
     it.each([
-        ['number', 'right'], ['currency', 'right'], ['percent', 'right'], ['double', 'right'], ['integer', 'right'],
-        ['checkbox', 'center'], ['boolean', 'center'],
-        ['date', 'left'], ['datetime', 'left'], ['picklist', 'left'], ['multipicklist', 'left'], ['text', 'left'], [undefined, 'left']
+        ['number', 'right'],
+        ['currency', 'right'],
+        ['percent', 'right'],
+        ['double', 'right'],
+        ['integer', 'right'],
+        ['checkbox', 'center'],
+        ['boolean', 'center'],
+        ['date', 'left'],
+        ['datetime', 'left'],
+        ['picklist', 'left'],
+        ['multipicklist', 'left'],
+        ['text', 'left'],
+        [undefined, 'left']
     ])('%s aligns %s', (type, expected) => {
         expect(alignmentFor(type)).toBe(expected);
     });

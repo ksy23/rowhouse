@@ -46,7 +46,8 @@ const $$ = selector => [...el.shadowRoot.querySelectorAll(selector)];
 const order = () => names($$('tbody tr[data-row-id]').map(tr => tr.dataset.rowId));
 const th = field => $(`th[data-field="${field}"]`);
 const sortBy = async (field, shiftKey = false) => {
-    th(field).querySelector('.slds-th__action')
+    th(field)
+        .querySelector('.slds-th__action')
         .dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, shiftKey }));
     await flush();
 };
@@ -67,7 +68,7 @@ afterEach(() => {
 });
 
 describe('sorting a picklist column', () => {
-    it('follows the field\'s order, not the alphabet', async () => {
+    it("follows the field's order, not the alphabet", async () => {
         await mount();
         await sortBy('Stage__c');
         expect(order()).toEqual(ASCENDING);
@@ -76,7 +77,7 @@ describe('sorting a picklist column', () => {
         expect(sorts).toEqual([{ sort: [{ field: 'Stage__c', direction: 'asc' }] }]);
     });
 
-    it('puts values no longer in the list after the list\'s own, by their text, and blanks last', async () => {
+    it("puts values no longer in the list after the list's own, by their text, and blanks last", async () => {
         await mount();
         await sortBy('Stage__c');
         const ids = order();
@@ -86,7 +87,7 @@ describe('sorting a picklist column', () => {
         expect(ids.slice(-2)).toEqual(['R3', 'R8']); // null and '' alike
     });
 
-    it('reverses the field\'s order when descending, and keeps blanks last', async () => {
+    it("reverses the field's order when descending, and keeps blanks last", async () => {
         await mount();
         await sortBy('Stage__c');
         await sortBy('Stage__c');
@@ -101,10 +102,16 @@ describe('sorting a picklist column', () => {
         expect(order().slice(0, 6)).toEqual(['R1', 'R3', 'R5', 'R6', 'R9', 'R10']); // the North rows, by Id
     });
 
-    it('sorts by the value\'s place in the list, whatever its label says', async () => {
-        const options = [{ value: 'B', label: 'Alpha' }, { value: 'A', label: 'Zulu' }];
+    it("sorts by the value's place in the list, whatever its label says", async () => {
+        const options = [
+            { value: 'B', label: 'Alpha' },
+            { value: 'A', label: 'Zulu' }
+        ];
         const columns = [COLUMNS[0], { ...COLUMNS[1], options }];
-        const rows = [{ Id: id(1), Name: 'R1', Stage__c: 'A' }, { Id: id(2), Name: 'R2', Stage__c: 'B' }];
+        const rows = [
+            { Id: id(1), Name: 'R1', Stage__c: 'A' },
+            { Id: id(2), Name: 'R2', Stage__c: 'B' }
+        ];
         await mount({ columns, rows });
         await sortBy('Stage__c');
         expect(order()).toEqual(['R2', 'R1']); // B is first in the list
@@ -127,7 +134,7 @@ describe('sorting a picklist column', () => {
         expect(order()).toEqual(['R9', 'R1', 'R4', 'R6', 'R2', 'R10', 'R7', 'R5', 'R3', 'R8']);
     });
 
-    it('orders ties in another column by the field\'s order, as a second key', async () => {
+    it("orders ties in another column by the field's order, as a second key", async () => {
         await mount();
         await sortBy('Region__c');
         await sortBy('Stage__c', true);
@@ -141,7 +148,7 @@ describe('sorting a picklist column', () => {
 });
 
 describe('from the keyboard and the column menu', () => {
-    it('Space on the header sorts in the field\'s order', async () => {
+    it("Space on the header sorts in the field's order", async () => {
         await mount();
         const header = th('Stage__c');
         header.focus();

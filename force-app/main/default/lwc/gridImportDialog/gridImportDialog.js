@@ -88,7 +88,8 @@ export const PREVIEW_ROWS = 10;
 export const PROBLEMS_SHOWN = 100;
 const REPLACEMENT_CHARACTER = String.fromCharCode(0xfffd);
 /** In the check, when no header names a column of the grid. */
-const UNMAPPED_TEXT = 'None of the file’s column names is a column of this grid. Choose below what each column is imported as.';
+const UNMAPPED_TEXT =
+    'None of the file’s column names is a column of this grid. Choose below what each column is imported as.';
 /** The steps along the top: reading a file is still the first. */
 const STEP_OF = { choose: 'choose', reading: 'choose', preview: 'preview', running: 'running', done: 'done' };
 const STEP_TEXT = {
@@ -139,9 +140,12 @@ export function readFile(file, encoding) {
  */
 export async function readWorkbook(file) {
     const name = String(file.name || '').toLowerCase();
-    if (file.size > MAX_FILE_BYTES) throw new Error('The file is larger than 20 MB. Split it, or import fewer columns.');
+    if (file.size > MAX_FILE_BYTES)
+        throw new Error('The file is larger than 20 MB. Split it, or import fewer columns.');
     if (name.endsWith('.xls')) {
-        throw new Error('This is an old Excel .xls file. Save it from Excel as "Excel Workbook (.xlsx)" or as CSV, then try again.');
+        throw new Error(
+            'This is an old Excel .xls file. Save it from Excel as "Excel Workbook (.xlsx)" or as CSV, then try again.'
+        );
     }
     if (name.endsWith('.xlsx')) {
         const bytes = await readFile(file);
@@ -367,7 +371,8 @@ export default class GridImportDialog extends LightningElement {
         const plan = this.planFor(this._file.table);
         this.error = plan.unmapped ? UNMAPPED_TEXT : plan.error || '';
         this.plan = plan;
-        if (plan.matchField !== undefined && plan.matchField !== this.matchField) this.matchField = plan.matchField || null;
+        if (plan.matchField !== undefined && plan.matchField !== this.matchField)
+            this.matchField = plan.matchField || null;
     }
 
     // ============================================================ choices
@@ -445,7 +450,11 @@ export default class GridImportDialog extends LightningElement {
         const mapped = this.plan ? this.plan.mapping.fields.filter(f => f.column.externalId) : [];
         if (!mapped.length) return null;
         return [{ value: '', label: 'Record Id', selected: !this.matchField }].concat(
-            mapped.map(f => ({ value: f.column.field, label: f.column.label, selected: this.matchField === f.column.field }))
+            mapped.map(f => ({
+                value: f.column.field,
+                label: f.column.label,
+                selected: this.matchField === f.column.field
+            }))
         );
     }
 
@@ -459,10 +468,18 @@ export default class GridImportDialog extends LightningElement {
     get summary() {
         const c = this.plan.counts;
         const parts = [];
-        if (c.update) parts.push(`${this.format(c.update)} ${c.update === 1 ? 'row updates a record' : 'rows update records'}`);
-        if (c.create) parts.push(`${this.format(c.create)} ${c.create === 1 ? 'row creates a record' : 'rows create records'}`);
-        if (c.match) parts.push(`${this.format(c.match)} ${c.match === 1 ? 'row updates the record' : 'rows update the records'} with ${this.matchLabel}, or ${c.match === 1 ? 'creates one' : 'create them'}`);
-        if (c.error) parts.push(`${this.format(c.error)} ${c.error === 1 ? 'row has' : 'rows have'} problems and will not be imported`);
+        if (c.update)
+            parts.push(`${this.format(c.update)} ${c.update === 1 ? 'row updates a record' : 'rows update records'}`);
+        if (c.create)
+            parts.push(`${this.format(c.create)} ${c.create === 1 ? 'row creates a record' : 'rows create records'}`);
+        if (c.match)
+            parts.push(
+                `${this.format(c.match)} ${c.match === 1 ? 'row updates the record' : 'rows update the records'} with ${this.matchLabel}, or ${c.match === 1 ? 'creates one' : 'create them'}`
+            );
+        if (c.error)
+            parts.push(
+                `${this.format(c.error)} ${c.error === 1 ? 'row has' : 'rows have'} problems and will not be imported`
+            );
         return parts.length ? parts.join('; ') + '.' : 'There are no rows to import.';
     }
 
@@ -476,7 +493,8 @@ export default class GridImportDialog extends LightningElement {
     }
 
     get idText() {
-        if (this.plan.matchField) return `Records are matched by ${this.matchLabel}: a row whose value a record has updates it; any other row creates a record.`;
+        if (this.plan.matchField)
+            return `Records are matched by ${this.matchLabel}: a row whose value a record has updates it; any other row creates a record.`;
         return this.plan.mapping.idIndex >= 0
             ? 'Rows with a record Id update that record; rows without one create a record.'
             : 'The file has no Id column, so every row creates a record.';
@@ -521,7 +539,8 @@ export default class GridImportDialog extends LightningElement {
                 return {
                     key: 'p' + item.line,
                     line: item.line,
-                    action: item.action === 'update' ? 'Update' : item.action === 'match' ? 'Update or create' : 'Create',
+                    action:
+                        item.action === 'update' ? 'Update' : item.action === 'match' ? 'Update or create' : 'Create',
                     cells: fields.map(c => {
                         const text = shown(item.values[c.field], c);
                         const old = before ? shown(before[c.field], c) : null;
@@ -529,7 +548,9 @@ export default class GridImportDialog extends LightningElement {
                         return {
                             key: c.field,
                             text: changed ? `${old || '(blank)'} → ${text || '(blank)'}` : text,
-                            cls: (isNumericType(c.type) ? 'slds-text-align_right' : '') + (changed ? ' rh-import-changed' : '')
+                            cls:
+                                (isNumericType(c.type) ? 'slds-text-align_right' : '') +
+                                (changed ? ' rh-import-changed' : '')
                         };
                     })
                 };
@@ -544,16 +565,30 @@ export default class GridImportDialog extends LightningElement {
         const matched = c.match
             ? [{ key: 'match', value: this.format(c.match), label: 'update or create', cls: box }]
             : [];
-        return matched.concat([
-            { key: 'update', value: this.format(c.update), label: c.update === 1 ? 'update' : 'updates', cls: 'slds-box slds-box_x-small slds-text-align_center rh-import-count' },
-            { key: 'create', value: this.format(c.create), label: c.create === 1 ? 'new record' : 'new records', cls: 'slds-box slds-box_x-small slds-text-align_center rh-import-count' },
-            {
-                key: 'error',
-                value: this.format(c.error),
-                label: c.error === 1 ? 'row with problems' : 'rows with problems',
-                cls: 'slds-box slds-box_x-small slds-text-align_center rh-import-count' + (c.error ? ' slds-text-color_error' : '')
-            }
-        ]).filter(f => !(c.match && (f.key === 'update' || f.key === 'create') && !c[f.key]));
+        return matched
+            .concat([
+                {
+                    key: 'update',
+                    value: this.format(c.update),
+                    label: c.update === 1 ? 'update' : 'updates',
+                    cls: 'slds-box slds-box_x-small slds-text-align_center rh-import-count'
+                },
+                {
+                    key: 'create',
+                    value: this.format(c.create),
+                    label: c.create === 1 ? 'new record' : 'new records',
+                    cls: 'slds-box slds-box_x-small slds-text-align_center rh-import-count'
+                },
+                {
+                    key: 'error',
+                    value: this.format(c.error),
+                    label: c.error === 1 ? 'row with problems' : 'rows with problems',
+                    cls:
+                        'slds-box slds-box_x-small slds-text-align_center rh-import-count' +
+                        (c.error ? ' slds-text-color_error' : '')
+                }
+            ])
+            .filter(f => !(c.match && (f.key === 'update' || f.key === 'create') && !c[f.key]));
     }
 
     /** Nothing can be imported: said, not only shown by a disabled button. */
@@ -601,7 +636,9 @@ export default class GridImportDialog extends LightningElement {
         const headerIndex = table.findIndex(r => r && r.some(c => cellText(c).trim() !== ''));
         if (headerIndex < 0) return;
         const header = table[headerIndex].map(cellText);
-        const columns = header.map((h, i) => ({ field: 'c' + i, label: h })).concat([{ field: 'problem', label: 'Problem' }]);
+        const columns = header
+            .map((h, i) => ({ field: 'c' + i, label: h }))
+            .concat([{ field: 'problem', label: 'Problem' }]);
         const rows = this.plan.items
             .filter(item => item.errors.length)
             .map(item => {
@@ -666,7 +703,15 @@ export default class GridImportDialog extends LightningElement {
         const payload = payloadFor(items);
         this.progress = { done: 0, total: payload.length };
         this.step = 'running';
-        const outcome = { updated: 0, created: 0, failed: [], stopped: null, rejected: new Set(), stripped: new Set(), undo: { updates: [], created: [] } };
+        const outcome = {
+            updated: 0,
+            created: 0,
+            failed: [],
+            stopped: null,
+            rejected: new Set(),
+            stripped: new Set(),
+            undo: { updates: [], created: [] }
+        };
         const match = this.plan.matchField ? { matchField: this.plan.matchField } : {};
         let start = 0;
         for (const batch of batchesOf(payload)) {
@@ -674,7 +719,13 @@ export default class GridImportDialog extends LightningElement {
             try {
                 // Batches are sequential by design: each is its own transaction.
                 // eslint-disable-next-line no-await-in-loop
-                result = await importRows({ configName: this.configName, rows: batch, ...this.parentParams, recordId: this.recordId || null, ...match });
+                result = await importRows({
+                    configName: this.configName,
+                    rows: batch,
+                    ...this.parentParams,
+                    recordId: this.recordId || null,
+                    ...match
+                });
             } catch (e) {
                 outcome.stopped = messageOf(e);
                 break;
@@ -690,7 +741,8 @@ export default class GridImportDialog extends LightningElement {
                         if (r.recordId) outcome.undo.created.push(r.recordId);
                     } else {
                         outcome.updated++;
-                        if (r.recordId && r.previous) outcome.undo.updates.push({ Id: r.recordId, ...previousOf(r.previous, batch[r.index]) });
+                        if (r.recordId && r.previous)
+                            outcome.undo.updates.push({ Id: r.recordId, ...previousOf(r.previous, batch[r.index]) });
                     }
                 } else if (item) {
                     outcome.failed.push({ key: 'f' + item.line, line: item.line, text: r.message || 'Not saved.' });
@@ -745,7 +797,7 @@ export default class GridImportDialog extends LightningElement {
     /** Undo import is offered once the import wrote something, until it is undone. */
     get canUndo() {
         const u = this.outcome && this.outcome.undo;
-        return Boolean(u) && (u.updates.length + u.created.length > 0) && this.undoState === null;
+        return Boolean(u) && u.updates.length + u.created.length > 0 && this.undoState === null;
     }
 
     get undoConfirming() {
@@ -763,8 +815,14 @@ export default class GridImportDialog extends LightningElement {
     get undoText() {
         const u = this.outcome.undo;
         const parts = [];
-        if (u.updates.length) parts.push(`puts the ${this.format(u.updates.length)} ${u.updates.length === 1 ? 'record' : 'records'} it updated back as they were`);
-        if (u.created.length) parts.push(`deletes the ${this.format(u.created.length)} ${u.created.length === 1 ? 'record' : 'records'} it created (to the Recycle Bin)`);
+        if (u.updates.length)
+            parts.push(
+                `puts the ${this.format(u.updates.length)} ${u.updates.length === 1 ? 'record' : 'records'} it updated back as they were`
+            );
+        if (u.created.length)
+            parts.push(
+                `deletes the ${this.format(u.created.length)} ${u.created.length === 1 ? 'record' : 'records'} it created (to the Recycle Bin)`
+            );
         return `Undo ${parts.join(' and ')}. Any change made to those records since the import is overwritten.`;
     }
 
@@ -784,10 +842,19 @@ export default class GridImportDialog extends LightningElement {
         for (const batch of batchesOf(u.updates)) {
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const r = await importRows({ configName: this.configName, rows: batch, ...this.parentParams, recordId: this.recordId || null });
+                const r = await importRows({
+                    configName: this.configName,
+                    rows: batch,
+                    ...this.parentParams,
+                    recordId: this.recordId || null
+                });
                 (r.rows || []).forEach(row => {
                     if (row.success) result.restored++;
-                    else result.failed.push({ key: 'u' + result.failed.length, text: `${batch[row.index].Id}: ${row.message || 'Not put back.'}` });
+                    else
+                        result.failed.push({
+                            key: 'u' + result.failed.length,
+                            text: `${batch[row.index].Id}: ${row.message || 'Not put back.'}`
+                        });
                 });
             } catch (e) {
                 result.stopped = messageOf(e);
@@ -797,9 +864,14 @@ export default class GridImportDialog extends LightningElement {
         for (let i = 0; i < u.created.length && !result.stopped; i += IMPORT_BATCH) {
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const r = await undoImport({ configName: this.configName, recordIds: u.created.slice(i, i + IMPORT_BATCH) });
+                const r = await undoImport({
+                    configName: this.configName,
+                    recordIds: u.created.slice(i, i + IMPORT_BATCH)
+                });
                 result.deleted += (r.deletedIds || []).length;
-                (r.errors || []).forEach(e => result.failed.push({ key: 'd' + result.failed.length, text: `${e.recordId}: ${e.message}` }));
+                (r.errors || []).forEach(e =>
+                    result.failed.push({ key: 'd' + result.failed.length, text: `${e.recordId}: ${e.message}` })
+                );
             } catch (e) {
                 result.stopped = messageOf(e);
             }

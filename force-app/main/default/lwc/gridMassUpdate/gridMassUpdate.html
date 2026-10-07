@@ -25,10 +25,12 @@
             <div class={bodyClass}>
                 <p id="description" class="slds-m-bottom_small">
                     <template lwc:if={rowNames}>
-                        <span class="slds-show slds-text-title_bold slds-m-bottom_xx-small rh-mass-rows">{rowNames}</span>
+                        <span class="slds-show slds-text-title_bold slds-m-bottom_xx-small rh-mass-rows"
+                            >{rowNames}</span
+                        >
                     </template>
-                    The new value becomes an unsaved change on every selected row. Nothing is written until you save, and
-                    Undo takes it back.
+                    The new value becomes an unsaved change on every selected row. Nothing is written until you save,
+                    and Undo takes it back.
                 </p>
                 <lightning-combobox
                     data-first
@@ -169,7 +171,13 @@
             </div>
             <div class="slds-modal__footer">
                 <button class="slds-button slds-button_neutral rh-mass-cancel" onclick={handleCancel}>Cancel</button>
-                <button class="slds-button slds-button_brand rh-mass-apply" disabled={applyDisabled} onclick={handleApply}>Apply</button>
+                <button
+                    class="slds-button slds-button_brand rh-mass-apply"
+                    disabled={applyDisabled}
+                    onclick={handleApply}
+                >
+                    Apply
+                </button>
             </div>
         </div>
         <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>

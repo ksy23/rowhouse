@@ -9,9 +9,8 @@
  */
 @IsTest
 private class RowhouseBenchDataTest {
-
     private static Rowhouse_Bench__c row(Integer i) {
-        return RowhouseBenchData.build(i, i)[0];   // on its own: exercises skip-ahead
+        return RowhouseBenchData.build(i, i)[0]; // on its own: exercises skip-ahead
     }
 
     @IsTest
@@ -42,8 +41,11 @@ private class RowhouseBenchDataTest {
         System.assertEquals(null, two.Dependent_Picklist__c, 'Services has no dependent values.');
 
         String part = 'Mara Halloran ' + String.fromCharArray(new List<Integer>{ 8212 }) + ' Sable Terrace';
-        System.assertEquals(String.join(new List<String>{ part, part, part, part, part, part }, ' '),
-            row(20).Text_Field__c, 'The long-text case, em dash included.');
+        System.assertEquals(
+            String.join(new List<String>{ part, part, part, part, part, part }, ' '),
+            row(20).Text_Field__c,
+            'The long-text case, em dash included.'
+        );
         System.assertEquals('Obsolete', row(23).Picklist_Field__c);
         System.assertEquals('Green;Blue;Amber', row(44).Multi_Picklist__c);
 
@@ -86,8 +88,13 @@ private class RowhouseBenchDataTest {
             System.assertEquals(3, RowhouseBenchData.insertRows(1, 3));
             System.assertEquals(3, [SELECT COUNT() FROM Rowhouse_Bench__c]);
         }
-        for (List<Integer> bad : new List<List<Integer>>{ new List<Integer>{ 0, 5 }, new List<Integer>{ 5, 4 },
-                                                          new List<Integer>{ 1, 2001 } }) {
+        for (
+            List<Integer> bad : new List<List<Integer>>{
+                new List<Integer>{ 0, 5 },
+                new List<Integer>{ 5, 4 },
+                new List<Integer>{ 1, 2001 }
+            }
+        ) {
             try {
                 RowhouseBenchData.build(bad[0], bad[1]);
                 System.assert(false, 'Expected a refusal for ' + bad);

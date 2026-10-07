@@ -23,7 +23,6 @@
  */
 @IsTest
 public class GridTestUsers {
-
     public static User limitedUser() {
         return userWith('rhltd', 'Limited', new List<String>{ 'Rowhouse_Test_Limited', 'Rowhouse_User' });
     }
@@ -34,7 +33,11 @@ public class GridTestUsers {
 
     /** fullUser() with the Rowhouse_Diagnostics custom permission, which one fixture action requires. */
     public static User diagnosticsUser() {
-        return userWith('rhdiag', 'Diagnostics', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Diagnostics' });
+        return userWith(
+            'rhdiag',
+            'Diagnostics',
+            new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Diagnostics' }
+        );
     }
 
     /** Every test field, but not Rowhouse_User: no access to the audit log. */
@@ -48,13 +51,21 @@ public class GridTestUsers {
      * needs.
      */
     public static User adminUser() {
-        return userWith('rhadmin', 'Admin', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' },
-            'System Administrator');
+        return userWith(
+            'rhadmin',
+            'Admin',
+            new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' },
+            'System Administrator'
+        );
     }
 
     /** Rowhouse Grid Admin without Customize Application: may open the Grid Admin tab, may not save. */
     public static User adminViewer() {
-        return userWith('rhadmv', 'AdminViewer', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' });
+        return userWith(
+            'rhadmv',
+            'AdminViewer',
+            new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' }
+        );
     }
 
     private static User userWith(String alias, String lastName, List<String> permissionSetNames) {
@@ -64,10 +75,17 @@ public class GridTestUsers {
     private static User userWith(String alias, String lastName, List<String> permissionSetNames, String profileName) {
         String name = 'rowhouse.' + alias + '.' + Crypto.getRandomInteger() + '@example.invalid';
         User u = new User(
-            Alias = alias, Email = name, Username = name, LastName = lastName, FirstName = 'Rowhouse',
-            ProfileId = [SELECT Id FROM Profile WHERE Name = :profileName LIMIT 1].Id,
-            TimeZoneSidKey = 'America/New_York', LocaleSidKey = 'en_US',
-            EmailEncodingKey = 'UTF-8', LanguageLocaleKey = 'en_US'
+            Alias = alias,
+            Email = name,
+            Username = name,
+            LastName = lastName,
+            FirstName = 'Rowhouse',
+            ProfileId = [SELECT Id FROM Profile WHERE Name = :profileName LIMIT 1]
+            .Id,
+            TimeZoneSidKey = 'America/New_York',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'en_US'
         );
         insert u;
         List<PermissionSetAssignment> assignments = new List<PermissionSetAssignment>();
@@ -75,8 +93,11 @@ public class GridTestUsers {
             assignments.add(new PermissionSetAssignment(AssigneeId = u.Id, PermissionSetId = ps.Id));
         }
         // Fail here, by name, rather than as a baffling access error later.
-        System.assertEquals(permissionSetNames.size(), assignments.size(),
-            'Missing permission set; expected ' + permissionSetNames + ' to be deployed.');
+        System.assertEquals(
+            permissionSetNames.size(),
+            assignments.size(),
+            'Missing permission set; expected ' + permissionSetNames + ' to be deployed.'
+        );
         System.runAs(new User(Id = UserInfo.getUserId())) {
             insert assignments;
         }

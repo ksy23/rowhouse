@@ -3,7 +3,17 @@
  * with Node's own zlib, so the inflater is checked against a real DEFLATE
  * encoder: stored, fixed-Huffman and dynamic-Huffman blocks.
  */
-import { inflateRaw, readZip, readXlsx, utf8, xmlText, isDateFormat, serialToIso, plainNumber, columnIndex } from 'c/gridXlsx';
+import {
+    inflateRaw,
+    readZip,
+    readXlsx,
+    utf8,
+    xmlText,
+    isDateFormat,
+    serialToIso,
+    plainNumber,
+    columnIndex
+} from 'c/gridXlsx';
 
 /* global require, Buffer -- Jest runs in Node, where the test builds its own files. */
 const zlib = require('zlib');
@@ -75,20 +85,25 @@ const SHEET = `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml
 </sheetData></worksheet>`;
 
 function workbook(overrides = {}, options) {
-    return zip({
-        '[Content_Types].xml': '<Types/>',
-        'xl/workbook.xml': WORKBOOK,
-        'xl/_rels/workbook.xml.rels': RELS,
-        'xl/styles.xml': STYLES,
-        'xl/sharedStrings.xml': SHARED,
-        'xl/worksheets/sheet1.xml': SHEET,
-        'xl/worksheets/sheet2.xml': '<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>wrong sheet</t></is></c></row></sheetData></worksheet>',
-        ...overrides
-    }, options);
+    return zip(
+        {
+            '[Content_Types].xml': '<Types/>',
+            'xl/workbook.xml': WORKBOOK,
+            'xl/_rels/workbook.xml.rels': RELS,
+            'xl/styles.xml': STYLES,
+            'xl/sharedStrings.xml': SHARED,
+            'xl/worksheets/sheet1.xml': SHEET,
+            'xl/worksheets/sheet2.xml':
+                '<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>wrong sheet</t></is></c></row></sheetData></worksheet>',
+            ...overrides
+        },
+        options
+    );
 }
 
 describe('inflateRaw', () => {
-    const roundTrip = (data, options) => Buffer.from(inflateRaw(new Uint8Array(zlib.deflateRawSync(data, options)))).equals(data);
+    const roundTrip = (data, options) =>
+        Buffer.from(inflateRaw(new Uint8Array(zlib.deflateRawSync(data, options)))).equals(data);
 
     it('reads dynamic-Huffman blocks, as large repetitive text compresses to', () => {
         const text = Buffer.from(Array.from({ length: 5000 }, (_, i) => `<c r="A${i}"><v>${i * 7}</v></c>`).join(''));
@@ -125,16 +140,22 @@ describe('inflateRaw', () => {
 
 describe('the pieces', () => {
     it('decodes UTF-8, emoji and a byte order mark included', () => {
-        expect(utf8(new Uint8Array(Buffer.from(String.fromCharCode(0xfeff) + 'Grid 🎉 東京 é', 'utf8')))).toBe('Grid 🎉 東京 é');
+        expect(utf8(new Uint8Array(Buffer.from(String.fromCharCode(0xfeff) + 'Grid 🎉 東京 é', 'utf8')))).toBe(
+            'Grid 🎉 東京 é'
+        );
     });
 
     it('decodes XML entities and Excel’s own escapes', () => {
-        expect(xmlText('a &lt;b&gt; &amp; &quot;c&quot; &#65;&#x42; _x000D_ _x005F_x0041_')).toBe('a <b> & "c" AB \r _x0041_');
+        expect(xmlText('a &lt;b&gt; &amp; &quot;c&quot; &#65;&#x42; _x000D_ _x005F_x0041_')).toBe(
+            'a <b> & "c" AB \r _x0041_'
+        );
     });
 
     it('knows a date format from a number format', () => {
         ['yyyy-mm-dd', 'd/m/yy', '[h]:mm:ss', 'mmm yyyy', 'dd"."mm'].forEach(f => expect(isDateFormat(f)).toBe(true));
-        ['0.00', '#,##0', '"Qty "0', '[Red]0.00', 'General', '0.00E+00', '@'].forEach(f => expect(isDateFormat(f)).toBe(false));
+        ['0.00', '#,##0', '"Qty "0', '[Red]0.00', 'General', '0.00E+00', '@'].forEach(f =>
+            expect(isDateFormat(f)).toBe(false)
+        );
     });
 
     it('turns serial dates into ISO dates, across Excel’s 1900 leap-year bug and in the 1904 system', () => {
@@ -149,7 +170,9 @@ describe('the pieces', () => {
     it('writes numbers without an exponent, and column letters as indexes', () => {
         expect(plainNumber('1.5E-3')).toBe('0.0015');
         expect(plainNumber('1234.5')).toBe('1234.5');
-        expect([columnIndex('A1'), columnIndex('Z9'), columnIndex('AA1'), columnIndex('AB12')]).toEqual([0, 25, 26, 27]);
+        expect([columnIndex('A1'), columnIndex('Z9'), columnIndex('AA1'), columnIndex('AB12')]).toEqual([
+            0, 25, 26, 27
+        ]);
     });
 
     it('finds the files in a ZIP, compressed or stored', () => {
@@ -164,7 +187,11 @@ describe('readXlsx', () => {
     it('reads the first sheet by the workbook’s order, not the file name', () => {
         const { sheet, rows } = readXlsx(workbook());
         expect(sheet).toBe('Records');
-        expect(rows[0]).toEqual([{ t: 's', v: 'Name' }, { t: 's', v: 'Amount' }, { t: 's', v: 'Due' }]);
+        expect(rows[0]).toEqual([
+            { t: 's', v: 'Name' },
+            { t: 's', v: 'Amount' },
+            { t: 's', v: 'Due' }
+        ]);
     });
 
     it('reads strings, numbers, booleans and dates as typed cells', () => {
@@ -201,7 +228,10 @@ describe('readXlsx', () => {
         const prefixed = SHEET.replace(/<(\/?)(worksheet|sheetData|row|c|v|is|t|f)\b/g, '<$1x:$2');
         const bytes = workbook({
             'xl/workbook.xml': WORKBOOK.replace('<workbookPr/>', '<workbookPr date1904="1"/>'),
-            'xl/_rels/workbook.xml.rels': RELS.replace('Target="worksheets/sheet1.xml"', 'Target="/xl/worksheets/prefixed.xml"'),
+            'xl/_rels/workbook.xml.rels': RELS.replace(
+                'Target="worksheets/sheet1.xml"',
+                'Target="/xl/worksheets/prefixed.xml"'
+            ),
             'xl/worksheets/prefixed.xml': prefixed
         });
         const { rows } = readXlsx(bytes);
@@ -214,14 +244,24 @@ describe('readXlsx', () => {
         const bytes = zip({
             'xl/workbook.xml': WORKBOOK,
             'xl/_rels/workbook.xml.rels': RELS,
-            'xl/worksheets/sheet1.xml': '<worksheet><sheetData><row><c t="inlineStr"><is><t>a</t></is></c><c><v>2</v></c></row></sheetData></worksheet>'
+            'xl/worksheets/sheet1.xml':
+                '<worksheet><sheetData><row><c t="inlineStr"><is><t>a</t></is></c><c><v>2</v></c></row></sheetData></worksheet>'
         });
-        expect(readXlsx(bytes).rows).toEqual([[{ t: 's', v: 'a' }, { t: 'n', v: '2' }]]);
+        expect(readXlsx(bytes).rows).toEqual([
+            [
+                { t: 's', v: 'a' },
+                { t: 'n', v: '2' }
+            ]
+        ]);
     });
 
     it('says what to do with a file that is not an .xlsx workbook', () => {
-        expect(() => readXlsx(new Uint8Array(Buffer.from('Name,Amount\nA,1')))).toThrow('Save it from Excel as "Excel Workbook (.xlsx)" or as CSV');
-        expect(() => readXlsx(new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]))).toThrow('not an .xlsx file'); // old .xls
+        expect(() => readXlsx(new Uint8Array(Buffer.from('Name,Amount\nA,1')))).toThrow(
+            'Save it from Excel as "Excel Workbook (.xlsx)" or as CSV'
+        );
+        expect(() => readXlsx(new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]))).toThrow(
+            'not an .xlsx file'
+        ); // old .xls
         const noWorkbook = zip({ 'word/document.xml': '<w:document/>' });
         expect(() => readXlsx(noWorkbook)).toThrow('not an Excel .xlsx workbook');
     });

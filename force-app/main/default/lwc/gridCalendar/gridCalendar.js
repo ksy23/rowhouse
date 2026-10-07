@@ -148,17 +148,25 @@ export function monthName(locale, year, month) {
 
 /** A date read aloud: "Wednesday, September 30, 2026". */
 export function longDate(locale, iso) {
-    return formatter(locale, 'long', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-        .format(new Date(toUtc(iso)));
+    return formatter(locale, 'long', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(
+        new Date(toUtc(iso))
+    );
 }
 
 /** Today in a timezone (the user's Salesforce one), as an ISO date. */
 export function todayIn(timeZone, now = new Date()) {
     let parts;
     try {
-        parts = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: 'numeric', day: 'numeric' }).formatToParts(now);
+        parts = new Intl.DateTimeFormat('en-US', {
+            timeZone,
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+        }).formatToParts(now);
     } catch {
-        parts = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' }).formatToParts(now);
+        parts = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' }).formatToParts(
+            now
+        );
     }
     const get = type => Number((parts.find(p => p.type === type) || {}).value);
     return isoOf(get('year'), get('month'), get('day'));
@@ -211,7 +219,9 @@ export function timeValue({ hour, minute, second = 0 }) {
 
 /** A time of day in the locale's words: "5:30 PM", "17:30". */
 export function formatTimeOfDay(locale, { hour, minute }) {
-    return formatter(locale, 'time', { hour: 'numeric', minute: '2-digit' }).format(new Date(Date.UTC(1970, 0, 1, hour, minute)));
+    return formatter(locale, 'time', { hour: 'numeric', minute: '2-digit' }).format(
+        new Date(Date.UTC(1970, 0, 1, hour, minute))
+    );
 }
 
 /** The times a time list offers, every `step` minutes from midnight: [{ value: "HH:MM", hour, minute, label }]. */
@@ -220,7 +230,12 @@ export function timeOptions(locale, step = 30) {
     for (let t = 0; t < 24 * 60; t += step) {
         const hour = Math.floor(t / 60);
         const minute = t % 60;
-        out.push({ value: `${pad(hour)}:${pad(minute)}`, hour, minute, label: formatTimeOfDay(locale, { hour, minute }) });
+        out.push({
+            value: `${pad(hour)}:${pad(minute)}`,
+            hour,
+            minute,
+            label: formatTimeOfDay(locale, { hour, minute })
+        });
     }
     return out;
 }
@@ -230,7 +245,14 @@ function zoneFormat(timeZone) {
     let f = zoneFormats.get(timeZone);
     if (!f) {
         f = new Intl.DateTimeFormat('en-US', {
-            timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+            timeZone,
+            hourCycle: 'h23',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
         });
         zoneFormats.set(timeZone, f);
     }
@@ -240,9 +262,11 @@ function zoneFormat(timeZone) {
 /** The wall clock in a time zone at an instant (ms): { date: ISO date, hour, minute, second }. */
 export function wallClock(ms, timeZone) {
     const parts = {};
-    zoneFormat(timeZone).formatToParts(new Date(ms)).forEach(p => {
-        parts[p.type] = p.value;
-    });
+    zoneFormat(timeZone)
+        .formatToParts(new Date(ms))
+        .forEach(p => {
+            parts[p.type] = p.value;
+        });
     return {
         date: `${parts.year}-${parts.month}-${parts.day}`,
         hour: Number(parts.hour) % 24,

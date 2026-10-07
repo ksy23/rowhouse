@@ -20,7 +20,9 @@ const mount = (Ctor, props) => {
     document.body.appendChild(el);
     return el;
 };
-afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+afterEach(() => {
+    while (document.body.firstChild) document.body.firstChild.remove();
+});
 
 describe('text cell', () => {
     it('TC-004 preserves leading zeros', () => {
@@ -85,7 +87,10 @@ describe('picklist cell', () => {
     it('TC-036 renders a value that is no longer in the active set', () => {
         const el = mount(CellPicklist, {
             value: 'Obsolete',
-            options: [{ label: 'Alpha', value: 'Alpha' }, { label: 'Beta', value: 'Beta' }]
+            options: [
+                { label: 'Alpha', value: 'Alpha' },
+                { label: 'Beta', value: 'Beta' }
+            ]
         });
         // Blanking this is data loss, and it is the most common real-org case.
         expect(el.shadowRoot.textContent).toContain('Obsolete');

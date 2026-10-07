@@ -14,8 +14,12 @@ jest.mock('@salesforce/apex/GridController.getGridConfig', () => ({ default: jes
 jest.mock('@salesforce/apex/GridController.openGrid', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.fetchRows', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.lookupName', () => ({ default: jest.fn() }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
-jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
+jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 
 const DEFINITION = {
     name: 'Test_Records',
@@ -27,7 +31,14 @@ const DEFINITION = {
     allowInlineEdit: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true },
-        { field: 'Lookup_Field__c', label: 'Related Account', type: 'reference', editable: true, referenceTo: ['Account'], newTargets: [{ object: 'Account', label: 'Account' }] }
+        {
+            field: 'Lookup_Field__c',
+            label: 'Related Account',
+            type: 'reference',
+            editable: true,
+            referenceTo: ['Account'],
+            newTargets: [{ object: 'Account', label: 'Account' }]
+        }
     ]
 };
 const ROW = { Id: 'a00000000000000001', Name: 'Row 1', Lookup_Field__c: null };
@@ -44,7 +55,15 @@ beforeEach(() => {
     openGrid.mockImplementation(openGridFrom({ getGridConfig, fetchRows }));
     jest.useFakeTimers();
     getGridConfig.mockResolvedValue({ definition: DEFINITION, diagnostics: false });
-    fetchRows.mockResolvedValue({ rows: [ROW], hasMore: false, cursorLocator: null, cursorToken: null, totalRows: 1, serverMs: 1, cpuMs: 1 });
+    fetchRows.mockResolvedValue({
+        rows: [ROW],
+        hasMore: false,
+        cursorLocator: null,
+        cursorToken: null,
+        totalRows: 1,
+        serverMs: 1,
+        cpuMs: 1
+    });
 });
 afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
@@ -52,15 +71,23 @@ afterEach(() => {
     jest.useRealTimers();
 });
 
-describe('a lookup\'s New item', () => {
+describe("a lookup's New item", () => {
     const open = async () => {
         const el = createElement('c-grid-view', { is: GridView });
         el.configName = 'Test_Records';
         document.body.appendChild(el);
         await settle();
-        $(el, 'c-grid-table').dispatchEvent(new CustomEvent('newrecord', {
-            detail: { recordId: ROW.Id, field: 'Lookup_Field__c', object: 'Account', objectLabel: 'Account', term: 'Acm' }
-        }));
+        $(el, 'c-grid-table').dispatchEvent(
+            new CustomEvent('newrecord', {
+                detail: {
+                    recordId: ROW.Id,
+                    field: 'Lookup_Field__c',
+                    object: 'Account',
+                    objectLabel: 'Account',
+                    term: 'Acm'
+                }
+            })
+        );
         await settle();
         return el;
     };
@@ -80,12 +107,18 @@ describe('a lookup\'s New item', () => {
         $(el, 'c-grid-new-record').dispatchEvent(new CustomEvent('created', { detail: { id: NEW_ID } }));
         await settle();
         expect($(el, 'c-grid-new-record')).toBeNull();
-        expect(lookupName).toHaveBeenCalledWith({ configName: 'Test_Records', field: 'Lookup_Field__c', recordId: NEW_ID });
+        expect(lookupName).toHaveBeenCalledWith({
+            configName: 'Test_Records',
+            field: 'Lookup_Field__c',
+            recordId: NEW_ID
+        });
         const config = $(el, 'c-grid-table').config;
         expect(config.drafts).toEqual({ [ROW.Id]: { Lookup_Field__c: NEW_ID } });
         expect(config.refNames[NEW_ID]).toBe('Acme New');
         expect(config.history.undoLabel).toBe('Undo edit');
-        expect($(el, '.rh-live').textContent).toBe('Account Acme New created and put in Related Account. Save to keep the change.');
+        expect($(el, '.rh-live').textContent).toBe(
+            'Account Acme New created and put in Related Account. Save to keep the change.'
+        );
     });
 
     it('changes nothing when cancelled', async () => {

@@ -8,7 +8,18 @@
 'use strict';
 const { decoratorName, keyName, walk, isIdent, isMember } = require('./util');
 
-const CLONING_METHODS = new Set(['slice', 'map', 'concat', 'filter', 'flat', 'flatMap', 'toSorted', 'toReversed', 'toSpliced', 'with']);
+const CLONING_METHODS = new Set([
+    'slice',
+    'map',
+    'concat',
+    'filter',
+    'flat',
+    'flatMap',
+    'toSorted',
+    'toReversed',
+    'toSpliced',
+    'with'
+]);
 
 module.exports = {
     meta: {
@@ -38,13 +49,24 @@ module.exports = {
                         const c = n.callee;
                         const args = n.arguments;
                         if (isMember(c, 'Array', 'from') && isIdent(args[0], p)) report(n, 'Array.from');
-                        if (isMember(c, 'Object', 'assign') && args.slice(1).some(a => isIdent(a, p))) report(n, 'Object.assign');
+                        if (isMember(c, 'Object', 'assign') && args.slice(1).some(a => isIdent(a, p)))
+                            report(n, 'Object.assign');
                         if (isIdent(c, 'structuredClone') && isIdent(args[0], p)) report(n, 'structuredClone');
-                        if (c.type === 'MemberExpression' && isIdent(c.object, p) && !c.computed && CLONING_METHODS.has(c.property.name)) {
+                        if (
+                            c.type === 'MemberExpression' &&
+                            isIdent(c.object, p) &&
+                            !c.computed &&
+                            CLONING_METHODS.has(c.property.name)
+                        ) {
                             report(n, p + '.' + c.property.name + '()');
                         }
-                        if (isMember(c, 'JSON', 'parse') && args[0] && args[0].type === 'CallExpression'
-                            && isMember(args[0].callee, 'JSON', 'stringify') && isIdent(args[0].arguments[0], p)) {
+                        if (
+                            isMember(c, 'JSON', 'parse') &&
+                            args[0] &&
+                            args[0].type === 'CallExpression' &&
+                            isMember(args[0].callee, 'JSON', 'stringify') &&
+                            isIdent(args[0].arguments[0], p)
+                        ) {
                             report(n, 'JSON.parse(JSON.stringify())');
                         }
                     });

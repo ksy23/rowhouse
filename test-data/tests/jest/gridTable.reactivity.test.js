@@ -27,11 +27,13 @@ describe('reactivity across the @api boundary', () => {
         document.body.appendChild(el);
         await flushPromises();
     });
-    afterEach(() => { while (document.body.firstChild) document.body.firstChild.remove(); });
+    afterEach(() => {
+        while (document.body.firstChild) document.body.firstChild.remove();
+    });
 
     it('re-renders when the parent replaces the rows array (HR-17)', async () => {
         const before = rendered();
-        el.config = { columns, rows: seedRows.slice(0, 5) };  // new reference
+        el.config = { columns, rows: seedRows.slice(0, 5) }; // new reference
         await flushPromises();
         expect(rendered()).toBe(5);
         expect(rendered()).not.toBe(before);
@@ -47,10 +49,10 @@ describe('reactivity across the @api boundary', () => {
         await flushPromises();
         const before = rendered();
 
-        rows.push({ ...seedRows[0], Id: 'a00_mutated_in_place' });  // no new reference
+        rows.push({ ...seedRows[0], Id: 'a00_mutated_in_place' }); // no new reference
         await flushPromises();
 
-        expect(rendered()).toBe(before);   // deliberately unchanged
+        expect(rendered()).toBe(before); // deliberately unchanged
     });
 
     it('gives every row a stable key derived from Id, not content or index (HR-19)', async () => {
@@ -61,9 +63,8 @@ describe('reactivity across the @api boundary', () => {
         // Rows only. Cells and in-cell controls also carry data-row-id — the
         // focus tests select a cell by [data-row-id][data-field] — so counting
         // every [data-row-id] would count each record once per cell.
-        const keys = [...el.shadowRoot.querySelectorAll('[role="row"][data-row-id]')]
-            .map(n => n.dataset.rowId);
-        expect(new Set(keys).size).toBe(keys.length);        // all distinct
+        const keys = [...el.shadowRoot.querySelectorAll('[role="row"][data-row-id]')].map(n => n.dataset.rowId);
+        expect(new Set(keys).size).toBe(keys.length); // all distinct
         twins.forEach(t => expect(keys).toContain(t.Id));
     });
 
@@ -73,6 +74,6 @@ describe('reactivity across the @api boundary', () => {
         await flushPromises();
         const after = [...el.shadowRoot.querySelectorAll('[role="row"][data-row-id]')].map(n => n.dataset.rowId);
 
-        expect(after.sort()).toEqual(before.sort());   // same set, reordered
+        expect(after.sort()).toEqual(before.sort()); // same set, reordered
     });
 });

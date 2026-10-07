@@ -29,7 +29,6 @@
  * so its log fits the transaction's limits (chunksOf).
  */
 public with sharing class GridSaveService {
-
     public static final Integer CHUNK_SIZE = 200;
     /** Salesforce's own wording for a required field left blank. */
     public static final String REQUIRED_MESSAGE = 'Complete this field.';
@@ -71,9 +70,15 @@ public with sharing class GridSaveService {
         Integer chunkCount = chunks.size();
         Integer maxChunks = Limits.getLimitQueueableJobs() - Limits.getQueueableJobs();
         if (chunkCount > maxChunks) {
-            throw new GridException('One save can include at most ' + (maxChunks * CHUNK_SIZE)
-                + ' records' + (audit == null ? '' : ', fewer when many fields change in a grid that logs its changes')
-                + '; this one has ' + records.size() + '. Save in smaller batches.');
+            throw new GridException(
+                'One save can include at most ' +
+                    (maxChunks * CHUNK_SIZE) +
+                    ' records' +
+                    (audit == null ? '' : ', fewer when many fields change in a grid that logs its changes') +
+                    '; this one has ' +
+                    records.size() +
+                    '. Save in smaller batches.'
+            );
         }
         ticket.saveId = newSaveId();
         ticket.chunkCount = chunkCount;
@@ -125,8 +130,8 @@ public with sharing class GridSaveService {
             return result;
         }
         List<Grid_Save_Result__c> reports = (List<Grid_Save_Result__c>) GridSecurity.query(
-            'SELECT Id, Chunk_Index__c, Chunk_Count__c, Success_Count__c, Errors_JSON__c '
-            + 'FROM Grid_Save_Result__c WHERE Save_Id__c = :saveId AND OwnerId = :ownerId',
+            'SELECT Id, Chunk_Index__c, Chunk_Count__c, Success_Count__c, Errors_JSON__c ' +
+            'FROM Grid_Save_Result__c WHERE Save_Id__c = :saveId AND OwnerId = :ownerId',
             new Map<String, Object>{ 'saveId' => saveId, 'ownerId' => UserInfo.getUserId() }
         );
         Set<Integer> seen = new Set<Integer>();
@@ -137,7 +142,9 @@ public with sharing class GridSaveService {
             }
             result.successCount += r.Success_Count__c == null ? 0 : r.Success_Count__c.intValue();
             if (String.isNotBlank(r.Errors_JSON__c)) {
-                result.errors.addAll((List<GridSaveError>) JSON.deserialize(r.Errors_JSON__c, List<GridSaveError>.class));
+                result.errors.addAll(
+                    (List<GridSaveError>) JSON.deserialize(r.Errors_JSON__c, List<GridSaveError>.class)
+                );
             }
         }
         result.chunksReported = seen.size();
@@ -150,8 +157,13 @@ public with sharing class GridSaveService {
 
     // ---------------------------------------------------------------- helpers
 
-    private static SObject toRecord(Map<String, Object> row, Schema.SObjectType objectType,
-                                    Set<String> allowed, Set<String> rejected, List<GridSaveError> errors) {
+    private static SObject toRecord(
+        Map<String, Object> row,
+        Schema.SObjectType objectType,
+        Set<String> allowed,
+        Set<String> rejected,
+        List<GridSaveError> errors
+    ) {
         Id recordId;
         try {
             recordId = (Id) String.valueOf(row.get('Id'));
@@ -160,7 +172,13 @@ public with sharing class GridSaveService {
             return null;
         }
         if (recordId == null || recordId.getSObjectType() != objectType) {
-            errors.add(new GridSaveError(recordId, null, 'Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType) + '.'));
+            errors.add(
+                new GridSaveError(
+                    recordId,
+                    null,
+                    'Record ' + recordId + ' is not a ' + GridDescribe.localName(objectType) + '.'
+                )
+            );
             return null;
         }
         SObject record = objectType.newSObject(recordId);
@@ -174,8 +192,15 @@ public with sharing class GridSaveService {
      * go to `errors`, against `recordId` (null for a new record). Returns false
      * when any value was refused. Shared by the save and the import.
      */
-    public static Boolean fillFields(SObject record, Map<String, Object> row, Schema.SObjectType objectType,
-                                     Set<String> allowed, Set<String> rejected, List<GridSaveError> errors, Id recordId) {
+    public static Boolean fillFields(
+        SObject record,
+        Map<String, Object> row,
+        Schema.SObjectType objectType,
+        Set<String> allowed,
+        Set<String> rejected,
+        List<GridSaveError> errors,
+        Id recordId
+    ) {
         Boolean valid = true;
         for (String key : row.keySet()) {
             if (key == 'Id') {
@@ -218,9 +243,10 @@ public with sharing class GridSaveService {
     // ------------------------------------------------- shortened long texts
 
     /** Why a shortened copy of a long text is not saved. */
-    public static final String SHORTENED_MESSAGE = 'This is the shortened copy the grid shows of a longer text'
-        + ' (its first 1,000 characters and "…"). Saving it would cut the rest, so it was not saved.'
-        + ' Edit the text in the grid, which opens the whole of it.';
+    public static final String SHORTENED_MESSAGE =
+        'This is the shortened copy the grid shows of a longer text' +
+        ' (its first 1,000 characters and "…"). Saving it would cut the rest, so it was not saved.' +
+        ' Edit the text in the grid, which opens the whole of it.';
 
     /**
      * A long text the grid shows shortened (TC-055: its first
@@ -235,8 +261,11 @@ public with sharing class GridSaveService {
      * that is not longer is the user's own, and is written. Returns the
      * records to write. Shared by the save and the import.
      */
-    public static List<SObject> keepWholeTexts(List<SObject> records, Schema.SObjectType objectType,
-                                               List<GridSaveError> errors) {
+    public static List<SObject> keepWholeTexts(
+        List<SObject> records,
+        Schema.SObjectType objectType,
+        List<GridSaveError> errors
+    ) {
         Map<Id, SObject> stored = storedLongTexts(records, objectType);
         if (stored.isEmpty()) {
             return records;
@@ -272,8 +301,12 @@ public with sharing class GridSaveService {
             return new Map<Id, SObject>();
         }
         // Field names from describe, never from the request; the Ids are bound.
-        String soql = 'SELECT Id, ' + String.join(new List<String>(fields), ', ') + ' FROM '
-            + GridDescribe.apiName(objectType) + ' WHERE Id IN :ids';
+        String soql =
+            'SELECT Id, ' +
+            String.join(new List<String>(fields), ', ') +
+            ' FROM ' +
+            GridDescribe.apiName(objectType) +
+            ' WHERE Id IN :ids';
         return new Map<Id, SObject>(GridSecurity.query(soql, new Map<String, Object>{ 'ids' => ids }));
     }
 
@@ -281,8 +314,12 @@ public with sharing class GridSaveService {
      * The record to write: itself, a copy without its unchanged shortened
      * copies, or null when a shortened copy was changed (the error is added).
      */
-    private static SObject withoutShortenedCopies(SObject record, SObject before, Schema.SObjectType objectType,
-                                                  List<GridSaveError> errors) {
+    private static SObject withoutShortenedCopies(
+        SObject record,
+        SObject before,
+        Schema.SObjectType objectType,
+        List<GridSaveError> errors
+    ) {
         if (before == null) {
             return record;
         }
@@ -301,8 +338,13 @@ public with sharing class GridSaveService {
             if (whole.startsWith(((String) values.get(api)).left(GridController.LONG_TEXT_PREVIEW))) {
                 unchanged.add(api);
             } else {
-                errors.add(new GridSaveError(record.Id, GridDescribe.localName(GridDescribe.field(objectType, api)),
-                    SHORTENED_MESSAGE));
+                errors.add(
+                    new GridSaveError(
+                        record.Id,
+                        GridDescribe.localName(GridDescribe.field(objectType, api)),
+                        SHORTENED_MESSAGE
+                    )
+                );
                 refused = true;
             }
         }
@@ -323,8 +365,9 @@ public with sharing class GridSaveService {
 
     /** The form the grid shortens a long text to: exactly LONG_TEXT_PREVIEW characters and "…". */
     private static Boolean looksShortened(Object value) {
-        return value instanceof String && ((String) value).length() == GridController.LONG_TEXT_PREVIEW + 1
-            && ((String) value).endsWith('…');
+        return value instanceof String &&
+            ((String) value).length() == GridController.LONG_TEXT_PREVIEW + 1 &&
+            ((String) value).endsWith('…');
     }
 
     /** A text area the grid shows shortened, as GridController decides. */
@@ -395,7 +438,9 @@ public with sharing class GridSaveService {
                 }
                 Id ref = Id.valueOf(text);
                 if (!field.getDescribe().getReferenceTo().contains(ref.getSObjectType())) {
-                    throw new GridException(text + ' is not a ' + String.join(GridDescribe.referenceTargets(field), ' or ') + ' record.');
+                    throw new GridException(
+                        text + ' is not a ' + String.join(GridDescribe.referenceTargets(field), ' or ') + ' record.'
+                    );
                 }
                 return ref;
             }
@@ -405,7 +450,9 @@ public with sharing class GridSaveService {
         }
     }
 
-    private static final Pattern TIME_VALUE = Pattern.compile('^(\\d{1,2}):(\\d{2})(?::(\\d{2})(?:\\.(\\d{1,3}))?)?Z?$');
+    private static final Pattern TIME_VALUE = Pattern.compile(
+        '^(\\d{1,2}):(\\d{2})(?::(\\d{2})(?:\\.(\\d{1,3}))?)?Z?$'
+    );
 
     /** A time of day, HH:MM with optional seconds and milliseconds. */
     @TestVisible

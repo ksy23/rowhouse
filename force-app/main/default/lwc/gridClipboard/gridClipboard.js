@@ -85,8 +85,10 @@ export function copyText(value, column = {}, locale = LOCALE) {
     if (type === 'date') return String(value).slice(0, 10);
     if (type === 'picklist') return neutralise(picklistLabel(value, column.options) || String(value));
     // A lookup copies the name shown; pasting it back finds the record again.
-    if (type === 'reference' || type === 'owner') return neutralise((column.names && column.names[value]) || String(value));
-    if (type === 'datetime' || type === 'time' || type === 'multipicklist') return neutralise(formatValue(value, column));
+    if (type === 'reference' || type === 'owner')
+        return neutralise((column.names && column.names[value]) || String(value));
+    if (type === 'datetime' || type === 'time' || type === 'multipicklist')
+        return neutralise(formatValue(value, column));
     return neutralise(String(value));
 }
 
@@ -215,7 +217,10 @@ function parseDate(text, locale) {
     if (iso) {
         [y, m, d] = [Number(iso[1]), Number(iso[2]), Number(iso[3])];
     } else {
-        const nums = s.split(/[^\d]+/).filter(Boolean).map(Number);
+        const nums = s
+            .split(/[^\d]+/)
+            .filter(Boolean)
+            .map(Number);
         if (nums.length !== 3) return { error: `Not a date: ${s}` };
         const parts = {};
         dateOrder(locale).forEach((type, i) => {
@@ -225,8 +230,14 @@ function parseDate(text, locale) {
         if (y < 100) y += 2000;
     }
     const check = new Date(Date.UTC(y, m - 1, d));
-    if (!y || y < FIRST_DATE_YEAR || y > LAST_DATE_YEAR
-        || check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) {
+    if (
+        !y ||
+        y < FIRST_DATE_YEAR ||
+        y > LAST_DATE_YEAR ||
+        check.getUTCFullYear() !== y ||
+        check.getUTCMonth() !== m - 1 ||
+        check.getUTCDate() !== d
+    ) {
         return { error: `Not a date: ${s}` };
     }
     return { value: `${y}-${pad(m)}-${pad(d)}` };
@@ -292,8 +303,9 @@ function parsePicklist(text, column) {
     const exact = options.find(o => o.value === s);
     if (exact) return { value: exact.value };
     const lower = s.toLowerCase();
-    const loose = options.find(o => String(o.label).toLowerCase() === lower)
-        || options.find(o => String(o.value).toLowerCase() === lower);
+    const loose =
+        options.find(o => String(o.label).toLowerCase() === lower) ||
+        options.find(o => String(o.value).toLowerCase() === lower);
     if (loose) return { value: loose.value };
     return { error: `Not a value of this picklist: ${s}` };
 }

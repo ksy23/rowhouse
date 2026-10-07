@@ -106,7 +106,9 @@
         input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
         input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
         const before = measures('commit').length;
-        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        input.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true })
+        );
         // eslint-disable-next-line no-await-in-loop
         await until(() => measures('commit').length > before, 'an edit to paint');
         commits.push(last('commit'));

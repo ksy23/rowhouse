@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest something Rowhouse should do.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Rowhouse is free, with no paid tier, and runs entirely inside Salesforce: no callouts and no third-party code. Requests that need either can't be taken on; the [hard rules](https://github.com/kugamon/rowhouse/blob/main/CONTRIBUTING.md#the-hard-rules) explain why.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like
+      description: How you picture it working, for the people who use the grid and for the admin who sets it up.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do instead today
+      description: Workarounds, or other tools you've tried.
+  - type: textarea
+    id: who
+    attributes:
+      label: Who it helps
+      description: Which users, and how often they'd use it.
