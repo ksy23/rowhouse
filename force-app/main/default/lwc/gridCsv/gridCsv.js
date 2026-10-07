@@ -70,24 +70,52 @@ export function toCsv(rows, columns) {
 }
 
 /**
- * Hand the file to the browser. A data: URL keeps this free of Blob/URL APIs
- * that Lightning Locker restricts; the BOM makes Excel read UTF-8 correctly
- * (TC-012..015).
+ * Hand the file to the browser, through a temporary link. The BOM makes Excel
+ * read UTF-8 correctly (TC-012..015).
+ *
+ * The link points at a Blob (a blob: URL). Lightning Web Security refuses a
+ * data: URL on a link ("HTMLAnchorElement href does not support data:"), which
+ * broke Export in Lightning Experience, and it makes a URL only for a few types
+ * of Blob: text/csv is refused ("Unsupported MIME type"), so the Blob is a
+ * plain download (application/octet-stream); the file name keeps the .csv.
+ * Where the Blob or its URL is refused (Lightning Locker restricts them), the
+ * file goes as a data: URL instead. The blob: URL is let go a moment after the
+ * click, once the browser has it.
  *
  * `container` is an element the caller owns (a `lwc:dom="manual"` div in its own
  * template), so the temporary link never touches the page outside the
  * component. It falls back to document.body only for callers without one.
+ *
+ * @returns {boolean} true once the browser was handed the file; false if both
+ *   ways were refused, so the caller can say so.
  */
 export function downloadCsv(csv, fileName, container) {
-    const host = container || document.body;
-    const link = document.createElement('a');
     // The byte order mark, as a code point. Written as an escape in source, it
     // reached the org as the invisible character itself.
-    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(String.fromCharCode(0xfeff) + csv);
+    const text = String.fromCharCode(0xfeff) + csv;
+    const host = container || document.body;
+    const link = document.createElement('a');
+    let blobUrl = null;
+    try {
+        blobUrl = URL.createObjectURL(new Blob([text], { type: 'application/octet-stream' }));
+        link.href = blobUrl;
+    } catch {
+        blobUrl = null;
+        try {
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(text);
+        } catch {
+            return false;
+        }
+    }
     link.download = fileName || 'export.csv';
     link.rel = 'noopener';
     link.style.display = 'none';
     host.appendChild(link);
     link.click();
     host.removeChild(link);
+    if (blobUrl) {
+        // eslint-disable-next-line @lwc/lwc/no-async-operation -- release the file once the browser has taken it
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    }
+    return true;
 }

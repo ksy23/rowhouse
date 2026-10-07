@@ -2859,7 +2859,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
             shown.map(c => ({ field: c.field, label: c.label, type: c.type }))
         );
         const csv = toCsv(sortRows(this.rows, keys), columns);
-        downloadCsv(csv, this.exportFileName, this.template.querySelector('.rh-download'));
+        if (!downloadCsv(csv, this.exportFileName, this.template.querySelector('.rh-download'))) {
+            const refused = 'This browser did not allow the file to be downloaded.';
+            this.announce(refused);
+            this.dispatchEvent(new ShowToastEvent({ title: 'Not exported', message: refused, variant: 'error' }));
+            return;
+        }
         let message = `Exported ${this.format(this.rows.length)} rows.`;
         if (hasDrafts(this.drafts)) message += ' Unsaved changes are not included.';
         if (this.hasMore) message += ' Only the loaded rows were exported.';

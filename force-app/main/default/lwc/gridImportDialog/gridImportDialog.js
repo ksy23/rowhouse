@@ -101,6 +101,9 @@ const STEP_TEXT = {
 /** A file cell as text: CSV cells are text, Excel's are { v }. */
 const cellText = cell => (cell == null ? '' : typeof cell === 'string' ? cell : String(cell.v));
 
+/** Said when the browser refuses the file (see gridCsv.downloadCsv). */
+const DOWNLOAD_REFUSED = 'This browser did not allow the file to be downloaded.';
+
 function messageOf(error) {
     if (!error) return 'Unknown error.';
     const body = error.body;
@@ -294,7 +297,11 @@ export default class GridImportDialog extends LightningElement {
     handleTemplate() {
         const editable = (this.columns || []).filter(c => c.editable);
         const columns = [{ field: 'Id', label: 'Id' }].concat(editable.map(c => ({ field: c.field, label: c.label })));
-        downloadCsv(toCsv([], columns), 'import-template.csv', this.template.querySelector('.rh-import-download'));
+        if (
+            !downloadCsv(toCsv([], columns), 'import-template.csv', this.template.querySelector('.rh-import-download'))
+        ) {
+            this.error = DOWNLOAD_REFUSED;
+        }
     }
 
     format(n) {
@@ -650,7 +657,15 @@ export default class GridImportDialog extends LightningElement {
                 return row;
             });
         const base = String(this.fileName || 'import').replace(/\.[^.]+$/, '');
-        downloadCsv(toCsv(rows, columns), `${base}-problems.csv`, this.template.querySelector('.rh-import-download'));
+        if (
+            !downloadCsv(
+                toCsv(rows, columns),
+                `${base}-problems.csv`,
+                this.template.querySelector('.rh-import-download')
+            )
+        ) {
+            this.error = DOWNLOAD_REFUSED;
+        }
     }
 
     get hasProblems() {

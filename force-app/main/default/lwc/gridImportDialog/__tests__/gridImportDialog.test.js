@@ -11,7 +11,7 @@ import { parseCsv } from 'c/gridImport';
 
 jest.mock('@salesforce/apex/GridController.importRows', () => ({ default: jest.fn() }), { virtual: true });
 // Downloads are checked at their boundary; the CSV itself is built for real.
-jest.mock('c/gridCsv', () => ({ ...jest.requireActual('c/gridCsv'), downloadCsv: jest.fn() }));
+jest.mock('c/gridCsv', () => ({ ...jest.requireActual('c/gridCsv'), downloadCsv: jest.fn(() => true) }));
 
 /* global require, Buffer -- Jest runs in Node, where the test builds its own .xlsx file. */
 const zlib = require('zlib');

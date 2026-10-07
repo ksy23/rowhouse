@@ -38,7 +38,7 @@ jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jes
     virtual: true
 });
 // Export is checked at its boundary: what gridView hands to gridCsv.
-jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.fn() }));
+jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.fn(() => true) }));
 
 const DEFINITION = {
     name: 'Test_Records',
@@ -925,6 +925,26 @@ describe('export', () => {
         // Named after the grid title, which is the configuration label.
         expect(fileName).toMatch(/^Test-Records-\d{4}-\d{2}-\d{2}\.csv$/);
         expect(container).toBe(el.shadowRoot.querySelector('.rh-download'));
+    });
+
+    it('says so when the browser refuses the file, and does not claim an export', async () => {
+        downloadCsv.mockReturnValueOnce(false);
+        const el = mount();
+        await settle();
+        const toasts = [];
+        el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
+        el.shadowRoot.querySelector('.rh-export').dispatchEvent(new CustomEvent('click'));
+        await settle();
+        expect(toasts).toEqual([
+            expect.objectContaining({
+                title: 'Not exported',
+                variant: 'error',
+                message: 'This browser did not allow the file to be downloaded.'
+            })
+        ]);
+        expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe(
+            'This browser did not allow the file to be downloaded.'
+        );
     });
 
     it('offers no export when the configuration does not allow it', async () => {

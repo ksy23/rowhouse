@@ -38,7 +38,7 @@ jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn
 jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.resetLayout', () => ({ default: jest.fn() }), { virtual: true });
 // Export is checked at its boundary: what gridView hands to gridCsv.
-jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.fn() }));
+jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.fn(() => true) }));
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
