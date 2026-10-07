@@ -282,17 +282,22 @@ function hashPath(path) {
 }
 
 /**
- * What the table renders for a grouped grid: { items, headers }.
+ * What the table renders for a grouped grid: { items, headers, numbers }.
  *
  *   rows      the rows, in the user's sort order
  *   levels    the grouping (normalizeGrouping)
  *   options   { columns, keyField, collapsed: { [id]: true }, totals: rollUp's
  *               answer or null, names: { [recordId]: name }, sortKeys: the
  *               user's [{ field, direction }], timeZone, fiscal (fiscalOf),
- *               order: the groups' order (GROUP ORDER, normalizeOrder) }
+ *               order: the groups' order (GROUP ORDER, normalizeOrder),
+ *               numbered: true for row numbers }
  *
  * items: header rows ({ [keyField]: id, __group }) and the rows of expanded
  * groups, in order. headers: Map of id to header, whether shown or not.
+ * numbers: with numbered, a Map of each row's id (as a string) to its row
+ * number, 1 up, in the order shown, counting straight through the groups.
+ * A collapsed group's rows keep their numbers, so the rows after it keep
+ * theirs too. Without numbered, null.
  * A header: { id, path, level, key, field, unit, label, columnLabel, loaded
  * (rows loaded), count and values (the server's, or null), edited and unknown
  * (withDrafts), expanded, parentId }.
@@ -309,11 +314,13 @@ export function buildView(
         sortKeys = [],
         timeZone = TIME_ZONE,
         fiscal = null,
-        order = null
+        order = null,
+        numbered = false
     } = {}
 ) {
     const headers = new Map();
-    if (!levels || !levels.length) return { items: rows, headers };
+    if (!levels || !levels.length)
+        return { items: rows, headers, numbers: numbered ? numberRows(rows, keyField) : null };
     const byField = new Map(columns.map(c => [c.field, c]));
     const cols = levels.map(l => byField.get(l.field) || { field: l.field, type: 'text' });
     const root = { children: new Map(), order: [] };
@@ -385,7 +392,25 @@ export function buildView(
         });
     };
     walk(root, null);
-    return { items, headers };
+    let numbers = null;
+    if (numbered) {
+        // Every group, collapsed or not, in the order shown.
+        numbers = new Map();
+        const number = node =>
+            node.order.forEach(g => {
+                if (g.order.length) number(g);
+                else g.rows.forEach(r => numbers.set(String(r[keyField]), numbers.size + 1));
+            });
+        number(root);
+    }
+    return { items, headers, numbers };
+}
+
+/** Ungrouped: each row's number is its place in the list, 1 up. */
+function numberRows(rows, keyField) {
+    const numbers = new Map();
+    rows.forEach((r, i) => numbers.set(String(r[keyField]), i + 1));
+    return numbers;
 }
 
 /**

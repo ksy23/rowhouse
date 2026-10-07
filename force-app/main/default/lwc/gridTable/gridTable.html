@@ -350,7 +350,7 @@
                                     data-col-index={statusHeader.colIndex}
                                     data-field="__status"
                                 >
-                                    <span class="slds-assistive-text">Row status</span>
+                                    <span class="slds-assistive-text">{statusHeader.label}</span>
                                 </th>
                             </template>
                             <template lwc:if={selectHeader}>
@@ -629,15 +629,20 @@
                                         data-col-index={row.statusCell.colIndex}
                                     >
                                         <template lwc:if={row.isRecord}>
-                                            <button
-                                                class={row.statusCell.buttonCls}
-                                                tabindex={row.statusCell.controlTabindex}
-                                                title={row.statusCell.message}
-                                                aria-hidden="true"
-                                            >
-                                                <lightning-icon icon-name="utility:error" size="xx-small" variant="error"></lightning-icon>
-                                            </button>
-                                            <span class="slds-assistive-text">{row.statusCell.message}</span>
+                                            <template lwc:if={row.statusCell.number}>
+                                                <span class="slds-text-body_small slds-text-color_weak rh-row-number">{row.statusCell.number}</span>
+                                            </template>
+                                            <template lwc:else>
+                                                <button
+                                                    class={row.statusCell.buttonCls}
+                                                    tabindex={row.statusCell.controlTabindex}
+                                                    title={row.statusCell.message}
+                                                    aria-hidden="true"
+                                                >
+                                                    <lightning-icon icon-name="utility:error" size="xx-small" variant="error"></lightning-icon>
+                                                </button>
+                                                <span class="slds-assistive-text">{row.statusCell.message}</span>
+                                            </template>
                                         </template>
                                     </td>
                                 </template>

@@ -9,6 +9,7 @@
         "Grid_Configuration__mdt.Allow_CSV_Export__c",
         "Grid_Configuration__mdt.Frozen_Columns__c",
         "Grid_Configuration__mdt.Height_Px__c",
+        "Grid_Configuration__mdt.Hide_Row_Numbers__c",
         "Grid_Configuration__mdt.Allow_Mass_Delete__c",
         "Grid_Configuration__mdt.Allow_Import__c",
         "Grid_Configuration__mdt.Log_Changes__c",

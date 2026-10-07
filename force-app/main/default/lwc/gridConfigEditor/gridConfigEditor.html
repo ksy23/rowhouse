@@ -286,6 +286,19 @@
                                         onchange={handleChange}
                                     ></lightning-input>
                                 </div>
+                                <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                    <lightning-input
+                                        class="rh-config-row-numbers"
+                                        type="checkbox"
+                                        label="Show row numbers"
+                                        checked={showRowNumbers}
+                                        field-level-help="Numbers the rows down the grid's left edge, 1, 2, 3 in the order shown, as a list view does."
+                                        data-list="config"
+                                        data-prop="hideRowNumbers"
+                                        data-kind="on"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                </div>
                                 <fieldset class="slds-col slds-size_1-of-1 slds-form-element slds-m-bottom_small">
                                     <legend class="slds-form-element__legend slds-form-element__label">
                                         What users can do

@@ -1008,6 +1008,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
             selectionKey: this.selectionKey,
             diagnostics: this.diagnostics,
             frozenColumns: d.frozenColumns || 0,
+            // Rows numbered down the left edge unless the admin hid them; a
+            // child table by its own grid's setting.
+            rowNumbers: Boolean(this.definition) && d.hideRowNumbers !== true,
             // Pixels; empty fills the window. A child table sits in a
             // panel of fixed height under its row, and is sized to fit it.
             height: this.isNested ? childTableHeight(this.level, this._parent.height) : d.height || null,

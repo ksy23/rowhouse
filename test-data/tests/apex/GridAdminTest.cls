@@ -106,6 +106,7 @@ private class GridAdminTest {
             System.assertEquals('Test_Records', d.config.name);
             System.assertEquals('Rowhouse_Test_Record__c', d.config.objectApiName);
             System.assertEquals(false, d.config.isNew);
+            System.assertEquals(false, d.config.hideRowNumbers, 'Rows are numbered unless the box is checked.');
             GridConfig.Definition def = GridConfig.load('Test_Records');
             System.assertEquals(def.columns.size(), d.columns.size());
             for (Integer i = 0; i < d.columns.size(); i++) {
@@ -277,6 +278,7 @@ private class GridAdminTest {
             System.assertEquals('Rowhouse_Test_Record__c', valueOf(cfg, 'Object_API_Name__c'));
             System.assertEquals(true, valueOf(cfg, 'Allow_Inline_Edit__c'));
             System.assertEquals(null, valueOf(cfg, 'Height_Px__c'), 'Every field is sent, blank ones as null.');
+            System.assertEquals(false, valueOf(cfg, 'Hide_Row_Numbers__c'), 'A new grid numbers its rows.');
 
             Metadata.CustomMetadata nameCol = sent.get('Grid_Column__mdt.Brand_New_Name');
             System.assertEquals(
@@ -693,6 +695,11 @@ private class GridAdminTest {
                 valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Log_Changes__c'),
                 'The rest as it was.'
             );
+            System.assertEquals(
+                true,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Hide_Row_Numbers__c'),
+                'Hide Row Numbers as it was.'
+            );
         }
     }
 
@@ -713,12 +720,19 @@ private class GridAdminTest {
 
             GridAdmin.Draft archived = (GridAdmin.Draft) GridAdmin.readConfig('Test_Archived').get('draft');
             System.assertEquals(true, archived.config.archived);
+            System.assertEquals(true, archived.config.hideRowNumbers, 'Hide Row Numbers reads back.');
+            archived.config.hideRowNumbers = false;
             archived.config.archived = false;
             GridAdmin.save(archived);
             System.assertEquals(
                 true,
                 valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Archived__c'),
                 'Saving an archived grid keeps it archived.'
+            );
+            System.assertEquals(
+                false,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Hide_Row_Numbers__c'),
+                'Unchecking Hide Row Numbers is saved.'
             );
         }
     }

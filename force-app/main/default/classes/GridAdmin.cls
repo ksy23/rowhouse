@@ -92,6 +92,9 @@ public with sharing class GridAdmin {
         public Boolean logChanges = false;
         @AuraEnabled
         public Integer frozenColumns;
+        /** True: the grid shows no row numbers (Hide Row Numbers). */
+        @AuraEnabled
+        public Boolean hideRowNumbers = false;
         @AuraEnabled
         public Integer height;
         /** On a record page, the lookup that points to the page's record; blank for none. */
@@ -414,6 +417,7 @@ public with sharing class GridAdmin {
         d.config.allowImport = cfg.Allow_Import__c == true;
         d.config.logChanges = cfg.Log_Changes__c == true;
         d.config.frozenColumns = toInteger(cfg.Frozen_Columns__c);
+        d.config.hideRowNumbers = cfg.Hide_Row_Numbers__c == true;
         d.config.height = toInteger(cfg.Height_Px__c);
         d.config.recordPageField = cfg.Record_Page_Field__c;
         d.config.archived = cfg.Archived__c == true;
@@ -1353,6 +1357,7 @@ public with sharing class GridAdmin {
             Grid_Configuration__mdt.Allow_Import__c => c.allowImport == true,
             Grid_Configuration__mdt.Log_Changes__c => c.logChanges == true,
             Grid_Configuration__mdt.Frozen_Columns__c => toDecimal(c.frozenColumns),
+            Grid_Configuration__mdt.Hide_Row_Numbers__c => c.hideRowNumbers == true,
             Grid_Configuration__mdt.Height_Px__c => toDecimal(c.height),
             Grid_Configuration__mdt.Record_Page_Field__c => trimmed(c.recordPageField),
             Grid_Configuration__mdt.Archived__c => c.archived == true

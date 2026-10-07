@@ -361,6 +361,7 @@ export function emptyDraft() {
             logChanges: false,
             frozenColumns: null,
             height: null,
+            hideRowNumbers: false,
             recordPageField: null
         },
         columns: [],

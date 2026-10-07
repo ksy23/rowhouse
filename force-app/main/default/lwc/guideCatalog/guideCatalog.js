@@ -71,6 +71,7 @@ export const PAGES = [
             "filters",
             "recordpage",
             "layout",
+            "numbers",
             "group",
             "child",
             "actions",

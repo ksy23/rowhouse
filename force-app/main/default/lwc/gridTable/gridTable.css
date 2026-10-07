@@ -759,3 +759,10 @@
 .rh-grid tr.rh-group-row > td.rh-subtotal_edited {
     background-color: var(--slds-g-color-palette-yellow-95, rgb(251, 243, 224));
 }
+
+/* A row's number down the left edge, as a list view shows it: digits of one width, lined up on the right. */
+.rh-row-number {
+    display: block;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}

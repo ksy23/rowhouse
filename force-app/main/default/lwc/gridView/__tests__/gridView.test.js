@@ -105,6 +105,16 @@ afterEach(() => {
 });
 
 describe('loading', () => {
+    it("numbers the table's rows unless the configuration hides them", async () => {
+        const el = mount();
+        await settle();
+        expect(tableConfig(el).rowNumbers).toBe(true);
+        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, hideRowNumbers: true }, diagnostics: false });
+        const hidden = mount('No_Numbers');
+        await settle();
+        expect(tableConfig(hidden).rowNumbers).toBe(false);
+    });
+
     it('reads the configuration by name, then the rows, and hands both to the table', async () => {
         const el = mount();
         await settle();

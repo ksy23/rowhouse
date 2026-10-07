@@ -45,6 +45,26 @@ private class GridConfigTest {
         System.assertEquals(null, def.height, 'No Height: the grid fills the window.');
         System.assertEquals(320, GridConfig.load('Save_Test').height, 'A Height is passed on in pixels.');
         System.assertEquals('asc', def.sortDirection);
+        System.assertEquals(false, def.hideRowNumbers, 'Unchecked: the rows are numbered.');
+    }
+
+    @IsTest
+    static void hideRowNumbersIsPassedOn() {
+        GridConfig.Definition def = GridConfig.build(
+            new Grid_Configuration__mdt(
+                DeveloperName = 'No_Numbers',
+                MasterLabel = 'No Numbers',
+                Object_API_Name__c = 'Rowhouse_Test_Record__c',
+                Hide_Row_Numbers__c = true
+            ),
+            new List<Grid_Column__mdt>{
+                new Grid_Column__mdt(DeveloperName = 'No_Numbers_Name', Field_API_Name__c = 'Name', Sort_Order__c = 10)
+            },
+            new List<Grid_Format_Rule__mdt>(),
+            new List<Grid_Child__mdt>(),
+            new List<Grid_Action__mdt>()
+        );
+        System.assertEquals(true, def.hideRowNumbers, 'Checked: no row numbers.');
     }
 
     @IsTest

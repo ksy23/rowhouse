@@ -120,6 +120,48 @@ describe('labels', () => {
     });
 });
 
+describe('row numbers', () => {
+    const rows = [
+        { Id: 'r1', Stage__c: 'Beta' },
+        { Id: 'r2', Stage__c: 'alpha_api' },
+        { Id: 'r3', Stage__c: 'Beta' },
+        { Id: 'r4', Stage__c: null }
+    ];
+    const byStage = [{ field: 'Stage__c', unit: null }];
+
+    it('numbers ungrouped rows by their place, only when asked', () => {
+        expect(buildView(rows, [], { columns: COLUMNS }).numbers).toBeNull();
+        const { numbers } = buildView(rows, [], { columns: COLUMNS, numbered: true });
+        expect([...numbers.entries()]).toEqual([
+            ['r1', 1],
+            ['r2', 2],
+            ['r3', 3],
+            ['r4', 4]
+        ]);
+    });
+
+    it('numbers straight through the groups, in the order shown', () => {
+        expect(buildView(rows, byStage, { columns: COLUMNS }).numbers).toBeNull();
+        const { items, numbers } = buildView(rows, byStage, { columns: COLUMNS, numbered: true });
+        const shown = items.filter(i => !i.__group).map(i => i.Id);
+        expect(shown).toEqual(['r2', 'r1', 'r3', 'r4']);
+        expect(shown.map(id => numbers.get(id))).toEqual([1, 2, 3, 4]);
+    });
+
+    it('keeps the numbers of a collapsed group, and of the rows after it', () => {
+        const open = buildView(rows, byStage, { columns: COLUMNS, numbered: true });
+        const alpha = open.items.find(i => i.__group && i.__group.label === 'Alpha').Id;
+        const { items, numbers } = buildView(rows, byStage, {
+            columns: COLUMNS,
+            numbered: true,
+            collapsed: { [alpha]: true }
+        });
+        expect(items.filter(i => !i.__group).map(i => i.Id)).toEqual(['r1', 'r3', 'r4']);
+        expect(numbers).toEqual(open.numbers);
+        expect(numbers.get('r1')).toBe(2);
+    });
+});
+
 describe('the view', () => {
     const rows = [
         { Id: 'r1', Stage__c: 'Beta', Due__c: '2026-01-05' },

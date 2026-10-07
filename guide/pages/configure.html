@@ -66,6 +66,7 @@
             <div><span class="adm-fl">Frozen columns</span><span class="adm-in">0</span></div>
             <div><span class="adm-fl">Height in pixels</span><span class="adm-in ph">Fills the window</span></div>
           </div>
+          <div class="adm-can"><span><span class="mcb on"></span>Show row numbers</span></div>
           <div class="adm-can"><span class="adm-fl" style="font-weight:600;color:var(--m-ink)">What users can do</span><span><span class="mcb on"></span>Edit cells in the grid</span><span><span class="mcb on"></span>Export as CSV</span><span><span class="mcb"></span>Import from a CSV or Excel file</span><span><span class="mcb"></span>Delete selected rows</span><span><span class="mcb"></span>Log every change in Grid Edit Log</span></div>
         </div>
         <div class="adm-side">
@@ -75,6 +76,7 @@
           <p><b>Rows per page</b><br>Blank loads the first 200 rows, then 2,000 at a time up to 10,000, then more as users scroll, up to 100,000.</p>
           <p><b>On a record page</b><br>Shows only the records whose lookup points to the page's record, like a related list.</p>
           <p><b>Height in pixels</b><br>Blank fills the window.</p>
+          <p><b>Show row numbers</b><br>Starts ticked: 1, 2, 3 down the left edge, in the order shown.</p>
         </div>
       </div>
     </div></div></div>
@@ -85,10 +87,11 @@
   <div class="tbox"><table class="ref wrap1">
     <thead><tr><th>Record</th><th>Setup field</th><th>On the Grid Admin tab</th></tr></thead>
     <tbody>
-      <tr><td rowspan="6">Grid Configuration</td><td>Label · Grid Configuration Name · Object API Name</td><td>Grid Title · API name · Object</td></tr>
+      <tr><td rowspan="7">Grid Configuration</td><td>Label · Grid Configuration Name · Object API Name</td><td>Grid Title · API name · Object</td></tr>
       <tr><td>Page Size · Default Sort Field · Default Sort Direction</td><td>Rows per page · Sort by · Sort direction</td></tr>
       <tr><td>Record Page Field</td><td>On a record page, show the records whose</td></tr>
       <tr><td>Frozen Columns · Height (px)</td><td>Frozen columns · Height in pixels</td></tr>
+      <tr><td>Hide Row Numbers</td><td>Show row numbers (the reverse of Hide Row Numbers)</td></tr>
       <tr><td>Allow Inline Edit · Allow CSV Export · Allow Import · Allow Mass Delete · Log Changes</td><td>Under <b>What users can do</b>: Edit cells in the grid · Export as CSV · Import from a CSV or Excel file · Delete selected rows · Log every change in Grid Edit Log</td></tr>
       <tr><td>Archived</td><td><b>Archive</b> and <b>Restore</b>, in the grid's menu on the Grids page</td></tr>
       <tr><td rowspan="4">Grid Column</td><td>Field API Name · Column Label · Editable · Sortable · Wrap Text · Always Shown · Width (px) · Subtotal · Inactive</td><td>Field · Header · Edit · Sort · Wrap · Always shown · Width · Subtotal · On (the reverse of Inactive)</td></tr>
@@ -142,7 +145,7 @@
   <p class="sec-sub">One per grid. Its Label is the grid's title, and its API name (Grid Configuration Name) is what you type into the Rowhouse Grid component.</p></div>
   {{fields:Grid_Configuration__mdt}}
   <div class="call" style="margin-top:18px"><span class="k">Defaults worth knowing</span>
-    <p>Page Size blank loads the first 200 rows, then 2,000 at a time up to 10,000 as the grid opens, then more as users scroll, up to 100,000. Height blank fills the window. A Height under 160 is treated as 160. Allow Inline Edit and Allow CSV Export start ticked; Allow Mass Delete, Allow Import and Log Changes start unticked, because each can change many records at once.</p></div>
+    <p>Page Size blank loads the first 200 rows, then 2,000 at a time up to 10,000 as the grid opens, then more as users scroll, up to 100,000. Height blank fills the window. A Height under 160 is treated as 160. Hide Row Numbers starts unticked, so the rows are numbered, as a list view's are. Allow Inline Edit and Allow CSV Export start ticked; Allow Mass Delete, Allow Import and Log Changes start unticked, because each can change many records at once.</p></div>
   <div class="call s" style="margin-top:12px"><span class="k">On a record page: Record Page Field</span>
     <p>Placed on a record page, a grid with a <b>Record Page Field</b> shows only the records whose field points to that page's record, like a related list: a Contacts grid with <span class="v plain">AccountId</span>, on Account pages, shows that account's contacts. An import there fills the field in on every record it creates. On the Grid Admin tab the list offers the object's lookups to one object; in Setup any lookup of the grid's object works. The page must be of an object the lookup points to: on another object's page the grid says so instead of showing rows. On App and Home pages, or with the field blank, the grid shows its whole list.</p></div>
 </section>

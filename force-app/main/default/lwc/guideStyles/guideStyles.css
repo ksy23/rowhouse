@@ -1367,6 +1367,15 @@ table.rh-mt td.rh-cb {
     padding: 0;
 }
 
+/* The row numbers down a grid's left edge, as a list view shows them. */
+table.rh-mt th.rh-rn,
+table.rh-mt td.rh-rn {
+    text-align: right;
+    padding: 0 var(--slds-g-spacing-2, 0.5rem) 0 0;
+    color: var(--slds-g-color-on-surface-1, #5c5c5c);
+    font-variant-numeric: tabular-nums;
+}
+
 .rh-mcb {
     width: 13px;
     height: 13px;
@@ -1621,7 +1630,8 @@ td.rh-focus {
 .rh-m-panel {
     background: var(--slds-g-color-palette-blue-95, #f7faff);
     border-left: var(--slds-g-sizing-border-3, 3px) solid var(--slds-g-color-palette-blue-40, #0b5cab);
-    margin-left: var(--slds-g-spacing-6, 2rem);
+    /* Under the row's toggle: past the number and checkbox columns. */
+    margin-left: calc(2 * var(--slds-g-spacing-6, 2rem));
     padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-3, 0.75rem);
 }
 

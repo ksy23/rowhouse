@@ -26,6 +26,8 @@
  *     hasMore:     true when the server has rows not loaded yet
  *     loadingMore: true while the next page is on its way
  *     height:      pixels, from the configuration; empty means fill the window
+ *     rowNumbers:  true to number the rows down the left edge, as a list view
+ *                  does (the configuration's Hide Row Numbers unchecked)
  *     refNames:    { [recordId]: name } for lookup and owner cells
  *     configName:  the grid configuration, which lookup editors search through
  *     formatRules: conditional formats from the server, in order
@@ -312,6 +314,11 @@ const SELECT_WIDTH = 52;
 // the columns leaves them out, or the table is 2px wider than its box.
 const TABLE_BORDERS = 2;
 const STATUS_WIDTH = 60;
+// The row-number column widens for numbers of more digits than it holds: px
+// per digit (small text, tabular figures, with room to spare), plus the cell's
+// padding.
+const NUMBER_DIGIT = 8;
+const NUMBER_PAD = 20;
 const NARROW_WIDTH = 480; // px: the SLDS "small" breakpoint (30em)
 // Height, in px.
 const MIN_FIXED_HEIGHT = 160; // an admin Height below this still shows a few rows
@@ -641,7 +648,17 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         return this.rowActions.length > 0;
     }
 
+    /** Rows numbered down the left edge, as a list view's are. Cards have none. */
+    get showRowNumbers() {
+        return this._config.rowNumbers === true;
+    }
+
+    /**
+     * The row-number/error column, SLDS's first column: shown when the rows
+     * are numbered, or a row has errors to show.
+     */
     get hasRowStatus() {
+        if (this.showRowNumbers) return true;
         const errors = this._config.errors || {};
         const m = this._memo;
         if (m.statusErrors !== errors) {
@@ -669,6 +686,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             this._config.columnChoice,
             this.wrapOverrides,
             this.hasRowStatus,
+            this.showRowNumbers,
             this.hasSelection,
             this.hasChildren,
             this.isGrouped,
@@ -677,7 +695,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const m = this._memo;
         if (m.layoutDeps && m.layoutDeps.every((d, i) => d === deps[i])) return m.layoutColumns;
         const list = [];
-        if (this.hasRowStatus) list.push({ field: STATUS_FIELD, utility: true, label: 'Row status' });
+        if (this.hasRowStatus) {
+            list.push({ field: STATUS_FIELD, utility: true, label: this.showRowNumbers ? 'Row number' : 'Row status' });
+        }
         if (this.hasSelection) list.push({ field: SELECT_FIELD, utility: true, label: 'Choose a row' });
         if (this.hasChildren) list.push({ field: EXPAND_FIELD, utility: true, label: 'Related records' });
         if (this.isGrouped) list.push({ field: GROUP_FIELD, utility: true, label: 'Group' });
@@ -736,7 +756,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
      */
     columnWidth(c) {
         if (c.field === SELECT_FIELD) return SELECT_WIDTH;
-        if (c.field === STATUS_FIELD) return STATUS_WIDTH;
+        if (c.field === STATUS_FIELD) return this.statusWidth;
         if (c.field === EXPAND_FIELD) return EXPAND_WIDTH;
         if (c.field === ACTIONS_FIELD) return ACTIONS_WIDTH;
         if (c.field === GROUP_FIELD) return this.widths[GROUP_FIELD] || GROUP_WIDTH;
@@ -744,6 +764,16 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const fitted = this.fittedWidths[c.field] || 0;
         const base = c.width || (fitted ? 0 : DEFAULT_WIDTH);
         return Math.max(base, fitted, minWidthFor(c.type));
+    }
+
+    /**
+     * px: the row-number/error column's width. SLDS's 3.75rem holds an error
+     * button or up to five digits; 100,000 rows need six.
+     */
+    get statusWidth() {
+        if (!this.showRowNumbers) return STATUS_WIDTH;
+        const rows = Array.isArray(this._config.rows) ? this._config.rows.length : 0;
+        return Math.max(STATUS_WIDTH, NUMBER_PAD + NUMBER_DIGIT * String(rows).length);
     }
 
     /** An editable grid keeps room for the edit button in every cell. */
@@ -1411,6 +1441,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const expanded = this.hasChildren ? this.expanded : null;
         const order = this.groupView.order;
         const fiscal = this._config.fiscal || null;
+        const numbered = this.showRowNumbers;
         const m = this._memo;
         if (
             m.rows === rows &&
@@ -1422,7 +1453,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             m.collapsed === collapsed &&
             m.expanded === expanded &&
             m.order === order &&
-            m.fiscal === fiscal
+            m.fiscal === fiscal &&
+            m.numbered === numbered
         ) {
             return m.view;
         }
@@ -1451,7 +1483,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             names: names || {},
             sortKeys: this.sortKeys,
             fiscal,
-            order
+            order,
+            numbered
         });
         // Each open record is followed by its detail row.
         const detailed = withDetails(built.items, expanded, this.keyField);
@@ -1468,6 +1501,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         m.expanded = expanded;
         m.order = order;
         m.fiscal = fiscal;
+        m.numbered = numbered;
+        m.numbers = built.numbers;
         m.detailRows = detailed.detailRows;
         m.view = view;
         m.sorted = sorted;
@@ -2152,12 +2187,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (!col) return null;
         return {
             colIndex: col.colIndex,
+            label: col.label,
             tabindex: this.isTabStop(HEADER, STATUS_FIELD) ? '0' : '-1',
             cls:
                 'rh-status-col' +
                 (this.isFocused(HEADER, STATUS_FIELD) && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '') +
                 this.frozenClass(STATUS_FIELD),
-            style: `width:${STATUS_WIDTH}px` + this.frozenStyle(STATUS_FIELD, true)
+            style: `width:${this.statusWidth}px` + this.frozenStyle(STATUS_FIELD, true)
         };
     }
 
@@ -2206,7 +2242,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             range: this.range,
             offsets: this.frozenOffsets,
             names: this._config.refNames || {},
-            focus: this.focusKey || this.defaultFocusKey() // see isFocused
+            focus: this.focusKey || this.defaultFocusKey(), // see isFocused
+            // Row numbers, by record Id (see view), or null.
+            numbers: this._memo.numbers || null
         };
         // The range as this drawing shows it, for the next change in place (patchRange).
         this._nav.shaded = layout.range;
@@ -2331,7 +2369,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     /** px: how far an open row's panel is indented: to the middle of its row's toggle. */
     get panelIndent() {
-        const before = (this.hasRowStatus ? STATUS_WIDTH : 0) + (this.hasSelection ? SELECT_WIDTH : 0);
+        const before = (this.hasRowStatus ? this.statusWidth : 0) + (this.hasSelection ? SELECT_WIDTH : 0);
         return before + 12;
     }
 
@@ -2509,11 +2547,14 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             };
         }
         if (c.field === STATUS_FIELD) {
+            // The row's number, or in its place the button for its errors.
+            const number = layout.numbers ? layout.numbers.get(id) : undefined;
             return {
                 ...base,
                 isStatus: true,
                 hasError: Boolean(rowErrors.row),
-                message: rowErrors.row ? 'Row ' + rowIndex + ' has errors: ' + rowErrors.row : 'No errors',
+                number: number && !rowErrors.row ? String(number) : '',
+                message: rowErrors.row ? 'Row ' + (number || rowIndex) + ' has errors: ' + rowErrors.row : 'No errors',
                 cls: 'slds-cell-edit slds-cell-error' + focusCls,
                 buttonCls:
                     'slds-button slds-button_icon slds-button_icon-error slds-m-horizontal_xxx-small' +

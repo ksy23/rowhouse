@@ -65,6 +65,10 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
+                <field>Hide_Row_Numbers__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
                 <field>Record_Page_Field__c</field>
             </layoutItems>
         </layoutColumns>

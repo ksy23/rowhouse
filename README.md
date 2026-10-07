@@ -48,7 +48,8 @@ each grid on a Grid Admin tab, without code. There is no paid tier.
   server; past 10,000 rows, so does sorting.
 - Each user's own layout, kept in Salesforce: widths, wrapping, sort,
   grouping, and which columns show, in which order.
-- A list view's look, and a card layout on narrow screens.
+- A list view's look, with its row numbers (an admin can hide them), and a
+  card layout on narrow screens.
 
 **Working in bulk**
 - Select rows to update a field on all of them, or delete them (when the

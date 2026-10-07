@@ -37,4 +37,20 @@ describe('accessibility smoke', () => {
         await flush();
         await expect(el).toBeAccessible();
     });
+
+    it('passes axe with row numbers, and a row whose number gives way to its errors', async () => {
+        const el = createElement('rowhouse-grid-table', { is: GridTable });
+        const id = seedRows[2].Id;
+        el.config = {
+            columns,
+            rows: seedRows.slice(0, 12),
+            ariaLabel: 'Test records',
+            rowNumbers: true,
+            selection: 'multi',
+            errors: { [id]: { row: 'Locked', fields: {} } }
+        };
+        document.body.appendChild(el);
+        await flush();
+        await expect(el).toBeAccessible();
+    });
 });
