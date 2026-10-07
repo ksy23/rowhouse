@@ -1,4 +1,4 @@
-# Rowhouse by Kugamon — the mark
+# Rowhouse — the mark
 
 > The technical reference for the Rowhouse by Kugamon logo files.
 

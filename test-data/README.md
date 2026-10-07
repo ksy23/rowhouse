@@ -1,4 +1,4 @@
-# Rowhouse by Kugamon test data
+# Rowhouse test data
 
 Everything needed to stand up a test org and run the test suites.
 

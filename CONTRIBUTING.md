@@ -1,4 +1,4 @@
-# Contributing to Rowhouse by Kugamon
+# Contributing to Rowhouse
 
 Rowhouse by Kugamon is a free, open-source data grid for Salesforce. Contributions are
 welcome: bug reports, fixes, tests, documentation and features on the roadmap.
