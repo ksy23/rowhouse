@@ -314,6 +314,17 @@
                                         onchange={handleChange}
                                     ></lightning-input>
                                     <lightning-input
+                                        class="rh-config-new"
+                                        type="checkbox"
+                                        label="Create records with New"
+                                        checked={allowNewRecords}
+                                        field-level-help="A New button, as a list view has, for users who can create these records. The record is a row at the top of the grid, or Salesforce's New form when it needs more than the grid shows."
+                                        data-list="config"
+                                        data-prop="allowNewRecords"
+                                        data-kind="checkbox"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                    <lightning-input
                                         class="rh-config-export"
                                         type="checkbox"
                                         label="Export as CSV"
@@ -530,18 +541,22 @@
                                                             </div>
                                                         </template>
                                                         <template lwc:else>
-                                                            <lightning-combobox
-                                                                class="rh-column-field"
-                                                                label={c.fieldLabel}
-                                                                variant="label-hidden"
-                                                                placeholder="Choose a field"
-                                                                options={c.fieldOptions}
-                                                                value={c.field}
-                                                                data-list="columns"
-                                                                data-key={c.key}
-                                                                data-prop="field"
-                                                                onchange={handleChange}
-                                                            ></lightning-combobox>
+                                                            <div class="rh-field-path">
+                                                                <template for:each={c.fieldSteps} for:item="s">
+                                                                    <lightning-combobox
+                                                                        key={s.key}
+                                                                        class={s.cls}
+                                                                        label={s.label}
+                                                                        variant="label-hidden"
+                                                                        placeholder={s.placeholder}
+                                                                        options={s.options}
+                                                                        value={s.value}
+                                                                        data-key={c.key}
+                                                                        data-step={s.index}
+                                                                        onchange={handleFieldStep}
+                                                                    ></lightning-combobox>
+                                                                </template>
+                                                            </div>
                                                         </template>
                                                     </td>
                                                     <td class="rh-cell-wide">

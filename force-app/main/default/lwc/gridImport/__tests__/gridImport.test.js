@@ -112,6 +112,28 @@ describe('mapHeaders', () => {
     });
 });
 
+describe('mapHeaders with a column of a related record', () => {
+    const withParent = COLUMNS.concat([
+        { field: 'Account__r.Industry', label: 'Account: Industry', type: 'picklist', editable: true, isPath: true }
+    ]);
+
+    it('leaves it out and says why: an import writes the grid’s own records only', () => {
+        const m = mapHeaders(['Name', 'Account: Industry'], withParent);
+        expect(m.fields.map(f => f.column.field)).toEqual(['Name']);
+        expect(m.ignored).toEqual([
+            {
+                index: 1,
+                header: 'Account: Industry',
+                reason: 'Account: Industry is a field of a related record. An import changes this grid’s own records only.'
+            }
+        ]);
+    });
+
+    it('does not offer it as a hand mapping', () => {
+        expect(mappingChoices(withParent).map(c => c.value)).not.toContain('Account__r.Industry');
+    });
+});
+
 describe('mapHeaders with lookups headed by what they point to', () => {
     it('finds a lookup by its old heading, "Account ID", as well as its new one', () => {
         expect(mapHeaders(['Account ID'], COLUMNS).fields.map(f => f.column.field)).toEqual(['Account__c']);

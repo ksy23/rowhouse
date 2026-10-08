@@ -101,7 +101,7 @@
                             <template lwc:if={card.isRecord}>
                             <article aria-labelledby={card.headingId}>
                                 <div class="slds-grid slds-grid_vertical-align-center">
-                                    <template lwc:if={hasSelection}>
+                                    <template lwc:if={card.selectable}>
                                         <div class="slds-checkbox slds-m-right_x-small">
                                             <input
                                                 type="checkbox"
@@ -123,7 +123,7 @@
                                         <template lwc:else>{card.title}</template>
                                     </h3>
                                     <!-- The record's actions, as each table row's menu. -->
-                                    <template lwc:if={hasRowActions}>
+                                    <template lwc:if={card.hasActions}>
                                         <lightning-button-menu
                                             class="slds-col_bump-left slds-m-left_x-small rh-card-actions"
                                             alternative-text={card.actionsLabel}
@@ -675,7 +675,7 @@
                                         data-row-index={row.rowIndex}
                                         data-col-index={row.selectCell.colIndex}
                                     >
-                                        <template lwc:if={row.isRecord}>
+                                        <template lwc:if={row.selectCell.selectable}>
                                             <div class="slds-checkbox">
                                                 <input
                                                     type={row.selectCell.inputType}
@@ -897,7 +897,7 @@
                                         data-row-index={row.rowIndex}
                                         data-col-index={row.actionsCell.colIndex}
                                     >
-                                        <template lwc:if={row.isRecord}>
+                                        <template lwc:if={row.actionsCell.hasMenu}>
                                             <div class={row.actionsCell.triggerCls}>
                                                 <button
                                                     class="slds-button slds-button_icon slds-button_icon-border-filled slds-button_icon-x-small rh-row-menu-button"

@@ -314,6 +314,42 @@ private class GridControllerTest {
             System.assertEquals('999999999999999999', rows[0].get('Number_Field__c'), 'Rows as fetchRows sends them.');
             System.assertEquals(2, page.get('totalRows'));
             System.assertEquals(false, page.get('hasMore'));
+            Map<String, Object> newRow = (Map<String, Object>) result.get('newRow');
+            System.assertEquals(true, newRow.get('inline'), 'The New button adds a row in place here.');
+            System.assertEquals(
+                null,
+                GridController.openGrid('Save_Test', null, null, null, null).get('newRow'),
+                'No New button, no new row.'
+            );
+        }
+    }
+
+    @IsTest
+    static void createRowsCreatesTheNewRowsRecordsAndSaysWhyNot() {
+        System.runAs(GridTestUsers.fullUser()) {
+            GridCreateService.Result result = GridController.createRows(
+                'Test_Records',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'key' => 'rh-new-1', 'Name' => 'From the grid' }
+                },
+                null,
+                null,
+                null
+            );
+            System.assertEquals('rh-new-1', result.rows[0].key);
+            System.assert(result.rows[0].success, String.valueOf(result.rows[0].errors));
+            try {
+                GridController.createRows(
+                    'Save_Test',
+                    new List<Map<String, Object>>{ new Map<String, Object>{ 'key' => 'k', 'Name' => 'x' } },
+                    null,
+                    null,
+                    null
+                );
+                System.assert(false, 'Expected a refusal.');
+            } catch (AuraHandledException e) {
+                System.assertEquals('This grid does not allow new records.', e.getMessage());
+            }
         }
     }
 

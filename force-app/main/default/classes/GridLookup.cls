@@ -20,11 +20,13 @@ public with sharing class GridLookup {
         GridConfig.Definition def = GridConfig.forUser(configName);
         GridConfig.Column column = editableLookup(def, fieldName);
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-        Schema.SObjectField field = GridDescribe.field(objectType, column.field);
+        // A lookup of the grid's object, or of a parent record (GridPaths).
+        GridPaths.FieldPath fp = GridPaths.resolve(objectType, column.field);
+        Schema.SObjectField field = fp.field;
         // No name is longer than 255 characters, so neither is a useful term.
         String contains = '%' + GridDataService.escapeLike(term == null ? '' : term.trim().left(MAX_TERM)) + '%';
         if (column.type == 'owner') {
-            return owners(objectType, contains);
+            return owners(fp.holder, contains); // the queues of the record that holds the owner
         }
         List<Map<String, String>> out = new List<Map<String, String>>();
         for (Schema.SObjectType target : field.getDescribe().getReferenceTo()) {
@@ -103,7 +105,8 @@ public with sharing class GridLookup {
         GridConfig.Definition def = GridConfig.forUser(configName);
         GridConfig.Column column = editableLookup(def, fieldName);
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-        Schema.SObjectField field = GridDescribe.field(objectType, column.field);
+        // A lookup of the grid's object, or of a parent record (GridPaths).
+        Schema.SObjectField field = GridPaths.resolve(objectType, column.field).field;
         if (recordId == null || !field.getDescribe().getReferenceTo().contains(recordId.getSObjectType())) {
             throw new GridException('Record ' + recordId + ' cannot be the value of ' + column.label + '.');
         }

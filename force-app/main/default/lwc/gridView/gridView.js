@@ -137,6 +137,18 @@
  * changed them; counts and subtotals are fetched again. The selection stays,
  * so another action can run on the same rows.
  *
+ * NEW
+ * With Allow New Records on the configuration and create access to the
+ * object, the toolbar has a list view's New button (openGrid's `newRow` says
+ * how). Where a new record can be a row of the grid, New adds an empty row
+ * at the top, with Salesforce's defaults and the parent it belongs under
+ * filled in; the user fills in its cells and Save creates it
+ * (GridController.createRows), before the other changes are saved, and reads
+ * it back. It is one undo step; Cancel takes it away with the other changes.
+ * Where it cannot (a choice of record type, a required field that is not
+ * a column, a grid that does not edit cells), New opens Salesforce's New form
+ * (c/gridNewRecord), and the record it creates is read and added to the grid.
+ *
  * GRID SETTINGS
  * With the Rowhouse Grid Admin permission set (canConfigure, from the server),
  * the toolbar has a gear, and the compact menu a Grid settings item, that open
@@ -181,6 +193,7 @@ import openGrid from '@salesforce/apex/GridController.openGrid';
 import fetchRows from '@salesforce/apex/GridController.fetchRows';
 import fetchRowsById from '@salesforce/apex/GridController.fetchRowsById';
 import saveRows from '@salesforce/apex/GridController.save';
+import createRows from '@salesforce/apex/GridController.createRows';
 import saveStatus from '@salesforce/apex/GridController.saveStatus';
 import deleteRows from '@salesforce/apex/GridController.deleteRows';
 import restoreRows from '@salesforce/apex/GridController.restoreRows';
@@ -203,7 +216,16 @@ import {
     hasDrafts,
     mergeErrors,
     requiredErrors,
-    toPayload
+    toPayload,
+    NEW_MARK,
+    newRowKey,
+    addNewRow,
+    splitDrafts,
+    toCreatePayload,
+    newRowRequiredErrors,
+    applyCreateResult,
+    withSameParent,
+    rowsSharingParents
 } from 'c/gridEditState';
 import { toCsv, downloadCsv } from 'c/gridCsv';
 import { sortRows, picklistRanks } from 'c/gridFormat';
@@ -229,6 +251,8 @@ export const PRELOAD_ROWS = 10000;
 export const MAX_LOADED_ROWS = 100000;
 /** Pages after the first; the server's own maximum. */
 export const FOLLOW_PAGE_SIZE = 2000;
+/** New rows created per call (GridCreateService.MAX_ROWS). */
+const CREATE_BATCH = 200;
 /** fetchRowsById takes at most this many Ids per call. */
 const REREAD_BATCH = 2000;
 export const SEARCH_DELAY_MS = 300;
@@ -445,6 +469,19 @@ export default class GridView extends NavigationMixin(LightningElement) {
     columnChoice = null;
     /** The Choose columns dialog is open. */
     columnsOpen = false;
+    /**
+     * How this user adds records here (openGrid's newRow): { objectLabel,
+     * inline, defaults, names, presets }, or null for no New button.
+     */
+    newRowContext = null;
+    /**
+     * The rows added with New and not saved yet, in the order added: { Id:
+     * key, ...Salesforce's defaults, ...the parent }. A row shows while its
+     * draft carries the new-row mark (c/gridEditState NEW_MARK).
+     */
+    newRows = [];
+    /** A row for the table to focus, { id, seq }: the row New just added. */
+    focusRow = null;
 
     // ---- non-reactive containers (mutated, never reassigned) ----
     _runtime = {
@@ -453,6 +490,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         countToken: 0,
         searchTimer: null,
         connected: false,
+        newCount: 0,
         next: { locator: null, cursorToken: null }
     };
     _memo = {};
@@ -654,6 +692,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.layoutSaved = false;
         this.columnChoice = null;
         this.columnsOpen = false;
+        this.newRowContext = null;
+        this.newRows = [];
+        this.focusRow = null;
         this._saved.off = false;
         this._saved.lastJson = null;
         this._runtime.summaryToken++;
@@ -696,6 +737,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 : { widths: null, wrap: {}, expanded: [], groupView: null };
             this.userLayout = saved ? { key: ++this._saved.key, ...this._saved.table, sort: this.sort } : null;
             this.columnChoice = saved ? saved.columns : null;
+            this.newRowContext = opened.newRow || null;
             this.definition = d;
             const first = this.firstPageOf(opened, openMs);
             this.telemetry('config', {
@@ -971,7 +1013,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
             this.userLayout,
             this.columnChoice,
             this.saveProgress,
-            this.fiscal
+            this.fiscal,
+            this.newRows,
+            this.focusRow
         ];
         const memo = this._memo;
         if (memo.deps && memo.deps.every((d, i) => d === deps[i])) return memo.value;
@@ -982,6 +1026,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
             // The user's own order and hidden columns; the table draws what it says.
             columnChoice: this.columnChoice,
             rows: this.rows,
+            // Rows added with New, not saved yet: the table shows them first.
+            newRows: this.shownNewRows,
+            focusRow: this.focusRow,
             keyField: 'Id',
             drafts: this.drafts,
             errors: this.errors,
@@ -1035,7 +1082,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             childCounts: this.childCounts,
             childCountsFailed: this.childCountsFailed,
             // Undo and Redo sit in the Save bar.
-            history: this.hasEditableColumns
+            history: this.hasHistory
                 ? { canUndo: this.canUndo, canRedo: this.canRedo, undoLabel: this.undoLabel, redoLabel: this.redoLabel }
                 : null,
             // What an empty list says, and offers.
@@ -1211,8 +1258,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         return !this.compactToolbar;
     }
 
-    get hasImportExport() {
-        return this.canImport || this.canExport;
+    /** The list view's buttons: New, Import, Export. */
+    get hasListButtons() {
+        return this.canAddRecords || this.canImport || this.canExport;
     }
 
     get refreshDisabled() {
@@ -1225,7 +1273,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /** The actions of the compact toolbar's menu. */
     get menuItems() {
-        const items = [{ key: 'refresh', value: 'refresh', label: 'Refresh', disabled: this.refreshDisabled }];
+        const items = [];
+        if (this.canAddRecords) items.push({ key: 'new', value: 'new', label: 'New', disabled: this.newDisabled });
+        items.push({ key: 'refresh', value: 'refresh', label: 'Refresh', disabled: this.refreshDisabled });
         if (this.canChooseColumns)
             items.push({ key: 'columns', value: 'columns', label: 'Choose columns', disabled: false });
         if (this.canImport)
@@ -1250,6 +1300,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     handleMenuSelect(event) {
         const value = event.detail && event.detail.value;
         if (value === 'refresh') this.handleRefresh();
+        else if (value === 'new') this.handleNew();
         else if (value === 'import') this.handleImportOpen();
         else if (value === 'export') this.handleExport();
         else if (value === 'legend') this.handleLegendToggle();
@@ -1828,6 +1879,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     handleCellChange(event) {
         const { recordId, field, value, originalValue, valueLabel } = event.detail;
+        // A parent record's field changes on every row with that parent, as one step.
+        const spread = withSameParent(
+            [{ recordId, field, value, originalValue, valueLabel }],
+            this.rows,
+            this.pathFields
+        );
+        if (spread.length > 1) {
+            this.applyChanges('edit', spread, []);
+            return;
+        }
         this.learnName(value, valueLabel);
         const before = this.drafts;
         this.drafts = applyEdit(this.drafts, recordId, field, value, originalValue);
@@ -1843,12 +1904,15 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     get newRecordFieldLabel() {
-        return this.newRecord ? this.newRecordFieldLabelFor(this.newRecord.field) : '';
+        return this.newRecord && this.newRecord.field ? this.newRecordFieldLabelFor(this.newRecord.field) : '';
     }
 
+    /** Focus goes back where the form was opened from: the New button, or the lookup's cell. */
     handleNewRecordCancel() {
+        const pending = this.newRecord;
         this.newRecord = null;
-        Promise.resolve().then(() => this.focus());
+        if (pending && pending.mode === 'row') this.focusButton('.rh-new');
+        else Promise.resolve().then(() => this.focus());
     }
 
     /**
@@ -1860,6 +1924,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         const id = event.detail && event.detail.id;
         this.newRecord = null;
         if (!pending || !id) return;
+        if (pending.mode === 'row') {
+            await this.addCreatedRecord(id, pending.objectLabel);
+            return;
+        }
         let name = null;
         try {
             name = await lookupName({ configName: this._configName, field: pending.field, recordId: id });
@@ -1901,8 +1969,23 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.applyChanges(label || 'change', changes, errors);
     }
 
-    /** Many cells as one undo step: a paste, a fill, a clear or a mass update. */
-    applyChanges(label, changes, errors) {
+    /** The columns that show a field of a parent record, made once per definition. */
+    get pathFields() {
+        const d = this.definition;
+        if (this._memo.pathFieldsFor !== d) {
+            this._memo.pathFieldsFor = d;
+            this._memo.pathFields = new Set(((d && d.columns) || []).filter(c => c.isPath).map(c => c.field));
+        }
+        return this._memo.pathFields;
+    }
+
+    /**
+     * Many cells as one undo step: a paste, a fill, a clear or a mass update.
+     * A change to a parent record's field is made on every loaded row with
+     * that parent too.
+     */
+    applyChanges(label, edits, errors) {
+        const changes = withSameParent(edits, this.rows, this.pathFields);
         changes.forEach(c => this.learnName(c.value, c.valueLabel));
         const before = this.drafts;
         this.drafts = applyEdits(before, changes);
@@ -1923,6 +2006,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
     get hasEditableColumns() {
         const d = this.definition;
         return Boolean(d && d.allowInlineEdit && (d.columns || []).some(c => c.editable));
+    }
+
+    /** ... or filled in on a new row. */
+    get hasHistory() {
+        return this.hasEditableColumns || Boolean(this.newRowContext && this.newRowContext.inline);
     }
 
     get canUndo() {
@@ -1980,6 +2068,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
     handleCancel() {
         if (this.saving) return;
         this.drafts = {};
+        this.newRows = [];
+        this.focusRow = null;
         this.errors = {};
         this.history = emptyHistory();
         this.notice = null;
@@ -1988,8 +2078,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     async handleSave() {
         if (this.saving || this.deleting || !hasDrafts(this.drafts)) return;
-        // Required fields first, without a round trip. The server checks again.
-        const missing = requiredErrors(this.drafts, this.definition ? this.definition.columns : []);
+        // Required fields first, without a round trip: those blanked, and those
+        // a new row leaves empty. The server checks again.
+        const columns = this.definition ? this.definition.columns : [];
+        const missing = mergeErrors(
+            requiredErrors(this.drafts, columns),
+            newRowRequiredErrors(this.drafts, this.newRowsByKey, columns)
+        );
         const blanks = Object.values(missing).reduce((n, e) => n + Object.keys(e.fields).length, 0);
         if (blanks) {
             this.errors = mergeErrors(this.errors, missing);
@@ -1999,34 +2094,50 @@ export default class GridView extends NavigationMixin(LightningElement) {
             return;
         }
         const sent = this.drafts;
+        // New rows are created first, then the changes to saved records are saved.
+        const { creates, updates } = splitDrafts(sent);
         const started = now();
         this.saving = true;
         this.notice = null;
         this.saveProgress = '';
         this.announce('Saving…');
         try {
-            const ticket = await saveRows({ configName: this._configName, rows: toPayload(sent) });
-            const final = ticket.done ? ticket : await this.pollUntilDone(ticket);
-            // The ticket carries what was refused up front; the final status
-            // carries what each batch reported. Together they are the answer.
-            const result = {
-                successCount: final.successCount || 0,
-                errors: (ticket.done ? [] : ticket.errors || []).concat(final.errors || []),
-                rejectedFields: ticket.rejectedFields || [],
-                strippedFields: ticket.strippedFields || []
-            };
-            const failed = new Set(result.errors.map(e => e.recordId));
-            const savedIds = Object.keys(sent).filter(id => !failed.has(id));
-            if (savedIds.length) await this.refreshRows(savedIds, sent);
-
-            const settled = applyRefusedFields(applySaveResult(sent, result), sent, result);
-            this.drafts = carryNewEdits(this.drafts, sent, settled.drafts);
-            this.errors = settled.errors;
+            const made = Object.keys(creates).length
+                ? await this.createNewRows(creates)
+                : { drafts: {}, errors: {}, created: [], rejectedFields: [], strippedFields: [], failed: [] };
+            let result = { successCount: 0, errors: [], rejectedFields: [], strippedFields: [] };
+            let settled = { drafts: {}, errors: {} };
+            if (hasDrafts(updates)) {
+                const ticket = await saveRows({ configName: this._configName, rows: toPayload(updates) });
+                const final = ticket.done ? ticket : await this.pollUntilDone(ticket);
+                // The ticket carries what was refused up front; the final status
+                // carries what each batch reported. Together they are the answer.
+                result = {
+                    successCount: final.successCount || 0,
+                    errors: (ticket.done ? [] : ticket.errors || []).concat(final.errors || []),
+                    rejectedFields: ticket.rejectedFields || [],
+                    strippedFields: ticket.strippedFields || []
+                };
+                const failed = new Set(result.errors.map(e => e.recordId));
+                const savedIds = Object.keys(updates).filter(id => !failed.has(id));
+                // Rows that show a parent record the save changed are read again too.
+                const sharing = rowsSharingParents(this.rows, updates, savedIds, this.pathFields);
+                if (savedIds.length) await this.refreshRows(savedIds.concat(sharing), updates);
+                settled = applyRefusedFields(applySaveResult(updates, result), updates, result);
+            }
+            this.drafts = carryNewEdits(this.drafts, sent, { ...made.drafts, ...settled.drafts });
+            this.errors = mergeErrors(settled.errors, made.errors);
             // Saved values belong to the record now; undo covers unsaved edits.
             this.history = emptyHistory();
-            this.reportSave(result, Math.round(now() - started));
+            const both = {
+                successCount: result.successCount + made.created.length,
+                errors: result.errors.concat(made.failed.map(key => ({ recordId: key }))),
+                rejectedFields: [...new Set(result.rejectedFields.concat(made.rejectedFields))],
+                strippedFields: [...new Set(result.strippedFields.concat(made.strippedFields))]
+            };
+            this.reportSave(both, Math.round(now() - started));
             // Saved values can move a record to another group or change a subtotal.
-            if (result.successCount) this.loadSummary();
+            if (both.successCount) this.loadSummary();
         } catch (e) {
             // Nothing is thrown away: the drafts stay, so the user can retry.
             this.notice = { variant: 'error', message: 'Your changes were not saved. ' + messageOf(e) };
@@ -2111,6 +2222,182 @@ export default class GridView extends NavigationMixin(LightningElement) {
         }
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
         this.telemetry('save', { ms, saved, failedRecords, refusedFields: refused });
+    }
+
+    // ============================================================ new records
+
+    /** The grid has a New button for this user. */
+    get canAddRecords() {
+        return Boolean(this.newRowContext) && Boolean(this.definition);
+    }
+
+    get newDisabled() {
+        return this.loading || this.saving || this.deleting || this.acting;
+    }
+
+    /** What New does here, for its tooltip. */
+    get newLabel() {
+        return this.newRowContext && this.newRowContext.inline
+            ? 'New: add a row at the top of the grid, then save'
+            : `New: create a ${this.newRowContext ? this.newRowContext.objectLabel || 'record' : 'record'} in Salesforce's New form`;
+    }
+
+    /**
+     * The new rows the table shows: those whose draft still carries the
+     * new-row mark (Undo takes it away). The same array as before while
+     * the same rows show, so a keystroke does not re-sort the table (HR-17).
+     */
+    get shownNewRows() {
+        const m = this._memo;
+        if (!this.newRows.length) return this.newRows;
+        const next = this.newRows.filter(r => this.drafts[r.Id] && this.drafts[r.Id][NEW_MARK] === true);
+        const prev = m.shownNewRows;
+        if (prev && prev.length === next.length && prev.every((r, i) => r === next[i])) return prev;
+        m.shownNewRows = next;
+        return next;
+    }
+
+    /** { [key]: new row }, for the save and the required check. */
+    get newRowsByKey() {
+        const out = {};
+        this.newRows.forEach(r => {
+            out[r.Id] = r;
+        });
+        return out;
+    }
+
+    /**
+     * New: a row at the top of the grid where a new record can be one, else
+     * Salesforce's New form.
+     */
+    handleNew() {
+        const ctx = this.newRowContext;
+        if (!ctx || !this.definition || this.newDisabled) return;
+        if (ctx.inline) {
+            this.addRow();
+            return;
+        }
+        this.newRecord = {
+            mode: 'row',
+            object: this.definition.objectApiName,
+            objectLabel: ctx.objectLabel || '',
+            presets: ctx.presets || null
+        };
+    }
+
+    /**
+     * An empty row at the top, as the new record will start: Salesforce's
+     * defaults and the parent it belongs under. One undo step. The table
+     * puts focus in its first cell that can be filled in.
+     */
+    addRow() {
+        const ctx = this.newRowContext;
+        const n = ++this._runtime.newCount;
+        const key = newRowKey(n);
+        const names = ctx.names || {};
+        Object.keys(names).forEach(id => this.learnName(id, names[id]));
+        this.newRows = this.newRows.concat([{ Id: key, ...(ctx.defaults || {}), ...(ctx.presets || {}) }]);
+        const before = this.drafts;
+        this.drafts = addNewRow(before, key);
+        this.history = record(
+            this.history,
+            stepBetween('new row', before, this.drafts, [{ recordId: key, field: NEW_MARK }])
+        );
+        this.focusRow = { id: key, seq: n };
+        this.announce('New row added at the top of the grid. Fill it in, then save.');
+    }
+
+    /**
+     * Create the new rows' records, CREATE_BATCH at a time, and read each one
+     * created back into the grid. { drafts, errors } of the rows that were
+     * not created, the keys of those (failed), the records created, and
+     * the fields refused.
+     */
+    async createNewRows(creates) {
+        const columns = this.definition ? this.definition.columns : [];
+        const payload = toCreatePayload(creates, this.newRowsByKey, columns);
+        const answer = { rows: [] };
+        let rejectedFields = [];
+        let strippedFields = [];
+        for (let i = 0; i < payload.length; i += CREATE_BATCH) {
+            // eslint-disable-next-line no-await-in-loop
+            const res = await createRows({
+                configName: this._configName,
+                rows: payload.slice(i, i + CREATE_BATCH),
+                parentLink: this._parent ? this._parent.link : null,
+                parentId: this._parent ? this._parent.id : null,
+                recordId: this._parent ? null : this._recordId || null
+            });
+            answer.rows = answer.rows.concat((res && res.rows) || []);
+            rejectedFields = rejectedFields.concat((res && res.rejectedFields) || []);
+            strippedFields = strippedFields.concat((res && res.strippedFields) || []);
+        }
+        const state = applyCreateResult(creates, answer);
+        if (state.created.length) {
+            const done = new Set(state.created.map(c => c.key));
+            await this.addRecords(state.created.map(c => c.recordId));
+            this.newRows = this.newRows.filter(r => !done.has(r.Id));
+        }
+        return {
+            drafts: state.drafts,
+            errors: state.errors,
+            created: state.created,
+            failed: Object.keys(state.errors),
+            rejectedFields,
+            strippedFields
+        };
+    }
+
+    /**
+     * Records just created, read back as the grid shows them and added to
+     * its rows. They take their place in the grid's sort.
+     */
+    async addRecords(ids) {
+        let fresh = [];
+        try {
+            for (let i = 0; i < ids.length; i += REREAD_BATCH) {
+                // eslint-disable-next-line no-await-in-loop
+                const batch = await fetchRowsById({
+                    configName: this._configName,
+                    recordIds: ids.slice(i, i + REREAD_BATCH)
+                });
+                fresh = fresh.concat(batch || []);
+            }
+        } catch (e) {
+            this.notice = {
+                variant: 'warning',
+                message: 'Created, but the new records could not be read. Refresh to see them. ' + messageOf(e)
+            };
+            return [];
+        }
+        const known = new Set(this.rows.map(r => r.Id));
+        const added = fresh.filter(r => !known.has(r.Id));
+        this.learnNames(added);
+        if (added.length) {
+            this.rows = added.concat(this.rows);
+            this.totalRows = (Number(this.totalRows) || 0) + added.length;
+            this.reportCount();
+        }
+        return added;
+    }
+
+    /** Salesforce's New form created a record: it joins the grid, as on a list view. */
+    async addCreatedRecord(id, objectLabel) {
+        const added = await this.addRecords([id]);
+        const row = added[0];
+        const nameColumn = this.definition ? this.definition.columns.find(c => c.isName) : null;
+        const name = row && nameColumn ? row[nameColumn.field] : '';
+        const label = objectLabel || 'Record';
+        const message = name ? `${label} "${name}" was created.` : `${label} was created.`;
+        this.dispatchEvent(new ShowToastEvent({ title: message, message: '', variant: 'success' }));
+        this.announce(message);
+        if (row) {
+            // The table puts focus on the new record's row, wherever the sort puts it.
+            this.focusRow = { id: row.Id, seq: ++this._runtime.newCount };
+            this.loadSummary();
+        } else {
+            Promise.resolve().then(() => this.focus());
+        }
     }
 
     // ============================================================ selection, mass update, mass delete

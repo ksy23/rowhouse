@@ -131,8 +131,18 @@
                         title="Help: how to work in this grid (opens the Grid Guide in a new tab)"
                         onclick={handleHelp}
                     ></lightning-button-icon>
-                    <template lwc:if={hasImportExport}>
+                    <template lwc:if={hasListButtons}>
                         <lightning-button-group class="slds-m-left_x-small">
+                            <template lwc:if={canAddRecords}>
+                                <!-- A list view's New: a row at the top, or Salesforce's New form. -->
+                                <lightning-button
+                                    class="rh-new"
+                                    label="New"
+                                    title={newLabel}
+                                    disabled={newDisabled}
+                                    onclick={handleNew}
+                                ></lightning-button>
+                            </template>
                             <template lwc:if={canImport}>
                                 <lightning-button
                                     class="rh-import"
@@ -370,6 +380,7 @@
                 object-api-name={newRecord.object}
                 object-label={newRecord.objectLabel}
                 field-label={newRecordFieldLabel}
+                presets={newRecord.presets}
                 oncreated={handleNewRecordCreated}
                 oncancel={handleNewRecordCancel}
             ></c-grid-new-record>

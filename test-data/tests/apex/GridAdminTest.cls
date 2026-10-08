@@ -107,6 +107,7 @@ private class GridAdminTest {
             System.assertEquals('Rowhouse_Test_Record__c', d.config.objectApiName);
             System.assertEquals(false, d.config.isNew);
             System.assertEquals(true, d.config.showRowNumbers, 'Show Row Numbers reads back.');
+            System.assertEquals(true, d.config.allowNewRecords, 'Allow New Records reads back.');
             GridConfig.Definition def = GridConfig.load('Test_Records');
             System.assertEquals(def.columns.size(), d.columns.size());
             for (Integer i = 0; i < d.columns.size(); i++) {
@@ -279,6 +280,7 @@ private class GridAdminTest {
             System.assertEquals(true, valueOf(cfg, 'Allow_Inline_Edit__c'));
             System.assertEquals(null, valueOf(cfg, 'Height_Px__c'), 'Every field is sent, blank ones as null.');
             System.assertEquals(true, valueOf(cfg, 'Show_Row_Numbers__c'), 'A new grid numbers its rows.');
+            System.assertEquals(true, valueOf(cfg, 'Allow_New_Records__c'), 'A new grid has a New button.');
 
             Metadata.CustomMetadata nameCol = sent.get('Grid_Column__mdt.Brand_New_Name');
             System.assertEquals(
@@ -700,6 +702,11 @@ private class GridAdminTest {
                 valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Show_Row_Numbers__c'),
                 'Show Row Numbers as it was.'
             );
+            System.assertEquals(
+                false,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Allow_New_Records__c'),
+                'Allow New Records as it was.'
+            );
         }
     }
 
@@ -721,7 +728,9 @@ private class GridAdminTest {
             GridAdmin.Draft archived = (GridAdmin.Draft) GridAdmin.readConfig('Test_Archived').get('draft');
             System.assertEquals(true, archived.config.archived);
             System.assertEquals(false, archived.config.showRowNumbers, 'Show Row Numbers reads back unchecked.');
+            System.assertEquals(false, archived.config.allowNewRecords, 'Allow New Records reads back unchecked.');
             archived.config.showRowNumbers = true;
+            archived.config.allowNewRecords = true;
             archived.config.archived = false;
             GridAdmin.save(archived);
             System.assertEquals(
@@ -733,6 +742,11 @@ private class GridAdminTest {
                 true,
                 valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Show_Row_Numbers__c'),
                 'Checking Show Row Numbers is saved.'
+            );
+            System.assertEquals(
+                true,
+                valueOf(byName(spy.container).get('Grid_Configuration__mdt.Test_Archived'), 'Allow_New_Records__c'),
+                'Checking Allow New Records is saved.'
             );
         }
     }

@@ -71,6 +71,8 @@ public with sharing class GridGroupService {
         public String unit;
         public Schema.SObjectField f;
         public Schema.DescribeFieldResult d;
+        /** What SOQL groups by: the field's API name, or its path on a parent record (GridPaths). */
+        public String soql;
         /** A lookup's name, which labels its groups. */
         public String namePath;
     }
@@ -107,8 +109,10 @@ public with sharing class GridGroupService {
             }
             Level lv = new Level();
             lv.field = c.field;
-            lv.f = GridDescribe.field(objectType, c.field);
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, c.field);
+            lv.f = fp.field;
             lv.d = lv.f.getDescribe();
+            lv.soql = fp.soql;
             if (GridDescribe.isDateLike(lv.d)) {
                 lv.unit = String.isBlank(unit) ? 'month' : unit;
                 if (!GridConfig.GROUP_UNITS.contains(lv.unit)) {
@@ -117,7 +121,8 @@ public with sharing class GridGroupService {
             }
             // forUser() allows a lookup only when the user can read its names.
             if (lv.d.getType() == Schema.DisplayType.REFERENCE) {
-                lv.namePath = GridDescribe.namePath(lv.f);
+                String own = GridDescribe.namePath(lv.f);
+                lv.namePath = own == null || !fp.isPath() ? own : String.join(fp.relationships, '.') + '.' + own;
             }
             out.add(lv);
         }
@@ -366,7 +371,7 @@ public with sharing class GridGroupService {
                 selects.add(exprs[j] + ' g' + i + (j == 0 ? 'a' : 'b'));
                 groupBy.add(exprs[j]);
             }
-            if (exprs.size() == 1 && exprs[0] == GridDescribe.apiName(levels[i].f)) {
+            if (exprs.size() == 1 && exprs[0] == levels[i].soql) {
                 groupedAlias.put(exprs[0].toLowerCase(), 'g' + i + 'a');
             }
             if (levels[i].namePath != null) {
@@ -378,9 +383,10 @@ public with sharing class GridGroupService {
         List<Schema.DescribeFieldResult> totalFields = new List<Schema.DescribeFieldResult>();
         List<String> keyAlias = new List<String>();
         for (Integer i = 0; i < totals.size(); i++) {
-            Schema.SObjectField f = GridDescribe.field(objectType, totals[i].field);
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, totals[i].field);
+            Schema.SObjectField f = fp.field;
             totalFields.add(f.getDescribe());
-            String api = GridDescribe.apiName(f);
+            String api = fp.soql;
             keyAlias.add(groupedAlias.get(api.toLowerCase()));
             if (keyAlias[i] != null) {
                 continue; // from the group's key, below
@@ -586,7 +592,7 @@ public with sharing class GridGroupService {
      * day the grid shows.
      */
     private static List<String> expressions(Level lv) {
-        String api = GridDescribe.apiName(lv.f);
+        String api = lv.soql;
         if (lv.unit == null) {
             return new List<String>{ api };
         }

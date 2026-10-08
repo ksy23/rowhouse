@@ -6,6 +6,7 @@
         "Grid_Configuration__mdt.Default_Sort_Field__c",
         "Grid_Configuration__mdt.Default_Sort_Direction__c",
         "Grid_Configuration__mdt.Allow_Inline_Edit__c",
+        "Grid_Configuration__mdt.Allow_New_Records__c",
         "Grid_Configuration__mdt.Allow_CSV_Export__c",
         "Grid_Configuration__mdt.Frozen_Columns__c",
         "Grid_Configuration__mdt.Height_Px__c",

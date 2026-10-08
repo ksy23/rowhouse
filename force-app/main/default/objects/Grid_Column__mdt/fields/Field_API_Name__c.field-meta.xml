@@ -5,7 +5,7 @@
     <type>Text</type>
     <length>255</length>
     <required>false</required>
-    <description>The API name of the field shown in this column, without a namespace prefix.</description>
-    <inlineHelpText>API name of the field to show, such as Amount or My_Field__c, without a namespace prefix.</inlineHelpText>
+    <description>The API name of the field shown in this column, without a namespace prefix; or a field of a related record, reached through up to five lookups, such as Account.Industry.</description>
+    <inlineHelpText>API name of the field to show, such as Amount or My_Field__c, without a namespace prefix. For a field of a related record, put the lookups first, as a report or formula does: Account.Industry, or Account.Owner.Email. Up to five lookups.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

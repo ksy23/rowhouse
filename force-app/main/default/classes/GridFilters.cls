@@ -136,13 +136,18 @@ public with sharing class GridFilters {
         if (String.isBlank(fieldName)) {
             throw new GridException('it has no Field API Name.');
         }
-        Schema.SObjectField f = GridDescribe.field(objectType, fieldName);
+        // A field of the grid's object, or of a parent record (GridPaths).
+        GridPaths.FieldPath fp = GridPaths.resolve(objectType, fieldName);
+        Schema.SObjectField f = fp.field;
         Schema.DescribeFieldResult d = f.getDescribe();
+        if (GridDescribe.isEncrypted(d)) {
+            throw new GridException(d.getLabel() + ' is encrypted, so the grid cannot filter on it.');
+        }
         if (!d.isFilterable()) {
             throw new GridException(d.getLabel() + ' cannot be filtered on.');
         }
         Condition c = new Condition();
-        c.field = d.getLocalName();
+        c.field = fp.local;
         c.type = GridDescribe.cellType(f);
         c.operator = String.isBlank(operator) ? 'equals' : operator.trim().toLowerCase();
         GridConfig.requireFits(c.operator, c.type, d.getLabel());
@@ -186,8 +191,7 @@ public with sharing class GridFilters {
             }
             String operator = text(entry, 'operator');
             operator = operator == null ? 'equals' : operator.toLowerCase();
-            Schema.SObjectField f = GridDescribe.field(objectType, col.field);
-            Schema.DescribeFieldResult d = f.getDescribe();
+            Schema.SObjectField f = GridPaths.resolve(objectType, col.field).field;
             Condition c;
             if ((col.type == 'reference' || col.type == 'owner') && operator == 'contains') {
                 // A lookup is filtered by the name the user sees.
@@ -339,8 +343,9 @@ public with sharing class GridFilters {
     }
 
     private static String clause(Schema.SObjectType objectType, Condition c, Map<String, Object> binds, String key) {
-        Schema.SObjectField f = GridDescribe.field(objectType, c.field);
-        String api = GridDescribe.apiName(f);
+        GridPaths.FieldPath fp = GridPaths.resolve(objectType, c.field);
+        Schema.SObjectField f = fp.field;
+        String api = fp.soql;
         String op = c.operator;
         if (op == 'is_blank') {
             return api + ' = null';
@@ -350,7 +355,8 @@ public with sharing class GridFilters {
         }
         if (c.byName) {
             binds.put(key, '%' + GridDataService.escapeLike(c.value) + '%');
-            return GridDescribe.namePath(f) + ' LIKE :' + key;
+            String own = GridDescribe.namePath(f);
+            return (fp.isPath() ? String.join(fp.relationships, '.') + '.' + own : own) + ' LIKE :' + key;
         }
         String type = c.type;
         if (type == 'datetime') {

@@ -219,6 +219,14 @@ public with sharing class GridConfig {
         public String type;
         @AuraEnabled
         public Boolean editable;
+        /**
+         * The cell can be filled in on a new row: an editable column this user
+         * may set on a new record. Not `editable`, which is about changing a
+         * saved record: a field can be settable on create and not after.
+         * User-independent from build(); forUser() narrows it.
+         */
+        @AuraEnabled
+        public Boolean creatable = false;
         @AuraEnabled
         public Boolean sortable;
         @AuraEnabled
@@ -287,6 +295,20 @@ public with sharing class GridConfig {
         public Boolean isFormula = false;
         /** A formula column's formula, built. Never sent. */
         public GridFormulas.Compiled formula;
+        /**
+         * The column shows a field of a parent record, reached through lookups
+         * (GridPaths): `field` is its path, "Account.Industry", and each row
+         * carries the Id of the record that holds it in `_parents`. An edit
+         * is saved to that record, and shows on every row with the same parent.
+         */
+        @AuraEnabled
+        public Boolean isPath = false;
+        /**
+         * The field is encrypted (Shield Platform Encryption): shown and edited
+         * as usual, never sorted, filtered, grouped, searched or subtotalled.
+         */
+        @AuraEnabled
+        public Boolean encrypted = false;
         /** A child total column: worked out on the server, read only; field is _ct_ and its API name. */
         @AuraEnabled
         public Boolean isChildTotal = false;
@@ -443,6 +465,12 @@ public with sharing class GridConfig {
         /** This user may create records of the object; set by forUser(). */
         @AuraEnabled
         public Boolean canCreate = false;
+        /**
+         * The grid has a New button. forUser() narrows it to users who may
+         * create records of the object.
+         */
+        @AuraEnabled
+        public Boolean allowNewRecords = false;
         /**
          * Every change this grid makes is written to Grid Edit Log.
          * Server-side only: each write reads it from the configuration.
@@ -766,11 +794,30 @@ public with sharing class GridConfig {
             ? GridDataService.DEFAULT_PAGE_SIZE
             : Math.max(1, Math.min(GridDataService.MAX_PAGE_SIZE, cfg.Page_Size__c.intValue()));
         def.sortField = cfg.Default_Sort_Field__c;
+        // An encrypted field cannot be sorted by: the grid opens in the order SOQL gives.
+        // A field of a parent record (GridPaths) is checked at the end of its path.
+        Schema.SObjectField sortBy;
+        try {
+            sortBy = GridPaths.isPath(def.sortField)
+                ? GridPaths.resolve(objectType, def.sortField).field
+                : GridDescribe.fieldOrNull(objectType, def.sortField);
+        } catch (GridException e) {
+            sortBy = null; // a path that cannot work is reported where the sort is used
+        }
+        if (sortBy != null && GridDescribe.isEncrypted(sortBy.getDescribe())) {
+            def.warnings.add(
+                'Default Sort Field: ' +
+                    sortBy.getDescribe().getLabel() +
+                    ' is encrypted, so the grid cannot sort by it.'
+            );
+            def.sortField = null;
+        }
         def.sortDirection = 'desc'.equalsIgnoreCase(cfg.Default_Sort_Direction__c) ? 'desc' : 'asc';
         def.allowInlineEdit = cfg.Allow_Inline_Edit__c;
         def.allowCsvExport = cfg.Allow_CSV_Export__c;
         def.allowMassDelete = cfg.Allow_Mass_Delete__c == true;
         def.allowImport = cfg.Allow_Import__c == true;
+        def.allowNewRecords = cfg.Allow_New_Records__c == true;
         def.logChanges = cfg.Log_Changes__c == true;
         def.frozenColumns = cfg.Frozen_Columns__c == null ? 0 : Math.max(0, cfg.Frozen_Columns__c.intValue());
         def.showRowNumbers = cfg.Show_Row_Numbers__c == true;
@@ -833,11 +880,25 @@ public with sharing class GridConfig {
                 }
                 continue;
             }
-            Schema.SObjectField f = GridDescribe.field(objectType, c.Field_API_Name__c);
+            // A field of the grid's object, or of a parent record through lookups (GridPaths).
+            GridPaths.FieldPath fp;
+            try {
+                fp = GridPaths.resolve(objectType, c.Field_API_Name__c);
+            } catch (GridException e) {
+                if (!GridPaths.isPath(c.Field_API_Name__c)) {
+                    throw e; // an unknown field of the grid's own object stops the grid, as before
+                }
+                def.warnings.add('Grid Column ' + c.DeveloperName + ' was skipped: ' + e.getMessage());
+                continue;
+            }
+            Schema.SObjectField f = fp.field;
             Schema.DescribeFieldResult d = f.getDescribe();
             Column col = new Column();
-            col.field = d.getLocalName();
-            col.label = String.isNotBlank(c.Column_Label__c) ? c.Column_Label__c : defaultLabel(d);
+            col.field = fp.local;
+            col.isPath = fp.isPath();
+            col.label = String.isNotBlank(c.Column_Label__c)
+                ? c.Column_Label__c
+                : fp.isPath() ? GridPaths.defaultLabel(fp) : defaultLabel(d);
             String configured = String.isBlank(c.Cell_Type__c) ? null : c.Cell_Type__c.trim().toLowerCase();
             if (configured != null && !KNOWN_TYPES.contains(configured)) {
                 throw new GridException(
@@ -858,7 +919,18 @@ public with sharing class GridConfig {
             // User-independent here. forUser() narrows it with GridSecurity.canEdit
             // (HR-5: access decisions are made in GridSecurity and nowhere else).
             col.editable = col.adminEditable && EDITABLE_TYPES.contains(col.type) && !richText;
-            col.sortable = c.Sortable__c != false && d.isSortable();
+            col.creatable = col.editable;
+            col.encrypted = GridDescribe.isEncrypted(d);
+            col.sortable = c.Sortable__c != false && d.isSortable() && !col.encrypted;
+            if (col.encrypted) {
+                def.warnings.add(
+                    'Grid Column ' +
+                        c.DeveloperName +
+                        ': ' +
+                        d.getLabel() +
+                        ' is encrypted, so the grid cannot sort, filter, group, search or subtotal it.'
+                );
+            }
             col.scale = d.getScale();
             col.length = LENGTH_TYPES.contains(d.getType()) && d.getLength() > 0 ? d.getLength() : null;
             col.width = c.Width_Px__c == null ? null : c.Width_Px__c.intValue();
@@ -868,7 +940,9 @@ public with sharing class GridConfig {
             if (d.getType() == Schema.DisplayType.PICKLIST || d.getType() == Schema.DisplayType.MULTIPICKLIST) {
                 Map<String, List<String>> validFor = GridDescribe.dependencies(f);
                 if (validFor != null) {
-                    col.dependentOn = GridDescribe.localName(d.getController());
+                    // On a parent record, its controlling field is that record's too.
+                    String controlling = GridDescribe.localName(d.getController());
+                    col.dependentOn = fp.isPath() ? fp.local.substringBeforeLast('.') + '.' + controlling : controlling;
                 }
                 col.options = new List<Map<String, Object>>();
                 for (Schema.PicklistEntry e : d.getPicklistValues()) {
@@ -891,9 +965,20 @@ public with sharing class GridConfig {
                 if (d.getFilteredLookupInfo() != null) {
                     col.filteredLookup = true;
                     col.fieldApiName = GridDescribe.apiName(f);
+                    // Salesforce's own lookup edits a field of the row's record; one
+                    // on a parent record is shown, not edited, in the grid.
+                    if (fp.isPath()) {
+                        col.editable = false;
+                        col.creatable = false;
+                    }
                 }
             }
-            col.isName = d.isNameField();
+            // The name field links to the row's record; a parent record's name does not.
+            col.isName = d.isNameField() && !fp.isPath();
+            // A new row sets fields of its own record; a parent record's are edited once it is saved.
+            if (fp.isPath()) {
+                col.creatable = false;
+            }
             col.externalId = d.isExternalId();
             // Offered where values repeat; any groupable column the admin groups by,
             // or lets users group by with Allow Grouping.
@@ -933,7 +1018,7 @@ public with sharing class GridConfig {
                 groupDefaults.add(new GroupDefault(c, col, d));
             }
             // A user filters by the values SOQL can filter on.
-            col.filterable = d.isFilterable() && col.type != 'id';
+            col.filterable = d.isFilterable() && col.type != 'id' && !col.encrypted;
             def.columns.add(col);
         }
         loadGrouping(def, groupDefaults);
@@ -1150,9 +1235,11 @@ public with sharing class GridConfig {
         if (String.isNotBlank(r.Formula__c)) {
             return formulaRule(rule, r, objectType, columnsByField);
         }
-        Schema.SObjectField f = GridDescribe.field(objectType, r.Field_API_Name__c);
+        // A parent record's field too (GridPaths): the rows carry it under its path.
+        GridPaths.FieldPath fp = GridPaths.resolve(objectType, r.Field_API_Name__c);
+        Schema.SObjectField f = fp.field;
         Schema.DescribeFieldResult d = f.getDescribe();
-        rule.field = d.getLocalName();
+        rule.field = fp.local;
         Column col = columnsByField.get(rule.field.toLowerCase());
         rule.type = col != null ? col.type : GridDescribe.cellType(f);
         rule.operator = String.isBlank(r.Operator__c) ? 'equals' : r.Operator__c.trim().toLowerCase();
@@ -1214,7 +1301,8 @@ public with sharing class GridConfig {
         if (!COMPARE_OPERATORS.contains(rule.operator)) {
             throw new GridException('the ' + rule.operator.replace('_', ' ') + ' operator cannot compare two fields.');
         }
-        Schema.SObjectField other = GridDescribe.field(objectType, r.Compare_Field__c);
+        GridPaths.FieldPath otherPath = GridPaths.resolve(objectType, r.Compare_Field__c);
+        Schema.SObjectField other = otherPath.field;
         Schema.DescribeFieldResult od = other.getDescribe();
         String otherType = GridDescribe.cellType(other);
         if (kindOf(rule.type) != kindOf(otherType)) {
@@ -1225,7 +1313,7 @@ public with sharing class GridConfig {
         if (od.getLocalName().equalsIgnoreCase(rule.field)) {
             throw new GridException('it compares ' + d.getLabel() + ' with itself.');
         }
-        rule.compareField = od.getLocalName();
+        rule.compareField = otherPath.local;
         rule.compareType = otherType;
     }
 
@@ -1480,15 +1568,18 @@ public with sharing class GridConfig {
         def.allowMassDelete = def.allowMassDelete == true && GridSecurity.canDelete(objectType);
         def.allowImport = def.allowImport == true && objectEditable;
         def.canCreate = GridSecurity.canCreate(objectType);
+        def.allowNewRecords = def.allowNewRecords == true && def.canCreate;
+        // A new row's cells are filled in only in a grid that edits cells.
+        Boolean objectCreatable = def.allowNewRecords && def.allowInlineEdit == true;
         // The admin's filters narrow every query; one on a field this user cannot
         // read could not be run in user mode, and leaving it out would widen
         // what the user sees. So the grid does not open.
         for (GridFilters.Condition fc : def.filters) {
-            Schema.SObjectField f = GridDescribe.field(objectType, fc.field);
-            if (!GridSecurity.canRead(f)) {
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, fc.field);
+            if (!GridSecurity.canReadPath(fp)) {
                 throw new GridException(
                     'This grid shows only the records chosen by ' +
-                        defaultLabel(f.getDescribe()) +
+                        defaultLabel(fp.field.getDescribe()) +
                         ', a field you do not have access to. Ask your Salesforce admin.'
                 );
             }
@@ -1511,20 +1602,32 @@ public with sharing class GridConfig {
                 }
                 continue;
             }
-            Schema.SObjectField f = GridDescribe.field(objectType, c.field);
-            if (!GridSecurity.canRead(f)) {
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, c.field);
+            Schema.SObjectField f = fp.field;
+            if (!GridSecurity.canReadPath(fp)) {
                 continue; // unreadable columns are not rendered, exported or sent
             }
-            c.editable = c.editable && objectEditable && GridSecurity.canEdit(f);
+            // A parent record's field is saved to that record: the user edits it
+            // there, whatever they may do to the grid's own records.
+            c.editable = fp.isPath()
+                ? c.editable && def.allowInlineEdit == true && GridSecurity.canEditPath(fp)
+                : c.editable && objectEditable && GridSecurity.canEdit(f);
+            c.creatable = c.creatable == true && objectCreatable && !fp.isPath() && GridSecurity.canSetOnCreate(f);
             // A lookup is edited by searching its target, so the user must be
             // able to read the target's names.
             if (c.referenceTo != null) {
-                c.editable = c.editable && GridSecurity.canReadName(f);
-                c.newTargets = c.editable == true && c.type == 'reference' ? newTargets(c.referenceTo) : null;
+                Boolean names = GridSecurity.canReadName(f);
+                c.editable = c.editable && names;
+                c.creatable = c.creatable && names;
+                c.newTargets = (c.editable == true || c.creatable == true) && c.type == 'reference'
+                    ? newTargets(c.referenceTo)
+                    : null;
             }
             // A dependent picklist is only offered with its controlling value.
             if (c.dependentOn != null) {
-                c.editable = c.editable && GridSecurity.canRead(GridDescribe.field(objectType, c.dependentOn));
+                Boolean controlling = GridSecurity.canReadPath(GridPaths.resolve(objectType, c.dependentOn));
+                c.editable = c.editable && controlling;
+                c.creatable = c.creatable && controlling;
             }
             // A lookup's groups are labelled with the records' names.
             if (c.referenceTo != null) {
@@ -1568,8 +1671,8 @@ public with sharing class GridConfig {
                     shown.contains(r.field.toLowerCase()));
             } else {
                 ok =
-                    GridSecurity.canRead(GridDescribe.field(objectType, r.field)) &&
-                    (r.compareField == null || GridSecurity.canRead(GridDescribe.field(objectType, r.compareField)));
+                    GridSecurity.canReadPath(GridPaths.resolve(objectType, r.field)) &&
+                    (r.compareField == null || GridSecurity.canReadPath(GridPaths.resolve(objectType, r.compareField)));
             }
             if (ok) {
                 readable.add(r);

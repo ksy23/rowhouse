@@ -13,7 +13,9 @@
  * exported file comes back in unchanged. A lookup column also answers to its
  * label with " ID" after it ("Account ID"), as earlier versions headed it, so
  * an older export comes back in too. A header that matches no column, or
- * a column that is not editable, is listed as ignored and never sent.
+ * a column that is not editable, is listed as ignored and never sent. So is a
+ * column that shows a field of a related record (Account Industry on a
+ * Contact grid): an import writes the grid's own records only.
  *
  * EACH ROW
  * A row with a record Id updates that record; a row without one creates a
@@ -183,6 +185,12 @@ export function mapHeaders(header, columns, overrides = {}) {
         if (!column) out.ignored.push({ index, header: label, reason: 'Not a column of this grid.' });
         else if (!column.editable)
             out.ignored.push({ index, header: label, reason: `${column.label} is read-only here.` });
+        else if (column.isPath)
+            out.ignored.push({
+                index,
+                header: label,
+                reason: `${column.label} is a field of a related record. An import changes this grid’s own records only.`
+            });
         else if (used.has(column.field))
             out.ignored.push({ index, header: label, reason: `${column.label} is already in another column.` });
         else {
@@ -195,12 +203,17 @@ export function mapHeaders(header, columns, overrides = {}) {
     return out;
 }
 
-/** The choices a file column can be mapped to by hand: not imported, the record Id, or an editable column. */
+/** The grid's columns an import can write: editable, and fields of the grid's own records. */
+export function importableColumns(columns) {
+    return (columns || []).filter(c => c.editable && !c.isPath);
+}
+
+/** The choices a file column can be mapped to by hand: not imported, the record Id, or an importable column. */
 export function mappingChoices(columns) {
     return [
         { value: MAP_SKIP, label: '(Not imported)' },
         { value: MAP_ID, label: 'Record Id' }
-    ].concat((columns || []).filter(c => c.editable).map(c => ({ value: c.field, label: c.label || c.field })));
+    ].concat(importableColumns(columns).map(c => ({ value: c.field, label: c.label || c.field })));
 }
 
 /** What a file column is mapped to in a mapping: MAP_ID, MAP_SKIP or a field. */

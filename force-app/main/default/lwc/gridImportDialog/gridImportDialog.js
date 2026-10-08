@@ -48,7 +48,7 @@ import { LightningElement, api } from 'lwc';
 import LOCALE from '@salesforce/i18n/locale';
 import importRows from '@salesforce/apex/GridController.importRows';
 import undoImport from '@salesforce/apex/GridController.undoImport';
-import { parseCsv, planImport, payloadFor, mappingChoices, mappedTo } from 'c/gridImport';
+import { parseCsv, planImport, payloadFor, mappingChoices, mappedTo, importableColumns } from 'c/gridImport';
 import { readXlsx } from 'c/gridXlsx';
 import { formatValue, isNumericType } from 'c/gridFormat';
 import { isLookup, lookupText } from 'c/gridFields';
@@ -295,7 +295,7 @@ export default class GridImportDialog extends LightningElement {
 
     /** The grid's importable columns, with an Id first: a file to fill in. */
     handleTemplate() {
-        const editable = (this.columns || []).filter(c => c.editable);
+        const editable = importableColumns(this.columns);
         const columns = [{ field: 'Id', label: 'Id' }].concat(editable.map(c => ({ field: c.field, label: c.label })));
         if (
             !downloadCsv(toCsv([], columns), 'import-template.csv', this.template.querySelector('.rh-import-download'))

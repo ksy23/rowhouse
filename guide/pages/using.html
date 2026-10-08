@@ -141,6 +141,12 @@
       <tr><td>Lookup and owner</td><td>Type part of a name; matches appear after a moment. Arrow to one and press <kbd>Enter</kbd>. Empty the box to clear the field. An owner can be a user or a queue. <b>New Account</b> (or the lookup's object) at the end of the list opens Salesforce's own form; the record you save goes in the cell. A lookup your admin limited with a lookup filter opens Salesforce's own lookup, which offers only the records the filter allows.</td></tr>
     </tbody></table></div>
 
+  <h3 id="new">Add a record</h3>
+  <p>When your admin allows it, a <b>New</b> button sits above the grid. Click it and a row appears at the top of the grid, saying <b>New</b> where a row number goes, with Salesforce's defaults already filled in, such as you as the owner. Fill in its cells as you would any row's; a grey lock is a field that cannot be set on a new record. <b>Save</b> creates the record with your other changes, and it then takes its place among the rows. <b>Undo</b> takes the row away again; <b>Cancel</b> takes away every new row.</p>
+  <p>When a new record needs more than the grid shows, such as a required field that is not a column or a choice of record type, <b>New</b> opens Salesforce's own New form instead. The record you save there appears in the grid.</p>
+  <h3 id="related-field">A field of a related record</h3>
+  <p>A column can show a field of a related record, such as the industry of a contact's account, headed as a report heads it: <span class="v plain">Account: Industry</span>. Changing it changes the account, so every row with the same account shows the new value at once. That is one change, which one <b>Undo</b> takes back, and <b>Save</b> writes it to the account once. A row with no account shows a grey lock in that column. If two rows give the same account different values, neither is saved, and both cells say why.</p>
+
   <h3>While it saves, and after</h3>
   <div class="split">
     <ul class="tick">

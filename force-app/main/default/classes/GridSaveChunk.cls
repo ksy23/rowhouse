@@ -5,6 +5,10 @@
  * CPU or heap limit in a subscriber's trigger — still produces a result row, and
  * the grid never waits on a chunk that silently vanished.
  *
+ * A chunk of parent records (a column on a parent record, GridPaths) reports
+ * as the grid's rows: each holder's outcome goes to every row cell whose edit
+ * it carries (`reportAs`), since the grid knows the edit by its row.
+ *
  * In a grid that logs its changes the chunk reads the records' current
  * values before it writes, then logs every field that changed on every record
  * that saved, in this same transaction. If the log cannot be written the chunk
@@ -18,6 +22,8 @@ public with sharing class GridSaveChunk implements Queueable {
     private final List<SObject> records;
     /** Null unless the grid logs its changes. */
     private final GridAudit.Context audit;
+    /** For parent records: holder Id to the row cells it saves, [[rowId, path], ...]; null for the grid's own records. */
+    private final Map<Id, List<List<String>>> reportAs;
 
     public GridSaveChunk(String saveId, Integer chunkIndex, Integer chunkCount, List<SObject> records) {
         this(saveId, chunkIndex, chunkCount, records, null);
@@ -30,17 +36,39 @@ public with sharing class GridSaveChunk implements Queueable {
         List<SObject> records,
         GridAudit.Context audit
     ) {
+        this(saveId, chunkIndex, chunkCount, records, audit, null);
+    }
+
+    /** A chunk of parent records, reported as the row cells their edits came from. */
+    public GridSaveChunk(
+        String saveId,
+        Integer chunkIndex,
+        Integer chunkCount,
+        List<SObject> records,
+        GridAudit.Context audit,
+        Map<Id, List<List<String>>> reportAs
+    ) {
         this.saveId = saveId;
         this.chunkIndex = chunkIndex;
         this.chunkCount = chunkCount;
         this.records = records;
         this.audit = audit;
+        this.reportAs = reportAs;
     }
 
     public void execute(QueueableContext context) {
         List<Id> ids = new List<Id>();
+        Set<Id> rowIds = new Set<Id>();
         for (SObject r : records) {
-            ids.add(r.Id);
+            if (reportAs == null) {
+                ids.add(r.Id);
+                continue;
+            }
+            for (List<String> cell : reportAs.get(r.Id)) {
+                if (rowIds.add(Id.valueOf(cell[0]))) {
+                    ids.add(Id.valueOf(cell[0])); // a failed chunk is reported on the grid's rows
+                }
+            }
         }
         System.attachFinalizer(new GridSaveFinalizer(saveId, chunkIndex, chunkCount, ids));
 
@@ -55,6 +83,15 @@ public with sharing class GridSaveChunk implements Queueable {
         for (Integer i = 0; i < results.size(); i++) {
             if (results[i].isSuccess()) {
                 successCount++;
+                continue;
+            }
+            if (reportAs != null) {
+                // A parent record's error belongs on each row cell that edited it.
+                for (Database.Error e : results[i].getErrors()) {
+                    for (List<String> cell : reportAs.get(records[i].Id)) {
+                        errors.add(new GridSaveError(Id.valueOf(cell[0]), cell[1], e.getMessage()));
+                    }
+                }
                 continue;
             }
             for (Database.Error e : results[i].getErrors()) {

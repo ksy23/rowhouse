@@ -11,7 +11,8 @@
  * expensive in a loop over a thousand-field object.
  */
 public with sharing class GridDescribe {
-    private static final String NAMESPACE = namespacePrefix();
+    /** This package's namespace; blank in an unpackaged org. */
+    public static final String NAMESPACE = namespacePrefix();
     private static Map<String, Schema.SObjectType> typeCache = new Map<String, Schema.SObjectType>();
     private static Map<String, Map<String, Schema.SObjectField>> fieldsByLocal = new Map<String, Map<String, Schema.SObjectField>>();
     private static Map<String, Map<String, Schema.SObjectField>> fieldsByLower = new Map<String, Map<String, Schema.SObjectField>>();
@@ -91,8 +92,21 @@ public with sharing class GridDescribe {
 
     /** One field, by local or qualified name, in any case. Throws if absent. */
     public static Schema.SObjectField field(Schema.SObjectType objectType, String fieldName) {
+        Schema.SObjectField found = fieldOrNull(objectType, fieldName);
+        if (found == null) {
+            throw new GridException(
+                String.isBlank(fieldName)
+                    ? 'No field name was given for ' + localName(objectType) + '.'
+                    : 'Unknown field: ' + localName(objectType) + '.' + fieldName
+            );
+        }
+        return found;
+    }
+
+    /** The same, or null when there is no such field. */
+    public static Schema.SObjectField fieldOrNull(Schema.SObjectType objectType, String fieldName) {
         if (String.isBlank(fieldName)) {
-            throw new GridException('No field name was given for ' + localName(objectType) + '.');
+            return null;
         }
         load(objectType);
         Map<String, Schema.SObjectField> lower = fieldsByLower.get(apiName(objectType));
@@ -100,9 +114,6 @@ public with sharing class GridDescribe {
         Schema.SObjectField found = lower.get(key);
         if (found == null && String.isNotBlank(NAMESPACE) && key.startsWith(NAMESPACE.toLowerCase() + '__')) {
             found = lower.get(key.removeStart(NAMESPACE.toLowerCase() + '__'));
-        }
-        if (found == null) {
-            throw new GridException('Unknown field: ' + localName(objectType) + '.' + fieldName);
         }
         return found;
     }
@@ -249,10 +260,34 @@ public with sharing class GridDescribe {
      * which is groupable, would make one group per row.
      */
     public static Boolean isGroupable(Schema.DescribeFieldResult d) {
+        if (isEncrypted(d)) {
+            return false;
+        }
         if (d.getType() == Schema.DisplayType.DATETIME) {
             return !d.isCalculated();
         }
         return d.isGroupable() && d.getType() != Schema.DisplayType.ID;
+    }
+
+    /**
+     * Fields the tests treat as encrypted, by API name in lower case: Shield
+     * Platform Encryption cannot be turned on in the orgs the suite runs in.
+     */
+    @TestVisible
+    private static Set<String> encryptedForTest = new Set<String>();
+
+    /**
+     * Is the field encrypted at rest: with Shield Platform Encryption, or a
+     * classic Encrypted Text field? SOQL cannot sort, group or search such a
+     * field, and can filter it only with deterministic encryption, which
+     * describe does not tell apart; so the grid does none of these, whatever
+     * describe's other flags say. Users who may read it still see and edit
+     * its value.
+     */
+    public static Boolean isEncrypted(Schema.DescribeFieldResult d) {
+        return d.isEncrypted() ||
+            d.getType() == Schema.DisplayType.ENCRYPTEDSTRING ||
+            encryptedForTest.contains(d.getName().toLowerCase());
     }
 
     /** A date or date/time: grouped by a unit, not by its exact value. */
@@ -266,7 +301,7 @@ public with sharing class GridDescribe {
      * for anything SOQL can aggregate. A checkbox cannot be aggregated at all.
      */
     public static Boolean subtotalFits(String subtotal, Schema.DescribeFieldResult d) {
-        if (!d.isAggregatable()) {
+        if (!d.isAggregatable() || isEncrypted(d)) {
             return false;
         }
         Boolean isNumber = NUMBER_TYPES.contains(d.getType());

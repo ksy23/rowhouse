@@ -22,18 +22,89 @@
                 <h1 id="heading" class="slds-modal__title slds-hyphenate">{heading}</h1>
                 <p class="slds-m-top_x-small rh-new-record-where">{whereText}</p>
             </div>
-            <div class="slds-modal__content slds-p-around_medium">
-                <!-- Salesforce's own form: the object's page layout, its required fields and its rules. -->
-                <lightning-record-form
-                    class="rh-new-record-form"
-                    object-api-name={objectApiName}
-                    layout-type="Full"
-                    columns="2"
-                    mode="edit"
-                    onsuccess={handleSuccess}
-                    oncancel={handleCancel}
-                ></lightning-record-form>
-            </div>
+
+            <!-- Step one, with more than one record type: which, as Salesforce's New asks. -->
+            <template lwc:if={choosingType}>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-radio-group
+                        class="rh-new-record-types"
+                        label="Select a record type"
+                        options={typeOptions}
+                        value={recordTypeId}
+                        onchange={handleTypeChange}
+                    ></lightning-radio-group>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral rh-new-record-cancel" onclick={handleCancel}>Cancel</button>
+                    <button class="slds-button slds-button_brand rh-new-record-next rh-new-record-primary" onclick={handleNext}>Next</button>
+                </div>
+            </template>
+
+            <!-- The object's page layout for new records, field by field. -->
+            <template lwc:if={showForm}>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-record-edit-form
+                        class="rh-new-record-form"
+                        object-api-name={objectApiName}
+                        record-type-id={recordTypeId}
+                        onsuccess={handleSuccess}
+                        onerror={handleError}
+                    >
+                        <lightning-messages></lightning-messages>
+                        <template for:each={sections} for:item="section">
+                            <div key={section.key} class="rh-new-record-section">
+                                <template lwc:if={section.heading}>
+                                    <h2 class="slds-section__title slds-theme_shade slds-p-horizontal_small slds-m-vertical_small rh-new-record-heading">{section.heading}</h2>
+                                </template>
+                                <div class="slds-grid slds-wrap slds-gutters_small">
+                                    <template for:each={section.items} for:item="item">
+                                        <div key={item.key} class={item.cls}>
+                                            <template for:each={item.fields} for:item="input">
+                                                <lightning-input-field
+                                                    key={input.key}
+                                                    field-name={input.name}
+                                                    value={input.value}
+                                                    required={input.required}
+                                                    data-field={input.name}
+                                                ></lightning-input-field>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </lightning-record-edit-form>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral rh-new-record-cancel" onclick={handleCancel}>Cancel</button>
+                    <button
+                        class="slds-button slds-button_brand rh-new-record-save rh-new-record-primary"
+                        disabled={saveDisabled}
+                        onclick={handleSave}
+                    >Save</button>
+                </div>
+            </template>
+
+            <template lwc:if={loadingForm}>
+                <div class="slds-modal__content slds-p-around_medium rh-new-record-loading">
+                    <lightning-spinner alternative-text="Loading the form" size="medium" variant="brand"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Salesforce could not describe the form: its full layout, with its own buttons. -->
+            <template lwc:if={showFallback}>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-record-form
+                        class="rh-new-record-fallback"
+                        object-api-name={objectApiName}
+                        layout-type="Full"
+                        columns="2"
+                        mode="edit"
+                        onsuccess={handleSuccess}
+                        oncancel={handleCancel}
+                    ></lightning-record-form>
+                </div>
+            </template>
         </div>
         <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
     </section>

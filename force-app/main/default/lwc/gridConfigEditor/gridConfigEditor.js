@@ -81,6 +81,7 @@ import {
     isChildTotalColumn,
     isFormulaColumn,
     isFormulaRule,
+    isPathName,
     moveItem,
     needsValue,
     newAction,
@@ -91,9 +92,12 @@ import {
     newFormulaColumn,
     newRule,
     operatorsFor,
+    pathField,
+    pathSteps,
     sameDraft,
     toServer,
     valueHint,
+    walkPath,
     withKeys
 } from 'c/gridAdminDraft';
 
@@ -174,6 +178,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
     described = null;
     /** Child objects' fields, for child total columns: { [object]: fields }. */
     childFields = {};
+    /** Parent objects' describes, for columns of a parent record's field: { [lower-case object]: describe }. */
+    related = {};
     objects = [];
     canSave = false;
     check = { errors: [], warnings: [] };
@@ -264,6 +270,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 this.check = { errors: [], warnings: result.warnings || [] };
                 this._memo.saved = draft;
                 this.loadChildFields();
+                this.loadPathObjects();
             } else {
                 const [objects, canSave] = await Promise.all([listObjects(), canSaveConfig()]);
                 if (token !== this._runtime.token) return;
@@ -293,6 +300,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
     /** Show row numbers: ticked unless the grid's record says otherwise, as a new grid starts. */
     get showRowNumbers() {
         return this.config.showRowNumbers !== false;
+    }
+
+    /** Create records with New: ticked unless the grid's record says otherwise, as a new grid starts. */
+    get allowNewRecords() {
+        return this.config.allowNewRecords !== false;
     }
 
     get isNew() {
@@ -350,8 +362,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         return this._memo.fields;
     }
 
+    /** A field of the object, or of a parent record through lookups ("Account.Industry"). */
     fieldOf(name) {
-        return name ? this.fields.get(String(name).toLowerCase()) || null : null;
+        if (!name) return null;
+        if (isPathName(name)) return pathField(name, this.described, this.related);
+        return this.fields.get(String(name).toLowerCase()) || null;
     }
 
     /** Every field, and a value the object no longer has, so it still shows. */
@@ -360,9 +375,41 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         this.fields.forEach(f => {
             if (!filter || filter(f)) options.push({ value: f.name, label: `${f.label} (${f.name})` });
         });
-        if (current && !this.fieldOf(current))
-            options.unshift({ value: current, label: `${current} (not on this object)` });
+        const f = current ? this.fieldOf(current) : null;
+        // A parent record's field, set in Setup or as a column, shows by its heading.
+        if (f && isPathName(current)) options.unshift({ value: current, label: `${f.heading} (${current})` });
+        else if (current && !f) options.unshift({ value: current, label: `${current} (not on this object)` });
         return options;
+    }
+
+    /**
+     * The describes of the objects the columns reach through lookups, loaded
+     * one level at a time until every column's path can be followed.
+     */
+    async loadPathObjects() {
+        const token = this._runtime.token;
+        for (let round = 0; round < 6; round++) {
+            const missing = new Set();
+            ((this.draft && this.draft.columns) || []).forEach(c => {
+                if (!isPathName(c.field)) return;
+                const walk = walkPath(c.field, this.described, this.related);
+                if (walk.missing) missing.add(walk.missing);
+            });
+            if (!missing.size) return;
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                const found = await Promise.all([...missing].map(objectApiName => describeObject({ objectApiName })));
+                if (token !== this._runtime.token) return;
+                const next = { ...this.related };
+                found.forEach(d => {
+                    if (d && d.name) next[d.name.toLowerCase()] = d;
+                });
+                this.related = next;
+            } catch (e) {
+                if (token === this._runtime.token) this.saveErrors = [messageOf(e)];
+                return;
+            }
+        }
     }
 
     get sortFieldOptions() {
@@ -473,6 +520,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 field: c.field,
                 fieldOptions: this.fieldOptions(c.field),
                 fieldLabel: `Field of column ${i + 1}`,
+                // One list per object on the way to a parent record's field.
+                fieldSteps: formula || childTotal ? [] : this.fieldStepsOf(c, i + 1),
                 formula: c.formula || '',
                 formulaLabel: `Formula of ${name}`,
                 formulaType: c.formulaType || 'number',
@@ -528,6 +577,38 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 removeLabel: `Remove ${name}`
             };
         });
+    }
+
+    /** A column's field lists: its object's fields and lookups, then each parent's, as far as the path goes. */
+    fieldStepsOf(c, position) {
+        const steps = this.described ? pathSteps(c.field, this.described, this.related) : [];
+        if (!steps.length) steps.push({ index: 0, options: this.fieldOptions(c.field), value: c.field });
+        return steps.map(s => ({
+            ...s,
+            key: `${c._key}-${s.index}`,
+            first: s.index === 0,
+            cls: s.index === 0 ? 'rh-column-field' : 'rh-column-step',
+            label: s.index === 0 ? `Field of column ${position}` : `Field of ${s.objectLabel}, column ${position}`,
+            placeholder: s.index === 0 ? 'Choose a field' : `Choose a field of ${s.objectLabel}`
+        }));
+    }
+
+    /**
+     * A choice in one of a column's field lists: a field ends the path there;
+     * a lookup ("Related Account >") opens its record's fields in the next list.
+     */
+    handleFieldStep(event) {
+        const { key, step } = event.target.dataset;
+        const index = Number(step) || 0;
+        const value = event.detail ? event.detail.value : event.target.value;
+        const column = this.draft.columns.find(c => c._key === key);
+        if (!column) return;
+        const before = String(column.field || '')
+            .split('.')
+            .slice(0, index);
+        const next = before.concat(value || '').join('.');
+        this.changeEntry('columns', key, 'field', next || null);
+        if (isPathName(next)) this.loadPathObjects();
     }
 
     get groupLevelOptions() {

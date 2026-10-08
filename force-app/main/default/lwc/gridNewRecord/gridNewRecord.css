@@ -1,0 +1,10 @@
+/* Room for the spinner while Salesforce describes the form. */
+.rh-new-record-loading {
+    position: relative;
+    min-height: 12rem;
+}
+
+/* The fields of a row of the layout sit side by side, as on Salesforce's New. */
+.rh-new-record-cell {
+    margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+}

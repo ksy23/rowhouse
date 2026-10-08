@@ -276,6 +276,7 @@ import {
     MAX_LEVELS
 } from 'c/gridGroups';
 import { detailId, withDetails, rowTop, rowAt, panelHeightFor, panelMax } from 'c/gridNest';
+import { NEW_MARK } from 'c/gridEditState';
 import { minWidthFor, fitsToValues, fitWidth, linesNeeded, FIT_CAP, TEXT_FIT_CAP, MAX_LINES } from 'c/gridSizing';
 import { canFilter, describeFilter, withFilter, MAX_FILTERS } from 'c/gridFilters';
 import { shownColumns, canHide, hideColumn, moveColumn } from 'c/gridColumns';
@@ -333,6 +334,11 @@ const CARD_PAGE = 50; // cards rendered per "Show more"
 // are short by nature and are never wrapped.
 const WRAPPABLE_TYPES = new Set(['text', 'string', 'textarea', 'email', 'url', 'phone', 'picklist', 'multipicklist']);
 const has = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+/**
+ * A column that shows a parent record's field is edited on rows that have
+ * that parent: a row whose lookup is blank has no record to change it on.
+ */
+const reachesParent = (row, column) => !column.isPath || Boolean(row && row._parents && row._parents[column.field]);
 
 // ---- a cell range as the page shows it ----
 const inRect = (r, row, col) => Boolean(r) && row >= r.top && row <= r.bottom && col >= r.left && col <= r.right;
@@ -363,6 +369,7 @@ const FIT_SAMPLE = 8;
 /** Fields a card shows before "Show all fields". */
 const CARD_FIELDS = 3;
 const RECORD_ID = /^[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?$/;
+const NO_NEW_ROWS = [];
 
 const EDITOR_BY_TYPE = {
     text: 'text',
@@ -504,6 +511,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (this._layout.choiceSeen && choice !== this._layout.columnChoice) this.columnsChanged();
         this._layout.choiceSeen = true;
         this._layout.columnChoice = choice;
+        // A row to focus: the one New just added, or a record just created.
+        const focusRow = value ? value.focusRow : null;
+        if (focusRow && focusRow.seq !== this._layout.focusRowSeq) {
+            this._layout.focusRowSeq = focusRow.seq;
+            this._layout.focusRowId = focusRow.id;
+        }
     }
 
     /**
@@ -649,6 +662,41 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     get hasRowActions() {
         return this.rowActions.length > 0;
+    }
+
+    /**
+     * Records not saved yet, from the grid's New button: shown first, above
+     * every group, in the order they were added, and not sorted, grouped,
+     * numbered or selectable until they are saved. Their cells are filled in
+     * where the column is `creatable`, not `editable`.
+     */
+    get newRows() {
+        return Array.isArray(this._config.newRows) ? this._config.newRows : NO_NEW_ROWS;
+    }
+
+    /** The new rows' Ids, made once per list. */
+    get newRowIds() {
+        const m = this._memo;
+        if (m.newIdsFrom !== this.newRows) {
+            m.newIdsFrom = this.newRows;
+            m.newIds = new Set(this.newRows.map(r => String(r[this.keyField])));
+        }
+        return m.newIds;
+    }
+
+    isNewRow(rowId) {
+        const ids = this.newRowIds;
+        return ids.size > 0 && ids.has(String(rowId));
+    }
+
+    /**
+     * Can this cell be edited? A saved record's where its column is
+     * editable; a new row's where the user may set the field on a new record.
+     */
+    canEditCell(column, rowId) {
+        if (!column) return false;
+        if (this.isNewRow(rowId)) return column.creatable === true;
+        return column.editable === true && (!column.isPath || reachesParent(this.view[this.positionOf(rowId)], column));
     }
 
     /** Rows numbered down the left edge, as a list view's are. Cards have none. */
@@ -1449,8 +1497,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const order = this.groupView.order;
         const fiscal = this._config.fiscal || null;
         const numbered = this.showRowNumbers;
+        const newRows = this.newRows;
         const m = this._memo;
         if (
+            m.newRows === newRows &&
             m.rows === rows &&
             m.sortSig === sortSig &&
             m.columns === this._config.columns &&
@@ -1495,9 +1545,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         });
         // Each open record is followed by its detail row.
         const detailed = withDetails(built.items, expanded, this.keyField);
-        const view = detailed.items;
+        // New rows first, above every group, as they were added.
+        const view = newRows.length ? newRows.concat(detailed.items) : detailed.items;
         const positionById = new Map();
         view.forEach((r, i) => positionById.set(String(r[this.keyField]), i));
+        m.newRows = newRows;
         m.rows = rows;
         m.sortSig = sortSig;
         m.columns = this._config.columns;
@@ -2242,6 +2294,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const errors = this._config.errors || {};
         const cols = this.layoutColumns;
         const editableGrid = cols.some(c => c.editable);
+        const newIds = this.newRowIds;
         const maxed =
             this.isMulti && this._config.maxSelected && Object.keys(this.selected).length >= this._config.maxSelected;
         // Computed once per render, not once per cell.
@@ -2251,7 +2304,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             names: this._config.refNames || {},
             focus: this.focusKey || this.defaultFocusKey(), // see isFocused
             // Row numbers, by record Id (see view), or null.
-            numbers: this._memo.numbers || null
+            numbers: this._memo.numbers || null,
+            // New rows, and whether any of their cells can be filled in.
+            newIds,
+            creatableGrid: newIds.size > 0 && cols.some(c => c.creatable)
         };
         // The range as this drawing shows it, for the next change in place (patchRange).
         this._nav.shaded = layout.range;
@@ -2270,6 +2326,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 continue;
             }
             const id = String(row[this.keyField]);
+            const isNew = newIds.size > 0 && newIds.has(id);
             const rowDrafts = drafts[id] || {};
             const rowErrors = errors[id] || {};
             const fieldErrors = rowErrors.fields || {};
@@ -2301,8 +2358,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 kind: 'record',
                 rowIndex: i + 1,
                 ariaRowIndex: i + 2, // the header is row 1
-                ariaSelected: this.hasSelection ? String(isSelected) : null,
-                ariaLevel: recordLevel,
+                ariaSelected: this.hasSelection && !isNew ? String(isSelected) : null,
+                // A new row is in no group: it sits above them.
+                ariaLevel: isNew && recordLevel ? '1' : recordLevel,
                 ariaExpanded: null,
                 style: null,
                 // rh-row_selected and rh-row_open let frozen cells take the row's
@@ -2312,6 +2370,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                     'slds-hint-parent' +
                     (isSelected ? ' slds-is-selected rh-row_selected' : '') +
                     (this.hasChildren && this.expanded[id] ? ' rh-row_open' : '') +
+                    (isNew ? ' rh-row_new' : '') +
                     (format && format.bar ? ' rh-row_bar ' + format.bar : ''),
                 statusCell: cells.find(x => x.isStatus) || null,
                 selectCell: cells.find(x => x.isSelect) || null,
@@ -2531,6 +2590,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     ) {
         const focused = this.isFocused(id, c.field, layout.focus);
         const inAction = focused && this.mode === MODE_ACTION;
+        const isNew = Boolean(layout.newIds) && layout.newIds.size > 0 && layout.newIds.has(id);
         const base = {
             field: c.field,
             colIndex: c.colIndex,
@@ -2556,14 +2616,16 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (c.field === STATUS_FIELD) {
             // The row's number, with the button for its errors before it, as a
             // list view has them; without numbers, the button alone.
-            const number = layout.numbers ? layout.numbers.get(id) : undefined;
+            // A new row has no number yet: it says New where the number goes.
+            const number = layout.numbers && !isNew ? layout.numbers.get(id) : undefined;
+            const which = isNew ? 'New row' : 'Row ' + (number || rowIndex);
             return {
                 ...base,
                 isStatus: true,
                 hasError: Boolean(rowErrors.row),
                 numbered: Boolean(layout.numbers),
-                number: number ? String(number) : '',
-                message: rowErrors.row ? 'Row ' + (number || rowIndex) + ' has errors: ' + rowErrors.row : 'No errors',
+                number: isNew ? 'New' : number ? String(number) : '',
+                message: rowErrors.row ? which + ' has errors: ' + rowErrors.row : 'No errors',
                 cls: 'slds-cell-edit slds-cell-error' + focusCls,
                 buttonCls:
                     'slds-button slds-button_icon slds-button_icon-error slds-m-horizontal_xxx-small' +
@@ -2581,7 +2643,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             return {
                 ...base,
                 isExpand: true,
-                showToggle: this.offersToggle(open, counts),
+                // A new row has no related records until it is saved.
+                showToggle: !isNew && this.offersToggle(open, counts),
                 countText: total ? countText : '',
                 expandedAttr: String(open),
                 controls: open ? this.detailCellId(id) : null,
@@ -2600,6 +2663,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             return {
                 ...base,
                 isActions: true,
+                // Actions run on saved records: a new row has none until it is saved.
+                hasMenu: !isNew,
                 label: `Actions for ${name || 'row ' + rowIndex}`,
                 disabled: this.isSaving,
                 menuOpen: open,
@@ -2616,6 +2681,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             return {
                 ...base,
                 isSelect: true,
+                // A new row is selected for nothing until it is saved.
+                selectable: !isNew,
                 checked: isSelected,
                 disabled: Boolean(maxed && !isSelected),
                 inputType: this.isMulti ? 'checkbox' : 'radio',
@@ -2636,6 +2703,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const isCheckbox = c.type === 'checkbox' || c.type === 'boolean';
         const link = this.linkFor(c, id, value);
         const isEditing = Boolean(this.editing && this.editing.rowId === id && this.editing.field === c.field);
+        // A new row's cell is filled in where the user may set the field on a new record.
+        const editable = isNew ? c.creatable === true : c.editable === true && reachesParent(row, c);
+        const affordance = isNew ? Boolean(layout.creatableGrid) : editableGrid;
         const classes = ['slds-cell-edit', 'rh-cell'];
         if (c.wrapped) classes.push('slds-cell-wrap');
         const align = alignmentFor(c.type);
@@ -2702,14 +2772,14 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             href: link.href,
             linkTarget: link.target,
             recordLink: link.recordId,
-            editable: Boolean(c.editable),
+            editable,
             // Every cell in an editable grid shows the affordance; a read-only one
             // shows it disabled with the lock icon, exactly as the SLDS blueprint does.
-            showEditButton: editableGrid,
-            editIcon: c.editable ? 'utility:edit' : 'utility:lock',
-            editDisabled: !c.editable,
-            editLabel: 'Edit ' + label + ' of row ' + rowIndex,
-            ariaReadonly: editableGrid && !c.editable ? 'true' : null,
+            showEditButton: affordance,
+            editIcon: editable ? 'utility:edit' : 'utility:lock',
+            editDisabled: !editable,
+            editLabel: 'Edit ' + label + (isNew ? ' of the new row' : ' of row ' + rowIndex),
+            ariaReadonly: affordance && !editable ? 'true' : null,
             hasError: Boolean(error),
             errorMessage: error || '',
             errorId: error ? this.errorIdFor(id, c.field) : null,
@@ -3087,6 +3157,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 this._layout.pinPending = false;
                 this.pinWidths();
             });
+        }
+        if (this._layout.focusRowId) {
+            const rowId = this._layout.focusRowId;
+            this._layout.focusRowId = null;
+            // eslint-disable-next-line @lwc/lwc/no-async-operation -- focus moves outside the render (HR-20)
+            requestAnimationFrame(() => this.focusRowNow(rowId));
         }
         if (this._layout.focusCard) {
             const position = this._layout.focusCard;
@@ -3680,7 +3756,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         plan.cells.forEach(({ row, col, text: cellText }) => {
             if (this.view[row - 1].__group || this.view[row - 1].__detail) return; // a group header or a row's panel takes no values
             let c = this.columnAt(col);
-            if (!c || !c.editable) {
+            if (!this.canEditCell(c, String(this.view[row - 1][this.keyField]))) {
                 readOnly++;
                 return;
             }
@@ -3755,7 +3831,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             for (let r = rect.top + 1; r <= rect.bottom; r++) {
                 const record = this.view[r - 1];
                 if (record.__group || record.__detail) continue; // records only
-                if (!c || !c.editable) {
+                if (!this.canEditCell(c, String(record[this.keyField]))) {
                     readOnly++;
                     continue;
                 }
@@ -3786,7 +3862,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             const record = this.view[r - 1];
             if (record.__group || record.__detail) continue; // records only
             for (const c of cols) {
-                if (!c || !c.editable) {
+                if (!this.canEditCell(c, String(record[this.keyField]))) {
                     readOnly++;
                     continue;
                 }
@@ -3851,6 +3927,25 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (dropped) parts.push(`${plural(dropped, 'value', 'values')} did not fit.`);
         if (clears.length) parts.push(this.clearedMessage(clears));
         this.announcement = parts.join(' ');
+    }
+
+    /**
+     * Focus a row the parent names (config.focusRow): on a new row its first
+     * cell that can be filled in, on a saved record its first data cell,
+     * bringing the row into view. Cards focus the card's heading.
+     */
+    focusRowNow(rowId) {
+        const index = this.positionOf(rowId);
+        if (index < 0) return;
+        if (this.isCards) {
+            this._layout.focusCard = index + 1;
+            this.focusRev++;
+            return;
+        }
+        const data = this.layoutColumns.filter(c => !c.utility);
+        const column = (this.isNewRow(rowId) && data.find(c => this.canEditCell(c, rowId))) || data[0];
+        if (!column) return;
+        this.focusCell({ rowId: String(rowId), field: column.field }, index + 1);
     }
 
     /** Move focus to a cell, bringing its row into the window first if needed. */
@@ -4042,7 +4137,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (!row || row.__group || row.__detail) return none;
         const value = this.currentValue(row, key.rowId, key.field, this._config.drafts || {});
         return {
-            editable: Boolean(column.editable) && !this.isSaving,
+            editable: this.canEditCell(column, key.rowId) && !this.isSaving,
             hasLink: Boolean(this.linkFor(column, key.rowId, value).href)
         };
     }
@@ -4054,7 +4149,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
      */
     openEditorAt(key, seed, cellEl) {
         const column = this.columnByField(key.field);
-        if (!column || !column.editable || this.isSaving) return;
+        if (!this.canEditCell(column, key.rowId) || this.isSaving) return;
         const editor = this.editorFor(column, key.rowId);
         this.placeEditor(cellEl || this.cellElement(key), column, editor);
         const takesSeed = editor === 'text' || editor === 'number' || editor === 'lookup';
@@ -5155,12 +5250,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 continue;
             }
             const id = String(row[this.keyField]);
+            const isNew = this.isNewRow(id);
             const rowDrafts = drafts[id] || {};
             const rowErrors = errors[id] || {};
             const fieldErrors = rowErrors.fields || {};
             const first = cols[0];
             const titleValue = first ? (has(rowDrafts, first.field) ? rowDrafts[first.field] : row[first.field]) : null;
-            const title = (first && this.shownText(titleValue, first)) || 'Record ' + shown;
+            const title = (first && this.shownText(titleValue, first)) || (isNew ? 'New record' : 'Record ' + shown);
             const titleLink = first ? this.linkFor(first, id, titleValue) : { href: null };
             const isSelected = Boolean(this.selected[id]);
             const format = this.rowFormats(row, id, drafts, fields);
@@ -5170,11 +5266,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             // fields show, the rest on request. An editable title is a
             // field again among all of them, so it can still be edited.
             const shownAlways = (c, n) => n < CARD_FIELDS || has(rowDrafts, c.field) || fieldErrors[c.field];
+            const titleEditable = this.canEditCell(first, id);
             const titleField =
-                first && (first.editable || has(rowDrafts, first.field) || fieldErrors[first.field]) ? [first] : [];
+                first && (titleEditable || has(rowDrafts, first.field) || fieldErrors[first.field]) ? [first] : [];
             const rest = cols.slice(1);
             const all = Boolean(this.cardExpanded[id]);
-            const more = Math.max(0, rest.length - CARD_FIELDS) + (first && first.editable ? 1 : 0);
+            const more = Math.max(0, rest.length - CARD_FIELDS) + (titleEditable ? 1 : 0);
             // A field with an error or an unsaved edit is shown whatever the limit.
             const visible = all
                 ? titleField.concat(rest)
@@ -5185,7 +5282,13 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 key: id, // HR-19: record-derived, never the index
                 id,
                 isRecord: true,
-                cls: 'slds-item rh-card' + (format && format.bar ? ' rh-card_bar ' + format.bar : ''),
+                cls:
+                    'slds-item rh-card' +
+                    (isNew ? ' rh-card_new' : '') +
+                    (format && format.bar ? ' rh-card_bar ' + format.bar : ''),
+                // A new record is selected for nothing, and has no actions, until it is saved.
+                selectable: this.hasSelection && !isNew,
+                hasActions: this.hasRowActions && !isNew,
                 position: shown,
                 title,
                 titleHref: titleLink.href,
@@ -5201,7 +5304,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 moreFieldsExpanded: String(all),
                 fieldsId: this._layout.gridId + '-card-fields-' + shown,
                 // The card's toggle for its child tables, none with no related records.
-                expandable: this.hasChildren && this.offersToggle(open, counts),
+                expandable: this.hasChildren && !isNew && this.offersToggle(open, counts),
                 expandedAttr: String(open),
                 expandIcon: open ? 'utility:chevrondown' : 'utility:chevronright',
                 expandText:
@@ -5285,7 +5388,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const text = lookup ? lookupText(value, names) : formatValue(value, c);
         const isCheckbox = c.type === 'checkbox' || c.type === 'boolean';
         const link = this.linkFor(c, id, value);
-        const editable = Boolean(c.editable);
+        const editable = this.canEditCell(c, id);
         const formatted = Boolean(format) && !hasDraft && !error;
         const fmt = formatted ? format.cells[c.field] : null;
         // A rule's icon, and its data bar, as in the table.
@@ -5424,7 +5527,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     handleCardEdit(event) {
         const { rowId, field } = event.currentTarget.dataset;
         const column = this.columnByField(field);
-        if (!column || !column.editable) return;
+        if (!this.canEditCell(column, rowId)) return;
         this._layout.lastCardEdit = { rowId, field };
         this.editing = { rowId, field, seed: undefined };
         this._layout.focusEditor = true;
@@ -5480,7 +5583,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     get saveDisabled() {
-        return this.isSaving || !this.draftCount;
+        return this.isSaving || (!this.draftCount && !this.newRecordCount);
     }
 
     handleUndoClick() {
@@ -5491,14 +5594,21 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         this.dispatchEvent(new CustomEvent('redo'));
     }
 
+    /** Unsaved values typed, a new row's mark aside. */
     get draftCount() {
         const drafts = this._config.drafts || {};
-        return Object.values(drafts).reduce((n, r) => n + Object.keys(r).length, 0);
+        return Object.values(drafts).reduce((n, r) => n + Object.keys(r).length - (r[NEW_MARK] === true ? 1 : 0), 0);
+    }
+
+    /** New rows not saved yet. */
+    get newRecordCount() {
+        const drafts = this._config.drafts || {};
+        return Object.values(drafts).filter(r => r[NEW_MARK] === true).length;
     }
 
     /** With unsaved changes, or a change undone that can be redone (Undo and Redo live here). */
     get showFooter() {
-        return this.draftCount > 0 || Boolean(this.history && this.history.canRedo);
+        return this.draftCount > 0 || this.newRecordCount > 0 || Boolean(this.history && this.history.canRedo);
     }
 
     /**
@@ -5520,12 +5630,21 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     get footerSummary() {
         const n = this.draftCount;
+        const r = this.newRecordCount;
         const e = this.errorCount;
         if (this.isSavingEdits) {
             // What is being saved; with many batches, how far it has got.
-            return this._config.saveProgress || `Saving ${formatCount(n)} ${n === 1 ? 'change' : 'changes'}…`;
+            const what = [
+                r ? `${formatCount(r)} new ${r === 1 ? 'record' : 'records'}` : '',
+                n ? `${formatCount(n)} ${n === 1 ? 'change' : 'changes'}` : ''
+            ].filter(Boolean);
+            return this._config.saveProgress || `Saving ${what.join(' and ') || 'changes'}…`;
         }
-        const edits = n ? `${formatCount(n)} unsaved ${n === 1 ? 'change' : 'changes'}` : 'No unsaved changes';
+        const parts = [
+            r ? `${formatCount(r)} new ${r === 1 ? 'record' : 'records'}` : '',
+            n ? `${formatCount(n)} unsaved ${n === 1 ? 'change' : 'changes'}` : ''
+        ].filter(Boolean);
+        const edits = parts.length ? parts.join(', ') : 'No unsaved changes';
         return e ? `${edits}, ${formatCount(e)} ${e === 1 ? 'error' : 'errors'}` : edits;
     }
 

@@ -12,4 +12,6 @@ public with sharing class GridPage {
     public List<String> selectedFields = new List<String>();
     /** Lookup display names read with the rows: local field name to SOQL path. */
     public Map<String, String> namePaths = new Map<String, String>();
+    /** Columns on a parent record (GridPaths), by their local path. */
+    public Map<String, GridPaths.FieldPath> paths = new Map<String, GridPaths.FieldPath>();
 }

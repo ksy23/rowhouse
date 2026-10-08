@@ -80,6 +80,23 @@
             <li><b>Undo history is cleared</b> by Save and by Cancel: saved values are the record's now.</li>
             <li><b>Last save wins.</b> Like a list view's inline edit, Rowhouse does not lock records while they are being edited.</li>
           </ul>
+
+          <h3 id="new-records" data-anchor="new-records">Adding records</h3>
+          <p>With <b>Allow New Records</b> ticked (on the Grid Admin tab, <b>Create records with New</b>; a new grid starts with it ticked), users who may create the object's records get a <b>New</b> button above the grid, where a list view has its own.</p>
+          <ul class="rh-tick">
+            <li><b>A row in the grid, when it can be one.</b> New adds a row at the top with Salesforce's defaults for a new record, and, in a child table or on a record page, the link to that record already set. The user fills in the columns they may set on a new record and clicks Save: new records are created first, then the other changes are saved. The server checks a new row as it checks any save: only the grid's editable columns are written, field-level security removes what the user may not set, and a required field left blank is refused.</li>
+            <li><b>Salesforce's New form, when it cannot.</b> When Allow Inline Edit is off, the object offers the user more than one record type, or a field every new record needs is not an editable column, New opens Salesforce's own New form for the object, laid out as its page layout says. The record saved there is added to the grid.</li>
+            <li><b>Logged.</b> In a grid that logs its changes, each record created writes a Create entry.</li>
+          </ul>
+
+          <h3 id="related-fields" data-anchor="related-fields">Fields of a related record</h3>
+          <p>A column's <b>Field API Name</b> can reach through lookups, as a report or a formula does: <span class="rh-v rh-plain">Account.Industry</span> on a Contact grid, or <span class="rh-v rh-plain">Account.Owner.Email</span>, up to five lookups away. On the Grid Admin tab, choose the lookup (<b>Account &gt;</b>) in the column's Field list, then the field in the list that opens under it. Without a Column Label the column is headed as a report heads it, <span class="rh-v rh-plain">Account: Industry</span>.</p>
+          <ul class="rh-tick">
+            <li><b>Sorted, searched, filtered and grouped</b> like any column, and subtotalled; a display rule or a Grid Filter can test it too.</li>
+            <li><b>Edited on the related record.</b> A change shows at once on every row with the same related record and is saved to that record once, through the user's access to it and to the field. A row whose lookup is blank cannot change it, and shows a lock. Two rows that give the same record different values are both refused, and nothing is written to that field.</li>
+            <li><b>Not offered:</b> a lookup that can point to more than one kind of record, such as a task's Related To or an owner that can be a queue. A new row cannot set a related record's field, and an import writes the grid's own records only, so it leaves such columns out and says so.</li>
+            <li><b>Hidden stays hidden.</b> A user who cannot read every lookup on the way and the field at the end does not get the column.</li>
+          </ul>
         </section>
 
         <section id="format" data-anchor="format">
@@ -458,6 +475,7 @@
             <li><b>Hidden stays hidden.</b> A column the user cannot read is not shown, exported or sent to the browser. A format rule on such a field is dropped for them, since its color would reveal the value, and so is a formula column or rule that reads a field they cannot.</li>
             <li><b>The grid's settings are read on the server</b> on every request: whether this grid allows editing, import, delete or a given action, and which columns are editable. A changed or forged request gains nothing.</li>
             <li><b>Nothing leaves Salesforce.</b> Rowhouse makes no callouts and loads no outside code; diagnostics stay in the user's own browser and never include record data.</li>
+            <li id="encrypted" data-anchor="encrypted"><b>Encrypted fields.</b> A field encrypted with Shield Platform Encryption is shown and edited as usual, but Salesforce cannot sort, filter, group, search or total it, so the grid does not offer those on its column, a search leaves it out, and a Default Sort Field on it is set aside. Diagnostics name such a column. A Grid Filter on an encrypted field stops the grid and says why, since leaving it out would show records the filter was meant to hide.</li>
           </ul>
         </section>
 

@@ -355,6 +355,7 @@ export function emptyDraft() {
             sortField: null,
             sortDirection: 'asc',
             allowInlineEdit: true,
+            allowNewRecords: true,
             allowCsvExport: true,
             allowMassDelete: false,
             allowImport: false,
@@ -423,6 +424,88 @@ export function fieldMap(described) {
     const map = new Map();
     ((described && described.fields) || []).forEach(f => map.set(f.name.toLowerCase(), f));
     return map;
+}
+
+// ---------------------------------------------------------------- parent records
+
+/** The most lookups a column may reach through (GridPaths.MAX_HOPS on the server). */
+export const MAX_HOPS = 5;
+
+/** Does the name reach through a lookup, as Account.Industry does? */
+export function isPathName(name) {
+    return typeof name === 'string' && name.includes('.');
+}
+
+/**
+ * Follow a path such as "Lookup_Field__r.Owner.Email" from the grid's
+ * object. `related` holds the describes of the objects on the way
+ * (GridAdmin.describeObject), by lower-case API name. Returns the steps, one
+ * per object reached ({ fields, objectName, objectLabel, part, last }), the
+ * field at the end when there is one, the headings on the way, and `missing`:
+ * the object whose describe is needed next and not loaded yet.
+ */
+export function walkPath(path, described, related) {
+    const parts = String(path || '').split('.');
+    const out = { steps: [], field: null, headings: [], missing: null };
+    let current = described;
+    for (let i = 0; i < parts.length && current; i++) {
+        const fields = current.fields || [];
+        const last = i === parts.length - 1;
+        const part = parts[i];
+        out.steps.push({ fields, objectName: current.name, objectLabel: current.label, part, last });
+        if (last) {
+            const f = fields.find(x => x.name.toLowerCase() === part.toLowerCase());
+            if (f) {
+                out.field = f;
+                out.headings.push(f.heading || f.label);
+            }
+            break;
+        }
+        const lookup = fields.find(
+            x => x.reachable && x.relationship && x.relationship.toLowerCase() === part.toLowerCase()
+        );
+        if (!lookup) break;
+        out.headings.push(lookup.heading || lookup.label);
+        const target = lookup.referenceTo[0];
+        current = (related || {})[target.toLowerCase()] || null;
+        if (!current) out.missing = target;
+    }
+    return out;
+}
+
+/**
+ * The field a path ends at, as a column of it is shown: headed as a report
+ * heads a related record's field ("Related Account: Industry"), never the
+ * row's name. Null when the path does not reach a field.
+ */
+export function pathField(path, described, related) {
+    const walk = walkPath(path, described, related);
+    if (!walk.field || walk.steps.length < 2) return null;
+    const heading = walk.headings.join(': ');
+    return { ...walk.field, name: path, label: heading, heading, isName: false };
+}
+
+/**
+ * The choices for a column's field, one list per object on the way: each
+ * object's fields, then its lookups to one kind of record, which open that
+ * record's fields ("Related Account >"), while fewer than MAX_HOPS are
+ * followed. A lookup's value ends in a dot. A value the object no longer
+ * has still shows, as the field lists do.
+ */
+export function pathSteps(path, described, related) {
+    return walkPath(path, described, related).steps.map((s, i) => {
+        const options = s.fields.map(f => ({ value: f.name, label: `${f.label} (${f.name})` }));
+        if (i < MAX_HOPS) {
+            s.fields
+                .filter(f => f.reachable && f.relationship)
+                .forEach(f => options.push({ value: `${f.relationship}.`, label: `${f.heading || f.label} >` }));
+        }
+        let value = s.last ? s.part : `${s.part}.`;
+        const known = options.find(o => o.value.toLowerCase() === value.toLowerCase());
+        if (known) value = known.value;
+        else if (s.part) options.unshift({ value, label: `${s.part} (not on this object)` });
+        return { index: i, options, value, objectName: s.objectName, objectLabel: s.objectLabel };
+    });
 }
 
 /**

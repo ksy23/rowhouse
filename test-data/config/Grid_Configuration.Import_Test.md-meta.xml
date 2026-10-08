@@ -9,6 +9,7 @@
     <values><field>Default_Sort_Field__c</field><value xsi:type="xsd:string">Name</value></values>
     <values><field>Default_Sort_Direction__c</field><value xsi:type="xsd:string">asc</value></values>
     <values><field>Allow_Inline_Edit__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Allow_New_Records__c</field><value xsi:type="xsd:boolean">true</value></values>
     <values><field>Allow_CSV_Export__c</field><value xsi:type="xsd:boolean">true</value></values>
     <values><field>Allow_Mass_Delete__c</field><value xsi:type="xsd:boolean">true</value></values>
     <values><field>Allow_Import__c</field><value xsi:type="xsd:boolean">true</value></values>

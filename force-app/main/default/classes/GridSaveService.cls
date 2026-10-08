@@ -21,6 +21,13 @@
  *
  * HR-7: no DML per record. Each chunk issues one Database.update.
  *
+ * FIELDS ON PARENT RECORDS
+ * A column can show a field of a parent record (GridPaths: Account.Industry
+ * on a Contact grid). An edit to it is written to that parent record, once
+ * however many rows share the parent, in chunks of its own; each chunk reports
+ * the outcome on the row cells the edit came from. Two rows that set the same
+ * parent field to different values are both refused, and neither is written.
+ *
  * AUDIT TRAIL
  * When the configuration logs changes, the user must be able to write the log
  * before anything is queued (GridAudit.start), and each chunk logs its own
@@ -46,19 +53,38 @@ public with sharing class GridSaveService {
         Set<String> allowed = def.editableFields();
         Set<String> rejected = new Set<String>();
 
+        // A row's own fields and its parent records' fields are written apart.
+        List<Map<String, Object>> parentRows = new List<Map<String, Object>>();
         List<SObject> records = new List<SObject>();
         for (Map<String, Object> row : rows) {
-            SObject record = toRecord(row, objectType, allowed, rejected, ticket.errors);
+            Map<String, Object> own = new Map<String, Object>();
+            Map<String, Object> parent = new Map<String, Object>();
+            for (String key : row.keySet()) {
+                if (key != 'Id' && GridPaths.isPath(key)) {
+                    parent.put(key, row.get(key));
+                } else {
+                    own.put(key, row.get(key));
+                }
+            }
+            if (!parent.isEmpty()) {
+                parent.put('Id', row.get('Id'));
+                parentRows.add(parent);
+                if (own.size() <= 1) {
+                    continue; // only parent fields changed: nothing to write on the row's own record
+                }
+            }
+            SObject record = toRecord(own, objectType, allowed, rejected, ticket.errors);
             if (record != null) {
                 records.add(record);
             }
         }
+        Set<String> stripped = new Set<String>();
+        ParentSave parents = parentEdits(objectType, parentRows, allowed, rejected, stripped, ticket.errors);
         ticket.rejectedFields.addAll(rejected);
         records = keepWholeTexts(records, objectType, ticket.errors);
 
         SObjectAccessDecision decision = GridSecurity.stripForUpdate(records);
         records = decision.getRecords();
-        Set<String> stripped = new Set<String>();
         for (Set<String> fields : decision.getRemovedFields().values()) {
             for (String f : fields) {
                 stripped.add(GridDescribe.localName(GridDescribe.field(objectType, f))); // HR-4
@@ -66,8 +92,15 @@ public with sharing class GridSaveService {
         }
         ticket.strippedFields.addAll(stripped);
 
-        List<List<SObject>> chunks = chunksOf(records, audit == null ? null : GridAudit.MAX_ENTRIES);
-        Integer chunkCount = chunks.size();
+        Integer cellBudget = audit == null ? null : GridAudit.MAX_ENTRIES;
+        List<List<SObject>> chunks = chunksOf(records, cellBudget);
+        List<List<SObject>> parentChunks = new List<List<SObject>>();
+        Integer parentCount = 0;
+        for (List<SObject> holders : parents.records.values()) {
+            parentChunks.addAll(chunksOf(holders, cellBudget));
+            parentCount += holders.size();
+        }
+        Integer chunkCount = chunks.size() + parentChunks.size();
         Integer maxChunks = Limits.getLimitQueueableJobs() - Limits.getQueueableJobs();
         if (chunkCount > maxChunks) {
             throw new GridException(
@@ -76,7 +109,7 @@ public with sharing class GridSaveService {
                     ' records' +
                     (audit == null ? '' : ', fewer when many fields change in a grid that logs its changes') +
                     '; this one has ' +
-                    records.size() +
+                    (records.size() + parentCount) +
                     '. Save in smaller batches.'
             );
         }
@@ -86,10 +119,339 @@ public with sharing class GridSaveService {
         if (audit != null) {
             audit.saveId = ticket.saveId; // a save's log entries carry the save's own Id
         }
-        for (Integer i = 0; i < chunkCount; i++) {
+        for (Integer i = 0; i < chunks.size(); i++) {
             System.enqueueJob(new GridSaveChunk(ticket.saveId, i, chunkCount, chunks[i], audit));
         }
+        for (Integer j = 0; j < parentChunks.size(); j++) {
+            List<SObject> chunk = parentChunks[j];
+            Map<Id, List<List<String>>> reportAs = new Map<Id, List<List<String>>>();
+            for (SObject holder : chunk) {
+                reportAs.put(holder.Id, parents.reportAs.get(holder.Id));
+            }
+            System.enqueueJob(
+                new GridSaveChunk(
+                    ticket.saveId,
+                    chunks.size() + j,
+                    chunkCount,
+                    chunk,
+                    auditFor(audit, chunk[0].getSObjectType()),
+                    reportAs
+                )
+            );
+        }
         return ticket;
+    }
+
+    // ---------------------------------------------------- parent records
+
+    /** What a save writes on parent records: the records by object, and the row cells each one answers for. */
+    private class ParentSave {
+        Map<Schema.SObjectType, List<SObject>> records = new Map<Schema.SObjectType, List<SObject>>();
+        /** Parent record Id to the row cells whose edits it carries: [row Id, column]. */
+        Map<Id, List<List<String>>> reportAs = new Map<Id, List<List<String>>>();
+    }
+
+    /** Why a parent field was not written: two rows gave it different values. */
+    public static final String CONFLICT_MESSAGE = 'Another row changes this field on the same record to a different value. Make them match, then save again.';
+
+    /**
+     * The parent records to write for the edits on parent-record columns
+     * (GridPaths). Each column must be an editable column of this grid
+     * (HR-6, else `rejected`) that this user may edit through every record on
+     * the way (GridSecurity.canEditPath, else `stripped`). The rows are read
+     * in user mode to find each one's parent record; a row whose lookup is
+     * blank cannot change its parent's field. Values are converted and
+     * checked as on the row's own fields. Problems go to `errors` against
+     * the row and column the user edited.
+     */
+    private static ParentSave parentEdits(
+        Schema.SObjectType objectType,
+        List<Map<String, Object>> rows,
+        Set<String> allowed,
+        Set<String> rejected,
+        Set<String> stripped,
+        List<GridSaveError> errors
+    ) {
+        ParentSave out = new ParentSave();
+        if (rows.isEmpty()) {
+            return out;
+        }
+        // Which columns may be written, each resolved once.
+        Map<String, GridPaths.FieldPath> usable = new Map<String, GridPaths.FieldPath>();
+        Set<String> refused = new Set<String>();
+        Map<Id, Map<String, Object>> edits = new Map<Id, Map<String, Object>>();
+        for (Map<String, Object> row : rows) {
+            Id rowId = rowIdOf(row, objectType, errors);
+            if (rowId == null) {
+                continue;
+            }
+            for (String key : row.keySet()) {
+                if (key == 'Id' || refused.contains(key)) {
+                    continue;
+                }
+                if (!usable.containsKey(key)) {
+                    GridPaths.FieldPath fp = writablePath(objectType, key, allowed, rejected, stripped);
+                    if (fp == null) {
+                        refused.add(key);
+                        continue;
+                    }
+                    usable.put(key, fp);
+                }
+                if (!edits.containsKey(rowId)) {
+                    edits.put(rowId, new Map<String, Object>());
+                }
+                edits.get(rowId).put(key, row.get(key));
+            }
+        }
+        if (edits.isEmpty()) {
+            return out;
+        }
+
+        // Where each row's parent records are. Field names from describe; the Ids are bound.
+        Set<String> holderFields = new Set<String>{ 'Id' };
+        for (GridPaths.FieldPath fp : usable.values()) {
+            holderFields.add(fp.holderIdSoql);
+        }
+        Set<Id> rowIds = edits.keySet();
+        Map<Id, SObject> found = new Map<Id, SObject>(
+            GridSecurity.query(
+                'SELECT ' +
+                    String.join(new List<String>(holderFields), ', ') +
+                    ' FROM ' +
+                    GridDescribe.apiName(objectType) +
+                    ' WHERE Id IN :rowIds',
+                new Map<String, Object>{ 'rowIds' => rowIds }
+            )
+        );
+
+        // The value each parent field gets, and the cells that set it.
+        Map<String, Object> values = new Map<String, Object>();
+        Map<String, Schema.SObjectField> fields = new Map<String, Schema.SObjectField>();
+        Map<String, Id> holderOf = new Map<String, Id>();
+        Map<String, List<List<String>>> cellsOf = new Map<String, List<List<String>>>();
+        Set<String> conflicted = new Set<String>();
+        for (Id rowId : edits.keySet()) {
+            SObject row = found.get(rowId);
+            for (String key : edits.get(rowId).keySet()) {
+                GridPaths.FieldPath fp = usable.get(key);
+                if (row == null) {
+                    errors.add(new GridSaveError(rowId, fp.local, NOT_AVAILABLE_MESSAGE));
+                    continue;
+                }
+                Id holderId = GridPaths.holderIdAt(row, fp);
+                if (holderId == null) {
+                    errors.add(new GridSaveError(rowId, fp.local, noParentMessage(fp)));
+                    continue;
+                }
+                Object value;
+                try {
+                    value = coerce(fp.field, edits.get(rowId).get(key));
+                } catch (Exception e) {
+                    errors.add(new GridSaveError(rowId, fp.local, 'Invalid value: ' + e.getMessage()));
+                    continue;
+                }
+                if (isBlank(value) && isRequired(fp.field)) {
+                    errors.add(new GridSaveError(rowId, fp.local, REQUIRED_MESSAGE));
+                    continue;
+                }
+                // Keyed by the parent record and its field, so two columns that
+                // reach the same field by different lookups agree too.
+                String slot = holderId + '.' + GridDescribe.apiName(fp.field);
+                if (!cellsOf.containsKey(slot)) {
+                    cellsOf.put(slot, new List<List<String>>());
+                    values.put(slot, value);
+                    fields.put(slot, fp.field);
+                    holderOf.put(slot, holderId);
+                } else if (!sameValue(values.get(slot), value)) {
+                    conflicted.add(slot);
+                }
+                cellsOf.get(slot).add(new List<String>{ rowId, fp.local });
+            }
+        }
+
+        // One record per parent, with every field the rows set on it.
+        Map<Id, SObject> holders = new Map<Id, SObject>();
+        for (String slot : cellsOf.keySet()) {
+            if (conflicted.contains(slot)) {
+                for (List<String> cell : cellsOf.get(slot)) {
+                    errors.add(new GridSaveError(Id.valueOf(cell[0]), cell[1], CONFLICT_MESSAGE));
+                }
+                continue;
+            }
+            Id holderId = holderOf.get(slot);
+            if (!holders.containsKey(holderId)) {
+                holders.put(holderId, holderId.getSObjectType().newSObject(holderId));
+                out.reportAs.put(holderId, new List<List<String>>());
+            }
+            holders.get(holderId).put(fields.get(slot), values.get(slot));
+            out.reportAs.get(holderId).addAll(cellsOf.get(slot));
+        }
+
+        Map<Schema.SObjectType, List<SObject>> byType = new Map<Schema.SObjectType, List<SObject>>();
+        for (SObject holder : holders.values()) {
+            Schema.SObjectType t = holder.getSObjectType();
+            if (!byType.containsKey(t)) {
+                byType.put(t, new List<SObject>());
+            }
+            byType.get(t).add(holder);
+        }
+        for (Schema.SObjectType t : byType.keySet()) {
+            // A shortened copy of a long text is never written back (as on the row's own fields).
+            List<GridSaveError> textErrors = new List<GridSaveError>();
+            List<SObject> kept = keepWholeTexts(byType.get(t), t, textErrors);
+            for (GridSaveError e : textErrors) {
+                for (List<String> cell : cellsFor(out.reportAs.get(e.recordId), e.fieldName)) {
+                    errors.add(new GridSaveError(Id.valueOf(cell[0]), cell[1], e.message));
+                }
+            }
+            SObjectAccessDecision decision = GridSecurity.stripForUpdate(kept);
+            Map<Integer, Set<String>> removed = decision.getRemovedFields().isEmpty()
+                ? new Map<Integer, Set<String>>()
+                : indexRemoved(kept, decision);
+            List<SObject> writable = new List<SObject>();
+            List<SObject> checked = decision.getRecords();
+            for (Integer i = 0; i < checked.size(); i++) {
+                Id holderId = kept[i].Id;
+                for (String f : removed.containsKey(i) ? removed.get(i) : new Set<String>()) {
+                    String local = GridDescribe.localName(GridDescribe.field(t, f));
+                    for (List<String> cell : cellsFor(out.reportAs.get(holderId), local)) {
+                        stripped.add(cell[1]);
+                    }
+                }
+                SObject holder = checked[i];
+                holder.Id = holderId;
+                if (holder.getPopulatedFieldsAsMap().size() > 1) {
+                    writable.add(holder);
+                }
+            }
+            if (!writable.isEmpty()) {
+                out.records.put(t, writable);
+            }
+        }
+        return out;
+    }
+
+    /** The removed fields of each record, by its place in `records`. */
+    private static Map<Integer, Set<String>> indexRemoved(List<SObject> records, SObjectAccessDecision decision) {
+        Map<Integer, Set<String>> out = new Map<Integer, Set<String>>();
+        Set<String> removed = new Set<String>();
+        for (Set<String> fields : decision.getRemovedFields().values()) {
+            removed.addAll(fields);
+        }
+        for (Integer i = 0; i < records.size(); i++) {
+            Set<String> mine = new Set<String>();
+            for (String f : records[i].getPopulatedFieldsAsMap().keySet()) {
+                if (removed.contains(f)) {
+                    mine.add(f);
+                }
+            }
+            if (!mine.isEmpty()) {
+                out.put(i, mine);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The path a column names, when this grid lets it be written: an editable
+     * column (HR-6, else its name goes to `rejected`) the user may edit through
+     * every record on the way (else to `stripped`). Null when it may not.
+     */
+    private static GridPaths.FieldPath writablePath(
+        Schema.SObjectType objectType,
+        String key,
+        Set<String> allowed,
+        Set<String> rejected,
+        Set<String> stripped
+    ) {
+        GridPaths.FieldPath fp;
+        try {
+            fp = GridPaths.resolve(objectType, key);
+        } catch (GridException e) {
+            rejected.add(key);
+            return null;
+        }
+        if (!allowed.contains(fp.local.toLowerCase())) {
+            rejected.add(fp.local); // HR-6: not an editable column of this grid
+            return null;
+        }
+        if (!GridSecurity.canEditPath(fp)) {
+            stripped.add(fp.local);
+            return null;
+        }
+        return fp;
+    }
+
+    /** A row's Id, when it is a record of the grid's object; otherwise the problem goes to `errors`. */
+    private static Id rowIdOf(Map<String, Object> row, Schema.SObjectType objectType, List<GridSaveError> errors) {
+        Id rowId;
+        try {
+            rowId = (Id) String.valueOf(row.get('Id'));
+        } catch (Exception e) {
+            errors.add(new GridSaveError(null, null, 'Not a record Id: ' + row.get('Id')));
+            return null;
+        }
+        if (rowId == null || rowId.getSObjectType() != objectType) {
+            errors.add(
+                new GridSaveError(
+                    rowId,
+                    null,
+                    'Record ' + rowId + ' is not a ' + GridDescribe.localName(objectType) + '.'
+                )
+            );
+            return null;
+        }
+        return rowId;
+    }
+
+    /** Why a row could not be read to find its parent record. */
+    public static final String NOT_AVAILABLE_MESSAGE = 'This record was deleted, or you no longer have access to it.';
+
+    /** Why a row whose lookup is blank cannot change its parent's field: "This record has no Account, so Industry can't be changed." */
+    private static String noParentMessage(GridPaths.FieldPath fp) {
+        Schema.SObjectField lookup = fp.hops[fp.hops.size() - 1];
+        return 'This record has no ' +
+            GridConfig.defaultLabel(lookup.getDescribe()) +
+            ', so ' +
+            GridConfig.defaultLabel(fp.field.getDescribe()) +
+            ' can\'t be changed.';
+    }
+
+    /** The cells among `cells` whose column ends in the field `local`. */
+    private static List<List<String>> cellsFor(List<List<String>> cells, String local) {
+        List<List<String>> out = new List<List<String>>();
+        if (cells == null) {
+            return out;
+        }
+        for (List<String> cell : cells) {
+            if (local == null || cell[1].substringAfterLast('.').equalsIgnoreCase(local)) {
+                out.add(cell);
+            }
+        }
+        return out;
+    }
+
+    /** Equal values; text compared exactly, since Apex compares strings ignoring case. */
+    private static Boolean sameValue(Object a, Object b) {
+        if (a == null || b == null) {
+            return a == null && b == null;
+        }
+        if (a instanceof String && b instanceof String) {
+            return ((String) a).equals((String) b);
+        }
+        return a == b;
+    }
+
+    /** The log context for a chunk of parent records: the same save, their own object. */
+    private static GridAudit.Context auditFor(GridAudit.Context audit, Schema.SObjectType objectType) {
+        if (audit == null) {
+            return null;
+        }
+        GridAudit.Context ctx = new GridAudit.Context();
+        ctx.configName = audit.configName;
+        ctx.objectName = GridDescribe.apiName(objectType);
+        ctx.saveId = audit.saveId;
+        return ctx;
     }
 
     /**

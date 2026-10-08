@@ -46,6 +46,33 @@ private class GridConfigTest {
         System.assertEquals(320, GridConfig.load('Save_Test').height, 'A Height is passed on in pixels.');
         System.assertEquals('asc', def.sortDirection);
         System.assertEquals(true, def.showRowNumbers, 'Checked: the rows are numbered.');
+        System.assertEquals(true, def.allowNewRecords, 'Checked: the grid has a New button.');
+        System.assertEquals(false, GridConfig.load('Save_Test').allowNewRecords, 'Unchecked: no New button.');
+    }
+
+    @IsTest
+    static void newRowCellsAreTheEditableColumnsTheUserMaySetOnCreate() {
+        GridConfig.Definition def;
+        GridConfig.Definition off;
+        System.runAs(GridTestUsers.limitedUser()) {
+            def = GridConfig.forUser('Security_Test');
+            off = GridConfig.forUser('Save_Test');
+        }
+        System.assertEquals(true, def.allowNewRecords, 'The limited user may create test records.');
+        Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
+        for (GridConfig.Column c : def.columns) {
+            byField.put(c.field, c);
+        }
+        System.assertEquals(true, byField.get('Text_Field__c').creatable);
+        System.assertEquals(
+            false,
+            byField.get('Read_Only_Text__c').creatable,
+            'An editable column the user may not set on create is not filled in on a new row.'
+        );
+        System.assertEquals(false, off.allowNewRecords);
+        for (GridConfig.Column c : off.columns) {
+            System.assertEquals(false, c.creatable, c.field + ': no New button, no new row cells.');
+        }
     }
 
     @IsTest

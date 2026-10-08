@@ -259,6 +259,17 @@ describe('editing', () => {
         expect(lastDraft().config.showRowNumbers).toBe(true);
     });
 
+    it('shows Create records with New ticked, and unticking it takes the New button away', async () => {
+        const el = await mount();
+        const box = $(el, '.rh-config-new');
+        expect(box.label).toBe('Create records with New');
+        expect(box.checked).toBe(true); // a grid has New unless its record says not to
+        change(box, false);
+        await afterCheck();
+        expect(lastDraft().config.allowNewRecords).toBe(false);
+        expect($(el, '.rh-config-new').checked).toBe(false);
+    });
+
     it("checks the draft a moment after a change, with the grid's own code", async () => {
         const el = await mount();
         expect($(el, '.rh-editor-save').disabled).toBe(true); // nothing changed yet

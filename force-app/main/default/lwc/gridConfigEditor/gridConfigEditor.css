@@ -241,3 +241,13 @@
         padding-right: var(--slds-g-spacing-4, 1rem);
     }
 }
+
+/*
+ * A column of a parent record's field: one list per object on the way
+ * ("Related Account >", then Account's fields), stacked in the field cell.
+ */
+.rh-field-path {
+    display: flex;
+    flex-direction: column;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+}

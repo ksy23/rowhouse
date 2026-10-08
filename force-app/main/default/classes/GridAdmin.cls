@@ -88,6 +88,9 @@ public with sharing class GridAdmin {
         public Boolean allowMassDelete = false;
         @AuraEnabled
         public Boolean allowImport = false;
+        /** The grid has a New button (Allow New Records); on for a new grid. */
+        @AuraEnabled
+        public Boolean allowNewRecords = true;
         @AuraEnabled
         public Boolean logChanges = false;
         @AuraEnabled
@@ -415,6 +418,7 @@ public with sharing class GridAdmin {
         d.config.allowCsvExport = cfg.Allow_CSV_Export__c == true;
         d.config.allowMassDelete = cfg.Allow_Mass_Delete__c == true;
         d.config.allowImport = cfg.Allow_Import__c == true;
+        d.config.allowNewRecords = cfg.Allow_New_Records__c == true;
         d.config.logChanges = cfg.Log_Changes__c == true;
         d.config.frozenColumns = toInteger(cfg.Frozen_Columns__c);
         d.config.showRowNumbers = cfg.Show_Row_Numbers__c == true;
@@ -612,6 +616,14 @@ public with sharing class GridAdmin {
                         !richText,
                         'isName' => d.isNameField(),
                         'referenceTo' => referenceTo,
+                        // A column can reach through a lookup to one kind of record to that record's fields (GridPaths).
+                        'relationship' => d.getRelationshipName() == null
+                            ? null
+                            : GridPaths.withoutNamespace(d.getRelationshipName()),
+                        'reachable' => d.getType() == Schema.DisplayType.REFERENCE &&
+                        d.getRelationshipName() != null &&
+                        referenceTo.size() == 1 &&
+                        !d.isNamePointing(),
                         'subtotals' => subtotals
                     }
                 )
@@ -725,7 +737,7 @@ public with sharing class GridAdmin {
         }
         if (String.isNotBlank(c.sortField)) {
             try {
-                if (!GridDescribe.field(objectType, c.sortField).getDescribe().isSortable()) {
+                if (!GridPaths.resolve(objectType, c.sortField).field.getDescribe().isSortable()) {
                     result.errors.add('The grid cannot be sorted by ' + c.sortField + '.');
                 }
             } catch (GridException e) {
@@ -889,7 +901,8 @@ public with sharing class GridAdmin {
             }
             String local;
             try {
-                local = GridDescribe.localName(GridDescribe.field(objectType, col.field));
+                // A field of the grid's object, or of a parent record (GridPaths).
+                local = GridPaths.resolve(objectType, col.field).local;
             } catch (GridException e) {
                 result.errors.add(e.getMessage());
                 continue;
@@ -1355,6 +1368,7 @@ public with sharing class GridAdmin {
             Grid_Configuration__mdt.Allow_CSV_Export__c => c.allowCsvExport == true,
             Grid_Configuration__mdt.Allow_Mass_Delete__c => c.allowMassDelete == true,
             Grid_Configuration__mdt.Allow_Import__c => c.allowImport == true,
+            Grid_Configuration__mdt.Allow_New_Records__c => c.allowNewRecords == true,
             Grid_Configuration__mdt.Log_Changes__c => c.logChanges == true,
             Grid_Configuration__mdt.Frozen_Columns__c => toDecimal(c.frozenColumns),
             Grid_Configuration__mdt.Show_Row_Numbers__c => c.showRowNumbers == true,

@@ -99,6 +99,31 @@ public with sharing class GridSecurity {
         return field.getDescribe().isCreateable();
     }
 
+    // ------------------------------------------------------- parent records
+
+    /**
+     * Can this user read a column's field on a parent record
+     * (GridPaths)? Each lookup on the way, each record it points to, and the
+     * field at the end: in user mode a query naming any one the user cannot
+     * read fails. A field of the grid's own object is its own check.
+     */
+    public static Boolean canReadPath(GridPaths.FieldPath p) {
+        for (Schema.SObjectField hop : p.hops) {
+            if (!canRead(hop) || !canRead(hop.getDescribe().getReferenceTo()[0])) {
+                return false;
+            }
+        }
+        return canRead(p.field);
+    }
+
+    /**
+     * Can this user change a column's field on a parent record? They must
+     * read the way there, edit the record that holds it, and edit the field.
+     */
+    public static Boolean canEditPath(GridPaths.FieldPath p) {
+        return canReadPath(p) && canUpdate(p.holder) && canEdit(p.field);
+    }
+
     // ---------------------------------------------------------------- actions
 
     /**

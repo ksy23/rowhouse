@@ -132,7 +132,9 @@ public with sharing class GridController {
      * typed before the grid opened again (after its settings were saved, say).
      * A layout that cannot be read is no layout (`layoutError` says why), and
      * rows that cannot be read are no page (`pageError` says why, and the grid
-     * shows it under its title, as before). Not cacheable: rows must be
+     * shows it under its title, as before). `newRow` says how this user adds
+     * records here, with the New button (GridCreateService.newRowFor), or is
+     * null for no New button. Not cacheable: rows must be
      * fresh, so this is never answered from the browser's cache, and neither
      * is the configuration in it.
      */
@@ -180,6 +182,12 @@ public with sharing class GridController {
                 );
             } catch (Exception e) {
                 out.put('pageError', messageOf(e));
+            }
+            // How this user adds records here; none when it cannot be worked out.
+            try {
+                out.put('newRow', GridCreateService.newRowFor(def, parentLink, parentId, recordId));
+            } catch (Exception e) {
+                out.put('newRow', null);
             }
             return out;
         } catch (Exception e) {
@@ -312,6 +320,27 @@ public with sharing class GridController {
     public static GridSaveResult save(String configName, List<Map<String, Object>> rows) {
         try {
             return GridSaveService.save(configName, rows);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /**
+     * Create the records of the grid's new rows, up to 200: each row is
+     * { key, <field>: value }, answered by its key with the new record's Id
+     * or why it was not created. A child table passes its tab and parent; a
+     * grid on a record page passes the record (GridCreateService).
+     */
+    @AuraEnabled
+    public static GridCreateService.Result createRows(
+        String configName,
+        List<Map<String, Object>> rows,
+        String parentLink,
+        String parentId,
+        String recordId
+    ) {
+        try {
+            return GridCreateService.create(configName, rows, parentLink, parentId, recordId);
         } catch (Exception e) {
             throw auraError(e);
         }
@@ -498,10 +527,9 @@ public with sharing class GridController {
                 }
             }
             Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-            if (
-                column == null ||
-                GridDescribe.field(objectType, column.field).getDescribe().getType() != Schema.DisplayType.TEXTAREA
-            ) {
+            // The column may be on a parent record (GridPaths): read through the row.
+            GridPaths.FieldPath fp = column == null ? null : GridPaths.resolve(objectType, column.field);
+            if (fp == null || fp.field.getDescribe().getType() != Schema.DisplayType.TEXTAREA) {
                 throw new GridException('Not a long text column of this grid: ' + field);
             }
             Id rowId;
@@ -513,19 +541,14 @@ public with sharing class GridController {
             if (rowId.getSObjectType() != objectType) {
                 throw new GridException('Record ' + recordId + ' is not a ' + def.objectApiName + '.');
             }
-            Schema.SObjectField f = GridDescribe.field(objectType, column.field);
             List<SObject> rows = GridSecurity.query(
-                'SELECT ' +
-                    GridDescribe.apiName(f) +
-                    ' FROM ' +
-                    GridDescribe.apiName(objectType) +
-                    ' WHERE Id = :rowId',
+                'SELECT ' + fp.soql + ' FROM ' + GridDescribe.apiName(objectType) + ' WHERE Id = :rowId',
                 new Map<String, Object>{ 'rowId' => rowId }
             );
             if (rows.isEmpty()) {
                 throw new GridException('The record could not be found. It may have been deleted.');
             }
-            return (String) rows[0].get(f);
+            return (String) GridPaths.valueAt(rows[0], fp);
         } catch (Exception e) {
             throw auraError(e);
         }
@@ -614,21 +637,35 @@ public with sharing class GridController {
         Schema.SObjectType objectType = GridDescribe.typeFor(objectApiName);
         Map<String, Schema.SObjectField> fields = new Map<String, Schema.SObjectField>();
         for (String local : page.selectedFields) {
-            fields.put(local, GridDescribe.field(objectType, local));
+            fields.put(
+                local,
+                page.paths.containsKey(local) ? page.paths.get(local).field : GridDescribe.field(objectType, local)
+            );
         }
         List<Map<String, Object>> out = new List<Map<String, Object>>();
         for (SObject row : page.rows) {
             Map<String, Object> m = new Map<String, Object>{ 'Id' => row.Id };
             Map<String, Object> populated = row.getPopulatedFieldsAsMap();
             List<String> cut = new List<String>();
+            // A parent record's field: the record that holds it, by column, so an
+            // edit shows on every row with the same parent and is saved to it.
+            Map<String, String> parents = new Map<String, String>();
             for (String local : fields.keySet()) {
                 Schema.SObjectField f = fields.get(local);
-                String api = GridDescribe.apiName(f);
-                if (!populated.containsKey(api)) {
+                Object stored;
+                GridPaths.FieldPath fp = page.paths.get(local);
+                if (fp != null) {
+                    stored = GridPaths.valueAt(row, fp);
+                    Id holder = GridPaths.holderIdAt(row, fp);
+                    if (holder != null) {
+                        parents.put(local, String.valueOf(holder));
+                    }
+                } else if (!populated.containsKey(GridDescribe.apiName(f))) {
                     m.put(local, null);
                     continue;
+                } else {
+                    stored = row.get(f);
                 }
-                Object stored = row.get(f);
                 Object value = toClientValue(stored, f);
                 m.put(local, value);
                 // Compared as text, not by length: a text of exactly 1,001 characters
@@ -640,15 +677,14 @@ public with sharing class GridController {
             if (!cut.isEmpty()) {
                 m.put('_cut', cut);
             }
+            if (!parents.isEmpty()) {
+                m.put('_parents', parents);
+            }
             // Lookup display names, keyed by field: '_' cannot start a field name.
             if (!page.namePaths.isEmpty()) {
                 Map<String, String> labels = new Map<String, String>();
                 for (String local : page.namePaths.keySet()) {
-                    String path = page.namePaths.get(local);
-                    SObject related = populated.containsKey(path.substringBefore('.'))
-                        ? row.getSObject(path.substringBefore('.'))
-                        : null;
-                    Object name = related == null ? null : related.get(path.substringAfter('.'));
+                    Object name = valueAtPath(row, page.namePaths.get(local));
                     if (name != null) {
                         labels.put(local, String.valueOf(name));
                     }
@@ -660,7 +696,21 @@ public with sharing class GridController {
         return out;
     }
 
-    private static Object toClientValue(Object value, Schema.SObjectField f) {
+    /** The value at the end of a SOQL path ('Account.Name', 'Account.Parent.Name'); null where a record on the way is blank. */
+    private static Object valueAtPath(SObject row, String path) {
+        List<String> steps = path.split('\\.');
+        SObject current = row;
+        for (Integer i = 0; i < steps.size() - 1; i++) {
+            if (current == null || !current.getPopulatedFieldsAsMap().containsKey(steps[i])) {
+                return null;
+            }
+            current = current.getSObject(steps[i]);
+        }
+        return current == null ? null : current.get(steps[steps.size() - 1]);
+    }
+
+    /** A field's value as the browser reads it; also a new row's defaults (GridCreateService). */
+    public static Object toClientValue(Object value, Schema.SObjectField f) {
         if (value instanceof Decimal) {
             return ((Decimal) value).toPlainString();
         }

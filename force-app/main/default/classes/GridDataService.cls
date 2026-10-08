@@ -60,22 +60,35 @@ public with sharing class GridDataService {
         Set<String> selectedLower = new Set<String>{ 'id' };
 
         for (String requested : request.fields) {
-            Schema.SObjectField f = GridDescribe.field(objectType, requested);
-            String local = GridDescribe.localName(f);
-            if (!GridSecurity.canRead(f)) {
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, requested);
+            Schema.SObjectField f = fp.field;
+            String local = fp.local;
+            if (!GridSecurity.canReadPath(fp)) {
                 // The query must not even name the field: in user mode that throws.
                 page.strippedFields.add(local);
                 continue;
             }
-            String api = GridDescribe.apiName(f);
+            String api = fp.soql;
             if (selectedLower.add(api.toLowerCase())) {
                 selectList.add(api);
             }
             page.selectedFields.add(local);
+            if (fp.isPath()) {
+                // A parent record's field, and the Id of the record that holds it,
+                // which an edit is saved to (GridSaveService).
+                page.paths.put(local, fp);
+                if (selectedLower.add(fp.holderIdSoql.toLowerCase())) {
+                    selectList.add(fp.holderIdSoql);
+                }
+                // The row carries the first lookup's record, and the platform fills in
+                // that lookup's Id too (measured): both belong to this query.
+                belongs(selectedLower, fp.relationships[0]);
+                belongs(selectedLower, GridDescribe.apiName(fp.hops[0]));
+            }
             Schema.DescribeFieldResult d = f.getDescribe();
             // A lookup shows its record's name, read in the same query.
             String path = d.getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(f)
-                ? GridDescribe.namePath(f)
+                ? namePathOf(fp)
                 : null;
             if (path != null && selectedLower.add(path.toLowerCase())) {
                 selectList.add(path);
@@ -83,9 +96,7 @@ public with sharing class GridDataService {
                 // The row carries the related record under its relationship
                 // name, with or without the package namespace (HR-4); requireThisQuery
                 // must know it belongs to this query.
-                String relationship = path.substringBefore('.');
-                selectedLower.add(relationship.toLowerCase());
-                selectedLower.add(stripNamespace(relationship).toLowerCase());
+                belongs(selectedLower, path.substringBefore('.'));
             }
         }
 
@@ -141,6 +152,24 @@ public with sharing class GridDataService {
         fill(page, cursor, new List<Integer>{ start, size, null }, fingerprint);
         page.cursorToken = JSON.serialize(cursor);
         return page;
+    }
+
+    /** A relationship the rows carry belongs to this query, with or without the namespace (HR-4). */
+    private static void belongs(Set<String> selectedLower, String relationship) {
+        selectedLower.add(relationship.toLowerCase());
+        selectedLower.add(stripNamespace(relationship).toLowerCase());
+    }
+
+    /**
+     * The SOQL path of a lookup's display name, for a lookup of the grid's
+     * object ('Account.Name') or one on a parent record ('Account.Parent.Name').
+     */
+    private static String namePathOf(GridPaths.FieldPath fp) {
+        String own = GridDescribe.namePath(fp.field);
+        if (own == null || !fp.isPath()) {
+            return own;
+        }
+        return String.join(fp.relationships, '.') + '.' + own;
     }
 
     /**
@@ -324,17 +353,24 @@ public with sharing class GridDataService {
         List<String> searchable = new List<String>();
         Set<String> seen = new Set<String>();
         for (String requested : fields) {
-            Schema.SObjectField f = GridDescribe.field(objectType, requested);
-            if (!GridSecurity.canRead(f)) {
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, requested);
+            Schema.SObjectField f = fp.field;
+            if (!GridSecurity.canReadPath(fp)) {
                 continue;
             }
             Schema.DescribeFieldResult d = f.getDescribe();
-            String api = GridDescribe.apiName(f);
-            if (SEARCHABLE_TYPES.contains(d.getType()) && d.isFilterable() && seen.add(api.toLowerCase())) {
+            String api = fp.soql;
+            // An encrypted field cannot be searched with LIKE (GridDescribe.isEncrypted).
+            if (
+                SEARCHABLE_TYPES.contains(d.getType()) &&
+                d.isFilterable() &&
+                !GridDescribe.isEncrypted(d) &&
+                seen.add(api.toLowerCase())
+            ) {
                 searchable.add(api);
             }
             String path = d.getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(f)
-                ? GridDescribe.namePath(f)
+                ? namePathOf(fp)
                 : null;
             if (path != null && seen.add(path.toLowerCase())) {
                 searchable.add(path);
@@ -365,44 +401,48 @@ public with sharing class GridDataService {
         List<String> keys = new List<String>();
         Set<String> used = new Set<String>();
         for (String groupField : request.groupFields) {
-            Schema.SObjectField f = sortableField(objectType, groupField, 'group');
+            GridPaths.FieldPath fp = sortableField(objectType, groupField, 'group');
             String direction = groupField.equalsIgnoreCase(request.sortField) &&
                 'desc'.equalsIgnoreCase(request.sortDirection)
                 ? 'DESC'
                 : 'ASC';
-            String path = namePathFor(f);
+            String path = namePathFor(fp);
             if (path != null) {
                 keys.add(path + ' ' + direction + ' NULLS LAST');
             }
-            keys.add(GridDescribe.apiName(f) + ' ' + direction + ' NULLS LAST');
-            used.add(GridDescribe.localName(f).toLowerCase());
+            keys.add(fp.soql + ' ' + direction + ' NULLS LAST');
+            used.add(fp.local.toLowerCase());
         }
         if (String.isNotBlank(request.sortField)) {
-            Schema.SObjectField f = sortableField(objectType, request.sortField, 'sort');
-            if (!used.contains(GridDescribe.localName(f).toLowerCase())) {
+            GridPaths.FieldPath fp = sortableField(objectType, request.sortField, 'sort');
+            if (!used.contains(fp.local.toLowerCase())) {
                 String direction = 'desc'.equalsIgnoreCase(request.sortDirection) ? 'DESC' : 'ASC';
                 // A lookup sorts by the name the user sees, not by the record Id.
-                String path = namePathFor(f);
-                keys.add((path != null ? path : GridDescribe.apiName(f)) + ' ' + direction + ' NULLS LAST');
+                String path = namePathFor(fp);
+                keys.add((path != null ? path : fp.soql) + ' ' + direction + ' NULLS LAST');
             }
         }
         keys.add('Id ASC');
         return ' ORDER BY ' + String.join(keys, ', ');
     }
 
-    /** A field the user can read and SOQL can order by; otherwise the grid cannot sort (or group) by it. */
-    private static Schema.SObjectField sortableField(Schema.SObjectType objectType, String name, String verb) {
-        Schema.SObjectField f = GridDescribe.field(objectType, name);
-        if (!GridSecurity.canRead(f) || !f.getDescribe().isSortable()) {
+    /**
+     * A field, or a parent record's field, the user can read and SOQL can
+     * order by; otherwise the grid cannot sort (or group) by it.
+     */
+    private static GridPaths.FieldPath sortableField(Schema.SObjectType objectType, String name, String verb) {
+        GridPaths.FieldPath fp = GridPaths.resolve(objectType, name);
+        Schema.DescribeFieldResult d = fp.field.getDescribe();
+        if (!GridSecurity.canReadPath(fp) || !d.isSortable() || GridDescribe.isEncrypted(d)) {
             throw new GridException('Cannot ' + verb + ' by ' + GridDescribe.localName(objectType) + '.' + name + '.');
         }
-        return f;
+        return fp;
     }
 
     /** The name path a lookup shows and sorts by, or null. */
-    private static String namePathFor(Schema.SObjectField f) {
-        return f.getDescribe().getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(f)
-            ? GridDescribe.namePath(f)
+    private static String namePathFor(GridPaths.FieldPath fp) {
+        return fp.field.getDescribe().getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(fp.field)
+            ? namePathOf(fp)
             : null;
     }
 
