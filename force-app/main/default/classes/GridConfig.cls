@@ -451,9 +451,9 @@ public with sharing class GridConfig {
         /** Columns, from the left, that stay in place when the grid scrolls sideways. */
         @AuraEnabled
         public Integer frozenColumns;
-        /** True: no row numbers down the grid's left edge. */
+        /** True: the rows are numbered down the grid's left edge. */
         @AuraEnabled
-        public Boolean hideRowNumbers = false;
+        public Boolean showRowNumbers = true;
         /** The grid's height in pixels; null fills the window. */
         @AuraEnabled
         public Integer height;
@@ -773,7 +773,7 @@ public with sharing class GridConfig {
         def.allowImport = cfg.Allow_Import__c == true;
         def.logChanges = cfg.Log_Changes__c == true;
         def.frozenColumns = cfg.Frozen_Columns__c == null ? 0 : Math.max(0, cfg.Frozen_Columns__c.intValue());
-        def.hideRowNumbers = cfg.Hide_Row_Numbers__c == true;
+        def.showRowNumbers = cfg.Show_Row_Numbers__c == true;
         def.height = cfg.Height_Px__c == null || cfg.Height_Px__c <= 0 ? null : cfg.Height_Px__c.intValue();
         // Checked here, so a Record Page Field that is not a lookup stops the grid
         // at once rather than on the first record page.

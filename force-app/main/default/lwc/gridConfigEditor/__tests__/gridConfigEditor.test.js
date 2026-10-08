@@ -249,14 +249,14 @@ describe('editing', () => {
     it('shows Show row numbers ticked, and unticking it hides them', async () => {
         const el = await mount();
         const box = $(el, '.rh-config-row-numbers');
-        expect(box.checked).toBe(true); // Hide Row Numbers is unchecked on the record
+        expect(box.checked).toBe(true); // a grid numbers its rows unless its record says not to
         change(box, false);
         await afterCheck();
-        expect(lastDraft().config.hideRowNumbers).toBe(true);
+        expect(lastDraft().config.showRowNumbers).toBe(false);
         expect($(el, '.rh-config-row-numbers').checked).toBe(false);
         change($(el, '.rh-config-row-numbers'), true);
         await afterCheck();
-        expect(lastDraft().config.hideRowNumbers).toBe(false);
+        expect(lastDraft().config.showRowNumbers).toBe(true);
     });
 
     it("checks the draft a moment after a change, with the grid's own code", async () => {

@@ -27,7 +27,7 @@
  *     loadingMore: true while the next page is on its way
  *     height:      pixels, from the configuration; empty means fill the window
  *     rowNumbers:  true to number the rows down the left edge, as a list view
- *                  does (the configuration's Hide Row Numbers unchecked)
+ *                  does (the configuration's Show Row Numbers)
  *     refNames:    { [recordId]: name } for lookup and owner cells
  *     configName:  the grid configuration, which lookup editors search through
  *     formatRules: conditional formats from the server, in order

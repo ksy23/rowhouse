@@ -109,7 +109,7 @@ describe('loading', () => {
         const el = mount();
         await settle();
         expect(tableConfig(el).rowNumbers).toBe(true);
-        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, hideRowNumbers: true }, diagnostics: false });
+        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, showRowNumbers: false }, diagnostics: false });
         const hidden = mount('No_Numbers');
         await settle();
         expect(tableConfig(hidden).rowNumbers).toBe(false);

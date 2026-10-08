@@ -65,7 +65,7 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
-                <field>Hide_Row_Numbers__c</field>
+                <field>Show_Row_Numbers__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>

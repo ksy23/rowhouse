@@ -11,4 +11,5 @@
     <values><field>Default_Sort_Direction__c</field><value xsi:type="xsd:string">asc</value></values>
     <values><field>Allow_Inline_Edit__c</field><value xsi:type="xsd:boolean">true</value></values>
     <values><field>Allow_CSV_Export__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Show_Row_Numbers__c</field><value xsi:type="xsd:boolean">true</value></values>
 </CustomMetadata>

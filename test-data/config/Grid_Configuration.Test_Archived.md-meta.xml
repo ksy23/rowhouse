@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Archived: a grid out of use. Not listed with the others, refused when a page opens it, not offered as a child table, left out of the edit log's clean-up list. Hides its row numbers, so tests can see Archive and Restore keep the setting. -->
+<!-- Archived: a grid out of use. Not listed with the others, refused when a page opens it, not offered as a child table, left out of the edit log's clean-up list. Shows no row numbers, so tests can see Archive and Restore keep the setting. -->
 <CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -12,5 +12,5 @@
     <values><field>Allow_CSV_Export__c</field><value xsi:type="xsd:boolean">true</value></values>
     <values><field>Log_Changes__c</field><value xsi:type="xsd:boolean">true</value></values>
     <values><field>Archived__c</field><value xsi:type="xsd:boolean">true</value></values>
-    <values><field>Hide_Row_Numbers__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Show_Row_Numbers__c</field><value xsi:type="xsd:boolean">false</value></values>
 </CustomMetadata>

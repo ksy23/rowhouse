@@ -290,9 +290,9 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         return this.draft ? this.draft.config : {};
     }
 
-    /** Show row numbers: the field is Hide Row Numbers, so the box shows its opposite. */
+    /** Show row numbers: ticked unless the grid's record says otherwise, as a new grid starts. */
     get showRowNumbers() {
-        return this.config.hideRowNumbers !== true;
+        return this.config.showRowNumbers !== false;
     }
 
     get isNew() {
@@ -955,7 +955,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         let value;
         if (kind === 'checkbox') value = event.target.checked === true;
         else if (kind === 'on')
-            value = event.target.checked !== true; // the box shows On (or Show); the field is Inactive (or Hide)
+            value = event.target.checked !== true; // the switch shows On; the field is Inactive
         else if (kind === 'number') value = toInteger(event.detail ? event.detail.value : event.target.value);
         else value = event.detail ? event.detail.value : event.target.value;
         if (list === 'config') this.changeConfig(prop, value);
