@@ -25,6 +25,7 @@
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "67.0",
   "packageAliases": {
-    "Rowhouse Grid": "0HoUK0000000vj30AA"
+    "Rowhouse Grid": "0HoUK0000000vj30AA",
+    "Rowhouse Grid@0.1.0-1": "04tUK000000TBbBYAW"
   }
 }
