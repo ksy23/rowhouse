@@ -37,7 +37,7 @@
     "eslint": "^9.0.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jest": "^28.0.0",
-    "fast-xml-parser": "^4.4.0",
+    "fast-xml-parser": "^5.11.2",
     "husky": "9.1.7",
     "lint-staged": "17.6.0",
     "prettier": "3.9.9",
@@ -45,5 +45,8 @@
   },
   "lint-staged": {
     "*.{cls,trigger,js,html,css,yml}": "prettier --write"
+  },
+  "overrides": {
+    "@babel/core": "^7.29.6"
   }
 }
