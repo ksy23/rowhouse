@@ -49,7 +49,7 @@
               <circle r="6" class="rh-dot rh-clay"><animateMotion dur="4.8s" repeatCount="indefinite" path="M20,60 H880"/></circle>
             </svg>
           </div>
-          <p class="rh-note" style="margin-top:10px">A cell that passes all four shows a blue pencil when hovered or focused. One that does not shows a light grey lock, as a list view does.</p>
+          <p class="rh-note" style="margin-top:10px">A cell that passes all four shows a blue pencil when hovered or focused. One that does not shows a light gray lock, as a list view does.</p>
 
           <h3>What Save does</h3>
           <div class="rh-split">
@@ -92,7 +92,7 @@
           <h3 id="related-fields" data-anchor="related-fields">Fields of a related record</h3>
           <p>A column's <b>Field API Name</b> can reach through lookups, as a report or a formula does: <span class="rh-v rh-plain">Account.Industry</span> on a Contact grid, or <span class="rh-v rh-plain">Account.Owner.Email</span>, up to five lookups away. On the Grid Admin tab, choose the lookup (<b>Account &gt;</b>) in the column's Field list, then the field in the list that opens under it. Without a Column Label the column is headed as a report heads it, <span class="rh-v rh-plain">Account: Industry</span>.</p>
           <ul class="rh-tick">
-            <li><b>Sorted, searched, filtered and grouped</b> like any column, and subtotalled; a display rule or a Grid Filter can test it too.</li>
+            <li><b>Sorted, searched, filtered and grouped</b> like any column, and subtotaled; a display rule or a Grid Filter can test it too.</li>
             <li><b>Edited on the related record.</b> A change shows at once on every row with the same related record and is saved to that record once, through the user's access to it and to the field. A row whose lookup is blank cannot change it, and shows a lock. Two rows that give the same record different values are both refused, and nothing is written to that field.</li>
             <li><b>Not offered:</b> a lookup that can point to more than one kind of record, such as a task's Related To or an owner that can be a queue. A new row cannot set a related record's field, and an import writes the grid's own records only, so it leaves such columns out and says so.</li>
             <li><b>Hidden stays hidden.</b> A user who cannot read every lookup on the way and the field at the end does not get the column.</li>
@@ -313,7 +313,7 @@
               <li><b>Rows with a problem are held back</b>, not a reason to stop: a value that cannot be read, a required column left empty, an Id of another object or repeated. The user can download them to fix and import again.</li>
               <li><b>Excel:</b> a workbook with several sheets offers a choice of sheet, starting with the first one whose headers name a column of the grid. An old .xls file is refused with a message saying how to save it as .xlsx or CSV.</li>
               <li><b>Undo import</b>, before the dialog closes, puts the records it updated back as they were and deletes the records it created.</li>
-              <li><b>Import waits for unsaved edits</b> to be saved or cancelled first.</li>
+              <li><b>Import waits for unsaved edits</b> to be saved or canceled first.</li>
             </ul>
           </div>
         </section>
@@ -440,7 +440,7 @@
               </ul>
             </div>
           </div>
-          <div class="rh-call" style="margin-top:18px"><span class="rh-k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do Clone, Archive and Restore, which are greyed out without it. Every field and setting is described in the <a href="/lightning/n/Rowhouse_Guide?c__page=configure&amp;c__section=admin" data-page="configure" data-section="admin">configuration reference</a>.</p></div>
+          <div class="rh-call" style="margin-top:18px"><span class="rh-k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do Clone, Archive and Restore, which are grayed out without it. Every field and setting is described in the <a href="/lightning/n/Rowhouse_Guide?c__page=configure&amp;c__section=admin" data-page="configure" data-section="admin">configuration reference</a>.</p></div>
 
           <h3 id="admin-rows" data-anchor="admin-rows" style="margin-top:26px">Clone, archive and delete a grid</h3>
           <p>Each is in the grid's menu, the <span class="rh-ui">▾</span> at the end of its row on the Grid Admin tab's <span class="rh-ui">Grids</span> page. Clone, Archive and Restore are saved like any change to a grid, in a few seconds.</p>
@@ -508,7 +508,7 @@
           <details class="rh-faq"><summary>Saves fail with "This grid keeps a log of every change…"</summary><div class="rh-a"><p>The grid has Log Changes ticked and the user cannot write to Grid Edit Log. Assign them Rowhouse Grid User, which includes that access.</p></div></details>
           <details class="rh-faq"><summary>There is no gear, or no Grid Admin tab</summary><div class="rh-a"><p>Both are for the <b>Rowhouse Grid Admin</b> permission set. Assign it (with Rowhouse Grid User), then reload the page. The tab is in the <b>Rowhouse</b> app in the App Launcher; to have it in another app too, add it to that app's navigation bar.</p></div></details>
           <details class="rh-faq"><summary>Users see Grid Admin or Grid Edit Logs in the Rowhouse app</summary><div class="rh-a"><p>Their profile shows the tab. Rowhouse Grid User shows the app with the Grid Guide only, but a profile can show a tab on its own: in Setup, open the user's profile and set the tab to Hidden in its tab settings. Rowhouse Grid Admin shows both tabs again to the people who build grids.</p></div></details>
-          <details class="rh-faq"><summary>Save stays grey in the grid settings</summary><div class="rh-a"><p>Either nothing has changed yet, the list under the grid's name (from the gear, above the buttons) names something to fix first, or you do not have Customize Application, in which case the editor says so at the top. A Salesforce admin can save it for you.</p></div></details>
+          <details class="rh-faq"><summary>Save stays gray in the grid settings</summary><div class="rh-a"><p>Either nothing has changed yet, the list under the grid's name (from the gear, above the buttons) names something to fix first, or you do not have Customize Application, in which case the editor says so at the top. A Salesforce admin can save it for you.</p></div></details>
           <details class="rh-faq"><summary>"This grid shows … related to … records, and this page shows …"</summary><div class="rh-a"><p>The grid has a Record Page Field and sits on a record page of another object. Place it on a page of the object its Record Page Field points to, or clear the Record Page Field to show the whole list.</p></div></details>
           <details class="rh-faq"><summary>The grid shows an error naming a Grid Filter</summary><div class="rh-a"><p>That filter cannot work: its field was renamed or deleted, the user cannot read it, or its value no longer fits. Fix or switch off the filter on the Grid Admin tab's Filters tab.</p></div></details>
           <details class="rh-faq"><summary>The grid is too tall or too short on the page</summary><div class="rh-a"><p>With Height (px) blank, the grid fills the window from its top edge down. Beside other components, set a Height on the Grid Configuration.</p></div></details>

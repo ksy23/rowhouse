@@ -47,7 +47,7 @@
   <div class="frame rv">
     <svg class="dia" viewBox="0 0 920 330" role="img" aria-labelledby="mT mD">
       <title id="mT">The six kinds of configuration record</title>
-      <desc id="mD">A Grid Configuration in the centre. Grid Columns, Grid Format Rules, Grid Filters, Grid Actions and Grid Child Tables each point to it through their Grid Configuration field. A Grid Child Table also points to a second Grid Configuration, the one shown in its tab.</desc>
+      <desc id="mD">A Grid Configuration in the center. Grid Columns, Grid Format Rules, Grid Filters, Grid Actions and Grid Child Tables each point to it through their Grid Configuration field. A Grid Child Table also points to a second Grid Configuration, the one shown in its tab.</desc>
       <path class="wire" d="M250,47 C330,47 330,165 380,165"/>
       <path class="wire plum" d="M250,115 C330,115 330,165 380,165"/>
       <path class="wire teal" d="M250,183 C330,183 330,165 380,165"/>
@@ -140,9 +140,9 @@
           <tr><td class="d">Industry (Industry)</td><td>—</td><td class="tick">✓</td></tr>
           <tr><td class="d">Owner ID (OwnerId)</td><td>Account Owner<button class="copy" data-copy="Account Owner">Copy</button></td><td class="tick">✓</td></tr>
         </tbody></table></div>
-      <p class="note" style="margin-top:8px">A blank header shows the field's label; a lookup such as OwnerId is headed by what it points to, "Owner" (the box shows it in grey). Here it gets one that says more. Leave a dash (—) empty.</p>
+      <p class="note" style="margin-top:8px">A blank header shows the field's label; a lookup such as OwnerId is headed by what it points to, "Owner" (the box shows it in gray). Here it gets one that says more. Leave a dash (—) empty.</p>
     </li>
-    <li><b>Save.</b> Click <span class="ui">Save</span>. The editor says <i>Saving. This takes a few seconds…</i>, and then a green <i>Grid saved</i> message appears. If Save stays grey, the list under the grid's name says what to fix first.</li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>. The editor says <i>Saving. This takes a few seconds…</i>, and then a green <i>Grid saved</i> message appears. If Save stays gray, the list under the grid's name says what to fix first.</li>
   </ol>
   <p class="note">Rather build it in Setup? A grid is a Grid Configuration record and a Grid Column record per column; the <a href="configure.html">configuration reference</a> has every field, and the tutorials build their grids that way.</p>
 
@@ -154,7 +154,7 @@
     <li><b>Save and activate.</b> Click <span class="ui">Save</span>. When Salesforce offers to activate the page, click <span class="ui">Activate</span> (or, later, click <span class="ui">Activation…</span> at the top right). On the <span class="ui">Lightning Experience</span> tab, choose the app your users work in (for example <span class="ui">Sales</span>), click <span class="ui">Add page to app</span>, and click <span class="ui">Save</span>.</li>
     <li><b>Open it.</b> Open that app and click the <span class="ui">Account Directory</span> tab in its navigation bar (or the <span class="ui">More</span> menu).</li>
   </ol>
-  <div class="check">A grid titled <b>Account Directory</b> with the Accounts icon, four columns (Account Name, Account Phone, Industry, Account Owner), sorted by name. Hover over a phone number: a blue pencil means you can edit it. Hover over an account name: a light grey lock, because Account Name was not made editable. For the same reason, <span class="ui">New</span> above the grid opens Salesforce's New Account form rather than adding a row: a new account needs its name, and the grid cannot take one.</div>
+  <div class="check">A grid titled <b>Account Directory</b> with the Accounts icon, four columns (Account Name, Account Phone, Industry, Account Owner), sorted by name. Hover over a phone number: a blue pencil means you can edit it. Hover over an account name: a light gray lock, because Account Name was not made editable. For the same reason, <span class="ui">New</span> above the grid opens Salesforce's New Account form rather than adding a row: a new account needs its name, and the grid cannot take one.</div>
 </section>
 
 <section id="where">
@@ -180,7 +180,7 @@
     <li><b>In Setup, number Sort Order in tens</b> (10, 20, 30). A new column can then go between two others without renumbering. The Grid Admin tab numbers them for you, in the order of its list.</li>
     <li><b>In Setup, start each record's name with the grid's name</b>, as in <span class="v plain">Account_Directory_Phone</span>. Records of all grids share one list in Setup, and names must be unique across all of them. The Grid Admin tab names them that way itself.</li>
     <li><b>Use API names, without a namespace prefix</b>: <span class="v plain">OwnerId</span>, not <span class="v plain">Owner</span>; <span class="v plain">My_Field__c</span>, not its label.</li>
-    <li><b>Give yourself Rowhouse Grid Diagnostics while you build</b> (Rowhouse Grid Admin includes it). A setting that cannot work (a misspelt field, a subtotal that does not fit) is skipped, not fatal, and the warning shows above the grid only to people with that permission set. On the Grid Admin tab the same warnings show under the editor as you change things.</li>
+    <li><b>Give yourself Rowhouse Grid Diagnostics while you build</b> (Rowhouse Grid Admin includes it). A setting that cannot work (a misspelled field, a subtotal that does not fit) is skipped, not fatal, and the warning shows above the grid only to people with that permission set. On the Grid Admin tab the same warnings show under the editor as you change things.</li>
     <li><b>Change a grid where it is.</b> With Rowhouse Grid Admin, a gear beside a grid's Refresh button opens that grid's settings; save, and the grid loads again with the change.</li>
     <li><b>Lookups show names.</b> A lookup column, such as AccountId or OwnerId, shows the related record's name as a link and is edited by searching.</li>
   </ul>

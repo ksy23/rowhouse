@@ -80,7 +80,7 @@
         </div>
       </div>
     </div></div></div>
-    <figcaption>The Grid Admin tab, on the Grid tab of the Account People grid. Close and Save are at the top, beside the grid's name; Save stays grey until something changes. Beside the tabs, the Grid Guide says what the open tab's settings do: <b>Open ↗</b> opens that part of this page, and <b>Hide help</b> folds it away.</figcaption>
+    <figcaption>The Grid Admin tab, on the Grid tab of the Account People grid. Close and Save are at the top, beside the grid's name; Save stays gray until something changes. Beside the tabs, the Grid Guide says what the open tab's settings do: <b>Open ↗</b> opens that part of this page, and <b>Hide help</b> folds it away.</figcaption>
   </figure>
   <h3 style="margin-top:22px">The same setting, in each place</h3>
   <p>The tables further down use Setup's field names. On the Grid Admin tab they read:</p>
@@ -105,8 +105,8 @@
       <tr><td>Grid Column</td><td>Cell Type</td><td>Not offered: set it in Setup</td></tr>
     </tbody></table></div>
   <ul class="tick" style="margin-top:18px">
-    <li><b>Who.</b> The <b>Rowhouse Grid Admin</b> permission set adds the <b>Grid Admin</b> and <b>Grid Edit Logs</b> tabs to the <b>Rowhouse</b> app, beside its <b>Grid Guide</b> (where it opens and all that users see in it), and shows the gear beside each grid's Refresh button. Saving also needs <b>Customize Application</b>. Without it you can open a grid and try changes, but <b>Save</b> and <b>New grid</b> stay grey, and the editor says why.</li>
-    <li><b>Checked as you go.</b> A moment after each change, the editor checks the grid with the same code the grid itself uses. Problems that would stop it (no title, a field the object does not have, the same field twice) keep Save grey; settings the grid would leave out are listed as warnings.</li>
+    <li><b>Who.</b> The <b>Rowhouse Grid Admin</b> permission set adds the <b>Grid Admin</b> and <b>Grid Edit Logs</b> tabs to the <b>Rowhouse</b> app, beside its <b>Grid Guide</b> (where it opens and all that users see in it), and shows the gear beside each grid's Refresh button. Saving also needs <b>Customize Application</b>. Without it you can open a grid and try changes, but <b>Save</b> and <b>New grid</b> stay gray, and the editor says why.</li>
+    <li><b>Checked as you go.</b> A moment after each change, the editor checks the grid with the same code the grid itself uses. Problems that would stop it (no title, a field the object does not have, the same field twice) keep Save gray; settings the grid would leave out are listed as warnings.</li>
     <li><b>Close or Cancel.</b> On the Grid Admin tab, Close and Save sit at the top, beside the grid's name; from the gear, at the bottom. The button beside Save reads <b>Close</b> while nothing has changed and <b>Cancel</b> once something has. Leaving with changes, by that button or by <b>Grid Admin</b> or <b>Grids</b> above the name, asks <i>Discard your changes?</i>, with <b>Keep editing</b> and <b>Discard</b>.</li>
     <li><b>Saving takes a few seconds.</b> It is a deployment, the same as saving in Setup. Saved from the gear, the grid then loads again with the change.</li>
     <li><b>Nothing is deleted.</b> A saved column, filter, action or child table has an <b>On</b> switch instead (its <b>Inactive</b> field); a display rule's switch is its <b>Active</b> field. An entry added and not yet saved can be removed. A whole grid is archived instead (its <b>Archived</b> field), from its menu on the Grids page, and <b>Delete in Setup</b> there lists its records to delete in Setup (<a href="features.html#admin-rows">Features › Clone, archive and delete a grid</a>).</li>
@@ -160,7 +160,7 @@
   </div>
   <div class="call" style="margin-top:12px"><span class="k">A field of a related record</span><p>Put the lookups first, as a report or a formula does: <span class="v plain">Account.Industry</span> on a Contact grid, <span class="v plain">Account.Owner.Email</span>, or <span class="v plain">My_Lookup__r.Status__c</span> for a custom lookup. Up to five lookups, each pointing to one kind of record. On the Grid Admin tab, choose the lookup in the Field list (<b>Account &gt;</b>), then the field under it. Without a Column Label the column is headed <span class="v plain">Account: Industry</span>. Edits are saved to the related record (<a href="features.html#related-fields">Features › Fields of a related record</a>). Default Sort Field, Grid Format Rule and Grid Filter fields take the same form. A path that cannot work is left out with a warning.</p></div>
   <div class="call p" style="margin-top:12px;border-left-color:var(--plum);background:var(--plum-soft)"><span class="k" style="color:var(--plum)">Formula columns</span>
-    <p>Leave <b>Field API Name</b> blank and fill in <b>Formula</b>, <b>Formula Type</b> and <b>Column Label</b>: the grid works the value out for each row as it reads the rows, in the syntax of a formula field (see <a href="#formulas">Formulas</a>). <b>Decimal Places</b> sets the places of a number, currency or percent result (2 when blank). A formula column is read-only and cannot be sorted, grouped, filtered, searched or subtotalled; it exports with the rest. At most 10 formulas a grid, columns and display rules together.</p>
+    <p>Leave <b>Field API Name</b> blank and fill in <b>Formula</b>, <b>Formula Type</b> and <b>Column Label</b>: the grid works the value out for each row as it reads the rows, in the syntax of a formula field (see <a href="#formulas">Formulas</a>). <b>Decimal Places</b> sets the places of a number, currency or percent result (2 when blank). A formula column is read-only and cannot be sorted, grouped, filtered, searched or subtotaled; it exports with the rest. At most 10 formulas a grid, columns and display rules together.</p>
   </div>
   <div class="call s" style="margin-top:12px"><span class="k">Child total columns</span>
     <p>Leave <b>Field API Name</b> blank and fill in <b>Child Table</b> (a Grid Child Table of the same grid), <b>Child Total</b> (sum, average, min, max or count) and, except for a count, <b>Child Field</b> (the child field to total), with a <b>Column Label</b>: each row then shows what its related records add up to, such as an account's number of contacts. It follows the child table's own filters. Read-only, and it cannot be sorted, grouped or filtered. A row's total is left blank when it cannot be worked out: when the child table's filter tests a field the user cannot read, or when the row has more related records than Salesforce lets one request read. At most five per grid. On the Grid Admin tab, <b>Add child total column</b>.</p>
@@ -225,7 +225,7 @@
   <div class="pill-row rv-stagger">
     <span class="ptag">text</span><span class="ptag">textarea</span><span class="ptag">email</span><span class="ptag">phone</span><span class="ptag">url</span><span class="ptag">number</span><span class="ptag">currency</span><span class="ptag">percent</span><span class="ptag">date</span><span class="ptag">datetime</span><span class="ptag">time</span><span class="ptag">checkbox</span><span class="ptag">picklist</span><span class="ptag">multipicklist</span><span class="ptag">reference</span><span class="ptag">owner</span><span class="ptag">id</span>
   </div>
-  <p class="note">Numbers, currency and percent align right; checkboxes are centred; everything else aligns left. These can be edited in the grid: text, textarea, email, phone, url, number, currency, percent, date, datetime, time, checkbox, picklist, multipicklist, reference and owner. Rich text and Ids are shown read-only.</p>
+  <p class="note">Numbers, currency and percent align right; checkboxes are centered; everything else aligns left. These can be edited in the grid: text, textarea, email, phone, url, number, currency, percent, date, datetime, time, checkbox, picklist, multipicklist, reference and owner. Rich text and Ids are shown read-only.</p>
 </section>
 
 <section id="operators">
@@ -257,10 +257,10 @@
     <div class="sw"><div class="chip" style="background:var(--f-amber)">10/2/2026</div><div class="nm">Amber fill</div></div>
     <div class="sw"><div class="chip" style="background:var(--f-red)">High</div><div class="nm">Red fill</div></div>
     <div class="sw"><div class="chip" style="background:var(--f-purple)">Escalated</div><div class="nm">Purple fill</div></div>
-    <div class="sw"><div class="chip" style="background:var(--f-grey)">Closed</div><div class="nm">Grey fill</div></div>
+    <div class="sw"><div class="chip" style="background:var(--f-grey)">Closed</div><div class="nm">Gray fill</div></div>
     <div class="sw"><div class="chip" style="background:#fff;color:var(--b-red);font-weight:600">9/28/2026</div><div class="nm">Red text</div></div>
     <div class="sw"><div class="chip" style="background:#fff;color:var(--b-green);font-weight:600">+12%</div><div class="nm">Green text</div></div>
-    <div class="sw"><div class="chip" style="background:#fff;color:#747474">Inactive</div><div class="nm">Grey text</div></div>
+    <div class="sw"><div class="chip" style="background:#fff;color:#747474">Inactive</div><div class="nm">Gray text</div></div>
     <div class="sw"><div class="chip" style="background:#fff;font-weight:700">Key account</div><div class="nm">Bold</div></div>
   </div>
   <h3>Icons and data bars</h3>
@@ -278,7 +278,7 @@
     <div class="sw"><div class="chip bar" style="--bc:var(--b-amber);--tc:var(--t-amber)">Row · Amber</div><div class="nm">Amber fill, Row</div></div>
     <div class="sw"><div class="chip bar" style="--bc:var(--b-red);--tc:var(--t-red)">Row · Red</div><div class="nm">Red fill, Row</div></div>
     <div class="sw"><div class="chip bar" style="--bc:var(--b-purple);--tc:var(--t-purple)">Row · Purple</div><div class="nm">Purple fill, Row</div></div>
-    <div class="sw"><div class="chip bar" style="--bc:var(--b-grey);--tc:var(--t-grey)">Row · Grey</div><div class="nm">Grey fill, Row</div></div>
+    <div class="sw"><div class="chip bar" style="--bc:var(--b-grey);--tc:var(--t-grey)">Row · Gray</div><div class="nm">Gray fill, Row</div></div>
   </div>
 </section>
 
@@ -342,7 +342,7 @@
       <tr><td>A format rule that cannot work</td><td>That rule is skipped, with the reason: an unknown field, an operator that does not suit the type, a value that is not a number or a date, a picklist value that does not exist, or a Cell rule on a field that is not a column.</td></tr>
       <tr><td>A grouping or subtotal that does not fit</td><td>Skipped, with the reason: a level other than 1 to 3, a level used twice, a field that cannot be grouped, a subtotal that does not suit the type. An unknown date unit is replaced by month, with a warning.</td></tr>
       <tr><td>A child table or action that cannot work</td><td>That tab or action is left out, with the reason.</td></tr>
-      <tr><td>A formula that does not work</td><td>The Grid Admin tab shows Salesforce's own message and keeps Save grey. Saved in Setup, the column or rule is left out, with the reason.</td></tr>
+      <tr><td>A formula that does not work</td><td>The Grid Admin tab shows Salesforce's own message and keeps Save gray. Saved in Setup, the column or rule is left out, with the reason.</td></tr>
       <tr><td>A Grid Filter that cannot work</td><td>The grid shows an error naming the filter, for everyone: a filter is never skipped.</td></tr>
       <tr><td>A rule on a field the user cannot read</td><td>Left out for that user, with no warning: a colored row would otherwise reveal a value they are not allowed to see.</td></tr>
     </tbody></table></div>

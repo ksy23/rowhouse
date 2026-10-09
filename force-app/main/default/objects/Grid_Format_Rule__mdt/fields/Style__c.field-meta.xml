@@ -33,7 +33,7 @@
             <value>
                 <fullName>fill_grey</fullName>
                 <default>false</default>
-                <label>Grey fill</label>
+                <label>Gray fill</label>
             </value>
             <value>
                 <fullName>text_red</fullName>
@@ -48,7 +48,7 @@
             <value>
                 <fullName>text_grey</fullName>
                 <default>false</default>
-                <label>Grey text</label>
+                <label>Gray text</label>
             </value>
             <value>
                 <fullName>bold</fullName>

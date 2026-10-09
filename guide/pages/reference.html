@@ -71,7 +71,7 @@
 
 <section id="perf">
   <div class="sec-head"><span class="sec-num">Numbers</span><h2>Performance</h2>
-  <p class="sec-sub">Measured on 30 September 2026 in a Developer Edition org with Lightning Web Security on, Chrome on an Apple M3 Max, median of five runs. 50,000 means 10,000 rows loaded from a 50,000-record object. Your numbers depend on your org, your network and your machine; the method is published so you can measure your own.</p></div>
+  <p class="sec-sub">Measured on September 30, 2026 in a Developer Edition org with Lightning Web Security on, Chrome on an Apple M3 Max, median of five runs. 50,000 means 10,000 rows loaded from a 50,000-record object. Your numbers depend on your org, your network and your machine; the method is published so you can measure your own.</p></div>
   <div class="chart-legend"><span><i style="--c:var(--accent)"></i>5 columns</span><span><i style="--c:var(--sky)"></i>20 columns</span></div>
   <div class="split">
     <div class="frame rv">
@@ -112,7 +112,7 @@
       </div>
     </div>
   </div>
-  <p class="note" style="margin-top:20px">At 110,000 records (8 October 2026, same org and machine) the grid measured what it did at 50,000, because it loads the same first 10,000 rows: first row 938 ms with 5 columns and 1,645 ms with 20, every row loaded 4.4 s and 8.6 s, a sort 258 ms and 545 ms, an edit 119 ms and 286 ms. The 20-column figures are from two runs.</p>
+  <p class="note" style="margin-top:20px">At 110,000 records (October 8, 2026, same org and machine) the grid measured what it did at 50,000, because it loads the same first 10,000 rows: first row 938 ms with 5 columns and 1,645 ms with 20, every row loaded 4.4 s and 8.6 s, a sort 258 ms and 545 ms, an edit 119 ms and 286 ms. The 20-column figures are from two runs.</p>
   <p class="note" style="margin-top:12px">A grid opens with one request to Salesforce, which returns its settings, your layout and the first rows together. The charts above were measured before the grid worked this way, so a first row now comes sooner than they show: in the same org, a grid of 56 rows and 16 columns has its rows about 0.4 s after it starts loading, against about 1.05 s before.</p>
   <div class="call" style="margin-top:20px"><span class="k">Make a grid faster</span><p>Fewer columns help most: 20 columns take roughly twice as long as 5 to load, sort and edit. A smaller Page Size shows the first rows sooner on slow connections. And a grid of an object with more than 10,000 records sorts and searches on the server, which is slower than sorting rows already in the browser.</p></div>
 </section>
@@ -123,7 +123,7 @@
   <div class="tiles rv-stagger">
     <div class="tile rose"><div class="ic">{{ic:search}}</div><h4>Saved filters</h4><p>A user's own column filters last until they leave the page; only the admin's are kept, on the grid.</p></div>
     <div class="tile plum"><div class="ic">{{ic:users}}</div><h4>A layout per child table</h4><p>Each user's layout is kept for a grid, not for the related records tabs under its rows.</p></div>
-    <div class="tile teal"><div class="ic">{{ic:shield}}</div><h4>Shield-encrypted fields</h4><p>Shown and edited, but not sorted, filtered, grouped, searched or totalled, since Salesforce cannot (<a href="features.html#encrypted">Features › Security</a>). Not yet tested in an org with Shield turned on.</p></div>
+    <div class="tile teal"><div class="ic">{{ic:shield}}</div><h4>Shield-encrypted fields</h4><p>Shown and edited, but not sorted, filtered, grouped, searched or totaled, since Salesforce cannot (<a href="features.html#encrypted">Features › Security</a>). Not yet tested in an org with Shield turned on.</p></div>
     <div class="tile clay"><div class="ic">{{ic:layers}}</div><h4>Experience Cloud, multi-currency, record types</h4><p>Not supported in sites; not tested with several currencies; picklists offer every active value, whatever the record type.</p></div>
   </div>
 </section>
