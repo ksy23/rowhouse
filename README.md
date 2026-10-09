@@ -1,5 +1,7 @@
 # Rowhouse by Kugamon
 
+_The grid Salesforce should have shipped._
+
 [Website](https://rowhouse.app) | [Contributing](CONTRIBUTING.md) | [Support](SUPPORT.md) | [Security](SECURITY.md)
 
 [![verify](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml)
@@ -9,13 +11,15 @@ A free, open-source data grid for Salesforce, built as a Lightning Web
 Component. Users edit records in place with spreadsheet keys, group and total
 them, open related records under each row, import and export, and run actions,
 from the keyboard as well as the mouse, built for screen readers. Admins build
-each grid on a Grid Admin tab, without code. There is no paid tier.
+each grid on a Grid Admin tab, without code. There is no paid tier. It runs
+in Lightning Experience, in the browsers Salesforce supports.
 
 ![Editing in a Rowhouse grid: double-click a cell or just type, and each change waits in the Save bar with Undo, Redo, Cancel and Save](docs/images/rowhouse-editing.gif)
 
 > **Status: in development, not installable yet.** When it is released,
 > Rowhouse installs as a managed package, linked from
-> [rowhouse.app](https://rowhouse.app). Nothing here is a release.
+> [rowhouse.app](https://rowhouse.app), and later from AppExchange once
+> Salesforce approves it. Nothing here is a release.
 
 ## What it does
 
