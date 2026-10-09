@@ -211,7 +211,7 @@
  *   on the way (offersToggle).
  * - Group rows show their count as "(n)", levels are shaded apart, the
  *   grouping shows as chips above the table, and a count of nothing is blank.
- * - A row format's fill is a bar at the row's left edge; formats carry labels.
+ * - A row format's fill is a light tint and a bar at the row's left edge; formats carry labels.
  * - An empty list says so. Undo and Redo sit in the Save bar.
  * - Cards show the title and three fields; the rest on request.
  *
@@ -2710,7 +2710,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (c.wrapped) classes.push('slds-cell-wrap');
         const align = alignmentFor(c.type);
         if (align !== 'left') classes.push('slds-text-align_' + align);
-        if (hasDraft) classes.push('slds-is-edited');
+        // rh-cell_draft as well: the row tint stands aside for it (HR-15: no SLDS class in our CSS).
+        if (hasDraft) classes.push('slds-is-edited', 'rh-cell_draft');
         if (error) classes.push('slds-has-error');
         if (isEditing) classes.push('rh-is-editing');
         if (focused && this.hasFocus) classes.push('slds-has-focus', 'rh-cell_focus');

@@ -16,11 +16,13 @@
  * rule placed before a row rule shows through it, and one placed after does
  * not.
  *
- * A ROW'S FILL IS A BAR
- * A whole row filled with color competed with the row's hover, selected and
- * unsaved colors, and a blue row looked selected. A
- * row rule's fill now marks the row with a colored bar at its left edge
- * instead: the first matching row fill wins. Cell fills are unchanged.
+ * A ROW'S FILL IS A TINT AND A BAR
+ * A whole row filled with a cell's strong color competed with the row's
+ * hover, selected and unsaved colors, and a blue row looked selected. A row
+ * rule's fill marks the row with a light tint, weaker than all of those, and
+ * a colored bar at its left edge (both from the bar class given here; the
+ * stylesheet draws them): the first matching row fill wins. Cell fills are
+ * unchanged.
  *
  * LABELS
  * Color alone does not say what it means (WCAG 1.4.1). Each rule carries its

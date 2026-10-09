@@ -254,28 +254,39 @@
     font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
 }
 
+/* A row rule's sample: the row's tint, with its bar at the left edge. */
 .rh-legend-swatch_bar {
     box-shadow: inset 4px 0 0 var(--rh-bar-color);
+    background-color: var(--rh-tint-color);
 }
 
 .rh-fmt_bar-green {
     --rh-bar-color: var(--slds-g-color-palette-green-60, #3ba755);
+    --rh-tint-color: var(--slds-g-color-palette-green-95, rgb(235, 247, 230));
 }
 
 .rh-fmt_bar-amber {
     --rh-bar-color: var(--slds-g-color-palette-yellow-70, #e4a201);
+    --rh-tint-color: var(--slds-g-color-palette-orange-95, rgb(255, 241, 234));
 }
 
 .rh-fmt_bar-red {
     --rh-bar-color: var(--slds-g-color-palette-red-60, #fe5c4c);
+    --rh-tint-color: var(--slds-g-color-palette-red-95, rgb(254, 241, 238));
 }
 
 .rh-fmt_bar-purple {
     --rh-bar-color: var(--slds-g-color-palette-purple-60, #ad7bee);
+    --rh-tint-color: var(--slds-g-color-palette-purple-95, rgb(246, 242, 251));
 }
 
 .rh-fmt_bar-grey {
     --rh-bar-color: var(--slds-g-color-palette-neutral-60, #939393);
+    --rh-tint-color: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-neutral-95, rgb(243, 243, 243)) 50%,
+        var(--slds-g-color-neutral-base-100, rgb(255, 255, 255))
+    );
 }
 
 .rh-legend .rh-fmt_fill-green {

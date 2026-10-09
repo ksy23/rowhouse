@@ -104,8 +104,8 @@
  * selected row's color on its cells, and a frozen cell must take it too: a
  * white frozen cell beside a grey or blue row made the row look broken: the
  * white beat SLDS's colors. So the white is left
- * off a hovered, selected (rh-row_selected) or open (rh-row_open) row, and
- * those colors, all opaque, show instead. :where() adds no specificity, so
+ * off a hovered, selected (rh-row_selected), open (rh-row_open) or tinted
+ * (rh-row_bar) row, and those colors, all opaque, show instead. :where() adds no specificity, so
  * formats and the unsaved color still win on a frozen cell.
  */
 .rh-grid .rh-frozen {
@@ -113,7 +113,7 @@
     z-index: 1;
 }
 
-.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open)) > td.rh-frozen {
+.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open):not(.rh-row_bar)) > td.rh-frozen {
     background-color: var(--slds-g-color-neutral-base-100, rgb(255, 255, 255));
 }
 
@@ -156,6 +156,22 @@
 }
 
 /*
+ * A row format's fill tints the whole row lightly, beside the bar at its left
+ * edge (below). The tint is the palette's 95, lighter than a cell's fill (90),
+ * so a cell rule still shows on a tinted row. The component's scoped styles
+ * outrank SLDS's row colors even inside :where() (measured: the tint hid the
+ * hover grey and the selected blue), so the tint stands aside by name: not on
+ * a hovered, selected or open row, and not on an unsaved cell. A cell's fill
+ * and the selected range are more specific and show over it. Two tints leave
+ * the 95 row, because Lightning uses those exact colors (measured): amber
+ * takes orange 95, as the unsaved cell is yellow 95; grey is half neutral 95
+ * and half white, as the hover is neutral 95.
+ */
+.rh-grid :where(tr.rh-row_bar:not(:hover):not(.rh-row_selected):not(.rh-row_open)) > td:where(:not(.rh-cell_draft)) {
+    background-color: var(--rh-tint-color);
+}
+
+/*
  * An open row stays shaded while its panel is open, so the panel reads as its
  * row's. As weak as :where() makes it: a format, the selected blue and
  * the unsaved color all show through.
@@ -177,9 +193,11 @@
 }
 
 /*
- * A row format's fill is a bar at the row's left edge: a whole row of
- * color competed with the hover, selected and unsaved colors, and a blue one
- * looked selected. The row's class names the color; its first cell draws it.
+ * A row format's fill is also a bar at the row's left edge, in the color's
+ * 60: the tint above is light, and the bar says which color it is. A strong
+ * fill over the whole row competed with the hover, selected and unsaved
+ * colors, and a blue one looked selected. The row's class names the color;
+ * its first cell draws the bar.
  */
 .rh-grid tr.rh-row_bar > td:first-child:not(.rh-frozen) {
     position: relative;
@@ -197,26 +215,37 @@
 
 .rh-fmt_bar-green {
     --rh-bar-color: var(--slds-g-color-palette-green-60, #3ba755);
+    --rh-tint-color: var(--slds-g-color-palette-green-95, rgb(235, 247, 230));
 }
 
 .rh-fmt_bar-amber {
     --rh-bar-color: var(--slds-g-color-palette-yellow-70, #e4a201);
+    --rh-tint-color: var(--slds-g-color-palette-orange-95, rgb(255, 241, 234));
 }
 
 .rh-fmt_bar-red {
     --rh-bar-color: var(--slds-g-color-palette-red-60, #fe5c4c);
+    --rh-tint-color: var(--slds-g-color-palette-red-95, rgb(254, 241, 238));
 }
 
 .rh-fmt_bar-purple {
     --rh-bar-color: var(--slds-g-color-palette-purple-60, #ad7bee);
+    --rh-tint-color: var(--slds-g-color-palette-purple-95, rgb(246, 242, 251));
 }
 
 .rh-fmt_bar-grey {
     --rh-bar-color: var(--slds-g-color-palette-neutral-60, #939393);
+    --rh-tint-color: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-neutral-95, rgb(243, 243, 243)) 50%,
+        var(--slds-g-color-neutral-base-100, rgb(255, 255, 255))
+    );
 }
 
+/* A card takes its row's tint and bar; its "Unsaved" badges show on it. */
 .rh-cards .rh-card_bar {
     box-shadow: inset 4px 0 0 var(--rh-bar-color);
+    background-color: var(--rh-tint-color);
 }
 
 /*

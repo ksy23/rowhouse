@@ -92,6 +92,15 @@
     --rh-b-red: var(--slds-g-color-palette-red-40, #ba0517);
     --rh-b-purple: var(--slds-g-color-palette-purple-50, #9050e9);
     --rh-b-grey: var(--slds-g-color-palette-neutral-60, #939393);
+    --rh-t-green: var(--slds-g-color-palette-green-95, #ebf7e6);
+    --rh-t-amber: var(--slds-g-color-palette-orange-95, #fff1ea);
+    --rh-t-red: var(--slds-g-color-palette-red-95, #fef1ee);
+    --rh-t-purple: var(--slds-g-color-palette-purple-95, #f6f2fb);
+    --rh-t-grey: color-mix(
+        in srgb,
+        var(--slds-g-color-palette-neutral-95, #f3f3f3) 50%,
+        var(--slds-g-color-neutral-base-100, #fff)
+    );
     --rh-m-focus: var(--slds-g-color-palette-electric-blue-40, #0250d9);
 
     /* Type: the org's */
@@ -1433,16 +1442,23 @@ td.rh-edited {
     background: var(--rh-m-edit) !important;
 }
 
+/* A whole-row rule: the row's light tint, and its bar at the left edge. */
+table.rh-mt tr.rh-bar td {
+    background: var(--rh-tc, var(--rh-t-purple));
+}
+
 tr.rh-bar td:first-child {
     box-shadow: inset 4px 0 0 var(--rh-bc, var(--rh-b-purple));
 }
 
 tr.rh-bar.rh-green {
     --rh-bc: var(--rh-b-green);
+    --rh-tc: var(--rh-t-green);
 }
 
 tr.rh-bar.rh-amber {
     --rh-bc: var(--rh-b-amber);
+    --rh-tc: var(--rh-t-amber);
 }
 
 tr.rh-grp td {
@@ -1711,8 +1727,14 @@ td.rh-focus {
     animation: rh-cell-state 12s linear infinite;
 }
 
+.rh-demo tr.rh-trow td:not(.rh-target) {
+    animation: rh-rowtint 12s linear infinite;
+}
+
 .rh-demo tr.rh-trow td:first-child {
-    animation: rh-rowbar 12s linear infinite;
+    animation:
+        rh-rowbar 12s linear infinite,
+        rh-rowtint 12s linear infinite;
 }
 
 .rh-demo .rh-m-pill {
@@ -1834,6 +1856,21 @@ td.rh-focus {
     62%,
     92% {
         background: var(--rh-f-green);
+    }
+    97%,
+    100% {
+        background: var(--rh-m-bg);
+    }
+}
+
+@keyframes rh-rowtint {
+    0%,
+    60% {
+        background: var(--rh-m-bg);
+    }
+    63%,
+    92% {
+        background: var(--rh-t-green);
     }
     97%,
     100% {
@@ -2614,7 +2651,7 @@ kbd {
 }
 
 .rh-sw .rh-chip.rh-bar {
-    background: var(--slds-g-color-palette-neutral-100, #fff);
+    background: var(--rh-tc, var(--slds-g-color-palette-neutral-100, #fff));
 }
 
 .rh-sw .rh-chip.rh-bar::before {

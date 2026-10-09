@@ -44,14 +44,16 @@ const ROWS = [
 ];
 
 describe("frozen cells take the row's colors", () => {
-    it('paints a frozen cell white only while its row is at rest', () => {
-        const rule = ruleFor('.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open)) > td.rh-frozen');
+    it('paints a frozen cell white only while its row is at rest and has no tint', () => {
+        const rule = ruleFor(
+            '.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open):not(.rh-row_bar)) > td.rh-frozen'
+        );
         expect(rule).not.toBeNull();
         expect(rule).toMatch(/background-color:\s*var\(--slds-g-color-neutral-base-100/);
         // Nowhere else is a frozen cell given a background of its own.
         const others = css.match(/[^{}]*\.rh-frozen[^{}]*\{[^}]*background/g) || [];
         expect(others.map(s => s.trim().split('{')[0].trim())).toEqual([
-            '.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open)) > td.rh-frozen'
+            '.rh-grid :where(tr:not(:hover):not(.rh-row_selected):not(.rh-row_open):not(.rh-row_bar)) > td.rh-frozen'
         ]);
     });
 

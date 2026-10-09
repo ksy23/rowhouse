@@ -55,7 +55,7 @@
                   <tr class="rh-tot"><td></td><td></td><td>Total <span style="font-weight:500;margin-left:6px">31 records</span></td><td></td><td class="rh-r">Sum $5,910,000.00</td><td class="rh-r">Avg 82.26%</td><td>Min 9/6/2024</td></tr>
                 </tbody></table>
             </div></div></div>
-            <figcaption>The finished grid: grouped by stage in the picklist's order, a sum of amounts per stage and in total, overdue close dates in red, big deals in green, deals in negotiation marked with a purple bar. Collapsed stages still count in the Total.</figcaption>
+            <figcaption>The finished grid: grouped by stage in the picklist's order, a sum of amounts per stage and in total, overdue close dates in red, big deals in green, deals in negotiation tinted purple, with a purple bar at the left edge. Collapsed stages still count in the Total.</figcaption>
           </figure>
           <div class="rh-call"><span class="rh-k">You need</span><p>The Rowhouse Grid User permission set, permission to customize the application, and some opportunities. Our example org has 31; the record names below are ours, so pick your own where a step names one.</p></div>
         </section>
@@ -115,7 +115,7 @@
                 </tbody></table></div>
             </li>
           </ol>
-          <div class="rh-check rh-why">The Label is what the grid's Display Key shows, so write it for users. The Name only has to be unique across all grids. Write numbers without a currency symbol or commas: <span class="rh-v rh-plain">250000</span>, not $250,000. <span class="rh-v rh-plain">TODAY</span> is today in each user's time zone. A Row rule's fill shows as a bar at the row's left edge, so it never hides a cell's own color.</div>
+          <div class="rh-check rh-why">The Label is what the grid's Display Key shows, so write it for users. The Name only has to be unique across all grids. Write numbers without a currency symbol or commas: <span class="rh-v rh-plain">250000</span>, not $250,000. <span class="rh-v rh-plain">TODAY</span> is today in each user's time zone. A Row rule's fill tints the whole row lightly and draws a bar at its left edge; the tint is lighter than a cell's fill, so it never hides a cell's own color.</div>
         </section>
 
         <section id="page" data-anchor="page">
@@ -144,7 +144,7 @@
             <li><b>Change an amount.</b> Click the Amount of an open deal (we use <i>University of AZ Installations</i>, $100,000), type <span class="rh-v">250000</span> and press <kbd>Enter</kbd>.
               <div class="rh-check">The cell turns yellow and shows $250,000. A Save bar appears at the bottom of the grid: "1 unsaved change".</div></li>
             <li><b>Move a deal to another stage.</b> Click the Stage of another open deal (we use <i>Edge Emergency Generator</i>), press <kbd>Enter</kbd> to edit it, choose <span class="rh-ui">Negotiation/Review</span> in the list (or type its first letters), and press <kbd>Enter</kbd>.
-              <div class="rh-check">The deal gets its purple bar at once, but stays in its group until you save. The Save bar now says "2 unsaved changes".</div></li>
+              <div class="rh-check">The deal turns purple at once (a light tint and a bar at its left edge), but stays in its group until you save. The Save bar now says "2 unsaved changes".</div></li>
             <li><b>Give three deals the same next step.</b> Scroll the grid sideways to Next Step (the Opportunity column stays put). Click the Next Step of the first deal in a stage with three or more deals (in our org, Id. Decision Makers), type <span class="rh-v">Send revised quote</span> and press <kbd>Enter</kbd>. Press <kbd>Shift</kbd>+<kbd>↓</kbd> twice to stretch the selection over the two deals below, then press <kbd>Ctrl</kbd>+<kbd>D</kbd> (<kbd>Cmd</kbd>+<kbd>D</kbd> on a Mac) to fill down.
               <div class="rh-check">All three Next Step cells say "Send revised quote", and the Save bar counts the new changes.</div></li>
             <li><b>Change your mind, then change it back.</b> Press <kbd>Ctrl</kbd>+<kbd>Z</kbd> (<kbd>Cmd</kbd>+<kbd>Z</kbd>): the fill down is undone in one step. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>) to redo it. The Save bar's <span class="rh-ui">Undo</span> and <span class="rh-ui">Redo</span> buttons do the same.</li>
@@ -157,7 +157,7 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Use it · Abigail</span><h2>7. Save and check</h2></div>
           <ol class="rh-tut">
             <li><b>Save.</b> Click <span class="rh-ui">Save</span> on the Save bar.
-              <div class="rh-check">The yellow goes. University of AZ Installations' $250,000 turns green (Big deal). Edge Emergency Generator moves to the Negotiation/Review group with a purple bar at its left edge, and the group sums change to match. The new date is no longer red.</div></li>
+              <div class="rh-check">The yellow goes. University of AZ Installations' $250,000 turns green (Big deal). Edge Emergency Generator moves to the Negotiation/Review group tinted purple with a purple bar at its left edge, and the group sums change to match. The new date is no longer red.</div></li>
             <li><b>Check a record.</b> Click a deal's name: the opportunity opens, with the values you saved. Press your browser's Back button to return to the grid. (<kbd>Cmd</kbd>-click or <kbd>Ctrl</kbd>-click opens it in a new browser tab instead.)</li>
           </ol>
         </section>
@@ -166,7 +166,7 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Wrap-up</span><h2>What you learned</h2></div>
           <div class="rh-tiles rh-rv-stagger">
             <div class="rh-tile"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></div><h4>Group Level and Subtotal</h4><p>Open a grid grouped, with figures on every group and a Total row.</p></div>
-            <div class="rh-tile rh-gold"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></div><h4>Format rules</h4><p>Cell colors, red text and a Row bar, each explained in the Display Key.</p></div>
+            <div class="rh-tile rh-gold"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></div><h4>Format rules</h4><p>Cell colors, red text and a purple row, each explained in the Display Key.</p></div>
             <div class="rh-tile rh-sky"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></div><h4>Spreadsheet editing</h4><p>Typing, picklists, the calendar, fill down, undo and redo, all saved together.</p></div>
           </div>
           <div class="rh-next">

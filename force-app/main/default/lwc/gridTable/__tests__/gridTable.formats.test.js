@@ -81,7 +81,7 @@ describe('conditional formatting in the table', () => {
         expect(cell(0, 'Amount').className).not.toMatch(/rh-fmt_/);
     });
 
-    it("shows a row rule's fill as a bar down the row's edge, not a fill over every cell", async () => {
+    it("shows a row rule's fill on the row (a tint and a bar, from the stylesheet), not as a fill on every cell", async () => {
         await mount();
         const tr = el.shadowRoot.querySelector(`tr[data-row-id="${ROWS[2].Id}"]`);
         // Purple, not blue: a blue row would look selected.
@@ -110,6 +110,8 @@ describe('conditional formatting in the table', () => {
         await mount({ drafts: { [ROWS[0].Id]: { Amount: '2500' } } });
         // The edited cell shows as unsaved, not formatted: SLDS's yellow must not be hidden.
         expect(cell(0, 'Amount').classList).toContain('slds-is-edited');
+        // The row tint stands aside for an unsaved cell by this class.
+        expect(cell(0, 'Amount').classList).toContain('rh-cell_draft');
         expect(cell(0, 'Amount').className).not.toMatch(/rh-fmt_/);
         // A row rule met by an unsaved edit formats the rest of the row at once.
         el.config = { columns: COLUMNS, rows: ROWS, formatRules: RULES, drafts: { [ROWS[1].Id]: { Stage: 'Gamma' } } };

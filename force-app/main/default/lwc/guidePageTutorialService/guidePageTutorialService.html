@@ -43,7 +43,7 @@
                   <tr><td class="rh-rn">4</td><td class="rh-cb"><span class="rh-mcb"></span></td><td class="rh-lnk">00001038</td><td>Invoice shows the wrong tax rate</td><td>Working</td><td>Low</td><td>Email</td><td>9/30/2026, 4:40 PM</td><td class="rh-c"><span class="rh-m-rm"></span></td></tr>
                 </tbody></table>
             </div></div></div>
-            <figcaption>New cases carry an amber bar, high priority is red, escalated cases are bold, and each row's menu has Log a call.</figcaption>
+            <figcaption>New cases are tinted amber with an amber bar, high priority is red, escalated cases are bold, and each row's menu has Log a call.</figcaption>
           </figure>
           <div class="rh-call"><span class="rh-k">You need</span><p>The Rowhouse Grid User permission set, permission to customize the application and to edit the Home page, and some cases. Our org has a few dozen, a dozen of them open.</p></div>
         </section>
@@ -133,12 +133,12 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Use it · Kevin</span><h2>6. Triage the queue</h2></div>
           <ol class="rh-tut">
             <li><b>Open Home.</b>
-              <div class="rh-check">The Service Triage grid at the top, 480 pixels tall, newest cases first, with the rest of the Home page below it. New cases have an amber bar at their left edge, High priorities are red, and escalated cases are bold.</div></li>
+              <div class="rh-check">The Service Triage grid at the top, 480 pixels tall, newest cases first, with the rest of the Home page below it. New cases are tinted amber, with an amber bar at their left edge, High priorities are red, and escalated cases are bold.</div></li>
             <li><b>See the queue by status.</b> Open the ▾ menu on the <span class="rh-ui">Status</span> header and choose <span class="rh-ui">Group by Status</span>. Each status becomes a group with its count.
               <div class="rh-check">The groups follow the order of the Status picklist, as in a Salesforce report: <span class="rh-ui">Status: New</span> at the top, then Working, Escalated and Closed.</div></li>
             <li><b>Take three new cases.</b> In the <span class="rh-ui">New</span> group, tick the box at the start of three cases. A bar floats over the top of the grid: "3 selected", with <span class="rh-ui">Update field</span> and <span class="rh-ui">Clear</span>.</li>
             <li><b>Move them to Working.</b> Click <span class="rh-ui">Update field</span>. Choose <span class="rh-ui">Status</span>, choose <span class="rh-ui">Working</span>, and click <span class="rh-ui">Apply</span>.
-              <div class="rh-check">The Status cells of the ticked cases turn yellow with "Working", their amber bars go (rules follow your unsaved values), and the Save bar says "3 unsaved changes". Nothing is saved yet.</div></li>
+              <div class="rh-check">The Status cells of the ticked cases turn yellow with "Working", their amber tint and bar go (rules follow your unsaved values), and the Save bar says "3 unsaved changes". Nothing is saved yet.</div></li>
             <li><b>Raise one priority.</b> Click the Priority of one of those cases, press <kbd>Enter</kbd>, choose <span class="rh-ui">High</span> and press <kbd>Enter</kbd>.</li>
             <li><b>Save.</b> Click <span class="rh-ui">Save</span> on the Save bar.
               <div class="rh-check">The cases move to the Working group, and the raised priority turns red. The selection stays ("3 selected"), in case you want to do more to the same cases.</div></li>
@@ -160,11 +160,11 @@
           <p class="rh-sec-sub">Three of the overnight cases are the same fault. Kevin opens one case to track it, without leaving Home.</p></div>
           <ol class="rh-tut">
             <li><b>Add a row.</b> Click <span class="rh-ui">New</span> above the grid, beside <span class="rh-ui">Export</span>.
-              <div class="rh-check">A row at the top of the grid, with <b>New</b> where a row number goes and the amber bar of a new case. Salesforce's defaults for a new case are filled in: Status <b>New</b>, Priority <b>Medium</b>, and you as Owner. The Save bar says <i>1 new record</i>.</div></li>
+              <div class="rh-check">A row at the top of the grid, with <b>New</b> where a row number goes and the amber tint and bar of a new case. Salesforce's defaults for a new case are filled in: Status <b>New</b>, Priority <b>Medium</b>, and you as Owner. The Save bar says <i>1 new record</i>.</div></li>
             <li><b>Describe it.</b> Click the new row's <span class="rh-ui">Subject</span> cell, type <span class="rh-v">Generators trip on start-up after the September update</span><button class="rh-copy" data-copy="Generators trip on start-up after the September update" type="button">Copy</button> and press <kbd>Enter</kbd>.</li>
             <li><b>Make it urgent.</b> Click the new row's <span class="rh-ui">Priority</span>, press <kbd>Enter</kbd>, choose <span class="rh-ui">High</span> and press <kbd>Enter</kbd>.</li>
             <li><b>Save.</b> Click <span class="rh-ui">Save</span> on the Save bar.
-              <div class="rh-check">The case gets its number and opens the list, as the newest case should: red for High priority, with the amber bar of a new case, opened a moment ago. The title counts one more item.</div></li>
+              <div class="rh-check">The case gets its number and opens the list, as the newest case should: red for High priority, with the amber tint and bar of a new case, opened a moment ago. The title counts one more item.</div></li>
           </ol>
         </section>
 
@@ -172,7 +172,7 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Wrap-up</span><h2>What you learned</h2></div>
           <div class="rh-tiles rh-rv-stagger">
             <div class="rh-tile"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></div><h4>Height</h4><p>A fixed height lets a grid share a page with other components.</p></div>
-            <div class="rh-tile rh-gold"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></div><h4>Row rules</h4><p>A bar on the row, or bold across it, from a field that is not even a column.</p></div>
+            <div class="rh-tile rh-gold"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></div><h4>Row rules</h4><p>A tinted row with a bar, or bold across it, from a field that is not even a column.</p></div>
             <div class="rh-tile rh-sky"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></div><h4>Update field</h4><p>One value onto many records, reviewed as unsaved edits before Save.</p></div>
             <div class="rh-tile rh-rose"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div><h4>Actions</h4><p>A quick action in every row's menu, with no code.</p></div>
             <div class="rh-tile rh-teal"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div><h4>New</h4><p>A new record typed straight into the grid, saved with any other changes.</p></div>
