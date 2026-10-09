@@ -1,4 +1,4 @@
-<!--meta {"title": "Tutorial: the morning triage", "desc": "Build a Rowhouse grid of cases on the Home page, with new cases flagged on the row, high priority in red, a Log a Call action, and a batch status change.", "section": "tutorials", "audience": "all"} -->
+<!--meta {"title": "Tutorial: the morning triage", "desc": "Build a Rowhouse grid of cases on the Home page, with new cases flagged on the row, high priority in red, a Log a Call action, a batch status change, and a new case added in the grid.", "section": "tutorials", "audience": "all"} -->
 <header class="phead hero alive" id="main">
   <div class="phead-in">
     <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Morning triage</div>
@@ -20,6 +20,7 @@
     <span class="s-k">Use it · Kevin</span>
     <a href="#triage">6. Triage the queue</a>
     <a href="#call">7. Log a call</a>
+    <a href="#new">8. Add a case</a>
     <a href="#learned">What you learned</a>
   </aside>
 
@@ -30,7 +31,7 @@
   <div class="sec-head"><span class="sec-num">The goal</span><h2>What you will build</h2></div>
   <figure class="rv mt0">
     <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/page/home</span></div><div class="stage"><div class="card-m">
-      <div class="m-head"><div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div><div><div class="m-title">Service Triage</div><div class="m-meta">38 items • Sorted by Opened • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-head"><div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div><div><div class="m-title">Service Triage</div><div class="m-meta">38 items • Sorted by Opened • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
       <table class="mt"><colgroup><col style="width:6%"><col style="width:4%"><col style="width:11%"><col style="width:25%"><col style="width:11%"><col style="width:11%"><col style="width:9%"><col style="width:17%"><col style="width:6%"></colgroup>
         <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Case</th><th class="dd">Subject</th><th class="dd">Status</th><th class="dd">Priority</th><th class="dd">Origin</th><th class="dd">Opened <span class="srt">↓</span></th><th></th></tr></thead>
         <tbody>
@@ -152,6 +153,19 @@
   </ol>
 </section>
 
+<section id="new">
+  <div class="sec-head"><span class="sec-num">Use it · Kevin</span><h2>8. Add a case of his own</h2>
+  <p class="sec-sub">Three of the overnight cases are the same fault. Kevin opens one case to track it, without leaving Home.</p></div>
+  <ol class="tut">
+    <li><b>Add a row.</b> Click <span class="ui">New</span> above the grid, beside <span class="ui">Export</span>.
+      <div class="check">A row at the top of the grid, with <b>New</b> where a row number goes and the amber bar of a new case. Salesforce's defaults for a new case are filled in: Status <b>New</b>, Priority <b>Medium</b>, and you as Owner. The Save bar says <i>1 new record</i>.</div></li>
+    <li><b>Describe it.</b> Click the new row's <span class="ui">Subject</span> cell, type <span class="v">Generators trip on start-up after the September update</span><button class="copy" data-copy="Generators trip on start-up after the September update">Copy</button> and press <kbd>Enter</kbd>.</li>
+    <li><b>Make it urgent.</b> Click the new row's <span class="ui">Priority</span>, press <kbd>Enter</kbd>, choose <span class="ui">High</span> and press <kbd>Enter</kbd>.</li>
+    <li><b>Save.</b> Click <span class="ui">Save</span> on the Save bar.
+      <div class="check">The case gets its number and opens the list, as the newest case should: red for High priority, with the amber bar of a new case, opened a moment ago. The title counts one more item.</div></li>
+  </ol>
+</section>
+
 <section id="learned">
   <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
   <div class="tiles rv-stagger">
@@ -159,6 +173,7 @@
     <div class="tile gold"><div class="ic">{{ic:palette}}</div><h4>Row rules</h4><p>A bar on the row, or bold across it, from a field that is not even a column.</p></div>
     <div class="tile sky"><div class="ic">{{ic:check}}</div><h4>Update field</h4><p>One value onto many records, reviewed as unsaved edits before Save.</p></div>
     <div class="tile rose"><div class="ic">{{ic:bolt}}</div><h4>Actions</h4><p>A quick action in every row's menu, with no code.</p></div>
+    <div class="tile teal"><div class="ic">{{ic:plus}}</div><h4>New</h4><p>A new record typed straight into the grid, saved with any other changes.</p></div>
   </div>
   <div class="next">
     <a href="tutorial-pipeline.html"><small>Previous tutorial</small><b>← The weekly pipeline review</b></a>

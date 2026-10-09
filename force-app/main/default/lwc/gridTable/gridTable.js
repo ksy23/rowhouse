@@ -5595,9 +5595,33 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     /** Unsaved values typed, a new row's mark aside. */
+    /**
+     * Unsaved changes, counted as Save writes them: a field of a related
+     * record changed on rows that share that record (Account: Industry on
+     * three of its contacts) is one change, to the account.
+     */
     get draftCount() {
         const drafts = this._config.drafts || {};
-        return Object.values(drafts).reduce((n, r) => n + Object.keys(r).length - (r[NEW_MARK] === true ? 1 : 0), 0);
+        const paths = new Set(this.columns.filter(c => c.isPath).map(c => c.field));
+        const holders = new Set();
+        let n = 0;
+        Object.keys(drafts).forEach(id => {
+            const draft = drafts[id];
+            Object.keys(draft).forEach(field => {
+                if (field === NEW_MARK && draft[NEW_MARK] === true) return;
+                if (paths.has(field)) {
+                    const row = this.view[this.positionOf(id)];
+                    const holder = row && row._parents ? row._parents[field] : null;
+                    if (holder) {
+                        const key = `${holder}|${field.slice(field.lastIndexOf('.') + 1)}`;
+                        if (holders.has(key)) return;
+                        holders.add(key);
+                    }
+                }
+                n += 1;
+            });
+        });
+        return n;
     }
 
     /** New rows not saved yet. */

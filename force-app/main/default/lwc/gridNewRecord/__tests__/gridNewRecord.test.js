@@ -270,6 +270,46 @@ describe('the pure helpers', () => {
         ]);
         expect(address[0].items[0].fields[1].value).toBe('Concord');
         expect(formSections(null, null)).toEqual([]);
+        // A required name is one item of several fields: Last Name is the part every record needs.
+        const name = formSections(
+            {
+                layout: {
+                    sections: [
+                        {
+                            columns: 2,
+                            layoutRows: [
+                                {
+                                    layoutItems: [
+                                        {
+                                            editableForNew: true,
+                                            required: true,
+                                            label: 'Name',
+                                            layoutComponents: [
+                                                { componentType: 'Field', apiName: 'Salutation' },
+                                                { componentType: 'Field', apiName: 'FirstName' },
+                                                { componentType: 'Field', apiName: 'LastName' }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                objectInfos: {
+                    Contact: {
+                        fields: { Salutation: { required: false }, FirstName: {}, LastName: { required: true } }
+                    }
+                },
+                record: { apiName: 'Contact', fields: {} }
+            },
+            null
+        );
+        expect(name[0].items[0].fields.map(f => `${f.name}:${f.required}`)).toEqual([
+            'Salutation:false',
+            'FirstName:false',
+            'LastName:true'
+        ]);
         const oneColumn = formSections(
             { layout: { sections: [{ columns: 1, layoutRows: [{ layoutItems: [field('Subject', 'Subject')] }] }] } },
             null

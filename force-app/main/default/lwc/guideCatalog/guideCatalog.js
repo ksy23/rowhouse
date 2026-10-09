@@ -135,7 +135,7 @@ export const PAGES = [
     {
         "id": "tutorial-service",
         "title": "Tutorial: the morning triage",
-        "desc": "Build a Rowhouse grid of cases on the Home page, with new cases flagged on the row, high priority in red, a Log a Call action, and a batch status change.",
+        "desc": "Build a Rowhouse grid of cases on the Home page, with new cases flagged on the row, high priority in red, a Log a Call action, a batch status change, and a new case added in the grid.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [
@@ -147,6 +147,7 @@ export const PAGES = [
             "page",
             "triage",
             "call",
+            "new",
             "learned"
         ]
     },
@@ -171,7 +172,7 @@ export const PAGES = [
     {
         "id": "tutorial-contacts",
         "title": "Tutorial: contacts on an account page",
-        "desc": "Build a Rowhouse grid of contacts that sits on the Account page and shows only that account's people, with a formula column, a filter, an icon rule, and a layout each user keeps.",
+        "desc": "Build a Rowhouse grid of contacts that sits on the Account page and shows only that account's people, with a formula column, a filter, an icon rule, a layout each user keeps, and New with the account filled in.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [
@@ -182,13 +183,14 @@ export const PAGES = [
             "open",
             "filter",
             "layout",
+            "add",
             "learned"
         ]
     },
     {
         "id": "tutorial-cleanup",
         "title": "Tutorial: the contact clean-up, with an audit trail",
-        "desc": "Build a Rowhouse grid of contacts that logs every change, tidy contacts in place, update many at once, import a trade show's attendees from a CSV file, and read the audit log.",
+        "desc": "Build a Rowhouse grid of contacts that logs every change, tidy contacts in place, fix an account from any of its contacts, update many at once, import a trade show's attendees from a CSV file, and read the audit log.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [

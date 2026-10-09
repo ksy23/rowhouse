@@ -2237,9 +2237,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /** What New does here, for its tooltip. */
     get newLabel() {
-        return this.newRowContext && this.newRowContext.inline
-            ? 'New: add a row at the top of the grid, then save'
-            : `New: create a ${this.newRowContext ? this.newRowContext.objectLabel || 'record' : 'record'} in Salesforce's New form`;
+        const context = this.newRowContext;
+        if (context && context.inline) return 'New: add a row at the top of the grid, then save';
+        return context && context.objectLabel
+            ? `New: open Salesforce's New ${context.objectLabel} form`
+            : "New: open Salesforce's form for a new record";
     }
 
     /**
@@ -2349,8 +2351,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     /**
-     * Records just created, read back as the grid shows them and added to
-     * its rows. They take their place in the grid's sort.
+     * Records just created, read back as the grid shows them and added at
+     * the top of its rows, where the user sees them; the next sort or
+     * refresh puts them in their place.
      */
     async addRecords(ids) {
         let fresh = [];
@@ -2392,7 +2395,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.dispatchEvent(new ShowToastEvent({ title: message, message: '', variant: 'success' }));
         this.announce(message);
         if (row) {
-            // The table puts focus on the new record's row, wherever the sort puts it.
+            // The table puts focus on the new record's row, at the top.
             this.focusRow = { id: row.Id, seq: ++this._runtime.newCount };
             this.loadSummary();
         } else {

@@ -1,4 +1,4 @@
-<!--meta {"title": "Tutorial: contacts on an account page", "desc": "Build a Rowhouse grid of contacts that sits on the Account page and shows only that account's people, with a formula column, a filter, an icon rule, and a layout each user keeps.", "section": "tutorials", "audience": "all"} -->
+<!--meta {"title": "Tutorial: contacts on an account page", "desc": "Build a Rowhouse grid of contacts that sits on the Account page and shows only that account's people, with a formula column, a filter, an icon rule, a layout each user keeps, and New with the account filled in.", "section": "tutorials", "audience": "all"} -->
 <header class="phead hero alive" id="main">
   <div class="phead-in">
     <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Contacts on an account page</div>
@@ -19,6 +19,7 @@
     <a href="#open">4. Open an account</a>
     <a href="#filter">5. Narrow it down</a>
     <a href="#layout">6. Make it yours</a>
+    <a href="#add">7. Add a contact</a>
     <a href="#learned">What you learned</a>
   </aside>
 
@@ -38,7 +39,7 @@
   </div>
   <figure class="rv" style="margin-top:20px">
     <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/r/Account/001…/view</span></div><div class="stage"><div class="card-m">
-      <div class="m-head"><div class="m-ico cont"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Account People</div><div class="m-meta">5 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-head"><div class="m-ico cont"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Account People</div><div class="m-meta">5 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
       <div class="m-chips">Filtered by <span class="m-chip lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Email is not blank</span></div>
       <table class="mt"><colgroup><col style="width:6%"><col style="width:4%"><col style="width:16%"><col style="width:16%"><col style="width:18%"><col style="width:15%"><col style="width:15%"><col style="width:10%"></colgroup>
         <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Full Name</th><th class="dd">Title</th><th class="dd">Email</th><th class="dd">Business Phone</th><th class="dd">Account</th><th class="r">Days on file</th></tr></thead>
@@ -159,12 +160,31 @@
   </ol>
 </section>
 
+<section id="add">
+  <div class="sec-head"><span class="sec-num">Use it · Sam</span><h2>7. Add a contact</h2>
+  <p class="sec-sub">United Oil &amp; Gas has a new buyer, and Sam adds her from the account's page.</p></div>
+  <ol class="tut">
+    <li><b>Click New</b> above the grid.
+      <div class="check">Salesforce's New Contact form opens over the page, headed <b>New Contact</b>, with <i>When it is saved, it is added to the grid.</i> under it. <b>Account Name</b> already says <b>United Oil &amp; Gas Corp.</b>: the grid shows this account's contacts, so it fills that in.</div>
+      <div class="check why">A new contact needs a last name, and this grid has no column to type one in: Full Name is made from First Name and Last Name. When a row cannot hold what a new record needs, New opens Salesforce's own form instead.</div></li>
+    <li><b>Fill it in:</b>
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>First Name</td><td><span class="v">Nora</span></td></tr>
+        <tr><td>Last Name</td><td><span class="v">Pickering</span></td></tr>
+        <tr><td>Title</td><td><span class="v">Purchasing Manager</span><button class="copy" data-copy="Purchasing Manager">Copy</button></td></tr>
+        <tr><td>Email</td><td><span class="v">nora.pickering@example.com</span><button class="copy" data-copy="nora.pickering@example.com">Copy</button> <span class="note">the grid's filter leaves out contacts without one</span></td></tr>
+      </tbody></table></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>.
+      <div class="check">The form closes and Nora Pickering is at the top of the grid, where you can see her: <i>6 items</i>. Click <span class="ui">Refresh</span> and she takes her place by last name, between Stella Pavlova and Arthur Song.</div></li>
+  </ol>
+</section>
 <section id="learned">
   <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
   <div class="tiles rv-stagger">
     <div class="tile sky"><div class="ic">{{ic:page}}</div><h4>Record pages</h4><p>A record page field makes a grid a related list you can edit in place.</p></div>
     <div class="tile"><div class="ic">{{ic:grid}}</div><h4>Formulas and icons</h4><p>Columns the grid works out, and icons that say what a value means.</p></div>
     <div class="tile plum"><div class="ic">{{ic:users}}</div><h4>Filters and layouts</h4><p>The admin's filters stay; each user's own last the visit; each user's layout is kept.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:plus}}</div><h4>New, with the form</h4><p>When a row cannot hold a new record, New opens Salesforce's form with the account filled in.</p></div>
   </div>
   <div class="next">
     <a href="tutorial-cleanup.html"><small>Previous tutorial</small><b>← The contact clean-up</b></a>

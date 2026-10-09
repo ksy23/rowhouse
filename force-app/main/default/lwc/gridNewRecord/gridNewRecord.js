@@ -54,8 +54,8 @@ export function availableRecordTypes(objectInfo) {
  * The form's sections from getRecordCreateDefaults' layout: only sections
  * with a field a new record can be given; each row's items in order, so the
  * columns line up as on Salesforce's form. An item holds its fields, [{ name,
- * required, value }]: one, or several for an address (street, city, state,
- * postal code, country); a gap, or a field a new record is not given (the
+ * required, value }]: one, or several for a name (salutation, first, last)
+ * or an address (street, city, state, postal code, country); a gap, or a field a new record is not given (the
  * owner, shown on Salesforce's form as the user), holds none.
  *
  * @param {object} defaults  the adapter's data: { layout, record }
@@ -64,6 +64,9 @@ export function availableRecordTypes(objectInfo) {
 export function formSections(defaults, presets) {
     const layout = defaults && defaults.layout;
     const fields = (defaults && defaults.record && defaults.record.fields) || {};
+    const infos = (defaults && defaults.objectInfos) || {};
+    const info = (defaults && defaults.record && infos[defaults.record.apiName]) || {};
+    const described = info.fields || {};
     const preset = presets || {};
     const sections = [];
     ((layout && layout.sections) || []).forEach((section, s) => {
@@ -82,11 +85,15 @@ export function formSections(defaults, presets) {
                     let value = null;
                     if (Object.prototype.hasOwnProperty.call(preset, name)) value = preset[name];
                     else if (fields[name] && fields[name].value !== undefined) value = fields[name].value;
-                    // The layout's Required marks the item: the field, or an address's first line.
                     return { key: `${key}-${name}`, name, value, required: false };
                 });
                 if (inputs.length) {
-                    inputs[0].required = Boolean(item.required);
+                    // The layout's Required marks the item: of a name, the part every record
+                    // needs (Last Name, not Salutation); of an address, its first line.
+                    if (item.required) {
+                        const needed = inputs.find(input => described[input.name] && described[input.name].required);
+                        (needed || inputs[0]).required = true;
+                    }
                     editable++;
                 }
                 items.push({ key, fields: inputs, cls: cellClass(columns) });

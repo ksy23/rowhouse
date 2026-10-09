@@ -1,4 +1,4 @@
-<!--meta {"title": "Tutorial: the contact clean-up, with an audit trail", "desc": "Build a Rowhouse grid of contacts that logs every change, tidy contacts in place, update many at once, import a trade show's attendees from a CSV file, and read the audit log.", "section": "tutorials", "audience": "all"} -->
+<!--meta {"title": "Tutorial: the contact clean-up, with an audit trail", "desc": "Build a Rowhouse grid of contacts that logs every change, tidy contacts in place, fix an account from any of its contacts, update many at once, import a trade show's attendees from a CSV file, and read the audit log.", "section": "tutorials", "audience": "all"} -->
 <header class="phead hero alive" id="main">
   <div class="phead-in">
     <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Contact clean-up</div>
@@ -13,7 +13,7 @@
     <span class="s-k">Build it · admin</span>
     <a href="#goal">What you will build</a>
     <a href="#config">1. A grid that logs</a>
-    <a href="#columns">2. Eight columns</a>
+    <a href="#columns">2. Nine columns</a>
     <a href="#page">3. The page</a>
     <a href="#tab">4. Where the log is</a>
     <span class="s-k">Use it · Caleb</span>
@@ -66,9 +66,9 @@
 </section>
 
 <section id="columns">
-  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. Eight columns</h2></div>
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. Nine columns</h2></div>
   <ol class="tut">
-    <li><b>Create these Grid Column records</b>, each with <span class="v">Contact Cleanup</span> in <span class="ui">Grid Configuration</span>. All of them are editable, because an import writes only editable columns.
+    <li><b>Create these Grid Column records</b>, each with <span class="v">Contact Cleanup</span> in <span class="ui">Grid Configuration</span>. All of them are editable: an import writes only editable columns.
       <div class="tbox" style="margin-top:12px"><table class="ref"><thead><tr><th>Label · Name</th><th>Field API Name</th><th>Column Label</th><th>Sort Order</th><th>Editable</th></tr></thead><tbody>
         <tr><td>Cleanup First Name<br><span class="d">Cleanup_First_Name</span></td><td class="d">FirstName</td><td></td><td class="d">10</td><td class="tick">✓</td></tr>
         <tr><td>Cleanup Last Name<br><span class="d">Cleanup_Last_Name</span></td><td class="d">LastName</td><td></td><td class="d">20</td><td class="tick">✓</td></tr>
@@ -78,8 +78,10 @@
         <tr><td>Cleanup Phone<br><span class="d">Cleanup_Phone</span></td><td class="d">Phone</td><td>Phone</td><td class="d">60</td><td class="tick">✓</td></tr>
         <tr><td>Cleanup Department<br><span class="d">Cleanup_Department</span></td><td class="d">Department</td><td></td><td class="d">70</td><td class="tick">✓</td></tr>
         <tr><td>Cleanup Lead Source<br><span class="d">Cleanup_Lead_Source</span></td><td class="d">LeadSource</td><td></td><td class="d">80</td><td class="tick">✓</td></tr>
+        <tr><td>Cleanup Account Industry<br><span class="d">Cleanup_Account_Industry</span></td><td class="d">Account.Industry</td><td></td><td class="d">90</td><td class="tick">✓</td></tr>
       </tbody></table></div></li>
   </ol>
+  <div class="check why">The ninth column is a field of each contact's account: <span class="v plain">Account.Industry</span>, written the way a report or a formula writes it. With no Column Label it is headed <b>Account: Industry</b>. Changing it changes the account, so an import, which changes contacts only, leaves it out.</div>
 </section>
 
 <section id="page">
@@ -108,6 +110,8 @@
     <li><b>Find the messy titles.</b> Click the <span class="ui">Title</span> header to sort by title, then look down the column for titles typed in lower case. (Sorting ignores case, so they sit among the others.)</li>
     <li><b>Fix one by typing.</b> Click a lower-case title (we use <i>vp sales</i>, Molly Fitzgerald's) and just start typing <span class="v">VP, Sales</span>. Your first letter replaces the old value. Press <kbd>Enter</kbd>.</li>
     <li><b>Fix another.</b> Do the same for a second one (we change <i>head of it</i> to <span class="v">Head of IT</span>).</li>
+    <li><b>Fix an account's industry.</b> Edge Communications is in telecoms, but its industry says Electronics. On any of its contacts' rows (we use Rose Gonzalez's), click <span class="ui">Account: Industry</span>, press <kbd>Enter</kbd>, choose <span class="ui">Telecommunications</span> and press <kbd>Enter</kbd>.
+      <div class="check"><b>Telecommunications</b>, in yellow, on every Edge Communications row, Margaret Doucette's and Sean Forbes's too: it is the account's industry, so it changed once for all of them. The Save bar counts it as one change.</div></li>
   </ol>
 </section>
 
@@ -139,7 +143,7 @@
   <ol class="tut">
     <li><b>Open it.</b> Click the App Launcher (the nine dots), type <span class="v plain">Rowhouse</span>, click <span class="ui">Rowhouse</span>, then the <span class="ui">Grid Edit Logs</span> tab. Choose the <span class="ui">All</span> list view.</li>
     <li><b>Read the columns.</b> The <span class="ui">All</span> view shows each entry's <span class="ui">Created Date</span>, <span class="ui">Created By</span>, <span class="ui">Operation</span>, <span class="ui">Record Name</span>, <span class="ui">Field Label</span>, <span class="ui">Old Value</span>, <span class="ui">New Value</span> and <span class="ui">Save Id</span>.
-      <div class="check">Five <b>Update</b> entries from your one save, sharing one Save Id: two for the titles you fixed, with the old and new value, and three for Lead Source. Then three <b>Create</b> entries for the imported attendees, named after them, sharing the import's Save Id.</div></li>
+      <div class="check">Six <b>Update</b> entries from your one save, sharing one Save Id: two for the titles you fixed, with the old and new value; one for the industry, named <b>Edge Communications</b> because it is the account that changed, from Electronics to Telecommunications; and three for Lead Source. Then three <b>Create</b> entries for the imported attendees, named after them, sharing the import's Save Id.</div></li>
   </ol>
 </section>
 
@@ -149,6 +153,7 @@
     <div class="tile plum"><div class="ic">{{ic:history}}</div><h4>Log Changes</h4><p>An audit trail per grid, all or nothing, read on the Grid Edit Logs tab of the Rowhouse app.</p></div>
     <div class="tile"><div class="ic">{{ic:upload}}</div><h4>Import</h4><p>A preview before anything is written, lookups matched by name, every row accounted for.</p></div>
     <div class="tile sky"><div class="ic">{{ic:edit}}</div><h4>Type to replace</h4><p>Start typing on a cell to replace its value, as in a spreadsheet.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:link}}</div><h4>Fields of related records</h4><p>The account's industry beside each contact, fixed once for every contact of that account.</p></div>
   </div>
   <div class="next">
     <a href="tutorial-accounts.html"><small>Previous tutorial</small><b>← Key accounts</b></a>

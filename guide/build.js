@@ -96,7 +96,9 @@ const ICONS = {
     download: '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
     page: '<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/>',
     lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
-    formula: '<path d="M13 4h-1.5A2.5 2.5 0 0 0 9 6.5V20"/><path d="M5.5 11H12"/><path d="M14 12l6 7M20 12l-6 7"/>'
+    formula: '<path d="M13 4h-1.5A2.5 2.5 0 0 0 9 6.5V20"/><path d="M5.5 11H12"/><path d="M14 12l6 7M20 12l-6 7"/>',
+    plus: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'
 };
 
 function icon(name) {

@@ -230,7 +230,7 @@ describe('the New button', () => {
             presets: { AccountId: '001000000000001AAA' }
         };
         const el = await mount(form);
-        expect($(el, 'lightning-button.rh-new').title).toBe("New: create a Contact in Salesforce's New form");
+        expect($(el, 'lightning-button.rh-new').title).toBe("New: open Salesforce's New Contact form");
         await clickNew(el);
         const dialog = $(el, 'c-grid-new-record');
         expect(dialog.objectApiName).toBe('Rowhouse_Test_Record__c');
