@@ -197,7 +197,6 @@ leave it running on every page.
 
 ## Trademark
 
-The software is Apache-2.0. **The mark and the name are not.** Apache 2.0 §6
-explicitly withholds trademark rights, which is one of the two reasons that
-licence was chosen over MIT. See `TRADEMARKS.md` in the repository for what a
+The software is MPL-2.0. **The mark and the name are not.** MPL 2.0 §2.3
+explicitly withholds trademark rights. See `TRADEMARKS.md` in the repository for what a
 fork may and may not call itself.

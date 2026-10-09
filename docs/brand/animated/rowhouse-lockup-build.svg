@@ -4,7 +4,7 @@
      table renders, then the wordmark arrives. Ends exactly on the static
      lockup, so a renderer that ignores animation still shows the real logo.
      Honours prefers-reduced-motion.
-     (c) Kugamon LLC. The mark is a trademark; the software is Apache-2.0. -->
+     (c) Kugamon LLC. The mark is a trademark; the software is MPL-2.0. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 182 32" role="img" aria-labelledby="t d">
   <title id="t">Rowhouse</title>
   <desc id="d">The Rowhouse logo assembling: the roof settles, three rows draw in from the left, then the word ROWHOUSE appears.</desc>

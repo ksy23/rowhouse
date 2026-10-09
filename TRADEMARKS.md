@@ -3,9 +3,9 @@
 "Rowhouse" and the Rowhouse logo are trademarks of Kugamon LLC. This policy
 says how you may use them. It is short on purpose.
 
-The Apache 2.0 licence gives you the code. It does not give you the name:
-section 6 of the licence grants no permission to use the licensor's trade
-names or marks, except as needed to describe where the work came from.
+The Mozilla Public License 2.0 gives you the code. It does not give you the
+name: section 2.3 of the licence grants no rights in the trademarks, service
+marks or logos of any contributor.
 
 ## You may, without asking
 

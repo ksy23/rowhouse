@@ -3,7 +3,7 @@
 [Website](https://rowhouse.app) | [Contributing](CONTRIBUTING.md) | [Support](SUPPORT.md) | [Security](SECURITY.md)
 
 [![verify](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MPL%202.0-blue.svg)](LICENSE)
 
 A free, open-source data grid for Salesforce, built as a Lightning Web
 Component. Users edit records in place with spreadsheet keys, group and total
@@ -196,8 +196,11 @@ in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-Apache License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). The name is
-covered by the [trademark policy](TRADEMARKS.md).
+Mozilla Public License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Use,
+change and build on Rowhouse freely, in open or closed products. If you
+distribute a changed copy of one of Rowhouse's own files, share that file's
+source under the same license; files you write yourself stay yours. The name
+is covered by the [trademark policy](TRADEMARKS.md).
 
 Rowhouse by Kugamon is an independent open-source project. It is not affiliated with,
 endorsed by or sponsored by Salesforce, Inc. Salesforce, Lightning and
