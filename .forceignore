@@ -3,3 +3,18 @@
 **/.eslintrc.json
 **/*.test.js
 package.xml
+**/.DS_Store
+
+# test-data is the package build's unpackaged metadata: everything the Apex
+# tests need (test objects, permission sets, test grids, the test flows and
+# action, the bench data class and the tests themselves). These files in it
+# are not metadata and stay out of every deploy and every package build.
+test-data/README.md
+test-data/.gitignore
+test-data/sfdx-project.json
+test-data/data/
+test-data/scripts/
+test-data/tests/jest/
+test-data/bench/*.jsonl
+test-data/bench/*.js
+test-data/config/test-user-def.json

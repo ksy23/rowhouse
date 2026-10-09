@@ -8,27 +8,11 @@
       "versionDescription": "Rowhouse Grid by Kugamon: a free, open-source data grid for Salesforce. The grid Salesforce should have shipped. For questions regarding this package, please contact support@kugamon.com.",
       "default": true,
       "unpackagedMetadata": {
-        "path": "test-data/metadata"
+        "path": "test-data"
       }
     },
     {
-      "path": "test-data/metadata",
-      "default": false
-    },
-    {
-      "path": "test-data/config",
-      "default": false
-    },
-    {
-      "path": "test-data/bench",
-      "default": false
-    },
-    {
-      "path": "test-data/actions",
-      "default": false
-    },
-    {
-      "path": "test-data/tests/apex",
+      "path": "test-data",
       "default": false
     },
     {

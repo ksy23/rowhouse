@@ -75,6 +75,13 @@ The Apex suite does not use this user — it creates its own inside `@TestSetup`
 because package version creation runs the tests in a fresh build org where
 `seed.sh` never ran. This one exists for the manual and browser tiers.
 
+**This whole folder is the package build's unpackaged metadata**
+(`unpackagedMetadata` in `sfdx-project.json`): the test objects, permission
+sets, test grids, test flows and action, the bench data class and the Apex
+tests are deployed to the build org for the test run and never packaged. Its
+files that are not metadata (this README, `data/`, `scripts/`, `tests/jest/`,
+the benchmark results) are listed in `.forceignore`; add a new one there too.
+
 **Confirm TC-036 kept the value `Obsolete`.** `Picklist_Field__c` is
 deliberately unrestricted so the value can be loaded. If it arrives blank, the
 picklist was created restricted and the most common real-org edge case is
