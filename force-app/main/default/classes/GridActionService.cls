@@ -178,9 +178,32 @@ public with sharing class GridActionService {
         return inputs[0].getName();
     }
 
-    /** One call, one invocation per record, the Id as text. */
+    /**
+     * One call, one invocation per record, the Id as text. A flow named
+     * without a namespace is found only outside any namespace (measured: "Action
+     * name not found" for a flow in the package's own namespace, while
+     * ns__Name works). So when no record found the action, and the name has
+     * no namespace of its own, it is tried once in this package's: nothing ran
+     * the first time, so nothing runs twice.
+     */
     private static List<Invocable.Action.Result> invoke(GridConfig.Action action, String input, List<Id> ids) {
-        Invocable.Action call = Invocable.Action.createCustomAction(INVOCABLE_TYPE.get(action.type), action.actionName);
+        List<Invocable.Action.Result> results = invokeIn(null, action, input, ids);
+        if (String.isNotBlank(GridDescribe.NAMESPACE) && !action.actionName.contains('__') && notFound(results)) {
+            results = invokeIn(GridDescribe.NAMESPACE, action, input, ids);
+        }
+        return results;
+    }
+
+    private static List<Invocable.Action.Result> invokeIn(
+        String namespace,
+        GridConfig.Action action,
+        String input,
+        List<Id> ids
+    ) {
+        String type = INVOCABLE_TYPE.get(action.type);
+        Invocable.Action call = namespace == null
+            ? Invocable.Action.createCustomAction(type, action.actionName)
+            : Invocable.Action.createCustomAction(type, namespace, action.actionName);
         for (Integer i = 0; i < ids.size(); i++) {
             if (i > 0) {
                 call.addInvocation();
@@ -188,6 +211,23 @@ public with sharing class GridActionService {
             call.setInvocationParameter(input, String.valueOf(ids[i]));
         }
         return call.invoke();
+    }
+
+    /** Did every invocation fail because no action by that name was found? */
+    private static Boolean notFound(List<Invocable.Action.Result> results) {
+        if (results == null || results.isEmpty()) {
+            return false;
+        }
+        for (Invocable.Action.Result r : results) {
+            Boolean missing = false;
+            for (Invocable.Action.Error e : r.isSuccess() ? new List<Invocable.Action.Error>() : r.getErrors()) {
+                missing = missing || (e.getMessage() != null && e.getMessage().startsWith('Action name not found'));
+            }
+            if (!missing) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** { recordId: message } for every record whose invocation failed. Results come back in the order sent. */

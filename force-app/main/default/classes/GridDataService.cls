@@ -114,8 +114,11 @@ public with sharing class GridDataService {
             }
         }
 
-        // What the grid's formulas read, once, after the columns.
-        for (String path : request.formulaPaths) {
+        // What the grid's formulas read, once, after the columns, by full API
+        // names (GridFormulas.qualified), so a column on the same field is not
+        // selected twice.
+        for (String given : request.formulaPaths) {
+            String path = GridFormulas.qualified(objectType, given);
             if (selectedLower.add(path.toLowerCase())) {
                 selectList.add(path);
             }

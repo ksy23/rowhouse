@@ -31,6 +31,20 @@ public with sharing class GridDescribe {
         return field.getDescribe().getLocalName();
     }
 
+    /**
+     * A name without this package's namespace prefix: in the managed build
+     * describe calls a relationship rowhouse__Lookup_Field__r, while a
+     * configuration or a formula calls it Lookup_Field__r. Other names are
+     * returned as they are.
+     */
+    public static String withoutNamespace(String name) {
+        if (String.isBlank(name) || String.isBlank(NAMESPACE)) {
+            return name;
+        }
+        String prefix = NAMESPACE + '__';
+        return name.startsWithIgnoreCase(prefix) ? name.substring(prefix.length()) : name;
+    }
+
     /** The fully-qualified API name, for building SOQL. */
     public static String apiName(Schema.SObjectType objectType) {
         return objectType.getDescribe(SObjectDescribeOptions.DEFERRED).getName();
@@ -270,7 +284,7 @@ public with sharing class GridDescribe {
     }
 
     /**
-     * Fields the tests treat as encrypted, by API name in lower case: Shield
+     * Fields the tests treat as encrypted, by local API name in lower case: Shield
      * Platform Encryption cannot be turned on in the orgs the suite runs in.
      */
     @TestVisible
@@ -287,7 +301,7 @@ public with sharing class GridDescribe {
     public static Boolean isEncrypted(Schema.DescribeFieldResult d) {
         return d.isEncrypted() ||
             d.getType() == Schema.DisplayType.ENCRYPTEDSTRING ||
-            encryptedForTest.contains(d.getName().toLowerCase());
+            encryptedForTest.contains(d.getLocalName().toLowerCase());
     }
 
     /** A date or date/time: grouped by a unit, not by its exact value. */

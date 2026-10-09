@@ -20,14 +20,14 @@ private class GridAdminTest {
     private static Map<String, Metadata.CustomMetadata> byName(Metadata.DeployContainer container) {
         Map<String, Metadata.CustomMetadata> out = new Map<String, Metadata.CustomMetadata>();
         for (Metadata.Metadata m : container.getMetadata()) {
-            out.put(m.fullName, (Metadata.CustomMetadata) m);
+            out.put(GridTestUsers.plain(m.fullName), (Metadata.CustomMetadata) m);
         }
         return out;
     }
 
     private static Object valueOf(Metadata.CustomMetadata record, String field) {
         for (Metadata.CustomMetadataValue v : record.values) {
-            if (v.field == field) {
+            if (GridTestUsers.plain(v.field) == field) {
                 return v.value;
             }
         }

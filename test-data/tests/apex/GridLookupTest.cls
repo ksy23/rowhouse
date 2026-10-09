@@ -51,7 +51,10 @@ private class GridLookupTest {
         Group queue = new Group(Name = 'Rowhouse Owner Queue', Type = 'Queue');
         System.runAs(new User(Id = UserInfo.getUserId())) {
             insert queue;
-            insert new QueueSobject(QueueId = queue.Id, SobjectType = 'Rowhouse_Test_Record__c');
+            insert new QueueSobject(
+                QueueId = queue.Id,
+                SobjectType = Rowhouse_Test_Record__c.SObjectType.getDescribe().getName()
+            );
         }
         System.runAs(GridTestUsers.fullUser()) {
             List<Map<String, String>> found = GridLookup.search('Test_Records', 'OwnerId', 'Rowhouse');

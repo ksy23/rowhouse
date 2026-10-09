@@ -116,14 +116,46 @@ public with sharing class GridFormulas {
         return true;
     }
 
+    /**
+     * A path as SOQL must name it: each relationship and the field at the end
+     * by their full API names. A formula names this package's own fields
+     * without the namespace, and an Apex cursor over such a name fails in a
+     * namespaced org with an internal error that no catch block stops
+     * (measured), so the query always gets the full names. The path as given
+     * when a step cannot be resolved: canRead has already refused it.
+     */
+    public static String qualified(Schema.SObjectType objectType, String path) {
+        Schema.SObjectType current = objectType;
+        List<String> steps = path.split('\\.');
+        List<String> out = new List<String>();
+        for (Integer i = 0; i < steps.size() - 1; i++) {
+            Schema.SObjectField lookup = lookupNamed(current, steps[i]);
+            List<Schema.SObjectType> targets = lookup == null
+                ? new List<Schema.SObjectType>()
+                : lookup.getDescribe().getReferenceTo();
+            if (targets.size() != 1) {
+                return path;
+            }
+            out.add(lookup.getDescribe().getRelationshipName());
+            current = targets[0];
+        }
+        try {
+            out.add(GridDescribe.apiName(GridDescribe.field(current, steps[steps.size() - 1])));
+        } catch (GridException e) {
+            return path;
+        }
+        return String.join(out, '.');
+    }
+
     /** The lookup field whose relationship is named so (Account, Lookup_Field__r), or null. */
     private static Schema.SObjectField lookupNamed(Schema.SObjectType objectType, String relationshipName) {
+        String wanted = GridDescribe.withoutNamespace(relationshipName);
         for (Schema.SObjectField f : GridDescribe.fieldsFor(GridDescribe.apiName(objectType)).values()) {
             Schema.DescribeFieldResult d = f.getDescribe();
             if (
                 d.getType() == Schema.DisplayType.REFERENCE &&
                 d.getRelationshipName() != null &&
-                d.getRelationshipName().equalsIgnoreCase(relationshipName)
+                GridDescribe.withoutNamespace(d.getRelationshipName()).equalsIgnoreCase(wanted)
             ) {
                 return f;
             }

@@ -292,7 +292,9 @@ private class GridNestingTest {
     /** A Grid Column in memory, from its fields: Custom Metadata fields cannot be assigned in Apex. */
     private static Grid_Column__mdt column(String name, Map<String, Object> fields) {
         Map<String, Object> m = new Map<String, Object>{ 'DeveloperName' => name, 'MasterLabel' => name };
-        m.putAll(fields);
+        for (String field : fields.keySet()) {
+            m.put(GridTestUsers.qualified(field), fields.get(field));
+        }
         return (Grid_Column__mdt) JSON.deserialize(JSON.serialize(m), Grid_Column__mdt.class);
     }
 

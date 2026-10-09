@@ -17,9 +17,9 @@ private class GridLogRetentionTest {
 
     private static Object sentDays(Kept kept) {
         Metadata.CustomMetadata record = (Metadata.CustomMetadata) kept.container.getMetadata()[0];
-        System.assertEquals('Rowhouse_Setting__mdt.Default', record.fullName);
+        System.assertEquals('Rowhouse_Setting__mdt.Default', GridTestUsers.plain(record.fullName));
         for (Metadata.CustomMetadataValue v : record.values) {
-            if (v.field == 'Log_Retention_Days__c') {
+            if (GridTestUsers.plain(v.field) == 'Log_Retention_Days__c') {
                 return v.value;
             }
         }
