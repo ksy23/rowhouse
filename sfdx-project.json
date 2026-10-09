@@ -2,7 +2,7 @@
   "packageDirectories": [
     {
       "path": "force-app",
-      "package": "Rowhouse (Unlocked)",
+      "package": "Rowhouse Grid",
       "versionNumber": "0.1.0.NEXT",
       "default": true,
       "unpackagedMetadata": {
@@ -35,7 +35,7 @@
     }
   ],
   "name": "rowhouse",
-  "namespace": "",
+  "namespace": "rowhouse",
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "67.0"
 }

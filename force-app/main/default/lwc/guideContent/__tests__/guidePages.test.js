@@ -98,7 +98,9 @@ describe('links between pages', () => {
     it('move within the Grid Guide tab', async () => {
         await show('start');
         const link = pageRoot().querySelector('a[data-page="configure"]');
-        expect(link.getAttribute('href')).toMatch(/^\/lightning\/n\/Rowhouse_Guide\?c__page=configure/);
+        // The written address is the managed package's (the project's namespace);
+        // a click navigates with the namespace the page runs in.
+        expect(link.getAttribute('href')).toMatch(/^\/lightning\/n\/rowhouse__Rowhouse_Guide\?rowhouse__page=configure/);
         link.click();
         expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'configure' } });
     });
