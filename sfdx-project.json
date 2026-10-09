@@ -3,7 +3,9 @@
     {
       "path": "force-app",
       "package": "Rowhouse Grid",
+      "versionName": "ver 0.1",
       "versionNumber": "0.1.0.NEXT",
+      "versionDescription": "The grid Salesforce should have shipped.",
       "default": true,
       "unpackagedMetadata": {
         "path": "test-data/metadata"
@@ -37,5 +39,8 @@
   "name": "rowhouse",
   "namespace": "rowhouse",
   "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "67.0"
+  "sourceApiVersion": "67.0",
+  "packageAliases": {
+    "Rowhouse Grid": "0HoUK0000000vj30AA"
+  }
 }
