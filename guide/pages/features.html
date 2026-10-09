@@ -13,6 +13,7 @@
     <span class="s-k">Features</span>
     <a href="#save">Editing and saving</a>
     <a href="#format">Conditional formatting</a>
+    <a href="#formula">Formula columns</a>
     <a href="#filters">Filters</a>
     <a href="#recordpage">On a record page</a>
     <a href="#layout">Each user's layout</a>
@@ -74,7 +75,7 @@
   </div>
   <div class="call w"><span class="k">When a save is refused</span><p>A record that fails keeps its edits, and the failing cells show Salesforce's message (for example a validation rule's error). A field the user may not change is refused alone: the record's other fields still save, the refused value stays as an unsaved edit, and the cell says why. Nothing the user typed disappears without a reason.</p></div>
   <ul class="tick">
-    <li><b>Up to 10,000 records</b> in one save.</li>
+    <li><b>Up to 10,000 records</b> in one save. In a grid that logs every change, fewer when many fields change at once: each batch writes at most 5,000 log entries, so a batch takes fewer records.</li>
     <li><b>Undo history is cleared</b> by Save and by Cancel: saved values are the record's now.</li>
     <li><b>Last save wins.</b> Like a list view's inline edit, Rowhouse does not lock records while they are being edited.</li>
   </ul>
@@ -126,6 +127,19 @@
       <li><b>More than a value:</b> Between two values; one field against another of the same record (Amount greater than Budget); or a formula, true or false. An icon goes before the value, a data bar behind a number. See the <a href="configure.html#rule">configuration reference</a>.</li>
     </ul>
   </div>
+</section>
+
+<section id="formula">
+  <div class="sec-head"><span class="sec-num">Feature</span><h2>Formula columns</h2>
+  <p class="sec-sub">A column the grid works out for each row, in the syntax of a formula field: a weighted amount, a full name, days on file. It needs no new field on the object, so there is no field to create or field-level security to set.</p></div>
+  <ul class="tick">
+    <li><b>Add one</b> on the Grid Admin tab's Columns tab with <b>Add formula column</b>: the formula, what it returns (Text, Number, Currency, Percent, Date, Date/Time or Checkbox), its decimal places and a header. The formula is checked as you type, with Salesforce's own message when it does not work. In Setup, it is a Grid Column with Formula and Formula Type filled in instead of Field API Name.</li>
+    <li><b>Worked out on the server</b> as the rows are read, so the values are the saved record's; after a save, the rows read back show the new results.</li>
+    <li><b>Read only.</b> A formula column cannot be edited, sorted, grouped, filtered, searched or subtotaled. It is exported with the other columns.</li>
+    <li><b>Up to 10 formulas a grid</b>, formula columns and formula display rules together, each up to 3,900 characters.</li>
+    <li><b>Hidden stays hidden.</b> A user who cannot read a field the formula uses does not get the column. A formula can also read $User, $Organization and custom settings ($Setup), which no field check covers: put nothing in a grid formula its users should not see.</li>
+    <li><b>A row it cannot work out</b> (a division by zero, say) shows a blank cell. Examples and the rules for lookups and percents are in the <a href="configure.html#formulas">configuration reference</a>.</li>
+  </ul>
 </section>
 
 <section id="filters">

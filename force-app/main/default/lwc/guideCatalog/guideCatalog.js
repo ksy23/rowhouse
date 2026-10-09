@@ -68,6 +68,7 @@ export const PAGES = [
         "anchors": [
             "save",
             "format",
+            "formula",
             "filters",
             "recordpage",
             "layout",
