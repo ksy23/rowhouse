@@ -1,7 +1,8 @@
 # Benchmarks
 
 How fast Rowhouse is at 1,000, 5,000 and 10,000 rows, with 5 and 20 columns,
-and at 50,000 rows, past the grid's 10,000-row ceiling, and how anyone can
+at 50,000 rows, past the grid's 10,000-row ceiling, and at 110,000 rows, past
+the 100,000 rows one Salesforce pagination cursor holds; and how anyone can
 check.
 
 > **Status: the pass with Lightning Web Security on is complete** (8 sizes,
@@ -64,7 +65,11 @@ whether it came from `test-data/scripts/generate-benchmark.py` (CSV) or
    above a size; row N is always named `BM-` and N in six digits, so for
    10,000: `delete [SELECT Id FROM Rowhouse_Bench__c WHERE Name > 'BM-010000' LIMIT 10000];`
    (repeat until nothing is left above it). The published runs went down
-   from 50,000, then grew the object back.
+   from 50,000, then grew the object back. The 110,000-row runs added rows
+   50,001 to 110,000 in one Bulk API load
+   (`python3 test-data/scripts/generate-benchmark.py 50001 110000` writes
+   them as one CSV) and deleted them again afterwards. 110,000 rows take
+   about 220 MB of data storage at 2 KB a record.
 8. Turn Lightning Web Security off (Setup, Session Settings) and run
    everything again. Turn it back on afterwards. **Hard-reload** every page
    (Cmd+Shift+R) and check the runner's `runtime` field: an ordinary reload
@@ -153,9 +158,44 @@ after switching it off, `lws` still on ordinary reloads, then `locker` with
 can also be read with the Tooling API: `SELECT Metadata FROM
 SecuritySettings`, `sessionSettings.lockerServiceNext`.
 
+## Past 100,000 records
+
+Measured on 8 October 2026 with 110,000 bench rows, Lightning Web Security
+on, in the same org, browser and machine as the runs above. The runs are in
+`test-data/bench/results-2026-10-08.jsonl`; every one reported
+`runtime: "lws"` and none saw the tab hidden. Runs in which the tab was
+hidden were thrown away.
+
+| Rows | Columns | Runs | First row | Full render | Sort | Sort settled | Edit commit | Heap |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 110,000 (10,000 loaded) | 5 | 5 | 938 ms | 4,430 ms | 258 ms | 4,448 ms | 119 ms | 319 MB |
+| 110,000 (10,000 loaded) | 20 | 2 | 1,645 ms | 8,554 ms | 545 ms | 8,850 ms | 286 ms | 376 MB |
+
+Reading it:
+- **The numbers match the 50,000 lines.** The grid loads the first 10,000
+  rows whatever the object's size, and a sort fetches the first 10,000 in the
+  new order, so 110,000 costs what 50,000 did. The 20-column line is the
+  median of 2 runs, not 5: the other runs were spoiled by the tab being
+  hidden, and are not counted.
+- **What changed to get here.** Salesforce refuses to open a pagination cursor
+  on more than 100,000 rows, with an error no code can catch, so until this
+  change a grid over more than 100,000 matching records did not open at all.
+  The grid now asks for at most 100,000 and counts the rest with `COUNT()`,
+  which costs one query row however many it counts. It shows "10,000 of
+  110,000 items", scrolls through the first 100,000, and a search or filter
+  narrows the rest.
+- **Scrolling to the 100,000th row** took about 85 seconds with 5 columns
+  (45 pages of 2,000, about 0.75 s each, mostly Salesforce), and the tab then
+  used about 480 MB.
+- **Larger objects.** This org holds about 125,000 bench rows (250 MB of data
+  storage, 2 KB a record), so 500,000 was not measured. Nothing in the grid
+  reads more than 100,000 rows per query or more than one page per request,
+  and counts cost one row, so the same behaviour is expected; a run in a
+  larger org would show it.
+
 ## Environment of the published runs
 
 - Org: Developer Edition, Lightning Web Security on, data storage 250 MB.
 - Browser: Chrome 154 on macOS 27.0.1.
 - Machine: Apple M3 Max (Mac15,9), 128 GB of memory.
-- Date: September 2026.
+- Date: September 2026; the 110,000-row lines 8 October 2026.

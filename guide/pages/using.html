@@ -90,7 +90,7 @@
     </div>
     <div>
       <h4 class="mt0">Big lists</h4>
-      <p>The grid loads the first 10,000 records straight away, so sorting them is instant. Past that, more load as you scroll toward the end, 2,000 at a time, up to 100,000; a <b>Load more</b> button below the grid does the same. In a list that big, sorting asks Salesforce for the records in the new order, which takes a few seconds. Salesforce orders them by the first column you sorted; a tie-breaker then orders the rows that are loaded.</p>
+      <p>The grid loads the first 10,000 records straight away, so sorting them is instant. Past that, more load as you scroll toward the end, 2,000 at a time, up to 100,000; a <b>Load more</b> button below the grid does the same. In a list that big, sorting asks Salesforce for the records in the new order, which takes a few seconds. Salesforce orders them by the first column you sorted; a tie-breaker then orders the rows that are loaded. When more than 100,000 records match, the count above the grid says how many (<i>10,000 of 110,000 items</i>) and a search or filter brings the rest within reach.</p>
       <div class="lims" style="grid-template-columns:1fr">
         <div class="lim"><span class="t">Loaded when the grid opens</span><span class="n">10,000 rows</span><div class="meter"><i style="--w:10%"></i></div></div>
         <div class="lim sky"><span class="t">Reachable by scrolling</span><span class="n">100,000 rows</span><div class="meter"><i style="--w:100%"></i></div></div>

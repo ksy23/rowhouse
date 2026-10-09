@@ -530,6 +530,20 @@ describe('loading more as you scroll', () => {
         expect(fetchRows).not.toHaveBeenCalled();
     });
 
+    it('says how many match when more match than one cursor holds', async () => {
+        // The server pages through the first rows its cursor holds (100,000
+        // live) and counts every match: here 3 of 120. Nothing more can load,
+        // and the grid says so rather than calling it 3 items.
+        fetchRows.mockResolvedValue(page([row(1), row(2), row(3)], { hasMore: false, total: 120 }));
+        const el = mount();
+        await settleAll();
+        expect(el.shadowRoot.querySelector('.rh-count').textContent).toBe('3 of 120 items');
+        const notice = el.shadowRoot.querySelector('.rh-truncated').content;
+        expect(notice).toContain('Showing the first 3 of 120 rows.');
+        expect(notice).toContain('the most one grid holds; search to narrow the list');
+        expect(tableConfig(el).hasMore).toBe(false);
+    });
+
     it('keeps the rows it has when a page fails, and says so', async () => {
         serverOf(50000);
         const el = mount();

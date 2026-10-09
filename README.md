@@ -45,7 +45,8 @@ each grid on a Grid Admin tab, without code. There is no paid tier.
   text colors, bold, a colored bar per row, icons and data bars, explained in
   a Display Key.
 - More rows load as you scroll, up to 100,000. Search always runs on the
-  server; past 10,000 rows, so does sorting.
+  server; past 10,000 rows, so does sorting. An object with more records than
+  that still opens, with its full count; search and filters reach the rest.
 - Each user's own layout, kept in Salesforce: widths, wrapping, sort,
   grouping, and which columns show, in which order.
 - A list view's look, with its row numbers (an admin can hide them), and a
@@ -75,7 +76,7 @@ each grid on a Grid Admin tab, without code. There is no paid tier.
 - A keyboard model and ARIA grid semantics throughout, checked by an
   automated accessibility suite and a manual screen-reader pass.
 - Works under Lightning Web Security and under Lightning Locker.
-- Benchmarks from 1,000 to 50,000 rows: [docs/benchmarks.md](docs/benchmarks.md).
+- Benchmarks from 1,000 to 110,000 rows: [docs/benchmarks.md](docs/benchmarks.md).
 
 ## Placing a grid
 

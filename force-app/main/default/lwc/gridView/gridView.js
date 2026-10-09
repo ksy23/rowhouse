@@ -1204,7 +1204,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     get isTruncated() {
-        return !this.loading && this.hasMore;
+        return !this.loading && this.moreOnServer;
     }
 
     /** Grey rows stand in for the first rows while they load. */
@@ -1445,8 +1445,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (this.loading && !this.rows.length) return 'Loading…';
         const loaded = this.format(this.rows.length);
         if (this.loading) return `Loading… ${loaded} of ${this.format(this.totalRows)}`;
-        if (this.hasMore) return `${loaded} of ${this.format(this.totalRows)} items`;
+        if (this.moreOnServer) return `${loaded} of ${this.format(this.totalRows)} items`;
         return `${loaded} ${this.rows.length === 1 ? 'item' : 'items'}`;
+    }
+
+    /**
+     * More records match than are loaded: rows still to scroll to, or, past
+     * the 100,000 one grid can reach, records only a search or filter brings in.
+     */
+    get moreOnServer() {
+        return this.hasMore || this.totalRows > this.rows.length;
     }
 
     /**
@@ -1470,7 +1478,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     get loadedMessage() {
-        if (this.hasMore) {
+        if (this.moreOnServer) {
             return `Showing the first ${this.format(this.rows.length)} of ${this.format(this.totalRows)} rows.`;
         }
         return `${this.format(this.rows.length)} ${this.rows.length === 1 ? 'row' : 'rows'} loaded.`;

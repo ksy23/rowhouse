@@ -26,10 +26,24 @@
  * LIMITS (measured in a Developer Edition org, not assumed)
  *   2,000 rows per fetchPage, 100,000 rows per cursor,
  *   Limits.getLimitFetchCallsOnApexCursor() = 100 fetch calls per transaction.
+ *
+ * MORE THAN 100,000 MATCHING RECORDS
+ * Opening a pagination cursor on a query that matches more than 100,000 rows
+ * is a LimitException ("Too many apex pagination cursor rows: 100001"),
+ * which no catch block stops: the grid would not open at all. So the cursor's
+ * query always ends LIMIT 100000, the most it can hold, and when the cursor
+ * comes back full, a COUNT() with the same conditions says how many records
+ * really match (one query row, whatever the count: measured at 110,000).
+ * The grid then shows the true count, scrolls through the first 100,000, and
+ * a search or filter narrows the rest. The count travels in the locator, so
+ * later pages report it without counting again.
  */
 public with sharing class GridDataService {
     public static final Integer DEFAULT_PAGE_SIZE = 200;
     public static final Integer MAX_PAGE_SIZE = 2000;
+    /** The most rows one pagination cursor holds. A test lowers it. */
+    @TestVisible
+    private static Integer maxCursorRows = 100000;
     @TestVisible
     private static final String FOREIGN_LOCATOR = 'The page locator does not belong to this query. Reload the grid.';
 
@@ -112,13 +126,19 @@ public with sharing class GridDataService {
             }
         }
 
-        String soql = 'SELECT ' + String.join(selectList, ', ') + ' FROM ' + GridDescribe.apiName(objectType);
         Map<String, Object> binds = new Map<String, Object>();
         List<String> conditions = conditionsFor(request, objectType, binds);
-        if (!conditions.isEmpty()) {
-            soql += ' WHERE ' + String.join(conditions, ' AND ');
-        }
-        soql += orderBy(objectType, request);
+        String source =
+            ' FROM ' +
+            GridDescribe.apiName(objectType) +
+            (conditions.isEmpty() ? '' : ' WHERE ' + String.join(conditions, ' AND '));
+        String soql =
+            'SELECT ' +
+            String.join(selectList, ', ') +
+            source +
+            orderBy(objectType, request) +
+            ' LIMIT ' +
+            maxCursorRows;
 
         String fingerprint = EncodingUtil.convertToHex(
                 Crypto.generateDigest('SHA-256', Blob.valueOf(soql + '|' + JSON.serialize(binds)))
@@ -143,6 +163,7 @@ public with sharing class GridDataService {
                 selectedLower
             )
         ) {
+            countEveryMatch(page, source, binds, position[2]);
             return page;
         }
         if (cursor == null) {
@@ -151,7 +172,28 @@ public with sharing class GridDataService {
         }
         fill(page, cursor, new List<Integer>{ start, size, null }, fingerprint);
         page.cursorToken = JSON.serialize(cursor);
+        countEveryMatch(page, source, binds, position[2]);
         return page;
+    }
+
+    /**
+     * A full cursor holds the first maxCursorRows matches, not all of them:
+     * the page reports how many records really match, from the locator when
+     * an earlier page counted them, else from a COUNT(). The locator keeps
+     * the cursor's own row count for paging and carries the true one after it.
+     */
+    private static void countEveryMatch(GridPage page, String source, Map<String, Object> binds, Integer counted) {
+        if (page.totalRows < maxCursorRows) {
+            return;
+        }
+        Integer total = counted != null &&
+            counted >= page.totalRows
+            ? counted
+            : GridSecurity.countQuery('SELECT COUNT()' + source, binds);
+        page.totalRows = Math.max(total, page.totalRows);
+        if (page.cursorLocator != null) {
+            page.cursorLocator += ':' + page.totalRows;
+        }
     }
 
     /** A relationship the rows carry belongs to this query, with or without the namespace (HR-4). */
@@ -453,21 +495,28 @@ public with sharing class GridDataService {
     }
 
     /**
-     * Validate a locator against this query: [next index, row count], or
-     * [0, null] for a first page. A locator for another query is refused.
+     * Validate a locator against this query: [next index, row count, records
+     * matching or null], or [0, null, null] for a first page. The third part
+     * is there only when the cursor was full (countEveryMatch); it is shown,
+     * never used to page. A locator for another query is refused.
      */
     private static List<Integer> readLocator(String locator, String fingerprint) {
         if (String.isBlank(locator)) {
-            return new List<Integer>{ 0, null };
+            return new List<Integer>{ 0, null, null };
         }
         List<String> parts = locator.split(':');
-        if (parts.size() != 3 || parts[0] != fingerprint || !isIndex(parts[1]) || !isIndex(parts[2])) {
+        Boolean counted = parts.size() == 4 && isIndex(parts[3]);
+        if ((parts.size() != 3 && !counted) || parts[0] != fingerprint || !isIndex(parts[1]) || !isIndex(parts[2])) {
             throw new GridException(FOREIGN_LOCATOR);
         }
-        return new List<Integer>{ Integer.valueOf(parts[1]), Integer.valueOf(parts[2]) };
+        return new List<Integer>{
+            Integer.valueOf(parts[1]),
+            Integer.valueOf(parts[2]),
+            counted ? Integer.valueOf(parts[3]) : null
+        };
     }
 
-    /** Digits that fit an Integer: a cursor holds at most 100,000 rows. */
+    /** Digits that fit an Integer: a cursor holds at most 100,000 rows, a count far more. */
     private static Boolean isIndex(String s) {
         return s.isNumeric() && s.length() <= 9;
     }

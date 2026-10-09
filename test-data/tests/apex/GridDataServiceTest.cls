@@ -289,6 +289,68 @@ private class GridDataServiceTest {
     }
 
     @IsTest
+    static void moreMatchesThanACursorHoldsShowTheTrueCountAndPageTheFirst() {
+        // A pagination cursor holds at most 100,000 rows, and opening one on a
+        // query that matches more is a LimitException no catch stops. Here the
+        // cursor holds 300 of the 550 seed rows: the grid must still open, say
+        // 550, page through the first 300, and count only once.
+        GridDataService.maxCursorRows = 300;
+        System.runAs(GridTestUsers.fullUser()) {
+            Test.startTest();
+            GridPage first = GridDataService.fetchPage(nameRequest(null, null));
+            GridDataService.forgetOpenCursors();
+            GridPage second = GridDataService.fetchPage(nameRequest(first.cursorLocator, first.cursorToken));
+            // The count rides in the locator: a page given another count shows
+            // it rather than counting again (it is only ever shown).
+            GridDataService.forgetOpenCursors();
+            String recounted = first.cursorLocator.substringBeforeLast(':') + ':777';
+            GridPage again = GridDataService.fetchPage(nameRequest(recounted, first.cursorToken));
+            Test.stopTest();
+
+            System.assertEquals(550, first.totalRows, 'The first page counts every match.');
+            System.assertEquals(200, first.rows.size());
+            System.assert(first.hasMore);
+            System.assert(first.cursorLocator.endsWith(':300:550'), first.cursorLocator);
+
+            System.assertEquals(100, second.rows.size(), 'The cursor holds 300 rows: 200, then 100.');
+            System.assertEquals('1201', (String) second.rows[0].get('Name'));
+            System.assertEquals(550, second.totalRows, 'Later pages keep the count.');
+            System.assert(!second.hasMore, 'Paging stops where the cursor ends.');
+            System.assertEquals(777, again.totalRows, 'A later page does not count again.');
+        }
+    }
+
+    @IsTest
+    static void fewerMatchesThanACursorHoldsNeedNoCount() {
+        System.runAs(GridTestUsers.fullUser()) {
+            Test.startTest();
+            GridPage first = GridDataService.fetchPage(nameRequest(null, null));
+            Test.stopTest();
+            System.assertEquals(550, first.totalRows);
+            System.assertEquals(
+                3,
+                first.cursorLocator.split(':').size(),
+                'No count rides along: ' + first.cursorLocator
+            );
+        }
+    }
+
+    @IsTest
+    static void aLocatorWithABadCountIsRefused() {
+        GridDataService.maxCursorRows = 300;
+        System.runAs(GridTestUsers.fullUser()) {
+            GridPage first = GridDataService.fetchPage(nameRequest(null, null));
+            Boolean refused = false;
+            try {
+                GridDataService.fetchPage(nameRequest(first.cursorLocator + 'x', first.cursorToken));
+            } catch (GridException e) {
+                refused = true;
+            }
+            System.assert(refused, 'A count part that is not a number is refused.');
+        }
+    }
+
+    @IsTest
     static void aCursorFromAnotherQueryIsRefused() {
         // HR-6: a real cursor, this user's own, but opened for a query with
         // another select list. Its rows must not come back through this one.
