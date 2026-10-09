@@ -71,7 +71,7 @@
 
 <section id="perf">
   <div class="sec-head"><span class="sec-num">Numbers</span><h2>Performance</h2>
-  <p class="sec-sub">Measured on September 30, 2026 in a Developer Edition org with Lightning Web Security on, Chrome on an Apple M3 Max, median of five runs. 50,000 means 10,000 rows loaded from a 50,000-record object. Your numbers depend on your org, your network and your machine; the method is published so you can measure your own.</p></div>
+  <p class="sec-sub">Measured on 30 September 2026 in a Developer Edition org with Lightning Web Security on, Chrome on an Apple M3 Max, median of five runs. 50,000 means 10,000 rows loaded from a 50,000-record object. Your numbers depend on your org, your network and your machine; the method is published so you can measure your own.</p></div>
   <div class="chart-legend"><span><i style="--c:var(--accent)"></i>5 columns</span><span><i style="--c:var(--sky)"></i>20 columns</span></div>
   <div class="split">
     <div class="frame rv">
@@ -112,7 +112,7 @@
       </div>
     </div>
   </div>
-  <p class="note" style="margin-top:20px">At 110,000 records (October 8, 2026, same org and machine) the grid measured what it did at 50,000, because it loads the same first 10,000 rows: first row 938 ms with 5 columns and 1,645 ms with 20, every row loaded 4.4 s and 8.6 s, a sort 258 ms and 545 ms, an edit 119 ms and 286 ms. The 20-column figures are from two runs.</p>
+  <p class="note" style="margin-top:20px">At 110,000 records (8 October 2026, same org and machine) the grid measured what it did at 50,000, because it loads the same first 10,000 rows: first row 938 ms with 5 columns and 1,645 ms with 20, every row loaded 4.4 s and 8.6 s, a sort 258 ms and 545 ms, an edit 119 ms and 286 ms. The 20-column figures are from two runs.</p>
   <p class="note" style="margin-top:12px">A grid opens with one request to Salesforce, which returns its settings, your layout and the first rows together. The charts above were measured before the grid worked this way, so a first row now comes sooner than they show: in the same org, a grid of 56 rows and 16 columns has its rows about 0.4 s after it starts loading, against about 1.05 s before.</p>
   <div class="call" style="margin-top:20px"><span class="k">Make a grid faster</span><p>Fewer columns help most: 20 columns take roughly twice as long as 5 to load, sort and edit. A smaller Page Size shows the first rows sooner on slow connections. And a grid of an object with more than 10,000 records sorts and searches on the server, which is slower than sorting rows already in the browser.</p></div>
 </section>
@@ -155,7 +155,7 @@
       <tr><td>Save bar</td><td>The light-blue bar that floats at the bottom of the grid while something is unsaved: the count of unsaved changes, and under it Undo, Redo, Cancel and Save.</td></tr>
       <tr><td>Range</td><td>A rectangle of cells selected with Shift, for copy, paste, fill down and clear.</td></tr>
       <tr><td>Row number</td><td>A row's place in the list, 1, 2, 3 down the grid's left edge, as in a list view. Not a record number: sorting or searching numbers the rows again. A row with errors shows its error icon just before it.</td></tr>
-      <tr><td>Selected rows</td><td>Rows ticked in the checkbox column, for Update field, Delete and actions.</td></tr>
+      <tr><td>Selected rows</td><td>Rows selected in the checkbox column, for Update field, Delete and actions.</td></tr>
       <tr><td>New row</td><td>A row that <b>New</b> adds at the top of the grid, marked New where a row number goes. It is not a record until Save creates it; Undo or Cancel takes it away.</td></tr>
       <tr><td>Format rule</td><td>A highlight (a color, bold, an icon or a data bar) that shows when a field meets a test or a formula is true, explained in the Display Key.</td></tr>
       <tr><td>Grid Filter</td><td>A condition every row of a grid must meet, set by the admin, shown to users as a locked chip.</td></tr>
@@ -166,7 +166,7 @@
       <tr><td>Group, subtotal, Total row</td><td>Rows gathered by a column's value, with figures for each group; the Total row covers the whole list.</td></tr>
       <tr><td>Child table</td><td>A tab of related records under a row, itself a full grid.</td></tr>
       <tr><td>Action</td><td>A flow, Apex action or quick action run from a row's menu or on the selected rows.</td></tr>
-      <tr><td>Grid Edit Log</td><td>Where the audit trail is kept, one entry per change, when a grid has Log Changes ticked. Entries are kept forever unless an admin chooses a period on the Grid Admin tab; then a clean-up deletes older ones each night.</td></tr>
+      <tr><td>Grid Edit Log</td><td>Where the audit trail is kept, one entry per change, when a grid has Log Changes selected. Entries are kept forever unless an admin chooses a period on the Grid Admin tab; then a clean-up deletes older ones each night.</td></tr>
       <tr><td>Rowhouse Setting</td><td>The one record, named Default, of settings for Rowhouse as a whole: for now, how long Grid Edit Log keeps its entries. Set on the Grid Admin tab's Settings page.</td></tr>
       <tr><td>Rowhouse Grid User · Diagnostics · Admin</td><td>The three permission sets: the first for everyone who uses a grid, the second for troubleshooting, the third for whoever builds grids.</td></tr>
     </tbody></table></div>

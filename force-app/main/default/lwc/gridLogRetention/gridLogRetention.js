@@ -180,7 +180,7 @@ export default class GridLogRetention extends NavigationMixin(LightningElement) 
     get loggingText() {
         const names = this.loggingGrids;
         if (!names.length)
-            return "grids log every change. Tick Log every change in a grid's settings for an audit trail.";
+            return "grids log every change. Select Log every change in a grid's settings for an audit trail.";
         return `${names.length === 1 ? 'grid logs' : 'grids log'} every change: ${names.join(', ')}.`;
     }
 

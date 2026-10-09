@@ -80,7 +80,7 @@
   </ul>
 
   <h3 id="new-records">Adding records</h3>
-  <p>With <b>Allow New Records</b> ticked (on the Grid Admin tab, <b>Create records with New</b>; a new grid starts with it ticked), users who may create the object's records get a <b>New</b> button above the grid, where a list view has its own. In a child table, or where the grid is narrow, New is in the menu beside the search.</p>
+  <p>With <b>Allow New Records</b> selected (on the Grid Admin tab, <b>Create records with New</b>; a new grid starts with it selected), users who may create the object's records get a <b>New</b> button above the grid, where a list view has its own. In a child table, or where the grid is narrow, New is in the menu beside the search.</p>
   <ul class="tick">
     <li><b>A row in the grid, when it can be one.</b> New adds a row at the top with Salesforce's defaults for a new record, and, in a child table or on a record page, the link to that record already set. The user fills in the columns they may set on a new record and clicks Save: new records are created first, then the other changes are saved. The server checks a new row as it checks any save: only the grid's editable columns are written, field-level security removes what the user may not set, and a required field left blank is refused.</li>
     <li><b>Salesforce's New form, when it cannot.</b> When Allow Inline Edit is off, the object offers the user more than one record type, or a field every new record needs is not an editable column, New opens Salesforce's own New form for the object, laid out as its page layout says. The record saved there is added at the top of the grid.</li>
@@ -171,7 +171,7 @@
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Each user's layout</h2>
   <p class="sec-sub">Columns, widths, Wrap or Clip, sort, grouping and open rows are kept for each user and grid in a private record, so the grid opens as they left it, on any computer.</p></div>
   <ul class="tick">
-    <li><b>Their own columns.</b> Users hide, show and reorder the columns you set up, nothing more: from <b>Choose columns</b> beside Refresh, <b>Hide column</b> in a column's menu, or by dragging a header. Tick <b>Always shown</b> on a column (Always Shown in Setup) to keep it on screen; it can still be moved. Hidden columns are still read: search, sorts, filters and grouping on them still work, and Export writes what the user sees.</li>
+    <li><b>Their own columns.</b> Users hide, show and reorder the columns you set up, nothing more: from <b>Choose columns</b> beside Refresh, <b>Hide column</b> in a column's menu, or by dragging a header. Select <b>Always shown</b> on a column (Always Shown in Setup) to keep it on screen; it can still be moved. Hidden columns are still read: search, sorts, filters and grouping on them still work, and Export writes what the user sees.</li>
     <li><b>Grid User Layout</b> records are private: each belongs to its user, who alone can read it. Rowhouse Grid User gives access to one's own.</li>
     <li><b>Kept quietly</b>, two seconds after the last change. If it cannot be kept, the grid works as before and says nothing (people with Rowhouse Grid Diagnostics see why in the browser console).</li>
     <li><b>Reset layout</b> beside Refresh deletes the record, and the grid goes back to the admin's settings. Filters are never kept.</li>
@@ -180,7 +180,7 @@
 
 <section id="numbers">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Row numbers</h2>
-  <p class="sec-sub">Rows are numbered down the grid's left edge, 1, 2, 3 in the order shown, as a list view's are. They are on unless you untick <b>Show row numbers</b> on the Grid tab (Show Row Numbers in Setup), for example for a narrow grid on a record page.</p></div>
+  <p class="sec-sub">Rows are numbered down the grid's left edge, 1, 2, 3 in the order shown, as a list view's are. They are on unless you deselect <b>Show row numbers</b> on the Grid tab (Show Row Numbers in Setup), for example for a narrow grid on a record page.</p></div>
   <ul class="tick">
     <li><b>Places, not records.</b> A number says where a row sits in the list, so a new sort, a search or a filter numbers the rows from 1 again.</li>
     <li><b>Grouped,</b> the numbers run straight through the groups. A collapsed group keeps its rows' numbers, so the rows after it keep theirs.</li>
@@ -293,7 +293,7 @@
 
 <section id="import">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Import from CSV or Excel</h2>
-  <p class="sec-sub">Tick <b>Allow Import</b> (<i>Import from a CSV or Excel file</i> on the Grid Admin tab) and users get an Import button. A row with a record Id updates that record; a row without one creates a new record. Nothing is written until the user has seen a preview.</p></div>
+  <p class="sec-sub">Select <b>Allow Import</b> (<i>Import from a CSV or Excel file</i> on the Grid Admin tab) and users get an Import button. A row with a record Id updates that record; a row without one creates a new record. Nothing is written until the user has seen a preview.</p></div>
   <div class="stepper rv" aria-hidden="true">
     <div class="sp" style="--d:0s"><b>1</b><span>Choose a file</span><small>CSV (or tab-separated .txt or .tsv) or .xlsx, up to 20 MB and 10,000 rows</small></div>
     <div class="sp" style="--d:1s"><b>2</b><span>Check the rows</span><small>updates, new records and problems, row by row</small></div>
@@ -320,14 +320,14 @@
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Update and delete many records</h2></div>
   <div class="split">
     <div class="tile sky"><div class="ic">{{ic:edit}}</div><h4>Update field</h4><p>With rows selected, <b>Update field</b> sets one editable column to one value on all of them. The dialog says what the rows hold now ("Currently: New (5), Working (2)"). The changes become unsaved edits, so the user sees every one before clicking Save, and one Undo takes them all back. Needs at least one editable column.</p></div>
-    <div class="tile rose"><div class="ic">{{ic:lock}}</div><h4>Delete</h4><p>Off unless you tick <b>Allow Mass Delete</b> (<i>Delete selected rows</i> on the Grid Admin tab), and only for users who may delete the object. The dialog names the rows, says they go to the Recycle Bin, and starts on Cancel. Deletes run in batches of 200; a record that cannot be deleted stays, with the reason on its row. Afterwards <b>Undo</b>, under the grid's header, puts the deleted records back.</p></div>
+    <div class="tile rose"><div class="ic">{{ic:lock}}</div><h4>Delete</h4><p>Off unless you select <b>Allow Mass Delete</b> (<i>Delete selected rows</i> on the Grid Admin tab), and only for users who may delete the object. The dialog names the rows, says they go to the Recycle Bin, and starts on Cancel. Deletes run in batches of 200; a record that cannot be deleted stays, with the reason on its row. Afterwards <b>Undo</b>, under the grid's header, puts the deleted records back.</p></div>
   </div>
   <p class="note" style="margin-top:12px">One selection holds up to 10,000 rows. Select all takes the first 10,000 in the current order, including rows in collapsed groups. When more records match than are loaded, and no more than 50,000 do, <b>Select all N matching records</b> lets Delete delete every record the search and filters match. While it is chosen, Update field and actions wait: they work on loaded rows. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more: a delete that big can push out what others deleted earlier.</p>
 </section>
 
 <section id="audit">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Audit trail</h2>
-  <p class="sec-sub">Tick <b>Log Changes</b> on a Grid Configuration (<i>Log every change in Grid Edit Log</i> on the Grid Admin tab) and every change that grid makes is written to <b>Grid Edit Log</b>: one entry per field changed, per record created, deleted or put back by Undo, and per record an action ran on.</p></div>
+  <p class="sec-sub">Select <b>Log Changes</b> on a Grid Configuration (<i>Log every change in Grid Edit Log</i> on the Grid Admin tab) and every change that grid makes is written to <b>Grid Edit Log</b>: one entry per field changed, per record created, deleted or put back by Undo, and per record an action ran on.</p></div>
   <div class="split">
     <figure class="mt0 rv">
       <div class="logstack" aria-hidden="true">
@@ -503,7 +503,7 @@
   <details class="faq"><summary>A column cannot be edited</summary><div class="a"><p>All four must hold: Allow Inline Edit on the configuration, Editable on the column, the user may edit the object and the field, and the field can be edited at all (not a formula, roll-up, auto-number, system field or rich text). A formula column of the grid is always read-only. A lookup also needs read access to the target object's name.</p></div></details>
   <details class="faq"><summary>There is no Import or Delete button</summary><div class="a"><p>Import needs Allow Import and Allow Inline Edit with at least one editable column, and the user must be allowed to edit the object; it is disabled while there are unsaved changes. Delete needs Allow Mass Delete and permission to delete the object, and appears in the bar that shows when rows are selected.</p></div></details>
   <details class="faq"><summary>A color, grouping, tab or action does not show</summary><div class="a"><p>Give yourself Rowhouse Grid Diagnostics and reload: the warning above the grid names the setting that was skipped and why. If there is no warning, the user cannot read a field it needs, or lacks the action's Required Permission.</p></div></details>
-  <details class="faq"><summary>Saves fail with "This grid keeps a log of every change…"</summary><div class="a"><p>The grid has Log Changes ticked and the user cannot write to Grid Edit Log. Assign them Rowhouse Grid User, which includes that access.</p></div></details>
+  <details class="faq"><summary>Saves fail with "This grid keeps a log of every change…"</summary><div class="a"><p>The grid has Log Changes selected and the user cannot write to Grid Edit Log. Assign them Rowhouse Grid User, which includes that access.</p></div></details>
   <details class="faq"><summary>There is no gear, or no Grid Admin tab</summary><div class="a"><p>Both are for the <b>Rowhouse Grid Admin</b> permission set. Assign it (with Rowhouse Grid User), then reload the page. The tab is in the <b>Rowhouse</b> app in the App Launcher; to have it in another app too, add it to that app's navigation bar.</p></div></details>
   <details class="faq"><summary>Users see Grid Admin or Grid Edit Logs in the Rowhouse app</summary><div class="a"><p>Their profile shows the tab. Rowhouse Grid User shows the app with the Grid Guide only, but a profile can show a tab on its own: in Setup, open the user's profile and set the tab to Hidden in its tab settings. Rowhouse Grid Admin shows both tabs again to the people who build grids.</p></div></details>
   <details class="faq"><summary>Save stays gray in the grid settings</summary><div class="a"><p>Either nothing has changed yet, the list under the grid's name (from the gear, above the buttons) names something to fix first, or you do not have Customize Application, in which case the editor says so at the top. A Salesforce admin can save it for you.</p></div></details>

@@ -89,7 +89,7 @@ it('says entries are kept forever when no period is set', async () => {
     expect($(el, '.rh-retention-status').textContent).toBe('No clean-up runs while entries are kept forever.');
     expect($(el, '.rh-retention-logging .rh-stat-n').textContent).toBe('0');
     expect($(el, '.rh-retention-logging .rh-stat-l').textContent).toContain(
-        "Tick Log every change in a grid's settings"
+        "Select Log every change in a grid's settings"
     );
     expect($(el, '.rh-retention-save').disabled).toBe(true);
     expect($(el, '.rh-retention-last')).toBeNull();

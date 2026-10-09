@@ -88,7 +88,7 @@
         <section id="rules" data-anchor="rules">
           <div class="rh-sec-head"><span class="rh-sec-num">Build it · admin</span><h2>3. Three rules</h2></div>
           <ol class="rh-tut">
-            <li><b>Create these Grid Format Rule records</b> (Custom Metadata Types › Grid Format Rule › Manage Records › New). In each, type the Label, then replace the <span class="rh-ui">Grid Format Rule Name</span> that fills in with the name in the table. Type <span class="rh-v">Service Triage</span> in <span class="rh-ui">Grid Configuration</span> and leave <span class="rh-ui">Active</span> ticked:
+            <li><b>Create these Grid Format Rule records</b> (Custom Metadata Types › Grid Format Rule › Manage Records › New). In each, type the Label, then replace the <span class="rh-ui">Grid Format Rule Name</span> that fills in with the name in the table. Type <span class="rh-v">Service Triage</span> in <span class="rh-ui">Grid Configuration</span> and leave <span class="rh-ui">Active</span> selected:
               <div class="rh-tbox" style="margin-top:12px"><table class="rh-ref">
                 <thead><tr><th>Label · Name</th><th>Field API Name</th><th>Operator</th><th>Value</th><th>Style</th><th>Apply To</th><th>Sort Order</th></tr></thead>
                 <tbody>
@@ -136,9 +136,9 @@
               <div class="rh-check">The Service Triage grid at the top, 480 pixels tall, newest cases first, with the rest of the Home page below it. New cases are tinted amber, with an amber bar at their left edge, High priorities are red, and escalated cases are bold.</div></li>
             <li><b>See the queue by status.</b> Open the ▾ menu on the <span class="rh-ui">Status</span> header and choose <span class="rh-ui">Group by Status</span>. Each status becomes a group with its count.
               <div class="rh-check">The groups follow the order of the Status picklist, as in a Salesforce report: <span class="rh-ui">Status: New</span> at the top, then Working, Escalated and Closed.</div></li>
-            <li><b>Take three new cases.</b> In the <span class="rh-ui">New</span> group, tick the box at the start of three cases. A bar floats over the top of the grid: "3 selected", with <span class="rh-ui">Update field</span> and <span class="rh-ui">Clear</span>.</li>
+            <li><b>Take three new cases.</b> In the <span class="rh-ui">New</span> group, select the checkbox at the start of three cases. A bar floats over the top of the grid: "3 selected", with <span class="rh-ui">Update field</span> and <span class="rh-ui">Clear</span>.</li>
             <li><b>Move them to Working.</b> Click <span class="rh-ui">Update field</span>. Choose <span class="rh-ui">Status</span>, choose <span class="rh-ui">Working</span>, and click <span class="rh-ui">Apply</span>.
-              <div class="rh-check">The Status cells of the ticked cases turn yellow with "Working", their amber tint and bar go (rules follow your unsaved values), and the Save bar says "3 unsaved changes". Nothing is saved yet.</div></li>
+              <div class="rh-check">The Status cells of the selected cases turn yellow with "Working", their amber tint and bar go (rules follow your unsaved values), and the Save bar says "3 unsaved changes". Nothing is saved yet.</div></li>
             <li><b>Raise one priority.</b> Click the Priority of one of those cases, press <kbd>Enter</kbd>, choose <span class="rh-ui">High</span> and press <kbd>Enter</kbd>.</li>
             <li><b>Save.</b> Click <span class="rh-ui">Save</span> on the Save bar.
               <div class="rh-check">The cases move to the Working group, and the raised priority turns red. The selection stays ("3 selected"), in case you want to do more to the same cases.</div></li>
