@@ -24,6 +24,8 @@
  * if it is the same one, reads that action's rows again.
  */
 
+import GRID_CONFIGURATION from '@salesforce/schema/Grid_Configuration__mdt';
+
 /** The page's component name, without its namespace. */
 export const FLOW_PAGE = 'rowhouseFlow';
 /** Ids that travel in the address; more go by session storage. */
@@ -33,8 +35,33 @@ export const STORE_PREFIX = 'rowhouse.flow.';
 
 const ID_RE = /^[a-zA-Z0-9]{15}([a-zA-Z0-9]{3})?$/;
 
-/** The namespace a component runs in, from its own element: "c", or the package's. */
+/**
+ * The package's namespace from a schema import of its own object. In the
+ * package the platform names the import with the namespace, and with the
+ * suffix __c rather than __mdt (rowhouse__Grid_Configuration__c, measured);
+ * in an org built from source it has no namespace. Blank when there is none.
+ */
+export function packageNamespace(schemaName) {
+    const name = schemaName && typeof schemaName === 'object' ? schemaName.objectApiName : schemaName;
+    const match = /^([A-Za-z](?:[A-Za-z0-9]|_(?=[A-Za-z0-9]))*)__Grid_Configuration__(?:mdt|c)$/.exec(
+        String(name || '')
+    );
+    return match ? match[1] : '';
+}
+
+const PACKAGE_NS = packageNamespace(GRID_CONFIGURATION);
+
+/**
+ * The namespace a component runs in: "c", or the package's. Only the
+ * component Lightning places on a page carries the namespace in its tag
+ * (rowhouse-rowhouse-guide); a component rendered from the package's own
+ * template is tagged c-guide-page-tutorials even in the package (measured).
+ * So the schema import decides, and the element only when it names none.
+ */
 export function namespaceOf(host) {
+    if (PACKAGE_NS) {
+        return PACKAGE_NS;
+    }
     const tag = host && host.tagName ? String(host.tagName).toLowerCase() : '';
     const dash = tag.indexOf('-');
     return dash > 0 ? tag.slice(0, dash) : 'c';

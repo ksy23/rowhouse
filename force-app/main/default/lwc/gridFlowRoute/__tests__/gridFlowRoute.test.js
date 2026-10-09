@@ -8,6 +8,7 @@ import {
     IDS_IN_URL,
     STORE_PREFIX,
     namespaceOf,
+    packageNamespace,
     newToken,
     backRef,
     flowPageRef,
@@ -35,10 +36,23 @@ const memory = () => {
 };
 
 describe('the namespace, and a token', () => {
-    it("reads the namespace from a component's own element", () => {
+    it("reads the namespace from a component's own element when the package has none", () => {
         expect(namespaceOf({ tagName: 'C-GRID-VIEW' })).toBe('c');
         expect(namespaceOf({ tagName: 'ROWHOUSE-GRID-VIEW' })).toBe('rowhouse');
         expect(namespaceOf(null)).toBe('c');
+    });
+
+    it("takes the package's namespace from the schema name of its own object", () => {
+        // In the package a nested component is still tagged c-, so the
+        // schema import is what tells the package's namespace.
+        // The package names the import rowhouse__Grid_Configuration__c (measured).
+        expect(packageNamespace({ objectApiName: 'rowhouse__Grid_Configuration__c' })).toBe('rowhouse');
+        expect(packageNamespace({ objectApiName: 'rowhouse__Grid_Configuration__mdt' })).toBe('rowhouse');
+        expect(packageNamespace('my_ns__Grid_Configuration__mdt')).toBe('my_ns');
+        expect(packageNamespace({ objectApiName: 'Grid_Configuration__mdt' })).toBe('');
+        expect(packageNamespace({ objectApiName: 'Grid_Configuration__c' })).toBe('');
+        expect(packageNamespace({ objectApiName: 'rowhouse__Grid_Column__mdt' })).toBe('');
+        expect(packageNamespace(undefined)).toBe('');
     });
 
     it('makes a fresh token each time', () => {
