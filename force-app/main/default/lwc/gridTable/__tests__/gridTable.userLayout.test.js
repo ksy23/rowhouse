@@ -42,16 +42,19 @@ const CHILDREN = [{ name: 'Test_Records_Children', label: 'Children', configName
 
 let el;
 let layouts;
+let frozens;
 let sorts;
 const mount = async (extra = {}) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
     el.config = { columns: COLUMNS, rows: ROWS, ...extra };
     layouts = [];
+    frozens = [];
     sorts = [];
     // The groups' order and percentages are tested in gridTable.groupingMore; here, the rest.
     el.addEventListener('layoutchange', e => {
-        const { groupView, ...rest } = e.detail;
+        const { groupView, frozen, ...rest } = e.detail;
         expect(groupView).toEqual({ order: { by: 'name', direction: 'asc' }, percent: false });
+        frozens.push(frozen);
         layouts.push(rest);
     });
     el.addEventListener('sortchange', e => sorts.push(e.detail));
@@ -393,5 +396,61 @@ describe('open rows', () => {
         expect(detailRows()).toHaveLength(1);
         await handOver({ userLayout: { key: 'k2', widths: {}, wrap: {}, expanded: [] } });
         expect(detailRows()).toHaveLength(0);
+    });
+});
+
+describe('Freeze up to this column', () => {
+    const frozenHeaders = () => dataHeaders().filter(h => h.classList.contains('rh-frozen'));
+    const openMenu = async field => {
+        menuButton(field).click();
+        await flush();
+    };
+
+    it("offers Freeze up to this column on each of the first five columns' menus", async () => {
+        await mount();
+        await openMenu('Amount__c');
+        expect(item('Freeze up to this column')).toBeTruthy();
+        expect(item('Unfreeze columns')).toBeFalsy();
+    });
+
+    it('freezes the columns up to that one, says so, and tells the parent to keep it', async () => {
+        await mount();
+        await openMenu('Notes__c');
+        item('Freeze up to this column').click();
+        await flush();
+        await frame();
+        await flush();
+        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name', 'Notes__c']);
+        expect(frozens[frozens.length - 1]).toBe(2);
+        expect($('.rh-live, [aria-live]').textContent).toContain('Columns frozen up to Notes');
+    });
+
+    it("Unfreeze columns undoes it, and the admin's frozen columns too", async () => {
+        await mount({ frozenColumns: 1 });
+        await frame();
+        await flush();
+        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name']);
+        await openMenu('Amount__c');
+        expect(item('Freeze up to this column')).toBeTruthy();
+        item('Unfreeze columns').click();
+        await flush();
+        expect(frozenHeaders()).toHaveLength(0);
+        expect(frozens[frozens.length - 1]).toBe(0);
+    });
+
+    it("the saved layout's frozen columns win over the admin's; a new key without them puts the admin's back", async () => {
+        await mount({ frozenColumns: 1, userLayout: { key: 'k1', frozen: 3 } });
+        await frame();
+        await flush();
+        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name', 'Notes__c', 'Amount__c']);
+        await handOver({ userLayout: { key: 'k2', widths: null, wrap: {}, expanded: [], frozen: null } });
+        await frame();
+        await flush();
+        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name']);
+    });
+
+    it('is not offered on cards', async () => {
+        await mount({ layout: 'cards' });
+        expect(menuButton('Name')).toBeNull();
     });
 });

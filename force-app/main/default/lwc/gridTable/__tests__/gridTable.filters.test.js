@@ -124,6 +124,7 @@ describe('Filter… in the column menu', () => {
             'Wrap text',
             'Clip text',
             'Filter…',
+            'Freeze up to this column',
             'Hide column'
         ]);
         const filter = item('Filter…');
@@ -134,7 +135,13 @@ describe('Filter… in the column menu', () => {
     it('is offered on a column that has no other menu item but sorting', async () => {
         await mount();
         await openMenu('Amount__c');
-        expect(labels()).toEqual(['Sort ascending', 'Sort descending', 'Filter…', 'Hide column']);
+        expect(labels()).toEqual([
+            'Sort ascending',
+            'Sort descending',
+            'Filter…',
+            'Freeze up to this column',
+            'Hide column'
+        ]);
     });
 
     it('gives a column that cannot be sorted a menu of its own, for filtering', async () => {
@@ -156,7 +163,12 @@ describe('Filter… in the column menu', () => {
     it('becomes Edit filter… and Remove filter once the column is filtered', async () => {
         await mount({ filters: [STAGE_WON] });
         await openMenu('Stage__c');
-        expect(labels().slice(-3)).toEqual(['Edit filter…', 'Remove filter', 'Hide column']);
+        expect(labels().slice(-4)).toEqual([
+            'Edit filter…',
+            'Remove filter',
+            'Freeze up to this column',
+            'Hide column'
+        ]);
         // Only that column: the others still offer Filter….
         await openMenu('Name');
         expect(labels()).toContain('Filter…');
@@ -301,6 +313,8 @@ describe('from the keyboard', () => {
         await key(items()[0], 'End');
         expect(el.shadowRoot.activeElement).toBe(item('Hide column')); // the last item
         await key(item('Hide column'), 'ArrowUp');
+        expect(el.shadowRoot.activeElement).toBe(item('Freeze up to this column'));
+        await key(item('Freeze up to this column'), 'ArrowUp');
         expect(el.shadowRoot.activeElement).toBe(item('Filter…'));
         await key(item('Filter…'), 'Enter');
         expect($('[role="menu"]')).toBeNull();
@@ -313,6 +327,7 @@ describe('from the keyboard', () => {
         await key(menuButton('Stage__c'), 'ArrowUp'); // opens on the last item: Hide column
         expect(el.shadowRoot.activeElement).toBe(item('Hide column'));
         await key(item('Hide column'), 'ArrowUp');
+        await key(item('Freeze up to this column'), 'ArrowUp');
         expect(el.shadowRoot.activeElement).toBe(item('Filter…'));
         await key(item('Filter…'), ' ');
         // A picklist filter opens complete: Equals, the first value.
@@ -348,6 +363,7 @@ describe('from the keyboard', () => {
         await mount({ filters: [NAME_ACME, STAGE_WON] });
         await key(menuButton('Name'), 'ArrowUp'); // the last item: Hide column
         await key(item('Hide column'), 'ArrowUp');
+        await key(item('Freeze up to this column'), 'ArrowUp');
         expect(el.shadowRoot.activeElement).toBe(item('Remove filter'));
         await key(item('Remove filter'), 'Enter');
         expect(changes).toEqual([{ filters: [STAGE_WON] }]);

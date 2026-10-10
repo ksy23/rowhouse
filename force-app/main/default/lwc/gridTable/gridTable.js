@@ -254,10 +254,14 @@ import {
     lookupText,
     lookupHref,
     nameIndex,
-    dependentOptions,
+    unknownNames,
+    namesFound,
     isValidDependent,
-    dependentClears
+    dependentClears,
+    rowOptions,
+    isAllowedForRecordType
 } from 'c/gridFields';
+import findLookupNames from '@salesforce/apex/GridController.findLookupNames';
 import { compileRules, formatsFor } from 'c/gridFormatRules';
 import {
     normalizeGrouping,
@@ -282,6 +286,8 @@ import { canFilter, describeFilter, withFilter, MAX_FILTERS } from 'c/gridFilter
 import { shownColumns, canHide, hideColumn, moveColumn } from 'c/gridColumns';
 
 const HEADER = '__header';
+/** The Total row's focus key: its cells are reached with the arrow keys, under the last row. */
+const TOTALS = '__totals';
 const SELECT_FIELD = '__select';
 const STATUS_FIELD = '__status';
 const GROUP_FIELD = '__group';
@@ -406,6 +412,8 @@ const EDITOR_ROOM = 320;
 const EDITOR_ROOM_BY = { date: 400, datetime: 470, textarea: 280 };
 /** Layout entries the parent keeps: at most this many open rows. */
 const MAX_OPEN_ROWS = 50;
+/** Columns a user may freeze from a header's menu: as many as an admin may. */
+const MAX_FROZEN = 5;
 /** Rows "Show related records for every row" opens at most. */
 const MAX_OPEN_ALL = 200;
 
@@ -447,6 +455,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     collapsed = {}; // { [group id]: true } for the groups closed this session
     groupView = { order: { by: 'name', direction: 'asc' }, percent: false }; // the groups' order and percentages
     expanded = {}; // { [record id]: true } for the rows whose child tables are open
+    userFrozen = null; // the data columns the user froze (Freeze up to this column); null for the admin's
     viewWidth = 0; // px: the scroller's visible width: an open row's panel takes it, unpinned columns share it out
     panelSizes = {}; // { [record id]: px } each open panel's measured content
     childFocus = false; // focus is inside an open row's child table
@@ -458,7 +467,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     _layout = { restoreFocus: false, focusEditor: false, sortInitialised: false, gridId: 'rh-grid-' + ++idCounter };
     _memo = {};
     _timing = { firstRow: false, fullRender: false, sort: false, commit: false, key: false };
-    _clip = { copy: null, pastePending: false };
+    _clip = { copy: null, pastePending: false, token: 0 };
     // The focused cell, { rowId, field }; cells changed in place; and the range's
     // corners, the range as the page shows it, and the live region's text when
     // changed in place (see focusKey and setRange).
@@ -578,6 +587,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             if (known.has(f)) wrap[f] = layout.wrap[f] === true;
         });
         this.wrapOverrides = wrap;
+        // The columns the user froze; null for the admin's Frozen Columns (and after Reset layout).
+        const frozen = Number(layout.frozen);
+        this.userFrozen =
+            layout.frozen !== null && layout.frozen !== undefined && Number.isInteger(frozen) && frozen >= 0
+                ? Math.min(frozen, MAX_FROZEN)
+                : null;
         const expanded = {};
         (Array.isArray(layout.expanded) ? layout.expanded : []).slice(0, MAX_OPEN_ROWS).forEach(id => {
             if (typeof id === 'string' && RECORD_ID.test(id)) expanded[id] = true;
@@ -609,7 +624,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                     widths,
                     wrap: { ...this.wrapOverrides },
                     expanded: Object.keys(this.expanded).slice(0, MAX_OPEN_ROWS),
-                    groupView: { order: { ...gv.order }, percent: gv.percent }
+                    groupView: { order: { ...gv.order }, percent: gv.percent },
+                    frozen: this.userFrozen
                 }
             })
         );
@@ -1358,9 +1374,15 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     // ============================================================ frozen columns
 
+    /** The data columns frozen: the user's choice (Freeze up to this column), else the admin's. */
     get frozenCount() {
-        const n = Number(this._config.frozenColumns);
+        const n = this.userFrozen !== null ? this.userFrozen : Number(this._config.frozenColumns);
         return Number.isInteger(n) && n > 0 && !this.isCards ? n : 0;
+    }
+
+    /** A column's place among the data columns as shown, from 1; 0 when it is not one. */
+    dataPosition(field) {
+        return this.layoutColumns.filter(c => !c.utility).findIndex(c => c.field === field) + 1;
     }
 
     /**
@@ -1982,6 +2004,23 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             }
             sections.push(group);
         }
+        // Freeze the columns up to this one, as far as MAX_FROZEN; unfreeze them.
+        if (!this.isCards) {
+            const position = this.dataPosition(field);
+            const freeze = [];
+            if (position > 0 && position <= MAX_FROZEN && position !== this.frozenCount)
+                freeze.push(
+                    this.menuItem({
+                        key: field + ':freeze',
+                        field,
+                        label: 'Freeze up to this column',
+                        freeze: String(position)
+                    })
+                );
+            if (this.frozenCount > 0)
+                freeze.push(this.menuItem({ key: field + ':unfreeze', field, label: 'Unfreeze columns', freeze: '0' }));
+            if (freeze.length) sections.push(freeze);
+        }
         // Hide column: not a column the admin keeps on screen, nor the last one showing.
         if (!this.isCards && canHide(this.columns, this._config.columnChoice, field)) {
             sections.push([this.menuItem({ key: field + ':hide', field, label: 'Hide column', hide: 'true' })]);
@@ -2010,6 +2049,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         sort,
         filter,
         hide,
+        freeze,
         divider = false
     }) {
         const ticked = radio || checkbox;
@@ -2020,6 +2060,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             sort,
             filter,
             hide,
+            freeze,
             role: checkbox ? 'menuitemcheckbox' : radio ? 'menuitemradio' : 'menuitem',
             isRadio: ticked,
             checked: ticked ? String(Boolean(checked)) : null,
@@ -2814,16 +2855,25 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             editSeed: isEditing ? this.editing.seed : undefined,
             editType: c.type,
             scale: c.scale,
-            // A dependent picklist offers only the values its controlling value allows.
-            options:
-                isEditing && c.dependentOn
-                    ? dependentOptions(c, has(rowDrafts, c.dependentOn) ? rowDrafts[c.dependentOn] : row[c.dependentOn])
-                    : c.options || [],
+            // A dependent picklist offers only the values its controlling value
+            // allows, and any picklist only those the row's record type allows.
+            options: isEditing ? this.editorOptions(c, row, rowDrafts, value) : c.options || [],
             dependentOn: c.dependentOn || null,
             required: Boolean(c.required),
             editorLabel: label,
             cls: classes.join(' ')
         };
+    }
+
+    /** The values a row's picklist editor offers (gridFields.rowOptions). */
+    editorOptions(c, row, rowDrafts, value) {
+        if (!c.dependentOn && !this._config.recordTypePicklists) return c.options || [];
+        const controlling = c.dependentOn
+            ? has(rowDrafts, c.dependentOn)
+                ? rowDrafts[c.dependentOn]
+                : row[c.dependentOn]
+            : null;
+        return rowOptions(c, row, controlling, this._config.recordTypePicklists || null, value);
     }
 
     /**
@@ -2906,11 +2956,15 @@ export default class GridTable extends NavigationMixin(LightningElement) {
      * stuck to the bottom of the scroller. Its cells take the header's widths,
      * so each subtotal sits under its column. It is not a row of the grid: the
      * grid's row count must be known to number a last row, and it is not while
-     * rows are still on the server.
+     * rows are still on the server. It is a read-only grid of its own instead,
+     * whose cells the arrow keys reach: Down from the last row, once every row
+     * is loaded, and Up back again (handleTotalsKey).
      */
     get totalCells() {
         const totals = this.shownTotals;
         if (!totals || !totals.total || !this.columns.some(c => c.subtotal)) return null;
+        // Drawn again when a move of focus needs a redraw (focusRev).
+        const focus = this.focusRev >= 0 ? this.focusKey || this.defaultFocusKey() : null;
         const t = totals.total;
         const offsets = this.frozenOffsets;
         const cols = this.layoutColumns;
@@ -2931,8 +2985,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             if (frozen) styles.push(`left:${frozen.left}px`);
             const align = c.utility ? 'left' : alignmentFor(c.type);
             const edited = shown && t.edited && t.edited[c.field];
+            const focused = this.isFocused(TOTALS, c.field, focus);
             return {
                 key: c.field,
+                tabindex: this.isTabStop(TOTALS, c.field, focus) ? '0' : '-1',
                 isLabel,
                 countText: isLabel ? recordsText(t.count) : '',
                 hasSubtotal: shown,
@@ -2944,9 +3000,77 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                     'rh-total-cell' +
                     (align !== 'left' ? ' slds-text-align_' + align : '') +
                     this.frozenClass(c.field, offsets) +
-                    (edited ? ' rh-subtotal_edited' : '')
+                    (edited ? ' rh-subtotal_edited' : '') +
+                    (focused && this.hasFocus ? ' slds-has-focus rh-cell_focus' : '')
             };
         });
+    }
+
+    /** Can Down from the last row go on to the Total row? Only once every row is loaded. */
+    get totalsReachable() {
+        return Boolean(this.totalCells) && !this.hasMoreRows && this.rowCount > 0;
+    }
+
+    /** Focus a Total row cell, by its column. */
+    focusTotals(field) {
+        const key = { rowId: TOTALS, field };
+        this.focusKey = key;
+        const el = this.cellElement(key);
+        if (el) el.focus();
+        else this._layout.restoreFocus = true;
+    }
+
+    /**
+     * Keys on a Total row cell: Up (or Page Up) goes back to the last row,
+     * Left and Right, Home and End move along the Total row, Ctrl+Home goes
+     * to the first cell of the grid. The cells hold no values to edit, copy
+     * into or select; undo and redo still work.
+     */
+    handleTotalsKey(event, key) {
+        const cmd = event.metaKey || event.ctrlKey;
+        const letter = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+        if (cmd && (letter === 'z' || (event.ctrlKey && letter === 'y'))) {
+            event.preventDefault();
+            this.dispatchEvent(new CustomEvent(letter === 'z' && !event.shiftKey ? 'undo' : 'redo'));
+            return;
+        }
+        const col = this.positionOfKey(key).col;
+        const colCount = this.ariaColCount;
+        const fieldAt = c => (this.layoutColumns.find(x => x.colIndex === c) || {}).field;
+        let next = null;
+        switch (event.key) {
+            case 'ArrowUp':
+            case 'PageUp': {
+                event.preventDefault();
+                const to = { row: this.rowCount, col };
+                const target = this.keyForPosition(to);
+                if (target) this.focusCell(target, to.row);
+                return;
+            }
+            case 'ArrowLeft':
+                next = Math.max(1, col - 1);
+                break;
+            case 'ArrowRight':
+                next = Math.min(colCount, col + 1);
+                break;
+            case 'Home':
+                if (cmd) {
+                    event.preventDefault();
+                    const first = this.keyForPosition({ row: 1, col: 1 });
+                    if (first) this.focusCell(first, 1);
+                    return;
+                }
+                next = 1;
+                break;
+            case 'End':
+                next = colCount;
+                break;
+            default:
+                return;
+        }
+        event.preventDefault();
+        const field = fieldAt(next);
+        if (field) this.focusTotals(field);
     }
 
     get totalsLabel() {
@@ -3088,6 +3212,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             key.field === DETAIL_FIELD
                 ? Math.min(this._layout.detailCol || this.firstDataCol, this.ariaColCount)
                 : (this.layoutColumns.find(c => c.field === key.field) || { colIndex: 1 }).colIndex;
+        if (key.rowId === TOTALS) return { row: this.rowCount + 1, col };
         const row = key.rowId === HEADER ? 0 : this.positionOf(key.rowId) + 1;
         return { row: Math.max(0, row), col };
     }
@@ -3112,6 +3237,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (key.rowId === HEADER) {
             return this.template.querySelector(`[data-row-index="0"][data-field="${field}"]`);
         }
+        if (key.rowId === TOTALS) return this.template.querySelector(`.rh-totals [data-total-field="${field}"]`);
         const rowId = String(key.rowId).replace(/"/g, '\\"');
         return this.template.querySelector(`[data-row-id="${rowId}"][data-field="${field}"]`);
     }
@@ -3365,6 +3491,18 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     // ============================================================ events: focus
 
     handleFocusIn(event) {
+        // A Total row cell, clicked or reached with the arrow keys.
+        const total = this.closestTotalCell(event.target);
+        if (total) {
+            const field = total.dataset.totalField;
+            if (!this.focusKey || this.focusKey.rowId !== TOTALS || this.focusKey.field !== field) {
+                this.focusKey = { rowId: TOTALS, field };
+            }
+            if (!this.editing && this.mode !== MODE_NAVIGATION) this.mode = MODE_NAVIGATION;
+            if (!this.hasFocus) this.hasFocus = true;
+            if (this.childFocus) this.childFocus = false;
+            return;
+        }
         const cell = this.closestCell(event.target);
         if (!cell) return;
         const rowId = cell.dataset.rowIndex === '0' ? HEADER : cell.dataset.rowId;
@@ -3389,6 +3527,14 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (!next || !root || !root.contains(next)) {
             this.hasFocus = false;
         }
+    }
+
+    closestTotalCell(node) {
+        let el = node;
+        while (el && el.dataset && el.dataset.totalField === undefined) {
+            el = el.parentElement;
+        }
+        return el && el.dataset && el.dataset.totalField !== undefined ? el : null;
     }
 
     closestCell(node) {
@@ -3428,6 +3574,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         }
         const key = this.focusKey || this.defaultFocusKey();
         if (!key) return;
+        if (key.rowId === TOTALS) {
+            if (this.mode === MODE_NAVIGATION) this.handleTotalsKey(event, key);
+            return;
+        }
         // On an open row's panel, Enter goes into the open tab's grid.
         if (this.mode === MODE_NAVIGATION && key.field === DETAIL_FIELD && event.key === 'Enter') {
             event.preventDefault();
@@ -3540,6 +3690,15 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const from = this.positionOfKey(this.focusKey || this.defaultFocusKey());
         const to = this.targetPosition(event);
         if (to.row === from.row && to.col === from.col) {
+            // Down from the last row, every row loaded: on to the Total row.
+            if (event.key === 'ArrowDown' && from.row === this.rowCount && this.totalsReachable) {
+                const field = (this.layoutColumns.find(c => c.colIndex === from.col) || {}).field;
+                if (field) {
+                    if (this.rangeAnchor) this.setRange(null, null);
+                    this.focusTotals(field);
+                    return;
+                }
+            }
             // An edge: stay put. At the last loaded row, the rows below are on
             // their way instead.
             this.maybeLoadMore(from.row);
@@ -3741,7 +3900,12 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         );
     }
 
-    /** Paste tab-separated text into the range, or from the focused cell. */
+    /**
+     * Paste tab-separated text into the range, or from the focused cell. A
+     * name pasted into a lookup that no record in the grid carries is looked
+     * up first (findLookupNames), so it can name any record the user can see;
+     * the cells are filled once the answer is in.
+     */
     pasteText(text) {
         const rect = this.selectionRect;
         if (!rect) return;
@@ -3750,29 +3914,74 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             this.announcement = `Nothing was pasted: ${plan.cells.length} cells is more than ${MAX_PASTE_CELLS} at once.`;
             return;
         }
-        const changes = [];
-        const errors = [];
+        // The cells to fill, by record, worked out now: the rows may move while names are looked up.
+        const targets = [];
         let readOnly = 0;
-        let names = null;
         plan.cells.forEach(({ row, col, text: cellText }) => {
             if (this.view[row - 1].__group || this.view[row - 1].__detail) return; // a group header or a row's panel takes no values
-            let c = this.columnAt(col);
+            const c = this.columnAt(col);
             if (!this.canEditCell(c, String(this.view[row - 1][this.keyField]))) {
                 readOnly++;
                 return;
             }
+            const record = this.view[row - 1];
+            targets.push({ id: String(record[this.keyField]), column: c, text: cellText, original: record[c.field] });
+        });
+        const asks = this.namesToFind(targets);
+        if (!asks.length) {
+            this.applyPaste(plan, rect, targets, readOnly, {});
+            return;
+        }
+        const token = ++this._clip.token;
+        this.announcement = 'Finding the records named in the pasted text…';
+        Promise.all(
+            asks.map(({ field, names }) =>
+                findLookupNames({ configName: this.configName, field, names }).then(namesFound, () => ({}))
+            )
+        ).then(answers => {
+            if (token !== this._clip.token) return; // another paste came first
+            const found = Object.assign({}, ...answers);
+            // Tell the parent the names, so the cells show them as the grid's own do.
+            if (Object.keys(found).length)
+                this.dispatchEvent(new CustomEvent('namesfound', { detail: { names: found } }));
+            this.applyPaste(plan, rect, targets, readOnly, found);
+        });
+    }
+
+    /** For each lookup column pasted into: the names neither the grid nor the server has answered for yet. */
+    namesToFind(targets) {
+        if (!this.configName) return [];
+        const byField = new Map();
+        targets.forEach(t => {
+            if (!isLookup(t.column.type)) return;
+            if (!byField.has(t.column.field)) byField.set(t.column.field, []);
+            byField.get(t.column.field).push(t.text);
+        });
+        const out = [];
+        byField.forEach((texts, field) => {
+            const names = unknownNames(texts, this._config.refNames);
+            if (names.length) out.push({ field, names });
+        });
+        return out;
+    }
+
+    /** Fill the pasted cells: each text read for its column, a name against the grid's and the found ones. */
+    applyPaste(plan, rect, targets, readOnly, found) {
+        const changes = [];
+        const errors = [];
+        let names = null;
+        targets.forEach(({ id, column, text: cellText, original }) => {
+            let c = column;
             if (isLookup(c.type)) {
-                // A pasted name finds a record already shown in the grid.
-                names = names || nameIndex(this._config.refNames);
+                names = names || nameIndex({ ...(this._config.refNames || {}), ...found });
                 c = { ...c, nameIndex: names };
             }
-            const record = this.view[row - 1];
-            const id = String(record[this.keyField]);
             const parsed = parseCell(cellText, c);
             if (parsed.error) errors.push({ recordId: id, field: c.field, message: parsed.error });
-            else changes.push({ recordId: id, field: c.field, value: parsed.value, originalValue: record[c.field] });
+            else changes.push({ recordId: id, field: c.field, value: parsed.value, originalValue: original });
         });
         this.refuseInvalidDependents(changes, errors);
+        this.refuseRecordTypeValues(changes, errors);
         // What was pasted becomes the range, with focus on its top-left cell.
         if (plan.cells.length > 1) {
             const last = plan.cells[plan.cells.length - 1];
@@ -3844,7 +4053,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                 });
             }
         });
-        this.emitChanges('fill down', changes, [], { readOnly });
+        const errors = [];
+        this.refuseRecordTypeValues(changes, errors);
+        this.emitChanges('fill down', changes, errors, { readOnly });
         if (shortened.length) {
             // Said after what was filled, not instead of it.
             const done = changes.length ? `${this.announcement} ` : '';
@@ -3906,6 +4117,29 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                     recordId: ch.recordId,
                     field: ch.field,
                     message: `${ch.value} is not offered when ${controller} is ${isBlank(controlling) ? 'blank' : controlling}.`
+                });
+                changes.splice(i, 1);
+            }
+        }
+    }
+
+    /**
+     * A picklist value pasted or filled down must be one the row's record type
+     * allows, as Salesforce's record page offers. Refused values move from
+     * changes to errors.
+     */
+    refuseRecordTypeValues(changes, errors) {
+        const byType = this._config.recordTypePicklists;
+        if (!byType) return;
+        for (let i = changes.length - 1; i >= 0; i--) {
+            const ch = changes[i];
+            const c = this.columnByField(ch.field);
+            const row = c && this.view[this.positionOf(ch.recordId)];
+            if (row && !isAllowedForRecordType(c, ch.value, row, byType)) {
+                errors.push({
+                    recordId: ch.recordId,
+                    field: ch.field,
+                    message: `${ch.value} is not available for this record's record type.`
                 });
                 changes.splice(i, 1);
             }
@@ -4702,6 +4936,10 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     /** A menu item: wrap or clip text, or a grouping action. */
     chooseMenuItem(item) {
+        if (item.dataset.freeze !== undefined) {
+            this.chooseFreeze(item.dataset.field, Number(item.dataset.freeze));
+            return;
+        }
         if (item.dataset.hide) {
             this.closeMenu(false);
             this.hideByUser(item.dataset.field);
@@ -4748,6 +4986,16 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         )
             return;
         this.closeMenu(false);
+    }
+
+    /** Freeze the data columns up to this one (n of them), or none: the user's own, kept with the layout. */
+    chooseFreeze(field, n) {
+        const count = Number.isInteger(n) && n > 0 ? Math.min(n, MAX_FROZEN) : 0;
+        this.userFrozen = count;
+        const label = (this.columnByField(field) || {}).label || field;
+        this.announcement = count ? `Columns frozen up to ${label}` : 'Columns unfrozen';
+        this.closeMenu(true);
+        this.emitLayout();
     }
 
     chooseWrap(item) {
@@ -5447,10 +5695,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             editSeed: undefined,
             editType: c.type,
             scale: c.scale,
-            options:
-                isEditing && c.dependentOn
-                    ? dependentOptions(c, has(rowDrafts, c.dependentOn) ? rowDrafts[c.dependentOn] : row[c.dependentOn])
-                    : c.options || [],
+            options: isEditing ? this.editorOptions(c, row, rowDrafts, value) : c.options || [],
             dependentOn: c.dependentOn || null,
             required: Boolean(c.required),
             editorLabel: label

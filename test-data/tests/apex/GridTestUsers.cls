@@ -19,6 +19,8 @@
  *                   saves grid configurations.
  *   adminViewer() — Rowhouse_Admin on a Standard User, without Customize
  *                   Application: may open the Grid Admin tab, may not save.
+ *   limitedAdmin() — Rowhouse_Admin with limitedUser()'s field access, for
+ *                   what an admin who cannot read a field is told.
  * All but noLogUser() hold Rowhouse_User, the product's own permission set.
  *
  * plain() and qualified() let a test run with or without the package's
@@ -88,6 +90,15 @@ public class GridTestUsers {
             'Admin',
             new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' },
             'System Administrator'
+        );
+    }
+
+    /** Rowhouse Grid Admin with the restricted field access of limitedUser(): fields hidden from the admin. */
+    public static User limitedAdmin() {
+        return userWith(
+            'rhladm',
+            'LimitedAdmin',
+            new List<String>{ 'Rowhouse_Test_Limited', 'Rowhouse_User', 'Rowhouse_Admin' }
         );
     }
 

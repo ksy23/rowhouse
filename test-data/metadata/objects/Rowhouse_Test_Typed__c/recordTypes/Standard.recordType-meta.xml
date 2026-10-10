@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Standard</fullName>
+    <active>true</active>
+    <description>DEVELOPMENT ONLY. Status: New, Working, Closed.</description>
+    <label>Standard</label>
+    <picklistValues>
+        <picklist>Status__c</picklist>
+        <values><fullName>New</fullName><default>false</default></values>
+        <values><fullName>Working</fullName><default>false</default></values>
+        <values><fullName>Closed</fullName><default>false</default></values>
+    </picklistValues>
+</RecordType>

@@ -77,9 +77,10 @@ public with sharing class GridCreateService {
 
     /**
      * How this user adds records in this grid, here: { objectLabel, inline,
-     * missing, recordTypes, defaults, names, presets }; null for no New button.
-     * `missing` names the required fields a new row could not fill in;
-     * `names` the records the defaults and presets point to.
+     * missing, recordTypes, defaults, names, presets, recordTypeId }; null for
+     * no New button. `missing` names the required fields a new row could not
+     * fill in; `names` the records the defaults and presets point to;
+     * `recordTypeId` the record type its picklists follow, if they do.
      */
     public static Map<String, Object> newRowFor(
         GridConfig.Definition def,
@@ -157,7 +158,10 @@ public with sharing class GridCreateService {
             'recordTypes' => recordTypes,
             'defaults' => defaults,
             'names' => names,
-            'presets' => presets
+            'presets' => presets,
+            // The record type a new row gets, when the grid's picklists follow
+            // it: this user's default, as Salesforce gives a new record.
+            'recordTypeId' => def.byRecordType == true ? populated.get('RecordTypeId') : null
         };
     }
 

@@ -51,6 +51,7 @@
     <li><b>More than 100,000 matching records</b>: the grid opens as usual and shows how many match (<i>10,000 of 110,000 items</i>); it scrolls through the first 100,000, and a search or filter reaches the rest. Counts, group counts and subtotals cover every match. Tested with 110,000 records.</li>
     <li><b>Subtotals</b> are exact over every matching record. Over 45,000 records they are worked out in slices that the browser adds up; sums beyond about 15 significant digits are rounded by Salesforce.</li>
     <li><b>With Log Changes on</b>, one transaction writes at most 5,000 log entries, so saves and imports of very wide rows go in smaller batches.</li>
+    <li><b>Names in a paste or an import</b>: up to 200 different names per lookup column are looked up in Salesforce at once. A name past that is held back; its record Id works instead.</li>
   </ul>
   <h3 style="margin-top:22px">Limits on settings</h3>
   <div class="tbox"><table class="ref wrap1">
@@ -61,7 +62,7 @@
       <tr><td>A rule's or filter's Value and Value To</td><td>255 characters</td></tr>
       <tr><td>A formula</td><td>3,900 characters</td></tr>
       <tr><td>Rows per page (Page Size)</td><td>1 to 2,000</td></tr>
-      <tr><td>Frozen columns, on the Grid Admin tab</td><td>0 to 5</td></tr>
+      <tr><td>Frozen columns, on the Grid Admin tab or from a column's menu</td><td>0 to 5</td></tr>
       <tr><td>A column's width</td><td>40 to 1,000 pixels</td></tr>
       <tr><td>A field of a related record</td><td>Up to five lookups away, each pointing to one kind of record</td></tr>
       <tr><td>A formula column's decimal places</td><td>0 to 9</td></tr>
@@ -122,9 +123,8 @@
   <p class="sec-sub">Things people ask for that Rowhouse does not do.</p></div>
   <div class="tiles rv-stagger">
     <div class="tile rose"><div class="ic">{{ic:search}}</div><h4>Saved filters</h4><p>A user's own column filters last until they leave the page; only the admin's are kept, on the grid.</p></div>
-    <div class="tile plum"><div class="ic">{{ic:users}}</div><h4>A layout per child table</h4><p>Each user's layout is kept for a grid, not for the related records tabs under its rows.</p></div>
     <div class="tile teal"><div class="ic">{{ic:shield}}</div><h4>Shield-encrypted fields</h4><p>Shown and edited, but not sorted, filtered, grouped, searched or totaled, since Salesforce cannot (<a href="features.html#encrypted">Features › Security</a>). Not yet tested in an org with Shield turned on.</p></div>
-    <div class="tile clay"><div class="ic">{{ic:layers}}</div><h4>Experience Cloud, multi-currency, record types</h4><p>Not supported in sites; not tested with several currencies; picklists offer every active value, whatever the record type.</p></div>
+    <div class="tile clay"><div class="ic">{{ic:layers}}</div><h4>Experience Cloud, multi-currency</h4><p>Not supported in sites; not tested with several currencies.</p></div>
   </div>
 </section>
 

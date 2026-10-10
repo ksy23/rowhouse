@@ -114,6 +114,15 @@ public with sharing class GridDataService {
             }
         }
 
+        // Each row's record type, when the grid's picklists follow it.
+        if (request.withRecordType == true) {
+            Schema.SObjectField rt = GridDescribe.fieldOrNull(objectType, 'RecordTypeId');
+            if (rt != null && GridSecurity.canRead(rt) && selectedLower.add('recordtypeid')) {
+                selectList.add('RecordTypeId');
+                page.selectedFields.add('RecordTypeId');
+            }
+        }
+
         // What the grid's formulas read, once, after the columns, by full API
         // names (GridFormulas.qualified), so a column on the same field is not
         // selected twice.

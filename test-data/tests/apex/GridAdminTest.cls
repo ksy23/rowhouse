@@ -53,6 +53,50 @@ private class GridAdminTest {
     }
 
     @IsTest
+    static void aFieldHiddenFromTheAdminIsAWarningNotAnError() {
+        GridAdmin.Draft d = newDraft('Hidden_Test');
+        GridAdmin.ColumnDraft email = new GridAdmin.ColumnDraft();
+        email.field = 'Email_Field__c';
+        d.columns.add(email);
+        GridAdmin.RuleDraft rule = new GridAdmin.RuleDraft();
+        rule.label = 'Has email';
+        rule.field = 'Email_Field__c';
+        rule.operator = 'is_not_blank';
+        rule.style = 'bold';
+        rule.applyTo = 'cell';
+        d.rules.add(rule);
+        GridAdmin.FilterDraft filter = new GridAdmin.FilterDraft();
+        filter.field = 'Email_Field__c';
+        filter.operator = 'is_not_blank';
+        d.filters.add(filter);
+        GridAdmin.Check limited;
+        GridAdmin.Check full;
+        System.runAs(GridTestUsers.limitedAdmin()) {
+            limited = GridAdmin.check(d);
+        }
+        System.runAs(GridTestUsers.adminUser()) {
+            full = GridAdmin.check(d);
+        }
+        System.assertEquals(new List<String>(), limited.errors, 'Others may read the field: it can still be saved.');
+        String warnings = String.join(limited.warnings, ' | ');
+        System.assert(
+            warnings.contains(
+                'Email Field (Email_Field__c) is hidden from you by field-level security, so the grid leaves its column out for you.'
+            ),
+            warnings
+        );
+        System.assert(
+            warnings.contains('Display rule "Has email" tests Email Field (Email_Field__c), which is hidden'),
+            warnings
+        );
+        System.assert(warnings.contains('so the grid will not open for you'), warnings);
+        System.assert(
+            !String.join(full.warnings, ' ').contains('hidden from you'),
+            'An admin who can read the field is told nothing.'
+        );
+    }
+
+    @IsTest
     static void everythingNeedsTheRowhouseAdminPermission() {
         System.runAs(GridTestUsers.fullUser()) {
             for (Integer i = 0; i < 3; i++) {

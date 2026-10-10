@@ -48,10 +48,19 @@ import { LightningElement, api } from 'lwc';
 import LOCALE from '@salesforce/i18n/locale';
 import importRows from '@salesforce/apex/GridController.importRows';
 import undoImport from '@salesforce/apex/GridController.undoImport';
-import { parseCsv, planImport, payloadFor, mappingChoices, mappedTo, importableColumns } from 'c/gridImport';
+import findLookupNames from '@salesforce/apex/GridController.findLookupNames';
+import {
+    parseCsv,
+    planImport,
+    payloadFor,
+    mappingChoices,
+    mappedTo,
+    importableColumns,
+    lookupTexts
+} from 'c/gridImport';
 import { readXlsx } from 'c/gridXlsx';
 import { formatValue, isNumericType } from 'c/gridFormat';
-import { isLookup, lookupText } from 'c/gridFields';
+import { isLookup, lookupText, unknownNames, namesFound } from 'c/gridFields';
 import { toCsv, downloadCsv } from 'c/gridCsv';
 
 /** Rows per server call: one DML statement's worth (GridImportService.MAX_ROWS). */
@@ -198,6 +207,12 @@ export default class GridImportDialog extends LightningElement {
     matchField = null;
     /** A workbook's sheets, and the one read. */
     sheets = [];
+    /** Records the server found by the names in the file's lookup columns: { [id]: name }. */
+    foundNames = {};
+    /** The server is looking up names: Import waits for it. */
+    findingNames = false;
+    // Non-reactive: the names already asked about (field and lower-case name), and the latest search (HR-20).
+    _names = { asked: new Set(), token: 0 };
     sheet = null;
     /** Undo import: null, 'confirm', 'running' or 'done'; and what it did. */
     undoState = null;
@@ -340,6 +355,7 @@ export default class GridImportDialog extends LightningElement {
             this.plan = plan;
             this.matchByKeyWithoutIds();
             this.step = 'preview';
+            this.findNames();
         } catch (e) {
             this.error = messageOf(e);
             this.step = 'choose';
@@ -366,7 +382,7 @@ export default class GridImportDialog extends LightningElement {
         return planImport(table, {
             columns: this.columns,
             rows: this.rows,
-            refNames: this.refNames,
+            refNames: this.allNames,
             canCreate: this.canCreate === true,
             overrides: this.overrides,
             matchField: this.matchField
@@ -380,6 +396,48 @@ export default class GridImportDialog extends LightningElement {
         this.plan = plan;
         if (plan.matchField !== undefined && plan.matchField !== this.matchField)
             this.matchField = plan.matchField || null;
+        this.findNames();
+    }
+
+    /** The grid's names and the ones the server found: { [id]: name }. */
+    get allNames() {
+        return { ...(this.refNames || {}), ...this.foundNames };
+    }
+
+    /**
+     * A name in a lookup column of the file that no row of the grid points
+     * to is looked up on the server, once: the records it names are any the
+     * user can see. When some are found the file is checked again, and the
+     * grid is told their names (namesfound). Import waits until then.
+     */
+    async findNames() {
+        if (!this.configName || !this.plan || !this._file) return;
+        const asked = this._names.asked;
+        const asks = lookupTexts(this._file.table, this.plan.mapping)
+            .map(({ field, texts }) => ({
+                field,
+                names: unknownNames(texts, this.allNames).filter(n => !asked.has(field + '\n' + n.toLowerCase()))
+            }))
+            .filter(a => a.names.length);
+        if (!asks.length) return;
+        asks.forEach(a => a.names.forEach(n => asked.add(a.field + '\n' + n.toLowerCase())));
+        const token = ++this._names.token;
+        this.findingNames = true;
+        const answers = await Promise.all(
+            asks.map(a =>
+                findLookupNames({ configName: this.configName, field: a.field, names: a.names }).then(
+                    namesFound,
+                    () => ({})
+                )
+            )
+        );
+        if (token !== this._names.token) return;
+        this.findingNames = false;
+        const found = Object.assign({}, ...answers);
+        if (!Object.keys(found).length || !this._file) return;
+        this.foundNames = { ...this.foundNames, ...found };
+        this.dispatchEvent(new CustomEvent('namesfound', { detail: { names: found } }));
+        this.replan();
     }
 
     // ============================================================ choices
@@ -535,7 +593,7 @@ export default class GridImportDialog extends LightningElement {
      */
     get previewRows() {
         const fields = this.plan.mapping.fields.map(f => f.column);
-        const names = this.refNames || {};
+        const names = this.allNames;
         const loaded = new Map((this.rows || []).map(r => [String(r.Id).slice(0, 15), r]));
         const shown = (value, c) => (isLookup(c.type) ? lookupText(value, names) : formatValue(value, c));
         return this.plan.items
@@ -688,7 +746,7 @@ export default class GridImportDialog extends LightningElement {
     }
 
     get importDisabled() {
-        return !this.importCount;
+        return !this.importCount || this.findingNames;
     }
 
     handleBack() {

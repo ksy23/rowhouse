@@ -2,5 +2,5 @@
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>67.0</apiVersion>
     <isExposed>false</isExposed>
-    <description>Rowhouse field-type rules: lookups and dependent picklists.</description>
+    <description>Rowhouse field-type rules: lookups, dependent picklists and record types.</description>
 </LightningComponentBundle>

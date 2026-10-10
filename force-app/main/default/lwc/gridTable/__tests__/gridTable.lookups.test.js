@@ -4,7 +4,12 @@
 import { createElement } from 'lwc';
 import GridTable from 'c/gridTable';
 
+import findLookupNames from '@salesforce/apex/GridController.findLookupNames';
+
 jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest.fn(() => Promise.resolve([])) }), {
+    virtual: true
+});
+jest.mock('@salesforce/apex/GridController.findLookupNames', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
     virtual: true
 });
 
@@ -117,6 +122,7 @@ describe('lookups and picklist dependencies', () => {
     });
     afterEach(() => {
         while (document.body.firstChild) document.body.firstChild.remove();
+        jest.clearAllMocks();
     });
 
     it('shows a lookup as its record name, linked to the record in the same tab', () => {
@@ -216,11 +222,53 @@ describe('lookups and picklist dependencies', () => {
         expect(setData).toHaveBeenCalledWith('text/plain', 'Alpha Corp');
     });
 
-    it('pastes a name shown in the grid as that record, and refuses an unknown one', async () => {
+    it('pastes a name shown in the grid as that record, without asking the server', async () => {
         await paste(2, 'Lookup_Field__c', 'zeta corp');
         expect(changes[0].changes).toEqual([expect.objectContaining({ field: 'Lookup_Field__c', value: ACC1 })]);
+        expect(findLookupNames).not.toHaveBeenCalled();
+    });
+
+    it('asks the server for a name no row shows, and pastes the record it found', async () => {
+        const ACC3 = '001000000000003AAA';
+        findLookupNames.mockResolvedValueOnce({ 'edge communications': [{ id: ACC3, name: 'Edge Communications' }] });
+        const found = [];
+        el.addEventListener('namesfound', e => found.push(e.detail.names));
+        await paste(2, 'Lookup_Field__c', 'Edge Communications');
+        await flush();
+        expect(findLookupNames).toHaveBeenCalledWith({
+            configName: 'Test_Records',
+            field: 'Lookup_Field__c',
+            names: ['Edge Communications']
+        });
+        expect(found).toEqual([{ [ACC3]: 'Edge Communications' }]);
+        expect(changes[0].changes).toEqual([expect.objectContaining({ field: 'Lookup_Field__c', value: ACC3 })]);
+    });
+
+    it('refuses a name no record has, and one two records share', async () => {
+        findLookupNames.mockResolvedValueOnce({});
         await paste(2, 'Lookup_Field__c', 'Nobody Inc');
-        expect(changes[1].errors[0].message).toContain('No record named Nobody Inc');
+        await flush();
+        expect(changes[0].errors[0].message).toBe(
+            'No record named Nobody Inc was found. Paste its record Id, or choose it with the lookup.'
+        );
+        findLookupNames.mockResolvedValueOnce({
+            'twin co': [
+                { id: '001000000000004AAA', name: 'Twin Co' },
+                { id: '001000000000005AAA', name: 'Twin Co' }
+            ]
+        });
+        await paste(2, 'Lookup_Field__c', 'Twin Co');
+        await flush();
+        expect(changes[1].errors[0].message).toBe(
+            'More than one record is named Twin Co. Paste its record Id instead.'
+        );
+    });
+
+    it('pastes as before when the server cannot be asked', async () => {
+        findLookupNames.mockRejectedValueOnce({ body: { message: 'No access' } });
+        await paste(2, 'Lookup_Field__c', 'Nobody Inc');
+        await flush();
+        expect(changes[0].errors[0].message).toContain('No record named Nobody Inc');
     });
 
     it('TC-037: offers a dependent picklist only the values its controlling value allows', async () => {

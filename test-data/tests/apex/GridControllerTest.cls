@@ -325,6 +325,49 @@ private class GridControllerTest {
     }
 
     @IsTest
+    static void aPicklistThatFollowsRecordTypesBringsEachRowsRecordType() {
+        Map<String, Schema.RecordTypeInfo> types = Schema.SObjectType.Rowhouse_Test_Typed__c.getRecordTypeInfosByDeveloperName();
+        Id standard = types.get('Standard').getRecordTypeId();
+        Id restricted = types.get('Restricted').getRecordTypeId();
+        System.runAs(GridTestUsers.fullUser()) {
+            Rowhouse_Test_Typed__c a = new Rowhouse_Test_Typed__c(
+                Name = 'A',
+                RecordTypeId = standard,
+                Status__c = 'Working'
+            );
+            Rowhouse_Test_Typed__c b = new Rowhouse_Test_Typed__c(
+                Name = 'B',
+                RecordTypeId = restricted,
+                Status__c = 'Archived'
+            );
+            insert new List<Rowhouse_Test_Typed__c>{ a, b };
+            Map<String, Object> result = GridController.openGrid('Typed_Test', null, null, null, null);
+            GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
+            System.assertEquals(true, def.byRecordType, 'An editable picklist on an object with record types.');
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) ((Map<String, Object>) result.get('page'))
+                .get('rows');
+            System.assertEquals(2, rows.size());
+            System.assertEquals(standard, rows[0].get('RecordTypeId'), 'Each row says its record type.');
+            System.assertEquals(restricted, rows[1].get('RecordTypeId'));
+            List<Map<String, Object>> reread = GridController.fetchRowsById('Typed_Test', new List<Id>{ b.Id });
+            System.assertEquals(restricted, reread[0].get('RecordTypeId'), 'A row read again after a save keeps it.');
+            GridConfig.Definition plain = (GridConfig.Definition) GridController.openGrid(
+                    'Test_Records',
+                    null,
+                    null,
+                    null,
+                    null
+                )
+                .get('definition');
+            System.assertEquals(
+                false,
+                plain.byRecordType,
+                'No record types on the object: the picklists are as they are.'
+            );
+        }
+    }
+
+    @IsTest
     static void createRowsCreatesTheNewRowsRecordsAndSaysWhyNot() {
         System.runAs(GridTestUsers.fullUser()) {
             GridCreateService.Result result = GridController.createRows(
@@ -419,14 +462,17 @@ private class GridControllerTest {
     }
 
     @IsTest
-    static void aChildGridOpensWithoutALayout() {
+    static void aChildTableKeepsItsOwnLayoutForItsTab() {
         System.runAs(GridTestUsers.fullUser()) {
             Rowhouse_Test_Record__c parent = [
                 SELECT Id
                 FROM Rowhouse_Test_Record__c
                 WHERE Name = 'TC-024 large number'
             ];
-            GridLayouts.save('Test_Children', '{"v":1,"sort":[{"field":"Name","direction":"desc"}]}');
+            String own = '{"v":1,"sort":[{"field":"Name","direction":"desc"}]}';
+            String inTab = '{"v":1,"sort":[{"field":"Name","direction":"desc"}],"widths":{"Name":180}}';
+            GridLayouts.save('Test_Children', own);
+            System.assertEquals(true, GridController.saveLayout('Test_Children', inTab, 'Test_Records_Children'));
             Map<String, Object> result = GridController.openGrid(
                 'Test_Children',
                 null,
@@ -434,17 +480,38 @@ private class GridControllerTest {
                 parent.Id,
                 null
             );
-            System.assertEquals(null, result.get('layout'), 'A child table keeps no layout.');
-            System.assertEquals(
-                'asc',
-                ((Map<String, Object>) result.get('start')).get('sortDirection'),
-                'So the admin\'s sort.'
-            );
+            System.assertEquals(inTab, result.get('layout'), 'The tab\'s own layout, not the grid\'s on its own.');
+            System.assertEquals('desc', ((Map<String, Object>) result.get('start')).get('sortDirection'), 'Its sort.');
             System.assertEquals(
                 0,
                 ((Map<String, Object>) result.get('page')).get('totalRows'),
                 'Only the parent\'s records: none.'
             );
+            System.assertEquals(
+                own,
+                GridController.getLayout('Test_Children', null),
+                'The grid on its own keeps its own.'
+            );
+            GridController.resetLayout('Test_Children', 'Test_Records_Children');
+            System.assertEquals(
+                null,
+                GridController.getLayout('Test_Children', 'Test_Records_Children'),
+                'Reset in the tab.'
+            );
+            System.assertEquals(
+                own,
+                GridController.getLayout('Test_Children', null),
+                '... leaves the grid on its own as it was.'
+            );
+            try {
+                GridController.saveLayout('Test_Records', inTab, 'Test_Records_Children');
+                System.assert(false, 'A tab that does not show the grid is no key.');
+            } catch (AuraHandledException e) {
+                System.assert(
+                    e.getMessage().contains('does not') || e.getMessage().contains('shows the grid'),
+                    e.getMessage()
+                );
+            }
         }
     }
 

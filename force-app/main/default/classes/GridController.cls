@@ -150,13 +150,12 @@ public with sharing class GridController {
             Long started = System.now().getTime();
             Map<String, Object> out = gridConfig(configName);
             GridConfig.Definition def = (GridConfig.Definition) out.get('definition');
+            // A child table's layout is its own for each tab that shows it.
             String layout = null;
-            if (String.isBlank(parentLink)) {
-                try {
-                    layout = GridLayouts.read(configName);
-                } catch (Exception e) {
-                    out.put('layoutError', messageOf(e));
-                }
+            try {
+                layout = GridLayouts.read(configName, parentLink);
+            } catch (Exception e) {
+                out.put('layoutError', messageOf(e));
             }
             out.put('layout', layout);
             Map<String, Object> start = GridLayouts.startOf(def, layout);
@@ -221,6 +220,7 @@ public with sharing class GridController {
         request.underParent(scope);
         request.narrowedBy(GridFilters.forRequest(def, filters, recordId, scope != null));
         request.reading(def.formulaPaths());
+        request.withRecordType = def.byRecordType == true;
         request.withSearch(searchTerm);
         request.withCursor(cursorToken);
         request.groupedBy(GridGroupService.fields(GridGroupService.levels(def, groupBy)));
@@ -283,6 +283,7 @@ public with sharing class GridController {
             );
             request.onlyIds(recordIds);
             request.reading(def.formulaPaths());
+            request.withRecordType = def.byRecordType == true;
             return toClientRows(GridDataService.fetchPage(request), def);
         } catch (Exception e) {
             throw auraError(e);
@@ -311,6 +312,24 @@ public with sharing class GridController {
     public static String lookupName(String configName, String field, String recordId) {
         try {
             return GridLookup.nameOf(configName, field, String.isBlank(recordId) ? null : Id.valueOf(recordId));
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /**
+     * The records with exactly these names, for names pasted or imported into
+     * a lookup column: { lower-case name: [{ id, name }] }. The field must be
+     * an editable lookup or owner column of this grid (HR-6).
+     */
+    @AuraEnabled
+    public static Map<String, List<Map<String, String>>> findLookupNames(
+        String configName,
+        String field,
+        List<String> names
+    ) {
+        try {
+            return GridLookup.namesFor(configName, field, names);
         } catch (Exception e) {
             throw auraError(e);
         }
@@ -556,31 +575,35 @@ public with sharing class GridController {
 
     // ------------------------------------------------------- layouts
 
-    /** This user's saved layout of the grid, as JSON, or null. Not cached: it changes as the user works. */
+    /**
+     * This user's saved layout of the grid, as JSON, or null; parentLink is
+     * the child table tab that shows it (blank: the grid on its own). Not
+     * cached: it changes as the user works.
+     */
     @AuraEnabled
-    public static String getLayout(String configName) {
+    public static String getLayout(String configName, String parentLink) {
         try {
-            return GridLayouts.read(configName);
+            return GridLayouts.read(configName, parentLink);
         } catch (Exception e) {
             throw auraError(e);
         }
     }
 
-    /** Keep this user's layout of the grid. False when it could not be kept: the grid works on without it. */
+    /** Keep this user's layout of the grid (in that child table tab). False when it could not be kept: the grid works on without it. */
     @AuraEnabled
-    public static Boolean saveLayout(String configName, String layout) {
+    public static Boolean saveLayout(String configName, String layout, String parentLink) {
         try {
-            return GridLayouts.save(configName, layout);
+            return GridLayouts.save(configName, layout, parentLink);
         } catch (Exception e) {
             throw auraError(e);
         }
     }
 
-    /** Forget this user's layout of the grid: Reset layout. */
+    /** Forget this user's layout of the grid (in that child table tab): Reset layout. */
     @AuraEnabled
-    public static void resetLayout(String configName) {
+    public static void resetLayout(String configName, String parentLink) {
         try {
-            GridLayouts.reset(configName);
+            GridLayouts.reset(configName, parentLink);
         } catch (Exception e) {
             throw auraError(e);
         }

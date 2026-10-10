@@ -511,6 +511,7 @@
                                                                     data-sort={m.sort}
                                                                     data-filter={m.filter}
                                                                     data-hide={m.hide}
+                                                                    data-freeze={m.freeze}
                                                                     onclick={handleMenuChoice}
                                                                 >
                                                                     <span class="slds-truncate" title={m.label}><template lwc:if={m.isRadio}><lightning-icon icon-name="utility:check" size="x-small" class="slds-icon_selected slds-m-right_x-small"></lightning-icon></template>{m.label}</span>
@@ -962,13 +963,14 @@
                     </div>
                 </template>
                 <!-- The Total row: the whole list's subtotals, stuck to the bottom of
-                     the scroller. A table of its own, not a row of the grid: see totalCells. -->
+                     the scroller. A read-only grid of its own, not a row of the grid,
+                     reached with Down from the last row: see totalCells. -->
                 <template lwc:if={totalCells}>
-                    <table class="slds-table slds-table_bordered slds-table_fixed-layout rh-totals" style={tableStyle} aria-label={totalsLabel}>
+                    <table role="grid" aria-readonly="true" class="slds-table slds-table_bordered slds-table_fixed-layout rh-totals" style={tableStyle} aria-label={totalsLabel}>
                         <tbody>
-                            <tr>
+                            <tr role="row">
                                 <template for:each={totalCells} for:item="t">
-                                    <td key={t.key} class={t.cls} style={t.style}>
+                                    <td key={t.key} role="gridcell" data-total-field={t.key} tabindex={t.tabindex} class={t.cls} style={t.style}>
                                         <template lwc:if={t.isLabel}>
                                             <span class="slds-truncate rh-total-label"><span class="rh-total-word">Total</span>{t.countText}</span>
                                         </template>

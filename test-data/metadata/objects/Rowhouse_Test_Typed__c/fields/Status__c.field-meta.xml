@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status__c</fullName>
+    <description>DEVELOPMENT ONLY. A picklist whose values differ by record type.</description>
+    <label>Status</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>New</fullName><default>false</default><label>New</label></value>
+            <value><fullName>Working</fullName><default>false</default><label>Working</label></value>
+            <value><fullName>Closed</fullName><default>false</default><label>Closed</label></value>
+            <value><fullName>Archived</fullName><default>false</default><label>Archived</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

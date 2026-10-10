@@ -348,13 +348,14 @@
                     onchildcount={handleChildCount}
                     onrowaction={handleRowAction}
                     onnewrecord={handleNewRecord}
+                    onnamesfound={handleNamesFound}
                 ></c-grid-table>
             </template>
         </div>
 
         <template lwc:if={massUpdateOpen}>
             <c-grid-mass-update
-                columns={massColumns}
+                columns={massUpdateColumns}
                 count={selectedCount}
                 rows={selectedRows}
                 ref-names={refNames}
@@ -416,6 +417,7 @@
                 config-name={configName}
                 parent={parent}
                 record-id={importRecordId}
+                onnamesfound={handleNamesFound}
                 onclose={handleImportClose}
             ></c-grid-import-dialog>
         </template>
@@ -427,6 +429,16 @@
                 onsaved={handleSettingsSaved}
                 onclose={handleSettingsClose}
             ></c-grid-settings>
+        </template>
+
+        <!-- What each record type among the rows allows its picklists; these draw nothing. -->
+        <template for:each={recordTypeReaders} for:item="reader">
+            <c-grid-record-type-values
+                key={reader.id}
+                object-api-name={reader.objectApiName}
+                record-type-id={reader.id}
+                onvalues={handleRecordTypeValues}
+            ></c-grid-record-type-values>
         </template>
 
         <div class="slds-assistive-text rh-live" role="status" aria-live="polite">{announcement}</div>

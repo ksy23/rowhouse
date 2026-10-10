@@ -218,13 +218,16 @@ describe("the user's own columns", () => {
         expect($(el, '.rh-choose-columns')).toBeNull();
     });
 
-    it('lasts for the session on a child table, which keeps no layout', async () => {
+    it("is kept with a child table's layout, for its tab", async () => {
         const el = mountChild();
         await settle();
         columnsChange(el, HIDE_NOTES);
         await settle();
         expect(tableConfig(el).columnChoice).toEqual(HIDE_NOTES);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
-        expect(saveLayout).not.toHaveBeenCalled();
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        const call = saveLayout.mock.calls[0][0];
+        expect(call.parentLink).toBeTruthy();
+        expect(JSON.parse(call.layout).columns).toEqual(HIDE_NOTES);
     });
 });

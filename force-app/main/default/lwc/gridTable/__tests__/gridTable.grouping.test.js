@@ -114,7 +114,7 @@ describe('a grouped grid', () => {
 
     it('numbers every row, group rows included, and knows the count once every row is loaded (HR-10)', async () => {
         await mount();
-        const rows = $$('tbody tr[role="row"]');
+        const rows = $$('table:not(.rh-totals) tbody tr[role="row"]');
         expect(rows.map(tr => tr.getAttribute('aria-rowindex'))).toEqual([
             '2',
             '3',
@@ -165,7 +165,9 @@ describe('a grouped grid', () => {
         await mount();
         const totals = $('table.rh-totals');
         expect(totals.getAttribute('aria-label')).toMatch(/^Totals for /);
-        expect(totals.getAttribute('role')).toBeNull(); // a plain table, not part of the grid
+        // A read-only grid of its own, beside the grid: not one of its rows.
+        expect(totals.getAttribute('role')).toBe('grid');
+        expect(totals.getAttribute('aria-readonly')).toBe('true');
         const cells = [...totals.querySelectorAll('td')];
         expect(cells).toHaveLength($$('thead th').length); // one per column, Group column included
         expect(cells[0].textContent).toBe('Total6 records'); // in the Group column
@@ -226,6 +228,75 @@ describe('opening and closing a group', () => {
     it('keeps one tab stop in the grid', async () => {
         await mount();
         expect($$('table:not(.rh-totals) [tabindex="0"]')).toHaveLength(1);
+        expect($$('[tabindex="0"]')).toHaveLength(1); // the Total row's cells are reached with the arrow keys
+    });
+});
+
+describe('the Total row with the keyboard', () => {
+    const totalCell = field => $(`.rh-totals [data-total-field="${field}"]`);
+    const active = () => el.shadowRoot.activeElement;
+
+    it('Down from the last row goes to the Total row, under the same column; Up comes back', async () => {
+        await mount({
+            grouping: [],
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+        });
+        const last = cell(id(6), 'Amount__c');
+        last.focus();
+        await flush();
+        await key(last, 'ArrowDown');
+        expect(active()).toBe(totalCell('Amount__c'));
+        expect(totalCell('Amount__c').getAttribute('tabindex')).toBe('0');
+        expect($$('[tabindex="0"]')).toHaveLength(1);
+        await key(active(), 'ArrowUp');
+        expect(active()).toBe(cell(id(6), 'Amount__c'));
+    });
+
+    it('Left, Right, Home and End move along the Total row; Ctrl+Home goes to the first cell', async () => {
+        await mount({
+            grouping: [],
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+        });
+        cell(id(6), 'Close__c').focus();
+        await flush();
+        await key(active(), 'ArrowDown');
+        expect(active()).toBe(totalCell('Close__c'));
+        await key(active(), 'ArrowRight');
+        expect(active()).toBe(totalCell('Amount__c'));
+        await key(active(), 'Home');
+        expect(active().dataset.totalField).toBe($$('.rh-totals td')[0].dataset.totalField);
+        await key(active(), 'End');
+        expect(active()).toBe(totalCell('Amount__c'));
+        await key(active(), 'Home', { ctrlKey: true });
+        expect(active().dataset.rowId).toBe(id(1));
+    });
+
+    it('typing on the Total row changes nothing', async () => {
+        await mount({
+            grouping: [],
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+        });
+        cell(id(6), 'Amount__c').focus();
+        await flush();
+        await key(active(), 'ArrowDown');
+        await key(active(), '5');
+        await key(active(), 'Enter');
+        await key(active(), 'Delete');
+        expect(events.cellschange).toEqual([]);
+        expect($('c-cell-text, c-cell-number, c-cell-currency')).toBeNull();
+    });
+
+    it('stays on the last loaded row while more rows are on the server', async () => {
+        await mount({
+            grouping: [],
+            hasMore: true,
+            totalRows: 60,
+            groupSummary: ready([{ k: [], l: [], n: 60, v: { Amount__c: { s: '685' } } }], [])
+        });
+        cell(id(6), 'Amount__c').focus();
+        await flush();
+        await key(active(), 'ArrowDown');
+        expect(active()).toBe(cell(id(6), 'Amount__c'));
     });
 });
 
@@ -271,6 +342,7 @@ describe('the grouping menus', () => {
             'Wrap text',
             'Clip text',
             'Group by Stage',
+            'Freeze up to this column',
             'Hide column'
         ]);
         expect(items[4].getAttribute('role')).toBe('menuitem');
@@ -291,6 +363,7 @@ describe('the grouping menus', () => {
             'Sort descending',
             'Add Close to grouping',
             'Group by Close only',
+            'Freeze up to this column',
             'Hide column'
         ]);
         await choose(items, 'Add Close to grouping');
@@ -309,6 +382,7 @@ describe('the grouping menus', () => {
             'Wrap text',
             'Clip text',
             'Stop grouping by Stage',
+            'Freeze up to this column',
             'Hide column'
         ]);
         await choose(items, 'Stop grouping by Stage');

@@ -19,9 +19,9 @@ export function openGridFrom({ getGridConfig, getLayout, fetchRows }) {
         const nested = Boolean(parentLink);
         const [config, layout] = await Promise.all([
             getGridConfig({ configName }),
-            nested || !getLayout
+            !getLayout
                 ? { json: null }
-                : Promise.resolve(getLayout({ configName })).then(
+                : Promise.resolve(getLayout(nested ? { configName, parentLink } : { configName })).then(
                       json => ({ json: typeof json === 'string' && json ? json : null }),
                       error => ({ json: null, error: messageOf(error) })
                   )

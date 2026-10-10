@@ -5,7 +5,8 @@
  * of them is kept LAYOUT_DELAY_MS after the last one, and at once if the grid
  * goes away first. Reset layout forgets it and puts back the admin's. A
  * layout that cannot be read or kept changes nothing for the user. The
- * user's filters are never part of it, and a child table keeps none.
+ * user's filters are never part of it. A child table keeps its own for the tab
+ * that shows it.
  */
 import { createElement } from 'lwc';
 import GridView, { readLayout, LAYOUT_DELAY_MS, NARROW_WIDTH } from 'c/gridView';
@@ -141,8 +142,17 @@ describe('readLayout', () => {
             wrap: { Name: true },
             expanded: [OPEN_ROW],
             columns: null,
+            frozen: null,
             groupView: null
         });
+    });
+
+    it('reads the columns the user froze, 0 to 5', () => {
+        expect(read({ frozen: 2 }).frozen).toBe(2);
+        expect(read({ frozen: 0 }).frozen).toBe(0);
+        expect(read({ frozen: 6 }).frozen).toBeNull();
+        expect(read({ frozen: '2' }).frozen).toBeNull();
+        expect(read({}).frozen).toBeNull();
     });
 
     it("reads the groups' order and percentages", () => {
@@ -287,6 +297,7 @@ describe('starting from the saved layout', () => {
             wrap: { Name: true },
             expanded: [OPEN_ROW],
             groupView: null,
+            frozen: null,
             sort: [{ field: 'Amount__c', direction: 'desc' }]
         });
         expect($(el, '.rh-sorted').textContent).toBe('Sorted by Amount');
@@ -375,17 +386,37 @@ describe('starting from the saved layout', () => {
         info.mockRestore();
     });
 
-    it('a child table reads no layout and keeps none', async () => {
+    it('a child table reads and keeps its own layout for its tab', async () => {
+        getLayout.mockResolvedValue(
+            JSON.stringify({ v: 1, sort: [{ field: 'Amount__c', direction: 'desc' }], frozen: 1 })
+        );
         const el = mountChild();
         await settle();
         expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Test_Children' });
-        expect(getLayout).not.toHaveBeenCalled();
-        expect(tableConfig(el).userLayout).toBeNull();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
-        layoutChange(el, { widths: { Name: 220 }, wrap: {}, expanded: [] });
-        await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
-        el.remove();
-        expect(saveLayout).not.toHaveBeenCalled();
+        expect(getLayout).toHaveBeenCalledWith({ configName: 'Test_Children', parentLink: 'Test_Records_Children' });
+        expect(tableConfig(el).userLayout).toEqual(
+            expect.objectContaining({ sort: [{ field: 'Amount__c', direction: 'desc' }], frozen: 1 })
+        );
+        layoutChange(el, { widths: { Name: 220 }, wrap: {}, expanded: [], frozen: 2 });
+        await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
+        expect(saveLayout).toHaveBeenCalledWith({
+            configName: 'Test_Children',
+            layout: expect.any(String),
+            parentLink: 'Test_Records_Children'
+        });
+        expect(keptLayout()).toEqual(expect.objectContaining({ widths: { Name: 220 }, frozen: 2 }));
+    });
+
+    it('Reset layout in a child table forgets the layout of its tab', async () => {
+        getLayout.mockResolvedValue(JSON.stringify({ v: 1, sort: [{ field: 'Amount__c', direction: 'desc' }] }));
+        const el = mountChild();
+        await settle();
+        // A child table's actions are in one menu.
+        const items = [...el.shadowRoot.querySelectorAll('lightning-menu-item')].map(i => i.label);
+        expect(items).toContain('Reset layout');
+        $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'reset' } }));
+        await settle();
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Children', parentLink: 'Test_Records_Children' });
     });
 });
 
@@ -398,7 +429,11 @@ describe('keeping changes', () => {
         expect(saveLayout).not.toHaveBeenCalled();
         await jest.advanceTimersByTimeAsync(1);
         expect(saveLayout).toHaveBeenCalledTimes(1);
-        expect(saveLayout).toHaveBeenCalledWith({ configName: 'Test_Records', layout: expect.any(String) });
+        expect(saveLayout).toHaveBeenCalledWith({
+            configName: 'Test_Records',
+            layout: expect.any(String),
+            parentLink: null
+        });
         // Only what the user set: no widths, wrap or open rows yet.
         expect(keptLayout()).toEqual({ v: 1, sort: [{ field: 'Amount__c', direction: 'desc' }], grouping: [] });
     });
@@ -640,7 +675,7 @@ describe('Reset layout', () => {
         const before = tableConfig(el).userLayout.key;
         reset(el);
         await settle();
-        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records' });
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records', parentLink: null });
         const cfg = tableConfig(el);
         expect(cfg.grouping).toEqual([]);
         // A new key, so the table applies it: the admin's sort, no widths, wrap or open rows.
@@ -650,6 +685,7 @@ describe('Reset layout', () => {
             wrap: {},
             expanded: [],
             groupView: null,
+            frozen: null,
             sort: ADMIN_SORT
         });
         expect(cfg.userLayout.key).not.toBe(before);
@@ -773,7 +809,7 @@ describe('Reset layout', () => {
         expect(resetLayout).not.toHaveBeenCalled();
         finishSave(true);
         await settle();
-        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records' });
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records', parentLink: null });
         await settle();
         expect($(el, '.rh-reset-layout')).toBeNull();
         expect(tableConfig(el).userLayout.sort).toEqual(ADMIN_SORT);
@@ -827,7 +863,7 @@ describe('Reset layout', () => {
         expect(items(el)).toContain('Reset layout');
         $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'reset' } }));
         await settle();
-        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records' });
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records', parentLink: null });
         expect(items(el)).not.toContain('Reset layout');
     });
 });

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Rowhouse Test Typed Record</label>
+    <pluralLabel>Rowhouse Test Typed Records</pluralLabel>
+    <nameField>
+        <label>Typed Record Name</label>
+        <type>Text</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <description>DEVELOPMENT ONLY. Records with record types, so a picklist that offers what each record type allows can be tested. Standard allows New, Working and Closed; Restricted allows New and Archived.</description>
+</CustomObject>

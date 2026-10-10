@@ -6,10 +6,14 @@
 import { createElement } from 'lwc';
 import GridImportDialog, { IMPORT_BATCH } from 'c/gridImportDialog';
 import importRows from '@salesforce/apex/GridController.importRows';
+import findLookupNames from '@salesforce/apex/GridController.findLookupNames';
 import { downloadCsv } from 'c/gridCsv';
 import { parseCsv } from 'c/gridImport';
 
 jest.mock('@salesforce/apex/GridController.importRows', () => ({ default: jest.fn() }), { virtual: true });
+jest.mock('@salesforce/apex/GridController.findLookupNames', () => ({ default: jest.fn(() => Promise.resolve({})) }), {
+    virtual: true
+});
 // Downloads are checked at their boundary; the CSV itself is built for real.
 jest.mock('c/gridCsv', () => ({ ...jest.requireActual('c/gridCsv'), downloadCsv: jest.fn(() => true) }));
 
@@ -409,5 +413,44 @@ describe('gridImportDialog', () => {
         $('section').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         $('.rh-import-cancel').click();
         expect(closes).toEqual([{ changed: false }, { changed: false }]);
+    });
+
+    describe('a lookup column named in the file', () => {
+        const ACC = '001000000000009AAA';
+        const columns = [...COLUMNS, { field: 'Account__c', label: 'Account', type: 'reference', editable: true }];
+
+        it('finds the records the file names, then checks the rows again; Import waits for it', async () => {
+            let answer;
+            findLookupNames.mockReturnValueOnce(
+                new Promise(resolve => {
+                    answer = resolve;
+                })
+            );
+            const found = [];
+            await mount({ columns });
+            el.addEventListener('namesfound', e => found.push(e.detail.names));
+            await choose(csv('Name,Account\nNew,Edge Communications\n'));
+            expect(findLookupNames).toHaveBeenCalledWith({
+                configName: 'Test_Records',
+                field: 'Account__c',
+                names: ['Edge Communications']
+            });
+            expect(text('.rh-import-finding')).toBe('Finding the records the file names…');
+            expect($('.rh-import-go').disabled).toBe(true);
+            answer({ 'edge communications': [{ id: ACC, name: 'Edge Communications' }] });
+            await until(() => !$('.rh-import-finding'));
+            expect(found).toEqual([{ [ACC]: 'Edge Communications' }]);
+            expect(text('.rh-import-summary')).toBe('records.csv: 1 row creates a record.');
+            expect($('.rh-import-go').disabled).toBe(false);
+        });
+
+        it('asks once per name, and leaves a name nothing has as a problem', async () => {
+            await mount({ columns });
+            await choose(csv('Name,Account\nNew,Nobody Inc\nOther,Nobody Inc\n'));
+            await until(() => !$('.rh-import-finding'));
+            expect(findLookupNames).toHaveBeenCalledTimes(1);
+            expect(findLookupNames.mock.calls[0][0].names).toEqual(['Nobody Inc']);
+            expect(text('.rh-import-summary')).toContain('2 rows have problems');
+        });
     });
 });

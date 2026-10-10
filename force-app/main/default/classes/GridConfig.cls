@@ -472,6 +472,14 @@ public with sharing class GridConfig {
         @AuraEnabled
         public Boolean allowNewRecords = false;
         /**
+         * The object has record types and the grid an editable picklist: each
+         * row carries its RecordTypeId, so its picklists offer only the values
+         * its record type allows (the browser reads those from Salesforce).
+         * forUser() sets it.
+         */
+        @AuraEnabled
+        public Boolean byRecordType = false;
+        /**
          * Every change this grid makes is written to Grid Edit Log.
          * Server-side only: each write reads it from the configuration.
          */
@@ -1565,6 +1573,34 @@ public with sharing class GridConfig {
     }
 
     /** What this user may see and edit. */
+    /**
+     * Does a row's record type narrow its picklists? When the object has record
+     * types beyond the master, the user can read RecordTypeId, and the grid
+     * edits a picklist of its own object.
+     */
+    @TestVisible
+    private static Boolean byRecordType(Schema.SObjectType objectType, List<Column> columns) {
+        Boolean picklists = false;
+        for (Column c : columns) {
+            if (
+                c.editable == true &&
+                (c.type == 'picklist' ||
+                c.type == 'multipicklist') &&
+                c.field != null &&
+                !c.field.contains('.')
+            ) {
+                picklists = true;
+            }
+        }
+        if (!picklists) {
+            return false;
+        }
+        Schema.SObjectField rt = GridDescribe.fieldOrNull(objectType, 'RecordTypeId');
+        return rt != null &&
+            GridSecurity.canRead(rt) &&
+            objectType.getDescribe(SObjectDescribeOptions.DEFERRED).getRecordTypeInfos().size() > 1;
+    }
+
     public static Definition forUser(String developerName) {
         Definition def = load(developerName);
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
@@ -1643,6 +1679,7 @@ public with sharing class GridConfig {
             visible.add(c);
         }
         def.columns = visible;
+        def.byRecordType = byRecordType(objectType, visible);
         // The default grouping keeps only columns this user can group by.
         Set<String> groupable = new Set<String>();
         for (Column c : visible) {

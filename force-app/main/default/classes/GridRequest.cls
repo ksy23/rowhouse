@@ -39,6 +39,12 @@ public with sharing class GridRequest {
      * forUser has already dropped any formula with a path the user cannot read.
      */
     public List<String> formulaPaths = new List<String>();
+    /**
+     * Read each row's RecordTypeId and send it, when the grid's picklists
+     * follow the row's record type (GridConfig.Definition.byRecordType). Not
+     * a column: never searched, sorted or grouped by.
+     */
+    public Boolean withRecordType = false;
 
     public GridRequest(String objectApiName, List<String> fields, String cursorLocator, Integer pageSize) {
         this.objectApiName = objectApiName;

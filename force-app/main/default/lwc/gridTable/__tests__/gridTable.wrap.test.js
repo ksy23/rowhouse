@@ -150,6 +150,8 @@ describe('the column header menu', () => {
         await flush();
         expect(el.shadowRoot.activeElement).toBe($('[data-hide]')); // Hide column, the last
         key($('[data-hide]'), 'ArrowUp');
+        expect(el.shadowRoot.activeElement).toBe($('[data-freeze]')); // Freeze up to this column
+        key($('[data-freeze]'), 'ArrowUp');
         expect(el.shadowRoot.activeElement).toBe(items()[3]); // Clip text
         key(items()[3], ' ');
         await flush();

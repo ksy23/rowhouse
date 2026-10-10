@@ -170,14 +170,15 @@
  * is filtered by its parent row instead.
  *
  * EACH USER'S LAYOUT
- * A top-level grid reads this user's layout with its configuration (openGrid,
- * never cached), and starts with its sort, grouping,
- * widths, Wrap or Clip and open rows, as far as they still fit the grid. A
+ * A grid reads this user's layout with its configuration (openGrid,
+ * never cached), and starts with its sort, grouping, widths, Wrap or Clip,
+ * frozen columns and open rows, as far as they still fit the grid. A
  * change to any of them is kept LAYOUT_DELAY_MS after the last one
  * (saveLayout), and at once if the grid goes away first. Reset layout
  * forgets it and puts back the admin's. A layout that cannot be read or kept
  * changes nothing; only Rowhouse Grid Diagnostics users hear of it, in the
- * console. A child table keeps no layout of its own.
+ * console. A child table keeps a layout of its own for the tab that shows
+ * it (parentLink): every parent row's tab opens the same way.
  *
  * TELEMETRY
  * With the Rowhouse_Diagnostics custom permission, each load and save writes one
@@ -240,6 +241,7 @@ import {
     withoutRecords
 } from 'c/gridHistory';
 import { massChanges } from 'c/gridMassUpdate';
+import { sharedOptions } from 'c/gridFields';
 import { childTableHeight } from 'c/gridNest';
 import { readChoice, shownColumns, chooseColumns, sameChoice } from 'c/gridColumns';
 import { namespaceOf, newToken, backRef, flowPageRef, doneToken } from 'c/gridFlowRoute';
@@ -282,6 +284,8 @@ export const PLACEHOLDER_ROWS = 6;
 export const LAYOUT_DELAY_MS = 2000;
 /** Sort keys a saved layout may hold: the table's own limit is lower. */
 const MAX_SAVED_SORT = 5;
+/** Columns a user may freeze: as many as an admin may (Frozen Columns, 0 to 5). */
+export const MAX_FROZEN = 5;
 const NO_CHILDREN = [];
 const NO_FILTERS = [];
 
@@ -356,6 +360,8 @@ export function readLayout(json, columns) {
         expanded: Array.isArray(saved.expanded) ? saved.expanded.filter(id => typeof id === 'string') : [],
         // The user's own columns: null for the admin's.
         columns: readChoice(saved.columns, cols),
+        // The columns the user froze: null for the admin's Frozen Columns.
+        frozen: Number.isInteger(saved.frozen) && saved.frozen >= 0 && saved.frozen <= MAX_FROZEN ? saved.frozen : null,
         // The groups' order and percentages; the table checks the order against its columns.
         groupView:
             saved.groups && typeof saved.groups === 'object' && !Array.isArray(saved.groups)
@@ -471,7 +477,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     columnsOpen = false;
     /**
      * How this user adds records here (openGrid's newRow): { objectLabel,
-     * inline, defaults, names, presets }, or null for no New button.
+     * inline, defaults, names, presets, recordTypeId }, or null for no New button.
      */
     newRowContext = null;
     /**
@@ -482,6 +488,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
     newRows = [];
     /** A row for the table to focus, { id, seq }: the row New just added. */
     focusRow = null;
+    /**
+     * The picklist values each record type among the rows allows, { [record
+     * type Id]: { [field, lower case]: [values] } }, as Salesforce answers
+     * (c/gridRecordTypeValues); null until it has for one.
+     */
+    recordTypePicklists = null;
 
     // ---- non-reactive containers (mutated, never reassigned) ----
     _runtime = {
@@ -494,6 +506,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         next: { locator: null, cursorToken: null }
     };
     _memo = {};
+    _readers = {};
     /** Non-reactive (HR-20): the width observer, and the last count told to the tab. */
     _layout = { observer: null, onResize: null, started: false };
     _reported = { count: null };
@@ -513,7 +526,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * has no access).
      */
     _saved = {
-        table: { widths: null, wrap: {}, expanded: [] },
+        table: { widths: null, wrap: {}, expanded: [], frozen: null },
         timer: null,
         pending: false,
         name: null,
@@ -695,6 +708,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.newRowContext = null;
         this.newRows = [];
         this.focusRow = null;
+        this.recordTypePicklists = null;
         this._saved.off = false;
         this._saved.lastJson = null;
         this._runtime.summaryToken++;
@@ -733,8 +747,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
             // already narrowed it), unless the user's layout has one.
             this.grouping = saved && saved.grouping ? saved.grouping : normalizeGrouping(d.grouping, d.columns);
             this._saved.table = saved
-                ? { widths: saved.widths, wrap: saved.wrap, expanded: saved.expanded, groupView: saved.groupView }
-                : { widths: null, wrap: {}, expanded: [], groupView: null };
+                ? {
+                      widths: saved.widths,
+                      wrap: saved.wrap,
+                      expanded: saved.expanded,
+                      groupView: saved.groupView,
+                      frozen: saved.frozen
+                  }
+                : { widths: null, wrap: {}, expanded: [], groupView: null, frozen: null };
             this.userLayout = saved ? { key: ++this._saved.key, ...this._saved.table, sort: this.sort } : null;
             this.columnChoice = saved ? saved.columns : null;
             this.newRowContext = opened.newRow || null;
@@ -761,11 +781,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /**
      * The layout openGrid brought: { json, error }. A layout that could not be
-     * read is none, and keeping one is off for this grid. A child table keeps
-     * none.
+     * read is none, and keeping one is off for this grid. A child table's is
+     * its own for the tab that shows it.
      */
     layoutOf(opened, name) {
-        if (this._parent) return { json: null, error: null };
         const json = typeof opened.layout === 'string' && opened.layout ? opened.layout : null;
         const error = opened.layoutError ? String(opened.layoutError) : null;
         if (error && name === this._configName) this._saved.off = true;
@@ -972,6 +991,20 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (id && name && this.refNames[id] !== name) this.refNames = { ...this.refNames, [id]: name };
     }
 
+    /** Records a paste or an import found by name: { [id]: name }, so their cells show the names. */
+    handleNamesFound(event) {
+        const names = (event.detail && event.detail.names) || {};
+        const next = { ...this.refNames };
+        let changed = false;
+        Object.keys(names).forEach(id => {
+            if (names[id] && next[id] !== names[id]) {
+                next[id] = names[id];
+                changed = true;
+            }
+        });
+        if (changed) this.refNames = next;
+    }
+
     fail(error) {
         this.loading = false;
         this.loadError = messageOf(error);
@@ -1015,7 +1048,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
             this.saveProgress,
             this.fiscal,
             this.newRows,
-            this.focusRow
+            this.focusRow,
+            this.recordTypePicklists
         ];
         const memo = this._memo;
         if (memo.deps && memo.deps.every((d, i) => d === deps[i])) return memo.value;
@@ -1091,7 +1125,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
             filters: this.filters,
             adminFilters: this.adminFilters,
             // The user's saved layout, applied once per key.
-            userLayout: this.userLayout
+            userLayout: this.userLayout,
+            // The values each row's record type allows its picklists.
+            recordTypePicklists: this.recordTypePicklists
         };
         return memo.value;
     }
@@ -1574,7 +1610,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
             widths: d.widths && typeof d.widths === 'object' ? d.widths : null,
             wrap: d.wrap && typeof d.wrap === 'object' ? d.wrap : {},
             expanded: Array.isArray(d.expanded) ? d.expanded : [],
-            groupView: d.groupView && typeof d.groupView === 'object' ? d.groupView : null
+            groupView: d.groupView && typeof d.groupView === 'object' ? d.groupView : null,
+            frozen: Number.isInteger(d.frozen) ? d.frozen : null
         };
         this.rememberLayout();
     }
@@ -1587,6 +1624,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (t.wrap && Object.keys(t.wrap).length) layout.wrap = t.wrap;
         if (t.expanded && t.expanded.length) layout.expanded = t.expanded;
         if (this.columnChoice) layout.columns = this.columnChoice;
+        if (Number.isInteger(t.frozen)) layout.frozen = t.frozen;
         // The groups' order and percentages, when not the default.
         const gv = t.groupView;
         if (gv && ((gv.order && gv.order.by && gv.order.by !== 'name') || gv.percent === true)) layout.groups = gv;
@@ -1595,7 +1633,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /** Keep the layout LAYOUT_DELAY_MS after the last change, for the grid it belongs to. */
     rememberLayout() {
-        if (this._parent || this._saved.off || !this.definition) return;
+        if (this._saved.off || !this.definition) return;
         clearTimeout(this._saved.timer);
         this._saved.pending = true;
         this._saved.name = this._configName;
@@ -1617,7 +1655,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this._saved.lastJson = json;
         // Kept as the save in flight: Reset layout waits for it, so a save that
         // reaches the server after the reset cannot bring the layout back.
-        const saving = saveLayout({ configName: name, layout: json })
+        const saving = saveLayout({ configName: name, layout: json, parentLink: this.parentLink })
             .then(kept => {
                 if (kept === true) {
                     if (name === this._configName) this.layoutSaved = true;
@@ -1636,9 +1674,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this._saved.inFlight = saving;
     }
 
-    /** Reset layout is offered once a layout is kept, on a top-level grid. */
+    /** Reset layout is offered once a layout is kept. */
     get canResetLayout() {
-        return this.layoutSaved && !this._parent && Boolean(this.definition);
+        return this.layoutSaved && Boolean(this.definition);
+    }
+
+    /** The child table tab this grid is shown in, which keys its layout; null on its own. */
+    get parentLink() {
+        return this._parent ? this._parent.link || null : null;
     }
 
     /**
@@ -1654,7 +1697,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         const name = this._configName;
         try {
             if (this._saved.inFlight) await this._saved.inFlight; // never throws: its failures are caught
-            await resetLayout({ configName: name });
+            await resetLayout({ configName: name, parentLink: this.parentLink });
         } catch (e) {
             this.notice = { variant: 'error', message: 'The layout could not be reset. ' + messageOf(e) };
             this.announce(this.notice.message);
@@ -1669,11 +1712,19 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.layoutSaved = false;
         this._saved.lastJson = null;
         this._saved.off = false;
-        this._saved.table = { widths: null, wrap: {}, expanded: [], groupView: null };
+        this._saved.table = { widths: null, wrap: {}, expanded: [], groupView: null, frozen: null };
         this.sort = sort;
         this.grouping = grouping;
         this.columnChoice = null;
-        this.userLayout = { key: ++this._saved.key, widths: null, wrap: {}, expanded: [], groupView: null, sort };
+        this.userLayout = {
+            key: ++this._saved.key,
+            widths: null,
+            wrap: {},
+            expanded: [],
+            groupView: null,
+            frozen: null,
+            sort
+        };
         // A new sort reads the rows again: the admin's sort field need not be a
         // column, and then the browser cannot sort by it.
         const reloading = sortChanged || (this.hasMore && groupingChanged) ? this.reload() : null;
@@ -1694,8 +1745,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /**
      * A new choice of columns, from the table (Hide column, a dragged header)
-     * or the dialog. It is checked against the columns, kept with the layout
-     * and, on a child table, lasts for the session.
+     * or the dialog. It is checked against the columns and kept with the layout.
      */
     setColumnChoice(next) {
         const d = this.definition;
@@ -2306,7 +2356,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         const key = newRowKey(n);
         const names = ctx.names || {};
         Object.keys(names).forEach(id => this.learnName(id, names[id]));
-        this.newRows = this.newRows.concat([{ Id: key, ...(ctx.defaults || {}), ...(ctx.presets || {}) }]);
+        // Its record type, the user's default, decides what its picklists offer.
+        const type = this.definition.byRecordType && ctx.recordTypeId ? { RecordTypeId: ctx.recordTypeId } : {};
+        this.newRows = this.newRows.concat([{ Id: key, ...type, ...(ctx.defaults || {}), ...(ctx.presets || {}) }]);
         const before = this.drafts;
         this.drafts = addNewRow(before, key);
         this.history = record(
@@ -2428,6 +2480,46 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     get massColumns() {
         return (this.definition && this.definition.columns) || [];
+    }
+
+    /** Update field: a picklist offers the values every selected row's record type allows. */
+    get massUpdateColumns() {
+        const columns = this.massColumns;
+        const byType = this.recordTypePicklists;
+        if (!byType) return columns;
+        const rows = this.selectedRows;
+        return columns.map(c =>
+            c.type === 'picklist' || c.type === 'multipicklist' ? { ...c, options: sharedOptions(c, rows, byType) } : c
+        );
+    }
+
+    /**
+     * One reader (c/gridRecordTypeValues) for each record type among the rows,
+     * while the grid's picklists follow record types (the definition's
+     * byRecordType): { id, objectApiName }.
+     */
+    get recordTypeReaders() {
+        const d = this.definition;
+        if (!d || !d.byRecordType) return [];
+        const memo = this._readers;
+        if (memo.rows === this.rows && memo.newRows === this.newRows && memo.object === d.objectApiName) {
+            return memo.value;
+        }
+        const ids = new Set();
+        this.rows.concat(this.newRows).forEach(r => {
+            if (r && r.RecordTypeId) ids.add(String(r.RecordTypeId));
+        });
+        memo.rows = this.rows;
+        memo.newRows = this.newRows;
+        memo.object = d.objectApiName;
+        memo.value = [...ids].map(id => ({ id, objectApiName: d.objectApiName }));
+        return memo.value;
+    }
+
+    handleRecordTypeValues(event) {
+        const { recordTypeId, fields } = event.detail || {};
+        if (!recordTypeId || !fields) return;
+        this.recordTypePicklists = { ...(this.recordTypePicklists || {}), [recordTypeId]: fields };
     }
 
     get selectedCount() {

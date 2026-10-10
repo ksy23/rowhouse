@@ -51,6 +51,7 @@
             </svg>
           </div>
           <p class="rh-note" style="margin-top:10px">A cell that passes all four shows a blue pencil when hovered or focused. One that does not shows a light gray lock, as a list view does.</p>
+          <p id="record-types" data-anchor="record-types"><b>Picklists follow record types.</b> When the object has record types, a picklist cell offers the values the row's record type allows, as Salesforce's record page does, and a new row follows the user's default record type. <b>Update field</b> offers the values every selected row allows; a pasted or filled-down value the row's record type does not offer is refused on its cell. An import checks each value against the field, not the record type.</p>
 
           <h3>What Save does</h3>
           <div class="rh-split">
@@ -185,9 +186,11 @@
 
         <section id="layout" data-anchor="layout">
           <div class="rh-sec-head"><span class="rh-sec-num">Feature</span><h2>Each user's layout</h2>
-          <p class="rh-sec-sub">Columns, widths, Wrap or Clip, sort, grouping and open rows are kept for each user and grid in a private record, so the grid opens as they left it, on any computer.</p></div>
+          <p class="rh-sec-sub">Columns, widths, frozen columns, Wrap or Clip, sort, grouping and open rows are kept for each user and grid in a private record, so the grid opens as they left it, on any computer.</p></div>
           <ul class="rh-tick">
             <li><b>Their own columns.</b> Users hide, show and reorder the columns you set up, nothing more: from <b>Choose columns</b> beside Refresh, <b>Hide column</b> in a column's menu, or by dragging a header. Select <b>Always shown</b> on a column (Always Shown in Setup) to keep it on screen; it can still be moved. Hidden columns are still read: search, sorts, filters and grouping on them still work, and Export writes what the user sees.</li>
+            <li><b>Their own frozen columns.</b> Frozen Columns sets how many a grid starts with; a user can freeze up to five from a column's menu (<b>Freeze up to this column</b>) or unfreeze them all.</li>
+            <li><b>Child tables too.</b> A tab of related records keeps each user's layout for that tab, the same under every row.</li>
             <li><b>Grid User Layout</b> records are private: each belongs to its user, who alone can read it. Rowhouse Grid User gives access to one's own.</li>
             <li><b>Kept quietly</b>, two seconds after the last change. If it cannot be kept, the grid works as before and says nothing (people with Rowhouse Grid Diagnostics see why in the browser console).</li>
             <li><b>Reset layout</b> beside Refresh deletes the record, and the grid goes back to the admin's settings. Filters are never kept.</li>
@@ -515,7 +518,7 @@
         <section id="trouble" data-anchor="trouble">
           <div class="rh-sec-head"><span class="rh-sec-num">Running it</span><h2>Troubleshooting</h2></div>
           <details class="rh-faq"><summary>The grid shows an error instead of rows</summary><div class="rh-a"><p>Check that the user has the <b>Rowhouse Grid User</b> permission set and can read the grid's object. Check that the Rowhouse Grid component's <b>Grid Configuration</b> matches the record's Grid Configuration Name exactly, and that Object API Name and every Field API Name are API names that exist.</p></div></details>
-          <details class="rh-faq"><summary>A column is missing for some users</summary><div class="rh-a"><p>They cannot read that field. Rowhouse leaves out columns a user's field-level security hides, without a message.</p></div></details>
+          <details class="rh-faq"><summary>A column is missing for some users</summary><div class="rh-a"><p>They cannot read that field. Rowhouse leaves out columns a user's field-level security hides, without a message. If the field is hidden from you, the Grid Admin tab lists it as a warning, not a problem, so you can still save the grid for the people who can read it.</p></div></details>
           <details class="rh-faq"><summary>A column cannot be edited</summary><div class="rh-a"><p>All four must hold: Allow Inline Edit on the configuration, Editable on the column, the user may edit the object and the field, and the field can be edited at all (not a formula, roll-up, auto-number, system field or rich text). A formula column of the grid is always read-only. A lookup also needs read access to the target object's name.</p></div></details>
           <details class="rh-faq"><summary>There is no Import or Delete button</summary><div class="rh-a"><p>Import needs Allow Import and Allow Inline Edit with at least one editable column, and the user must be allowed to edit the object; it is disabled while there are unsaved changes. Delete needs Allow Mass Delete and permission to delete the object, and appears in the bar that shows when rows are selected.</p></div></details>
           <details class="rh-faq"><summary>A color, grouping, tab or action does not show</summary><div class="rh-a"><p>Give yourself Rowhouse Grid Diagnostics and reload: the warning above the grid names the setting that was skipped and why. If there is no warning, the user cannot read a field it needs, or lacks the action's Required Permission.</p></div></details>

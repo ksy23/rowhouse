@@ -136,6 +136,9 @@
                     <template lwc:if={error}>
                         <p class="slds-text-color_error slds-m-bottom_small rh-import-error" role="alert">{error}</p>
                     </template>
+                    <template lwc:if={findingNames}>
+                        <p class="slds-text-color_weak slds-m-bottom_x-small rh-import-finding" role="status">Finding the records the file names…</p>
+                    </template>
                     <template lwc:if={planReady}>
                         <p class="slds-text-heading_small slds-m-bottom_x-small rh-import-summary" role="status">
                             {fileName}: {summary}

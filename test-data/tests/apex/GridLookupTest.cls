@@ -206,4 +206,68 @@ private class GridLookupTest {
             System.assert(refused != null && refused.contains('cannot be the value of'), refused);
         }
     }
+
+    @IsTest
+    static void namesFindTheirRecordsWhateverTheCaseAndSayWhenTwoShareOne() {
+        System.runAs(GridTestUsers.fullUser()) {
+            Map<String, Id> ids = accounts(new List<String>{ 'Edge Communications', 'Twin Co', 'Twin Co', 'Other' });
+            Test.startTest();
+            Map<String, List<Map<String, String>>> found = GridController.findLookupNames(
+                'Test_Records',
+                'Lookup_Field__c',
+                new List<String>{ 'edge communications', 'Twin Co', 'Nobody Inc', '  ', null }
+            );
+            Test.stopTest();
+            System.assertEquals(new Set<String>{ 'edge communications', 'twin co' }, found.keySet());
+            System.assertEquals(1, found.get('edge communications').size());
+            System.assertEquals(ids.get('Edge Communications'), found.get('edge communications')[0].get('id'));
+            System.assertEquals('Edge Communications', found.get('edge communications')[0].get('name'));
+            System.assertEquals(
+                2,
+                found.get('twin co').size(),
+                'Two records of one name: both, so the browser can say so.'
+            );
+        }
+    }
+
+    @IsTest
+    static void ownerNamesAreActiveUsersOrThisObjectsQueues() {
+        System.runAs(GridTestUsers.fullUser()) {
+            String me = [SELECT Name FROM User WHERE Id = :UserInfo.getUserId()].Name;
+            Map<String, List<Map<String, String>>> found = GridLookup.namesFor(
+                'Test_Records',
+                'OwnerId',
+                new List<String>{ me }
+            );
+            System.assert(found.containsKey(me.toLowerCase()), String.valueOf(found));
+            Boolean mine = false;
+            for (Map<String, String> m : found.get(me.toLowerCase())) {
+                mine = mine || m.get('id') == UserInfo.getUserId();
+            }
+            System.assert(mine, 'The user by name.');
+        }
+    }
+
+    @IsTest
+    static void namesAreLookedUpOnlyForAnEditableLookupColumnAndAFewAtATime() {
+        System.runAs(GridTestUsers.fullUser()) {
+            try {
+                GridLookup.namesFor('Test_Records', 'Text_Field__c', new List<String>{ 'x' });
+                System.assert(false, 'Not a lookup column.');
+            } catch (GridException e) {
+                System.assert(e.getMessage().contains('no editable lookup column'), e.getMessage());
+            }
+            List<String> many = new List<String>();
+            for (Integer i = 0; i <= GridLookup.MAX_NAMES; i++) {
+                many.add('Name ' + i);
+            }
+            try {
+                GridLookup.namesFor('Test_Records', 'Lookup_Field__c', many);
+                System.assert(false, 'Too many names.');
+            } catch (GridException e) {
+                System.assert(e.getMessage().contains('At most'), e.getMessage());
+            }
+            System.assertEquals(0, GridLookup.namesFor('Test_Records', 'Lookup_Field__c', new List<String>()).size());
+        }
+    }
 }

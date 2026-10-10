@@ -15,6 +15,105 @@
 public with sharing class GridLookup {
     public static final Integer MAX_RESULTS = 20;
     public static final Integer MAX_TERM = 255;
+    /** Names one call looks up: a paste or an import asks again for more. */
+    public static final Integer MAX_NAMES = 200;
+    /** Records one call reads: enough to tell one record of a name from several. */
+    public static final Integer MAX_NAMED = 1000;
+
+    /**
+     * The records with exactly these names, for a lookup cell given a name
+     * (pasted, or in an imported file) instead of a record: { lower-case
+     * name: [{ id, name }] }. A name no record has is left out; two records
+     * of one name are both there, so the browser can say the name is not
+     * enough. Read in user mode, like the typeahead, from the column's
+     * targets (or users and queues, for an owner); the field must be an
+     * editable lookup or owner column of this grid (HR-6).
+     */
+    public static Map<String, List<Map<String, String>>> namesFor(
+        String configName,
+        String fieldName,
+        List<String> names
+    ) {
+        GridConfig.Definition def = GridConfig.forUser(configName);
+        GridConfig.Column column = editableLookup(def, fieldName);
+        Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
+        GridPaths.FieldPath fp = GridPaths.resolve(objectType, column.field);
+        Set<String> wanted = new Set<String>();
+        for (String n : names == null ? new List<String>() : names) {
+            if (String.isNotBlank(n) && n.trim().length() <= MAX_TERM) {
+                wanted.add(n.trim());
+            }
+        }
+        if (wanted.size() > MAX_NAMES) {
+            throw new GridException('At most ' + MAX_NAMES + ' names can be looked up at once.');
+        }
+        Map<String, List<Map<String, String>>> out = new Map<String, List<Map<String, String>>>();
+        if (wanted.isEmpty()) {
+            return out;
+        }
+        List<String> exact = new List<String>(wanted);
+        if (column.type == 'owner') {
+            addNamed(
+                out,
+                GridSecurity.query(
+                    'SELECT Id, Name FROM User WHERE IsActive = true AND UserType IN (\'Standard\', \'PowerPartner\')' +
+                        ' AND Name IN :names LIMIT ' +
+                        MAX_NAMED,
+                    new Map<String, Object>{ 'names' => exact }
+                ),
+                'Name'
+            );
+            addNamed(
+                out,
+                GridSecurity.query(
+                    'SELECT Id, Name FROM Group WHERE Type = \'Queue\' AND Name IN :names' +
+                        ' AND Id IN (SELECT QueueId FROM QueueSobject WHERE SobjectType = :objectName) LIMIT ' +
+                        MAX_NAMED,
+                    new Map<String, Object>{ 'names' => exact, 'objectName' => GridDescribe.apiName(fp.holder) }
+                ),
+                'Name'
+            );
+            return out;
+        }
+        for (Schema.SObjectType target : fp.field.getDescribe().getReferenceTo()) {
+            Schema.SObjectField name = GridDescribe.nameField(target);
+            if (name == null || !GridSecurity.canRead(target) || !GridSecurity.canRead(name)) {
+                continue;
+            }
+            String nameApi = GridDescribe.apiName(name);
+            addNamed(
+                out,
+                GridSecurity.query(
+                    'SELECT Id, ' +
+                        nameApi +
+                        ' FROM ' +
+                        GridDescribe.apiName(target) +
+                        ' WHERE ' +
+                        nameApi +
+                        ' IN :names LIMIT ' +
+                        MAX_NAMED,
+                    new Map<String, Object>{ 'names' => exact }
+                ),
+                nameApi
+            );
+        }
+        return out;
+    }
+
+    /** Each record under its name, lower case: SOQL compares names without regard to case. */
+    private static void addNamed(Map<String, List<Map<String, String>>> out, List<SObject> rows, String nameApi) {
+        for (SObject r : rows) {
+            String name = (String) r.get(nameApi);
+            if (name == null) {
+                continue;
+            }
+            String key = name.toLowerCase();
+            if (!out.containsKey(key)) {
+                out.put(key, new List<Map<String, String>>());
+            }
+            out.get(key).add(new Map<String, String>{ 'id' => r.Id, 'name' => name });
+        }
+    }
 
     public static List<Map<String, String>> search(String configName, String fieldName, String term) {
         GridConfig.Definition def = GridConfig.forUser(configName);

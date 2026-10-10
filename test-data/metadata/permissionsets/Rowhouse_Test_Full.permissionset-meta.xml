@@ -32,6 +32,15 @@
         <modifyAllRecords>false</modifyAllRecords>
     </objectPermissions>
 
+    <objectPermissions>
+        <object>Rowhouse_Test_Typed__c</object>
+        <allowCreate>true</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>true</allowEdit>
+        <allowDelete>true</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
     <fieldPermissions><field>Rowhouse_Test_Record__c.Checkbox_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Rowhouse_Test_Record__c.Controlling_Picklist__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Rowhouse_Test_Record__c.Currency_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
@@ -80,4 +89,17 @@
     <fieldPermissions><field>Rowhouse_Bench__c.Formula_Is_Large__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
     <fieldPermissions><field>Rowhouse_Bench__c.Formula_Ratio__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
     <fieldPermissions><field>Rowhouse_Bench__c.Formula_Total__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions>
+        <field>Rowhouse_Test_Typed__c.Status__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <recordTypeVisibilities>
+        <recordType>Rowhouse_Test_Typed__c.Standard</recordType>
+        <visible>true</visible>
+    </recordTypeVisibilities>
+    <recordTypeVisibilities>
+        <recordType>Rowhouse_Test_Typed__c.Restricted</recordType>
+        <visible>true</visible>
+    </recordTypeVisibilities>
 </PermissionSet>

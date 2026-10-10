@@ -444,6 +444,23 @@ function checkDependents(item, byField, record) {
 }
 
 /** The rows the server is sent for the items that can go: [{ Id?, field: value }]. */
+/**
+ * For each lookup column the file is mapped to: its texts, row by row, for
+ * finding by name the records no row of the grid points to
+ * ([{ field, texts }]). The header row is left out.
+ */
+export function lookupTexts(table, mapping) {
+    const all = table || [];
+    const start = all.findIndex(r => !isEmptyRow(r));
+    if (start < 0 || !mapping) return [];
+    return (mapping.fields || [])
+        .filter(f => isLookup(f.column.type))
+        .map(f => ({
+            field: f.column.field,
+            texts: all.slice(start + 1).map(row => cellText((row || [])[f.index]).trim())
+        }));
+}
+
 export function payloadFor(items) {
     return items
         .filter(item => !item.errors.length)

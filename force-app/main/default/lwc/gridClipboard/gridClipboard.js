@@ -330,9 +330,10 @@ function parseMultiPicklist(text, column) {
 const RECORD_ID = /^[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?$/;
 
 /**
- * A lookup takes a record Id, or the exact name of a record already shown in
- * this grid (`column.nameIndex`: lower-case name to Ids). The server checks
- * the Id is of the right object and one the user can see.
+ * A lookup takes a record Id, or the exact name of a record
+ * (`column.nameIndex`: lower-case name to Ids): one shown in the grid, or one
+ * the server found by that name before the paste or import (GridLookup.namesFor).
+ * The server checks the Id is of the right object and one the user can see.
  */
 function parseReference(text, column) {
     const s = text.trim();
@@ -341,7 +342,7 @@ function parseReference(text, column) {
     const ids = column.nameIndex ? column.nameIndex.get(s.toLowerCase()) : null;
     if (ids && ids.length === 1) return { value: ids[0] };
     if (ids && ids.length > 1) return { error: `More than one record is named ${s}. Paste its record Id instead.` };
-    return { error: `No record named ${s} is shown in this grid. Paste its record Id, or choose it with the lookup.` };
+    return { error: `No record named ${s} was found. Paste its record Id, or choose it with the lookup.` };
 }
 
 /**

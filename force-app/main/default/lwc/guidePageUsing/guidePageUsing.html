@@ -138,7 +138,7 @@
               <tr><td>Long text</td><td>A text area opens under the cell, with a count of characters against the field's limit. <kbd>Enter</kbd> starts a new line; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (<kbd>⌘</kbd>+<kbd>Enter</kbd> on a Mac), <kbd>Tab</kbd> or <b>Done</b> keeps it. A very long value is read whole first, so what you save is never a shortened copy.</td></tr>
               <tr><td>Date</td><td>A calendar opens with the editor. Click a day, or type the date in the box and press <kbd>Enter</kbd>. <kbd>↓</kbd> moves into the calendar: arrows by day and week, <kbd>Page Up</kbd>/<kbd>Page Down</kbd> by month (with <kbd>Shift</kbd>, by year), <kbd>Enter</kbd> picks. <b>Today</b> picks today.</td></tr>
               <tr><td>Checkbox</td><td><kbd>Space</kbd> or a click selects or deselects it, and the change is kept at once.</td></tr>
-              <tr><td>Picklist</td><td>Choose from the list. A dependent picklist offers only the values its controlling field allows; changing the controlling value clears a value it no longer allows, and says so.</td></tr>
+              <tr><td>Picklist</td><td>Choose from the list. It offers the values the record's record type allows, as the record page does. A dependent picklist offers only the values its controlling field allows; changing the controlling value clears a value it no longer allows, and says so.</td></tr>
               <tr><td>Multi-select picklist</td><td>Move values between Available and Chosen, then click <b>Done</b>.</td></tr>
               <tr><td>Lookup and owner</td><td>Type part of a name; matches appear after a moment. Arrow to one and press <kbd>Enter</kbd>. Empty the box to clear the field. An owner can be a user or a queue. <b>New Account</b> (or the lookup's object) at the end of the list opens Salesforce's own form; the record you save goes in the cell. A lookup your admin limited with a lookup filter opens Salesforce's own lookup, which offers only the records the filter allows.</td></tr>
             </tbody></table></div>
@@ -190,6 +190,7 @@
               <div class="rh-kbrow"><span>Start or end of the row</span><span class="rh-keys"><kbd>Home</kbd> <kbd>End</kbd></span></div>
               <div class="rh-kbrow"><span>First or last cell of the grid</span><span class="rh-keys"><kbd>Ctrl</kbd>+<kbd>Home</kbd> <kbd>Ctrl</kbd>+<kbd>End</kbd></span></div>
               <div class="rh-kbrow"><span>A screenful up or down</span><span class="rh-keys"><kbd>Page Up</kbd> <kbd>Page Down</kbd></span></div>
+              <div class="rh-kbrow"><span>Down to the Total row</span><span class="rh-keys"><kbd>↓</kbd> from the last row</span></div>
               <div class="rh-kbrow"><span>Into or out of the grid</span><span class="rh-keys"><kbd>Tab</kbd> <kbd>Shift</kbd>+<kbd>Tab</kbd></span></div>
             </div>
             <div>
@@ -229,7 +230,7 @@
             <div class="rh-tile rh-gold"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></div><h4>Fill down</h4><p><kbd>Ctrl</kbd>+<kbd>D</kbd> copies the top row of the range into the rows below it; on one cell, it copies the cell above.</p></div>
             <div class="rh-tile rh-rose"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></div><h4>Undo and redo</h4><p>Up to 100 steps, with the keys or the Save bar's buttons. A paste of 500 cells is one step. Saving clears the history.</p></div>
           </div>
-          <div class="rh-call rh-s" style="margin-top:20px"><span class="rh-k">Pasting lookups</span><p>Paste a record Id, or the name of a record that is already showing in the grid. A name shared by two records in the grid is refused, and asks for the Id.</p></div>
+          <div class="rh-call rh-s" style="margin-top:20px"><span class="rh-k">Pasting lookups and picklists</span><p>Paste a record Id or a record's name. A name the grid does not show is looked up in Salesforce, among the records the field can point to. A name two records share is refused, and asks for the Id. A picklist value the record's record type does not offer is refused on its cell, when you paste it or fill it down.</p></div>
         </section>
 
         <section id="select" data-anchor="select">
@@ -248,7 +249,7 @@
             <figcaption>Select rows (or press Space on them): a bar floats over the top of the grid with what you can do to all of them. Here, <b>Update field</b>; Delete and your admin's actions join it when the grid has them.</figcaption>
           </figure>
           <ul class="rh-tick">
-            <li><b>Update field</b> sets one column to one value on every selected row. The changes wait as unsaved edits; check them, then <b>Save</b>.</li>
+            <li><b>Update field</b> sets one column to one value on every selected row. A picklist offers the values every selected row's record type allows. The changes wait as unsaved edits; check them, then <b>Save</b>.</li>
             <li><b>Delete</b>, when your admin allows it, asks first, naming the rows. Deleted records go to the Recycle Bin, and a bar under the grid's header offers <b>Undo</b>, which puts them back.</li>
             <li><b>Actions</b> your admin added for selections show as buttons, or in an Actions menu.</li>
             <li><b>Select all</b> (the box in the header) takes up to 10,000 rows in the current order. When more records match than are loaded, the bar offers <b>Select all N matching records</b>: Delete then deletes every record the search and filters match. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more, so if a large delete was a mistake, click Undo straight away. <b>Clear</b> unselects everything. A search or a reload clears the selection, and a save keeps it. A sort keeps it too when every matching record is loaded; when more match, a sort, a filter or a change of grouping loads the rows again and clears it.</li>
@@ -267,7 +268,7 @@
             </ul>
             <ul class="rh-tick">
               <li><b>Chips above the grid</b> show the grouping; the ✕ on a chip removes that level, and <b>Stop grouping</b> removes all of them.</li>
-              <li><b>The Total row</b> at the bottom adds up every matching record, not just the rows on screen.</li>
+              <li><b>The Total row</b> at the bottom adds up every matching record, not just the rows on screen. Press <kbd>↓</kbd> on the last row to reach it, and <kbd>←</kbd> <kbd>→</kbd> to move along its totals.</li>
               <li><b>Subtotals follow your edits</b> before you save, marked yellow. An edited row moves to its new group when you save.</li>
             </ul>
           </div>
@@ -313,7 +314,7 @@
                 <li><b>Check the rows</b>: how many records will be updated, how many created, and any rows held back, with the reason. For a workbook, choose the <b>Sheet</b>. Under <b>Columns</b>, change what a file column is imported as, or choose <b>(Not imported)</b>.</li>
                 <li><b>Click Import.</b> When it is done, <b>Undo import</b> puts back what it changed, until you close the dialog. Close it and the grid reloads with your changes.</li>
               </ol>
-              <p class="rh-note">A row with an Id updates that record; a row without one creates a new record, if you can create records of that kind. With an External Id column in the file, <b>Match records by</b> can match by it instead. An empty cell clears the field; to leave a field alone, leave its column out.</p>
+              <p class="rh-note">A row with an Id updates that record; a row without one creates a new record, if you can create records of that kind. With an External Id column in the file, <b>Match records by</b> can match by it instead. An empty cell clears the field; to leave a field alone, leave its column out. A lookup column can hold record Ids or names: a name is looked up in Salesforce, and a name two records share is held back with the reason.</p>
             </div>
           </div>
         </section>
@@ -323,7 +324,7 @@
           <ul class="rh-tick">
             <li><b>Resize</b> by dragging the edge of a header; <b>double-click</b> the edge to fit the column to its contents.</li>
             <li><b>Wrap text</b> or <b>Clip text</b> from a text column's ▾ menu: wrapped values show up to three lines, clipped ones show the rest in a tooltip.</li>
-            <li><b>Frozen columns</b>, set by your admin, stay in place while you scroll sideways.</li>
+            <li><b>Frozen columns</b> stay in place while you scroll sideways. Your admin sets how many to start with. <b>Freeze up to this column</b>, in a column's ▾ menu, freezes it and every column before it, up to five; <b>Unfreeze columns</b> lets them all scroll.</li>
             <li><b>Row numbers</b> down the left edge count the rows in the order shown, as in a list view. They are places, not record numbers: sort or search and the rows are numbered from 1 again. Your admin can turn them off.</li>
             <li><b>A formula column</b> (a lock when you hover a cell) is worked out by the grid from other fields; it changes after a save.</li>
           </ul>
@@ -351,7 +352,7 @@
             <li>Hiding changes only what you see. Search still looks in hidden columns, a sort, filter or grouping on one stays in force, and <b>Export</b> writes the columns you see, in your order.</li>
           </ul>
           <h3>Your layout is kept</h3>
-          <p>The columns you chose and their order, the widths you set, Wrap or Clip, your sort, your grouping and the rows whose related records you opened are kept in Salesforce for you, a couple of seconds after each change, and the grid opens that way next time, on any computer. Your filters are not kept. To go back to how your admin set the grid up, click <b>Reset layout</b> (the ↶ button beside Refresh; in a narrow space, in the menu beside the search). It shows only once something is kept. A grid of related records under a row keeps no layout of its own.</p>
+          <p>The columns you chose and their order, the widths you set, the columns you froze, Wrap or Clip, your sort, your grouping and the rows whose related records you opened are kept in Salesforce for you, a couple of seconds after each change, and the grid opens that way next time, on any computer. Your filters are not kept. To go back to how your admin set the grid up, click <b>Reset layout</b> (the ↶ button beside Refresh; in a narrow space, in the menu beside the search). It shows only once something is kept. A tab of related records keeps a layout of its own, the same under every row.</p>
         </section>
 
         <section id="phone" data-anchor="phone">

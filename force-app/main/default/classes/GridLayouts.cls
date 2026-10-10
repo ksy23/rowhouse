@@ -7,7 +7,10 @@
  * One Grid User Layout record per user per grid, owned by the user; the object
  * is private, and every read and write is in user mode (GridSecurity), so a
  * user reaches only their own. Its Key is the user's Id and the grid's API
- * name, which makes the record unique and lets a save upsert by it.
+ * name, which makes the record unique and lets a save upsert by it. A grid
+ * shown as a child table has a layout of its own for each tab that shows it
+ * (each Grid Child Table record), keyed by the tab as well: the same grid on
+ * a page, or under another grid's rows, keeps its own.
  *
  * What the layout holds is the browser's business: the server checks only
  * that it is a JSON object of a sensible size, for a grid that exists. The
@@ -23,14 +26,20 @@ public with sharing class GridLayouts {
 
     /** This user's layout of the grid, as JSON, or null. */
     public static String read(String configName) {
+        return read(configName, null);
+    }
+
+    /** This user's layout of the grid shown in that child table tab (blank: on its own), or null. */
+    public static String read(String configName, String parentLink) {
         String name = configNamed(configName);
+        String link = linkNamed(name, parentLink);
         if (
             !GridSecurity.canRead(Grid_User_Layout__c.SObjectType) ||
             !GridSecurity.canRead(Grid_User_Layout__c.Layout__c)
         ) {
             return null;
         }
-        List<Grid_User_Layout__c> rows = own(name);
+        List<Grid_User_Layout__c> rows = own(name, link);
         return rows.isEmpty() ? null : rows[0].Layout__c;
     }
 
@@ -39,7 +48,13 @@ public with sharing class GridLayouts {
      * one; throws when the layout is not one (HR-6: it comes from the browser).
      */
     public static Boolean save(String configName, String layout) {
+        return save(configName, layout, null);
+    }
+
+    /** The same, for the grid shown in that child table tab (blank: on its own). */
+    public static Boolean save(String configName, String layout, String parentLink) {
         String name = configNamed(configName);
+        String link = linkNamed(name, parentLink);
         if (String.isBlank(layout)) {
             throw new GridException('There is no layout to keep.');
         }
@@ -64,21 +79,31 @@ public with sharing class GridLayouts {
         ) {
             return false;
         }
-        Grid_User_Layout__c record = new Grid_User_Layout__c(Name = name, Key__c = keyFor(name), Layout__c = layout);
+        Grid_User_Layout__c record = new Grid_User_Layout__c(
+            Name = name,
+            Key__c = keyFor(name, link),
+            Layout__c = layout
+        );
         GridSecurity.upsertOwnRecord(record, Grid_User_Layout__c.Key__c);
         return true;
     }
 
     /** Forget this user's layout of the grid (Reset layout). */
     public static void reset(String configName) {
+        reset(configName, null);
+    }
+
+    /** The same, for the grid shown in that child table tab (blank: on its own). */
+    public static void reset(String configName, String parentLink) {
         String name = configNamed(configName);
+        String link = linkNamed(name, parentLink);
         if (
             !GridSecurity.canRead(Grid_User_Layout__c.SObjectType) ||
             !GridSecurity.canDelete(Grid_User_Layout__c.SObjectType)
         ) {
             return;
         }
-        GridSecurity.deleteOwnRecords(own(name));
+        GridSecurity.deleteOwnRecords(own(name, link));
     }
 
     /**
@@ -194,15 +219,40 @@ public with sharing class GridLayouts {
     /** The record's Key: the user's Id and the grid's API name. */
     @TestVisible
     private static String keyFor(String configName) {
-        return UserInfo.getUserId() + ':' + configName;
+        return keyFor(configName, null);
+    }
+
+    /** ... and, for a child table, the tab's API name: at most 18 + 1 + 40 + 1 + 40 characters. */
+    @TestVisible
+    private static String keyFor(String configName, String link) {
+        return UserInfo.getUserId() + ':' + configName + (String.isBlank(link) ? '' : '/' + link);
     }
 
     /** This user's record for the grid, if there is one. */
-    private static List<Grid_User_Layout__c> own(String configName) {
+    private static List<Grid_User_Layout__c> own(String configName, String link) {
         return (List<Grid_User_Layout__c>) GridSecurity.query(
             'SELECT Id, Layout__c FROM Grid_User_Layout__c WHERE Key__c = :layoutKey AND OwnerId = :me LIMIT 1',
-            new Map<String, Object>{ 'layoutKey' => keyFor(configName), 'me' => UserInfo.getUserId() }
+            new Map<String, Object>{ 'layoutKey' => keyFor(configName, link), 'me' => UserInfo.getUserId() }
         );
+    }
+
+    /**
+     * The child table tab's API name as the org spells it, or null for a grid
+     * on its own. Throws when there is no such tab, or it does not show this
+     * grid: the Key is made from it, and it comes from the browser (HR-6).
+     */
+    private static String linkNamed(String configName, String parentLink) {
+        if (String.isBlank(parentLink)) {
+            return null;
+        }
+        Grid_Child__mdt link = Grid_Child__mdt.getInstance(parentLink.trim());
+        Grid_Configuration__mdt cfg = Grid_Configuration__mdt.getInstance(configName);
+        if (link == null || cfg == null || !GridConfig.belongsTo(link.Child_Configuration__c, cfg)) {
+            throw new GridException(
+                'No Grid Child Table named "' + parentLink + '" shows the grid ' + configName + '.'
+            );
+        }
+        return link.DeveloperName;
     }
 
     /**

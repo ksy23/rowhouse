@@ -827,10 +827,71 @@ public with sharing class GridAdmin {
                 filterRecords(d)
             );
             result.warnings.addAll(def.warnings);
+            result.warnings.addAll(hiddenFromYou(d, objectType));
         } catch (Exception e) {
             result.errors.add(e.getMessage());
         }
         return result;
+    }
+
+    /**
+     * What the admin will not see of the grid because field-level security
+     * hides a field from them: the grid leaves such a column or display rule
+     * out for anyone who cannot read its field, and does not open at all for
+     * someone who cannot read a filter's field. People who can read the field
+     * see the grid as built, so these are warnings, not errors.
+     */
+    @TestVisible
+    private static List<String> hiddenFromYou(Draft d, Schema.SObjectType objectType) {
+        List<String> out = new List<String>();
+        for (ColumnDraft col : d.columns) {
+            if (col.inactive == true || String.isNotBlank(col.formula) || String.isNotBlank(col.childTable)) {
+                continue;
+            }
+            String hidden = hiddenField(objectType, col.field);
+            if (hidden != null) {
+                out.add(
+                    hidden +
+                    ' is hidden from you by field-level security, so the grid leaves its column out for you. People who can read the field see it.'
+                );
+            }
+        }
+        for (RuleDraft r : d.rules) {
+            String hidden = r.active == true && String.isBlank(r.formula) ? hiddenField(objectType, r.field) : null;
+            if (hidden != null) {
+                out.add(
+                    'Display rule "' +
+                        r.label +
+                        '" tests ' +
+                        hidden +
+                        ', which is hidden from you by field-level security, so the grid skips the rule for you.'
+                );
+            }
+        }
+        for (FilterDraft f : d.filters) {
+            String hidden = f.inactive == true ? null : hiddenField(objectType, f.field);
+            if (hidden != null) {
+                out.add(
+                    'A filter tests ' +
+                        hidden +
+                        ', which is hidden from you by field-level security, so the grid will not open for you, or for anyone else who cannot read it.'
+                );
+            }
+        }
+        return out;
+    }
+
+    /** "Product Code (ProductCode)" when the running user cannot read the field; null when they can, or it is no field. */
+    private static String hiddenField(Schema.SObjectType objectType, String name) {
+        if (String.isBlank(name)) {
+            return null;
+        }
+        try {
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, name);
+            return GridSecurity.canReadPath(fp) ? null : fp.field.getDescribe().getLabel() + ' (' + name.trim() + ')';
+        } catch (GridException e) {
+            return null; // an unknown field is the grid's own check's to report
+        }
     }
 
     /** Why a formula will not build, or null. */
