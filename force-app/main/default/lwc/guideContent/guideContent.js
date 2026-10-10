@@ -52,6 +52,18 @@ export default class GuideContent extends LightningElement {
         return this.page === 'tutorial-cleanup';
     }
 
+    get isTutorialGroups() {
+        return this.page === 'tutorial-groups';
+    }
+
+    get isTutorialAssets() {
+        return this.page === 'tutorial-assets';
+    }
+
+    get isTutorialLeads() {
+        return this.page === 'tutorial-leads';
+    }
+
     get isReference() {
         return this.page === 'reference';
     }

@@ -1,0 +1,224 @@
+<!--meta {"title": "Tutorial: the installed base", "desc": "Build Rowhouse grids of the assets each customer owns: on the account page, with new assets added as rows, and as a tab under every account, with warranty dates colored and each account's asset count and earliest warranty end on its row.", "section": "tutorials", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / The installed base</div>
+    <span class="aud both">Service contracts · about 25 minutes</span>
+    <h1 style="margin-top:14px">The installed base</h1>
+    <p class="dek">Colin keeps track of the generators his company has installed at customers' sites, and calls each customer before a warranty runs out. The Assets related list shows one account at a time and no dates in color. Here, every account's assets are a grid on its page and a tab in a list of all accounts, with warranties about to end in amber.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Build it · admin</span>
+    <a href="#goal">What you will build</a>
+    <a href="#assets">1. The asset grid</a>
+    <a href="#rules">2. Warranty colors</a>
+    <a href="#base">3. The account grid</a>
+    <a href="#pages">4. The pages</a>
+    <span class="s-k">Use it · Colin</span>
+    <a href="#add">5. Add a customer's assets</a>
+    <a href="#review">6. Review the installed base</a>
+    <a href="#replace">7. Replace a generator</a>
+    <a href="#learned">What you learned</a>
+  </aside>
+
+  <main class="content">
+
+<section id="goal">
+  <div class="persona"><span class="avatar">CM</span><div><b>Colin Murphy, Service Contracts Manager</b><span>Sells warranty renewals on installed equipment. Wants to enter a site's equipment in one go, and to see across all customers which warranties end soon.</span></div></div>
+  <div class="sec-head"><span class="sec-num">The goal</span><h2>What you will build</h2>
+  <p class="sec-sub">Two grids, built on the Grid Admin tab. <b>Account Assets</b> shows assets: on an account's page, that account's; and as a tab under each row of <b>Installed Base</b>, a grid of accounts with each one's number of assets and earliest warranty end. One grid configuration does both jobs.</p></div>
+  <div class="frame rv">
+    <svg class="dia" viewBox="0 0 900 200" role="img" aria-labelledby="asT"><title id="asT">Account Assets is placed on the Account page and is also the Assets tab of the Installed Base grid, both by AccountId</title>
+      <path class="wire" d="M300,50 C380,50 380,100 460,100"/>
+      <path class="wire sky" d="M300,150 C380,150 380,100 460,100"/>
+      <g class="node a pop"><rect x="40" y="10" width="260" height="80" rx="12"/><text class="k" x="58" y="36">Account page</text><text class="b" x="58" y="60" style="font-size:16px">Grand Hotels &amp; Resorts Ltd</text><text class="s" x="58" y="80">gives the grid its record</text></g>
+      <g class="node g"><rect x="40" y="110" width="260" height="80" rx="12"/><text class="k" x="58" y="136">Grid Configuration</text><text class="b" x="58" y="160" style="font-size:16px">Installed Base</text><text class="s" x="58" y="180">Account · tab Assets</text></g>
+      <g class="node s"><rect x="460" y="55" width="400" height="90" rx="12"/><text class="k" x="478" y="81">Grid Configuration</text><text class="b" x="478" y="105" style="font-size:16px">Account Assets</text><text class="s" x="478" y="127">Asset · the assets whose AccountId is the account</text></g>
+      <circle r="4.5" class="dot"><animateMotion dur="2.2s" repeatCount="indefinite" path="M300,50 C380,50 380,100 460,100"/></circle>
+      <circle r="4.5" class="dot sky"><animateMotion dur="2.2s" begin="1.1s" repeatCount="indefinite" path="M300,150 C380,150 380,100 460,100"/></circle>
+    </svg>
+  </div>
+  <figure class="rv" style="margin-top:20px">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Installed_Base</span></div><div class="stage"><div class="card-m">
+      <div class="m-head"><div class="m-ico acct"><svg viewBox="0 0 24 24"><path d="M4 20V6h7v14zm9 0V10h7v10zM6 9h3v2H6zm0 4h3v2H6z"/></svg></div><div><div class="m-title">Installed Base</div><div class="m-meta">13 items • Sorted by Account Name • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <table class="mt"><colgroup><col style="width:6%"><col style="width:4%"><col style="width:6%"><col style="width:30%"><col style="width:18%"><col style="width:14%"><col style="width:9%"><col style="width:13%"></colgroup>
+        <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th></th><th class="dd">Account Name <span class="srt">↑</span></th><th class="dd">Account Type</th><th class="dd">Industry</th><th class="r dd">Assets</th><th class="dd">Earliest warranty end</th></tr></thead>
+        <tbody>
+          <tr><td class="rn">5</td><td class="cb"><span class="mcb"></span></td><td class="tg"></td><td class="lnk">GenePoint</td><td>Customer - Channel</td><td>Biotechnology</td><td class="r">0</td><td></td></tr>
+          <tr><td class="rn" style="background:#F7FAFF">6</td><td class="cb" style="background:#F7FAFF"><span class="mcb"></span></td><td class="tg" style="background:#F7FAFF"><span class="chev open"></span>2</td><td class="lnk" style="background:#F7FAFF">Grand Hotels &amp; Resorts Ltd</td><td style="background:#F7FAFF">Customer - Direct</td><td style="background:#F7FAFF">Hospitality</td><td class="r" style="background:#F7FAFF">2</td><td style="background:#F7FAFF">9/15/2026</td></tr>
+          <tr><td colspan="8" style="padding:0;background:#F7FAFF">
+            <div class="m-panel child-open">
+              <div class="m-tabs ch"><span class="on">Assets (2)</span></div>
+              <div class="m-ctools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><span class="m-rm"></span></div>
+              <table class="mt"><colgroup><col style="width:8%"><col style="width:6%"><col style="width:26%"><col style="width:24%"><col style="width:14%"><col style="width:10%"><col style="width:12%"></colgroup><thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Asset Name</th><th class="dd">Product</th><th class="dd">Serial Number</th><th class="dd">Status</th><th class="dd">Warranty ends <span class="srt">↑</span></th></tr></thead><tbody>
+                <tr><td class="rn">1</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Kitchen generator</td><td class="lnk">GenWatt Propane 100kW</td><td>GW-100-2093</td><td>Installed</td><td style="color:#BA0517">9/15/2026</td></tr>
+                <tr><td class="rn">2</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Lobby standby generator</td><td class="lnk">GenWatt Diesel 200kW</td><td>GW-200-4471</td><td>Installed</td><td class="f-amber">11/15/2026</td></tr>
+              </tbody></table>
+            </div></td></tr>
+          <tr><td class="rn">7</td><td class="cb"><span class="mcb"></span></td><td class="tg"></td><td class="lnk">Pyramid Construction Inc.</td><td>Customer - Channel</td><td>Construction</td><td class="r">0</td><td></td></tr>
+        </tbody></table>
+    </div></div></div>
+    <figcaption>Grand Hotels &amp; Resorts Ltd opened, on a day in October: two generators, the earliest warranty end on the account's row, an expired warranty in red and one ending within 90 days in amber.</figcaption>
+  </figure>
+</section>
+
+<section id="assets">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>1. The asset grid</h2>
+  <p class="sec-sub">You need the Rowhouse Grid Admin permission set, and Customize Application to save (see <a href="start.html#access">Give people access</a>).</p></div>
+  <ol class="tut">
+    <li><b>Open the Grid Admin tab.</b> Click the App Launcher, type <span class="v plain">Rowhouse</span>, click the <span class="ui">Rowhouse</span> app, then the <span class="ui">Grid Admin</span> tab, and click <span class="ui">New grid</span>.</li>
+    <li><b>Fill in the Grid tab:</b>
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Grid Title</td><td><span class="v">Account Assets</span><button class="copy" data-copy="Account Assets">Copy</button></td></tr>
+        <tr><td>API name</td><td><span class="v">Account_Assets</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object</td><td><span class="v">Asset (Asset)</span></td></tr>
+        <tr><td>Sort by</td><td><span class="v">Usage End Date (UsageEndDate)</span></td></tr>
+        <tr><td>On a record page, show the records whose</td><td><span class="v">Account ID (AccountId), on Account pages</span></td></tr>
+      </tbody></table>
+      <div class="check"><span class="ui">Create records with New</span> is already selected: users can add assets as rows of the grid.</div></li>
+    <li><b>Add the columns.</b> Click <span class="ui">Columns (1)</span>. <span class="ui">Asset Name (Name)</span> is already there. For each row below, click <span class="ui">Add column</span>, choose the field, select <span class="ui">Edit</span> where the table says so, and type the header where it gives one:
+      <div class="tbox" style="margin-top:10px"><table class="ref">
+        <thead><tr><th>Field</th><th>Edit</th><th>Header</th></tr></thead>
+        <tbody>
+          <tr><td class="d">Product ID (Product2Id)</td><td class="tick">✓</td><td></td></tr>
+                    <tr><td class="d">Serial Number (SerialNumber)</td><td class="tick">✓</td><td></td></tr>
+          <tr><td class="d">Status (Status)</td><td class="tick">✓</td><td></td></tr>
+          <tr><td class="d">Usage End Date (UsageEndDate)</td><td class="tick">✓</td><td><span class="v">Warranty ends</span><button class="copy" data-copy="Warranty ends">Copy</button></td></tr>
+        </tbody></table></div>
+      <div class="check">Select <span class="ui">Edit</span> on <span class="ui">Asset Name (Name)</span> as well. The Product ID column's Header box suggests <b>Product</b>, in gray.</div></li>
+  </ol>
+</section>
+
+<section id="rules">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. Warranty colors</h2></div>
+  <ol class="tut">
+    <li><b>Add three display rules.</b> Click <span class="ui">Display rules (0)</span>. For each row below, click <span class="ui">Add display rule</span> and fill it in:
+      <div class="tbox" style="margin-top:10px"><table class="ref">
+        <thead><tr><th>Meaning</th><th>Field</th><th>Condition</th><th>Value</th><th>Look</th><th>Applies to</th></tr></thead>
+        <tbody>
+          <tr><td>Warranty ends soon</td><td class="d">Usage End Date (UsageEndDate)</td><td>Between</td><td><span class="v plain">TODAY</span> in the first box, <span class="v plain">TODAY+90</span> in the second</td><td>Amber fill</td><td>The cell</td></tr>
+          <tr><td>Warranty expired</td><td class="d">Usage End Date (UsageEndDate)</td><td>Less than</td><td><span class="v plain">TODAY</span></td><td>Red text</td><td>The cell</td></tr>
+          <tr><td>Retired</td><td class="d">Status (Status)</td><td>Equals</td><td><span class="v plain">Obsolete</span></td><td>Gray text</td><td>The whole row</td></tr>
+        </tbody></table></div>
+      <div class="check why">TODAY and TODAY+90 are worked out each time the grid opens, so the colors move with the calendar. Between includes both ends.</div></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>. After a few seconds the editor reads the grid back: <span class="ui">Columns (5)</span>, <span class="ui">Display rules (3)</span>.</li>
+  </ol>
+</section>
+
+<section id="base">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>3. The account grid</h2></div>
+  <ol class="tut">
+    <li><b>Start another grid.</b> Click <span class="ui">Grids</span> at the top of the Grid Admin tab, then <span class="ui">New grid</span>, and fill in the Grid tab:
+      <table class="fields"><tbody>
+        <tr><td>Grid Title</td><td><span class="v">Installed Base</span><button class="copy" data-copy="Installed Base">Copy</button></td></tr>
+        <tr><td>API name</td><td><span class="v">Installed_Base</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object</td><td><span class="v">Account (Account)</span></td></tr>
+        <tr><td>Sort by</td><td><span class="v">Account Name (Name)</span></td></tr>
+      </tbody></table></li>
+    <li><b>Add two columns:</b> click <span class="ui">Columns (1)</span>, then <span class="ui">Add column</span> twice, and choose <span class="v">Account Type (Type)</span> and <span class="v">Industry (Industry)</span>. Leave Edit as it is: this grid is for reading.</li>
+    <li><b>Add the assets as a tab.</b> Click <span class="ui">Child tables (0)</span>, then <span class="ui">Add child table</span>:
+      <table class="fields"><tbody>
+        <tr><td>Grid</td><td><span class="v">Account Assets (Account_Assets)</span></td></tr>
+        <tr><td>Linked by</td><td><span class="v">Account ID (AccountId)</span> <span class="note">already chosen</span></td></tr>
+        <tr><td>Tab label</td><td><span class="v">Assets</span><button class="copy" data-copy="Assets">Copy</button></td></tr>
+      </tbody></table>
+      <div class="check why">The same grid as on the account page, so its columns, colors and New come with it.</div></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>: <span class="ui">Columns (3)</span>, <span class="ui">Child tables (1)</span>.</li>
+    <li><b>Count each account's assets.</b> Click <span class="ui">Columns (3)</span>, then <span class="ui">Add child total column</span>. In the list that says <i>Choose a child table</i>, choose <span class="v">Assets (Installed_Base_Assets)</span>. Leave <span class="ui">Count</span> as it is and the Header empty: the column is headed <b>Assets</b>.</li>
+    <li><b>Show the earliest warranty end.</b> Click <span class="ui">Add child total column</span> again:
+      <table class="fields"><tbody>
+        <tr><td>Field column: the list that says <i>Choose a child table</i></td><td><span class="v">Assets (Installed_Base_Assets)</span></td></tr>
+        <tr><td>The list under it</td><td><span class="v">Lowest</span></td></tr>
+        <tr><td>The list beside it, <i>Choose a field</i></td><td><span class="v">Usage End Date (UsageEndDate)</span></td></tr>
+        <tr><td>Header</td><td><span class="v">Earliest warranty end</span><button class="copy" data-copy="Earliest warranty end">Copy</button></td></tr>
+      </tbody></table></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>: <span class="ui">Columns (5)</span>.</li>
+  </ol>
+</section>
+
+<section id="pages">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>4. The pages</h2></div>
+  <ol class="tut">
+    <li><b>Put the asset grid on the account page.</b> Open any account, click the gear at the top right, then <span class="ui">Edit Page</span>. Search the components for <span class="v plain">Rowhouse</span>, and drag <span class="ui">Rowhouse Grid</span> onto the page, above the Related and Details tabs. On the right, enter <span class="v">Account_Assets</span><button class="copy" data-copy="Account_Assets">Copy</button> in <span class="ui">Grid Configuration</span>. Click <span class="ui">Save</span>; if Salesforce asks, click <span class="ui">Activate</span> and assign the page as the org default for desktop and phone, as in <a href="tutorial-contacts.html#page">Contacts on an account page</a>.</li>
+    <li><b>Give the account grid a page.</b> In Lightning App Builder, click <span class="ui">New</span>, choose <span class="ui">App Page</span>, enter the Label <span class="v">Installed Base</span>, choose <span class="ui">One Region</span>, drag <span class="ui">Rowhouse Grid</span> onto it, and enter <span class="v">Installed_Base</span><button class="copy" data-copy="Installed_Base">Copy</button> in <span class="ui">Grid Configuration</span>. Click <span class="ui">Save</span>, then <span class="ui">Activate</span>; choose <span class="ui">Sales</span>, click <span class="ui">Add page to app</span>, then <span class="ui">Save</span>.</li>
+  </ol>
+</section>
+
+<section id="add">
+  <div class="persona"><span class="avatar">CM</span><div><b>Now as Colin</b><span>Colin has the Rowhouse Grid User permission set. Grand Hotels &amp; Resorts has just had two generators installed at its Chicago hotel.</span></div></div>
+  <div class="sec-head"><span class="sec-num">Use it · Colin</span><h2>5. Add a customer's assets</h2></div>
+  <ol class="tut">
+    <li><b>Open the account.</b> Open <span class="v">Grand Hotels &amp; Resorts Ltd</span>.
+      <div class="check">The <b>Account Assets</b> grid is on its page, with no rows yet, and a <b>New</b> button above it.</div></li>
+    <li><b>Add the first generator.</b> Click <span class="ui">New</span>. A row appears at the top, with <b>New</b> where a row number goes. Fill in its cells, double-clicking each:
+      <table class="fields"><tbody>
+        <tr><td>Asset Name</td><td><span class="v">Lobby standby generator</span><button class="copy" data-copy="Lobby standby generator">Copy</button></td></tr>
+        <tr><td>Product</td><td>type <span class="v">Diesel 200</span>, then choose <span class="v">GenWatt Diesel 200kW</span></td></tr>
+        <tr><td>Serial Number</td><td><span class="v">GW-200-4471</span><button class="copy" data-copy="GW-200-4471">Copy</button></td></tr>
+        <tr><td>Status</td><td><span class="v">Installed</span></td></tr>
+        <tr><td>Warranty ends</td><td>in the calendar, click <span class="ui">Next Month</span> once, then the <span class="v">15</span></td></tr>
+      </tbody></table>
+      <div class="check">The Save bar says "1 new record", and the row's cells are yellow: unsaved.</div></li>
+    <li><b>Add the second.</b> Click <span class="ui">New</span> again, and fill in the new row:
+      <table class="fields"><tbody>
+        <tr><td>Asset Name</td><td><span class="v">Kitchen generator</span><button class="copy" data-copy="Kitchen generator">Copy</button></td></tr>
+        <tr><td>Product</td><td>type <span class="v">Propane 100</span>, then choose <span class="v">GenWatt Propane 100kW</span></td></tr>
+        <tr><td>Serial Number</td><td><span class="v">GW-100-2093</span><button class="copy" data-copy="GW-100-2093">Copy</button></td></tr>
+        <tr><td>Status</td><td><span class="v">Installed</span></td></tr>
+        <tr><td>Warranty ends</td><td>click <span class="ui">Previous Month</span> once, then the <span class="v">15</span></td></tr>
+      </tbody></table>
+      <div class="check">This one came secondhand, with its warranty already over. The new row goes under the first.</div></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span> in the bar at the bottom.
+      <div class="check"><i>2 items</i>, in order of warranty end: the kitchen generator first, its date red because it has passed; the lobby generator's date amber, because it falls within the next 90 days. Both assets belong to Grand Hotels &amp; Resorts Ltd: the grid knows which account's page it is on, so you never chose the account.</div></li>
+  </ol>
+</section>
+
+<section id="review">
+  <div class="sec-head"><span class="sec-num">Use it · Colin</span><h2>6. Review the installed base</h2></div>
+  <ol class="tut">
+    <li><b>Open the grid.</b> In the Sales app, click <span class="ui">Installed Base</span>.
+      <div class="check">Every account. Grand Hotels &amp; Resorts Ltd has a toggle with <b>2</b>; its <b>Assets</b> column says 2 and <b>Earliest warranty end</b> shows the kitchen generator's date. Accounts with no assets have no toggle and say 0.</div></li>
+    <li><b>Open the account.</b> Click the toggle beside Grand Hotels &amp; Resorts Ltd.
+      <div class="check">One tab, <b>Assets (2)</b>, the same grid as on the account's page: the same columns and the red and amber dates. Its own search and a ▾ menu sit at its top right.</div></li>
+  </ol>
+</section>
+
+<section id="replace">
+  <div class="sec-head"><span class="sec-num">Use it · Colin</span><h2>7. Replace a generator</h2>
+  <p class="sec-sub">The hotel is replacing the kitchen generator rather than renewing its warranty. Colin records both, without leaving the list.</p></div>
+  <ol class="tut">
+    <li><b>Retire the old one.</b> In the tab, double-click the kitchen generator's <span class="ui">Status</span> and choose <span class="v">Obsolete</span>.
+      <div class="check">The row's text turns gray at once: the Retired rule follows the unsaved value. Its expired date stays red; the date's own rule comes first.</div></li>
+    <li><b>Add the new one.</b> Open the ▾ menu at the top right of the tab and choose <span class="ui">New</span>. A row appears at the top of the tab; fill it in:
+      <table class="fields"><tbody>
+        <tr><td>Asset Name</td><td><span class="v">Kitchen generator</span><button class="copy" data-copy="Kitchen generator">Copy</button></td></tr>
+        <tr><td>Product</td><td>type <span class="v">Propane 500</span>, then choose <span class="v">GenWatt Propane 500kW</span></td></tr>
+        <tr><td>Status</td><td><span class="v">Purchased</span></td></tr>
+        <tr><td>Warranty ends</td><td>in the year list at the top right of the calendar, choose next year, then click the <span class="v">15</span></td></tr>
+      </tbody></table>
+      <div class="check">The panel's Save bar says "1 new record, 5 unsaved changes".</div></li>
+    <li><b>Save the tab.</b> Click <span class="ui">Save</span> in the panel's bar.
+      <div class="check">The tab says <b>Assets (3)</b>, and the toggle 3. The new generator's date has no color: it is more than 90 days away. It belongs to Grand Hotels &amp; Resorts Ltd, the row the tab is under.</div></li>
+    <li><b>Refresh the account grid.</b> Click <span class="ui">Refresh</span> above the grid.
+      <div class="check">The Assets column says 3. Totals on a row are worked out when the grid reads its rows, so a change saved in a tab shows there after Refresh.</div></li>
+  </ol>
+</section>
+
+<section id="learned">
+  <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
+  <div class="tiles rv-stagger">
+    <div class="tile"><div class="ic">{{ic:grid}}</div><h4>One grid, two places</h4><p>A record page grid can also be another grid's tab, with the same columns and rules.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:plus}}</div><h4>New rows that know their parent</h4><p>On a record page, or from a tab's ▾ menu, New fills in the record it belongs to.</p></div>
+    <div class="tile rose"><div class="ic">{{ic:palette}}</div><h4>Dates that move</h4><p>TODAY and TODAY+90 keep the colors right every day.</p></div>
+    <div class="tile teal"><div class="ic">{{ic:gauge}}</div><h4>Lowest and count</h4><p>Child totals put each account's asset count and earliest date on its row.</p></div>
+  </div>
+  <div class="next">
+    <a href="tutorial-groups.html"><small>Previous tutorial</small><b>← A group of companies</b></a>
+    <a class="fwd" href="tutorial-leads.html"><small>Next tutorial</small><b>The morning lead queue →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

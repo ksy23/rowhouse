@@ -1263,6 +1263,10 @@ figcaption {
     background: #a094ed;
 }
 
+.rh-m-ico.rh-lead {
+    background: #f88962;
+}
+
 .rh-m-ico svg {
     width: var(--slds-g-sizing-5, 16px);
     height: var(--slds-g-sizing-5, 16px);
@@ -1459,6 +1463,11 @@ tr.rh-bar.rh-green {
 tr.rh-bar.rh-amber {
     --rh-bc: var(--rh-b-amber);
     --rh-tc: var(--rh-t-amber);
+}
+
+tr.rh-bar.rh-red {
+    --rh-bc: var(--rh-b-red);
+    --rh-tc: var(--rh-t-red);
 }
 
 tr.rh-grp td {
@@ -3651,6 +3660,19 @@ td.rh-db {
     font-size: var(--slds-g-font-scale-neg-2, 0.625rem);
     line-height: var(--slds-g-font-line-height-1, 1);
     font-family: Georgia, serif;
+    margin-right: var(--slds-g-spacing-1, 0.25rem);
+    vertical-align: -1px;
+}
+
+/* An arrow icon rule (Up arrow) before a cell's value, as the grid draws utility:arrowup. */
+.rh-m-ia {
+    width: var(--slds-g-sizing-4, 12px);
+    height: var(--slds-g-sizing-4, 12px);
+    fill: none;
+    stroke: #706e6b;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     margin-right: var(--slds-g-spacing-1, 0.25rem);
     vertical-align: -1px;
 }

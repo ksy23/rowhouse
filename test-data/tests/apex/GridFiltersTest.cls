@@ -96,6 +96,15 @@ private class GridFiltersTest {
                 new List<String>{ 'F2', 'F3', 'F4' },
                 namesMeeting(condition('Text_Field__c', 'not_contains', 'apple', null))
             );
+            // Part of a picklist value, as for text: Alpha has "ph"; blanks do not contain it.
+            System.assertEquals(
+                new List<String>{ 'F2', 'F3', 'F4' },
+                namesMeeting(condition('Picklist_Field__c', 'not_contains', 'ph', null))
+            );
+            System.assertEquals(
+                new List<String>{ 'F3' },
+                namesMeeting(condition('Picklist_Field__c', 'contains', 'MM', null))
+            );
             System.assertEquals(
                 new List<String>{ 'F2' },
                 namesMeeting(condition('Text_Field__c', 'starts_with', 'GREEN', null))

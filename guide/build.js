@@ -57,6 +57,9 @@ const ORDER = [
     'tutorial-accounts',
     'tutorial-contacts',
     'tutorial-cleanup',
+    'tutorial-groups',
+    'tutorial-assets',
+    'tutorial-leads',
     'reference'
 ];
 

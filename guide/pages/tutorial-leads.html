@@ -1,0 +1,196 @@
+<!--meta {"title": "Tutorial: the morning lead queue", "desc": "Build a Rowhouse grid of open leads that marks hot leads nobody has called in red, logs a call from the row, and hands leads to a colleague in one go.", "section": "tutorials", "audience": "all"} -->
+<header class="phead hero alive" id="main">
+  <div class="phead-in">
+    <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / The morning lead queue</div>
+    <span class="aud both">Sales development · about 20 minutes</span>
+    <h1 style="margin-top:14px">The morning lead queue</h1>
+    <p class="dek">Jenna starts each day with the leads that came in overnight. She rates them, calls the hot ones first, and passes the rest to the team. In a list view, each of those is a record opened and saved. Here, one grid of open leads marks the hot ones nobody has called yet in red, logs a call from the row, and hands leads over in one go.</p>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="side" aria-label="On this page">
+    <span class="s-k">Build it · admin</span>
+    <a href="#goal">What you will build</a>
+    <a href="#grid">1. The grid</a>
+    <a href="#rules">2. A filter and three rules</a>
+    <a href="#action">3. Log a call</a>
+    <a href="#page">4. The page</a>
+    <span class="s-k">Use it · Jenna</span>
+    <a href="#open">5. Open the queue</a>
+    <a href="#rate">6. Rate a lead</a>
+    <a href="#call">7. Call it in</a>
+    <a href="#handover">8. Hand leads over</a>
+    <a href="#learned">What you learned</a>
+  </aside>
+
+  <main class="content">
+
+<section id="goal">
+  <div class="persona"><span class="avatar d">JR</span><div><b>Jenna Rossi, Sales Development Representative</b><span>Works the inbound leads every morning. Wants the open ones on one screen, the hot ones nobody has called standing out, and the calls and hand-overs done without opening each lead.</span></div></div>
+  <div class="sec-head"><span class="sec-num">The goal</span><h2>What you will build</h2>
+  <p class="sec-sub">One grid of leads, built on the Grid Admin tab. A filter leaves out closed leads. A formula rule paints a lead's row red when it is rated Hot and still not contacted; an arrow marks every Hot rating; Cold ones are gray. Log a call is in each row's menu.</p></div>
+  <figure class="rv">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Lead_Queue</span></div><div class="stage"><div class="card-m">
+      <div class="m-head"><div class="m-ico lead"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Lead Queue</div><div class="m-meta">15 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-chips">Filtered by <span class="m-chip lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Status does not contain Closed</span></div>
+      <table class="mt"><colgroup><col style="width:5%"><col style="width:4%"><col style="width:14%"><col style="width:20%"><col style="width:16%"><col style="width:15%"><col style="width:8%"><col style="width:11%"><col style="width:7%"></colgroup>
+        <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Full Name</th><th class="dd">Company</th><th class="dd">Title</th><th class="dd">Status</th><th class="dd">Rating</th><th class="dd">Lead Source</th><th class="dd">Owner</th></tr></thead>
+        <tbody>
+          <tr><td class="rn">1</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Kristen Akin</td><td>Aethna Home Products</td><td>Director, Warehouse Mgmt</td><td>Working - Contacted</td><td></td><td>Partner Referral</td><td class="lnk">Jenna Rossi</td></tr>
+          <tr><td class="rn">2</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Betty Bair</td><td>American Banking Corp.</td><td>VP, Administration</td><td>Working - Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td></tr>
+          <tr><td class="rn">3</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Bertha Boxer</td><td>Farmers Coop. of Florida</td><td>Director of Vendor Relations</td><td>Working - Contacted</td><td><svg class="m-ia" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Hot</td><td>Web</td><td class="lnk">Jenna Rossi</td></tr>
+          <tr><td class="rn">4</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Mike Braund</td><td>Metropolitan Health Services</td><td>VP, Technology</td><td>Open - Not Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td></tr>
+          <tr><td class="rn">5</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Shelly Brownell</td><td>Western Telecommunications Corp.</td><td>SVP, Technology</td><td>Working - Contacted</td><td></td><td>Partner Referral</td><td class="lnk">Jenna Rossi</td></tr>
+          <tr class="bar red"><td class="rn">6</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Phyllis Cotton</td><td>Abbott Insurance</td><td>CFO</td><td>Open - Not Contacted</td><td><svg class="m-ia" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Hot</td><td>Web</td><td class="lnk">Jenna Rossi</td></tr>
+          <tr><td class="rn">7</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Sandra Eberhard</td><td>Highland Manufacturing Ltd.</td><td>VP, Production</td><td>Working - Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td></tr>
+        </tbody></table>
+    </div></div></div>
+    <figcaption>Phyllis Cotton is rated Hot and nobody has called her yet, so her row is tinted red with a red bar at its left edge. Bertha Boxer is Hot too, but already contacted: only the arrow. Closed leads are left out.</figcaption>
+  </figure>
+</section>
+
+<section id="grid">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>1. The grid</h2>
+  <p class="sec-sub">You need the Rowhouse Grid Admin permission set, and Customize Application to save (see <a href="start.html#access">Give people access</a>).</p></div>
+  <ol class="tut">
+    <li><b>Open the Grid Admin tab.</b> Click the App Launcher, type <span class="v plain">Rowhouse</span>, click the <span class="ui">Rowhouse</span> app, then the <span class="ui">Grid Admin</span> tab, and click <span class="ui">New grid</span>.</li>
+    <li><b>Fill in the Grid tab:</b>
+      <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Grid Title</td><td><span class="v">Lead Queue</span><button class="copy" data-copy="Lead Queue">Copy</button></td></tr>
+        <tr><td>API name</td><td><span class="v">Lead_Queue</span> <span class="note">fills in by itself</span></td></tr>
+        <tr><td>Object</td><td><span class="v">Lead (Lead)</span></td></tr>
+        <tr><td>Sort by</td><td><span class="v">Last Name (LastName)</span></td></tr>
+      </tbody></table></li>
+    <li><b>Add the columns.</b> Click <span class="ui">Columns (1)</span>. <span class="ui">Full Name (Name)</span> is already there. For each row below, click <span class="ui">Add column</span>, choose the field, and select <span class="ui">Edit</span>:
+      <div class="tbox" style="margin-top:10px"><table class="ref">
+        <thead><tr><th>Field</th><th>Edit</th></tr></thead>
+        <tbody>
+          <tr><td class="d">Company (Company)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Title (Title)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Status (Status)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Rating (Rating)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Lead Source (LeadSource)</td><td class="tick">✓</td></tr>
+          <tr><td class="d">Owner ID (OwnerId)</td><td class="tick">✓</td></tr>
+        </tbody></table></div>
+      <div class="check">The Owner ID column's Header box suggests <b>Owner</b>, in gray.</div></li>
+  </ol>
+</section>
+
+<section id="rules">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. A filter and three rules</h2></div>
+  <ol class="tut">
+    <li><b>Leave out closed leads.</b> Click <span class="ui">Filters (0)</span>, then <span class="ui">Add filter</span>:
+      <table class="fields"><tbody>
+        <tr><td>Name</td><td><span class="v">Open leads</span><button class="copy" data-copy="Open leads">Copy</button></td></tr>
+        <tr><td>Field</td><td><span class="v">Status (Status)</span></td></tr>
+        <tr><td>Condition</td><td><span class="v">Does not contain</span></td></tr>
+        <tr><td>Value</td><td><span class="v">Closed</span><button class="copy" data-copy="Closed">Copy</button></td></tr>
+      </tbody></table>
+      <div class="check why">Both closed statuses, Closed - Converted and Closed - Not Converted, contain the word, so neither shows.</div></li>
+    <li><b>Mark the hot leads nobody has called.</b> Click <span class="ui">Display rules (0)</span>, then <span class="ui">Add display rule</span>, and fill in the row:
+      <table class="fields"><tbody>
+        <tr><td>Meaning</td><td><span class="v">Hot, not contacted yet</span><button class="copy" data-copy="Hot, not contacted yet">Copy</button></td></tr>
+        <tr><td>Condition</td><td><span class="v">Formula is true</span> <span class="note">choose it first</span></td></tr>
+        <tr><td>Field</td><td>leave it empty: it says <i>The cell it colors</i>, and a rule on the whole row needs none</td></tr>
+        <tr><td>Value: the box that says <i>Such as Amount__c &gt; Budget__c * 1.1</i></td><td><span class="v">AND(ISPICKVAL(Rating, "Hot"), ISPICKVAL(Status, "Open - Not Contacted"))</span><button class="copy" data-copy="AND(ISPICKVAL(Rating, &quot;Hot&quot;), ISPICKVAL(Status, &quot;Open - Not Contacted&quot;))">Copy</button></td></tr>
+        <tr><td>Look</td><td><span class="v">Red fill</span></td></tr>
+        <tr><td>Applies to</td><td><span class="v">The whole row</span></td></tr>
+      </tbody></table>
+      <div class="check why">A formula rule tests the saved record on the server, with Salesforce's own formula language: here, two fields at once.</div></li>
+    <li><b>Point at every hot lead.</b> Click <span class="ui">Add display rule</span>:
+      <table class="fields"><tbody>
+        <tr><td>Meaning</td><td><span class="v">Hot</span></td></tr>
+        <tr><td>Field</td><td><span class="v">Rating (Rating)</span></td></tr>
+        <tr><td>Condition</td><td><span class="v">Equals</span></td></tr>
+        <tr><td>Value</td><td><span class="v">Hot</span></td></tr>
+        <tr><td>Look</td><td><span class="v">Up arrow</span></td></tr>
+      </tbody></table></li>
+    <li><b>Quiet the cold ones.</b> Click <span class="ui">Add display rule</span> once more: Meaning <span class="v">Cold</span>, Field <span class="v">Rating (Rating)</span>, Condition <span class="v">Equals</span>, Value <span class="v">Cold</span>, Look <span class="v">Gray text</span>.</li>
+  </ol>
+</section>
+
+<section id="action">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>3. Log a call</h2>
+  <p class="sec-sub">Log a Call is a global quick action that every org has. Run on a lead, it records a completed call on the lead's activity timeline.</p></div>
+  <ol class="tut">
+    <li><b>Add the action.</b> Click <span class="ui">Actions (0)</span>, then <span class="ui">Add action</span>, and fill in the row:
+      <table class="fields"><tbody>
+        <tr><td>Label</td><td><span class="v">Log a call</span><button class="copy" data-copy="Log a call">Copy</button> <span class="note">what the menu says</span></td></tr>
+        <tr><td>Type</td><td><span class="v">Quick action</span></td></tr>
+        <tr><td>Runs</td><td><span class="v">LogACall</span><button class="copy" data-copy="LogACall">Copy</button></td></tr>
+        <tr><td>Offered in</td><td><span class="v">Row menu</span></td></tr>
+      </tbody></table></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>. After a few seconds the editor reads the grid back: <span class="ui">Columns (7)</span>, <span class="ui">Display rules (3)</span>, <span class="ui">Filters (1)</span>, <span class="ui">Actions (1)</span>.</li>
+  </ol>
+</section>
+
+<section id="page">
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>4. The page</h2></div>
+  <ol class="tut">
+    <li><b>Create an App page.</b> In Setup, type <span class="v plain">Lightning App Builder</span> in the Quick Find box and click <span class="ui">Lightning App Builder</span>. Click <span class="ui">New</span>, choose <span class="ui">App Page</span>, click <span class="ui">Next</span>, enter the Label <span class="v">Lead Queue</span>, click <span class="ui">Next</span>, choose <span class="ui">One Region</span>, and click <span class="ui">Done</span>.</li>
+    <li><b>Add the grid.</b> Drag <span class="ui">Rowhouse Grid</span> from the <span class="ui">Custom</span> components onto the page, and enter <span class="v">Lead_Queue</span><button class="copy" data-copy="Lead_Queue">Copy</button> in <span class="ui">Grid Configuration</span>.</li>
+    <li><b>Save and activate.</b> Click <span class="ui">Save</span>, then <span class="ui">Activate</span>. On the <span class="ui">Lightning Experience</span> tab, choose <span class="ui">Sales</span>, click <span class="ui">Add page to app</span>, then <span class="ui">Save</span>.</li>
+  </ol>
+</section>
+
+<section id="open">
+  <div class="persona"><span class="avatar d">JR</span><div><b>Now as Jenna</b><span>Jenna has the Rowhouse Grid User permission set.</span></div></div>
+  <div class="sec-head"><span class="sec-num">Use it · Jenna</span><h2>5. Open the queue</h2></div>
+  <ol class="tut">
+    <li><b>Open it.</b> In the Sales app, click <span class="ui">Lead Queue</span>.
+      <div class="check">The open leads by last name, 15 in a new Developer Edition org, and a locked chip <i>Status does not contain Closed</i>. Bertha Boxer's Rating, Hot, has an arrow before it. No row is red: Bertha has been contacted.</div></li>
+    <li><b>See what the marks mean.</b> Click <span class="ui">Display Key</span>: <i>Hot, not contacted yet</i>, <i>Hot</i> and <i>Cold</i>, each with its look. Click it again to close it.</li>
+  </ol>
+</section>
+
+<section id="rate">
+  <div class="sec-head"><span class="sec-num">Use it · Jenna</span><h2>6. Rate a lead</h2>
+  <p class="sec-sub">Phyllis Cotton, the CFO of Abbott Insurance, asked for pricing on the website last night.</p></div>
+  <ol class="tut">
+    <li><b>Rate her Hot.</b> Double-click Phyllis Cotton's <span class="ui">Rating</span> cell and choose <span class="v">Hot</span>.
+      <div class="check">The cell is yellow, an unsaved change, and the Save bar says "1 unsaved change".</div></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span> in the bar at the bottom.
+      <div class="check">"Saved 1 record." An arrow comes before Hot, and Phyllis Cotton's row turns red, with a red bar at its left edge: Hot, and still Open - Not Contacted. A formula rule tests the saved record, so the red comes with Save.</div></li>
+  </ol>
+</section>
+
+<section id="call">
+  <div class="sec-head"><span class="sec-num">Use it · Jenna</span><h2>7. Call it in</h2></div>
+  <ol class="tut">
+    <li><b>Log the call.</b> After calling Phyllis, click the ▾ at the right end of her row and choose <span class="ui">Log a call</span>.
+      <div class="check">A message: "Log a call: done on 1 record." The call is on her activity timeline, marked completed.</div></li>
+    <li><b>Mark her contacted.</b> Double-click her <span class="ui">Status</span> cell, choose <span class="v">Working - Contacted</span>, and click <span class="ui">Save</span> in the bar at the bottom.
+      <div class="check">The red goes; the arrow stays. She is still hot, but no longer waiting.</div></li>
+  </ol>
+</section>
+
+<section id="handover">
+  <div class="sec-head"><span class="sec-num">Use it · Jenna</span><h2>8. Hand leads over</h2>
+  <p class="sec-sub">Two leads in health care and manufacturing go to a colleague who covers those industries.</p></div>
+  <ol class="tut">
+    <li><b>Select them.</b> Select the checkbox at the start of <span class="ui">Mike Braund</span>'s row and of <span class="ui">Jeff Glimpse</span>'s.
+      <div class="check">A bar floats over the top of the grid: "2 selected", with <span class="ui">Update field</span> and <span class="ui">Clear</span>.</div></li>
+    <li><b>Give them a new owner.</b> Click <span class="ui">Update field</span>. In <span class="ui">Field</span>, choose <span class="ui">Owner</span>; in <span class="ui">New Owner</span>, type part of a colleague's name and choose them; then click <span class="ui">Apply</span>.
+      <div class="check">The dialog is headed <b>Change 2 selected rows</b> and names the two leads. Once you click Apply, both Owner cells show your colleague's name, yellow as unsaved changes, and the Save bar says "2 unsaved changes".</div></li>
+    <li><b>Save.</b> Click <span class="ui">Save</span>, then <span class="ui">Clear</span> in the selection bar.
+      <div class="check">The two leads are your colleague's. They stay in the queue, which shows every open lead you can see; to see only your own, filter the Owner column by <span class="ui">Is me</span>.</div></li>
+  </ol>
+</section>
+
+<section id="learned">
+  <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
+  <div class="tiles rv-stagger">
+    <div class="tile rose"><div class="ic">{{ic:formula}}</div><h4>Formula rules</h4><p>Test two fields at once with Salesforce's own formulas, and color the whole row.</p></div>
+    <div class="tile"><div class="ic">{{ic:palette}}</div><h4>Icons and gray</h4><p>Marks that say what a value means, explained in the Display Key.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:bolt}}</div><h4>Log a call</h4><p>A quick action in every row's menu, with no code.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:users}}</div><h4>Hand-overs</h4><p>Update field gives selected leads a new owner, checked before Save.</p></div>
+  </div>
+  <div class="next">
+    <a href="tutorial-assets.html"><small>Previous tutorial</small><b>← The installed base</b></a>
+    <a class="fwd" href="tutorials.html"><small>All tutorials</small><b>Tutorials →</b></a>
+  </div>
+</section>
+
+  </main>
+</div>

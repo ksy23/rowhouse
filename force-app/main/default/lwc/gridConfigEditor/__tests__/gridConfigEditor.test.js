@@ -86,7 +86,14 @@ const DESCRIBED = {
     label: 'Deal',
     labelPlural: 'Deals',
     fields: FIELDS,
-    children: [{ config: 'Deal_Notes', label: 'Deal Notes', fields: ['Deal__c', 'Other_Deal__c'] }]
+    children: [
+        {
+            config: 'Deal_Notes',
+            label: 'Deal Notes',
+            fields: ['Deal__c', 'Other_Deal__c'],
+            fieldLabels: { Deal__c: 'Deal', Other_Deal__c: 'Other Deal' }
+        }
+    ]
 };
 const DRAFT = {
     config: {
@@ -355,6 +362,13 @@ describe('editing', () => {
         change($$(el, '.rh-child-config')[1], 'Deal_Notes');
         await afterCheck();
         expect(lastDraft().children[1]).toMatchObject({ childConfig: 'Deal_Notes', relationshipField: 'Deal__c' });
+    });
+
+    it('names each linking field by its label and API name', async () => {
+        const el = await mount();
+        const options = $(el, '.rh-child-field').options;
+        expect(options.map(o => o.label)).toEqual(['Deal (Deal__c)', 'Other Deal (Other_Deal__c)']);
+        expect(options.map(o => o.value)).toEqual(['Deal__c', 'Other_Deal__c']);
     });
 });
 

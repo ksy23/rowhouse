@@ -668,21 +668,34 @@ public with sharing class GridAdmin {
             } catch (GridException e) {
                 continue;
             }
+            // Lookups a new record can set come first, each group A to Z, so the
+            // editor's first choice is a real link: an Account's Parent Account,
+            // not its Master Record ID, which only a merge fills in.
             List<String> links = new List<String>();
+            List<String> systemLinks = new List<String>();
+            Map<String, String> labels = new Map<String, String>();
             for (Schema.SObjectField f : GridDescribe.fieldsFor(cfg.Object_API_Name__c).values()) {
                 Schema.DescribeFieldResult d = f.getDescribe();
                 if (d.getType() == Schema.DisplayType.REFERENCE && d.getReferenceTo().contains(parentType)) {
-                    links.add(d.getLocalName());
+                    labels.put(d.getLocalName(), d.getLabel());
+                    if (GridSecurity.canSetOnCreate(f)) {
+                        links.add(d.getLocalName());
+                    } else {
+                        systemLinks.add(d.getLocalName());
+                    }
                 }
             }
-            if (!links.isEmpty()) {
+            if (!links.isEmpty() || !systemLinks.isEmpty()) {
                 links.sort();
+                systemLinks.sort();
+                links.addAll(systemLinks);
                 // The child's object too: a child total column's field is chosen from it.
                 out.add(
                     new Map<String, Object>{
                         'config' => cfg.DeveloperName,
                         'label' => cfg.MasterLabel,
                         'fields' => links,
+                        'fieldLabels' => labels,
                         'objectApiName' => GridDescribe.localName(childType)
                     }
                 );

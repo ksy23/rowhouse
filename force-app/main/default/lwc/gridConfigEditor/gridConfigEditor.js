@@ -911,7 +911,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             const configOptions = choices.map(x => ({ value: x.config, label: `${x.label} (${x.config})` }));
             if (c.childConfig && !choice)
                 configOptions.unshift({ value: c.childConfig, label: `${c.childConfig} (no lookup to this object)` });
-            const relationshipOptions = (choice ? choice.fields : []).map(f => ({ value: f, label: f }));
+            const linkLabels = (choice && choice.fieldLabels) || {};
+            const relationshipOptions = (choice ? choice.fields : []).map(f => ({
+                value: f,
+                label: linkLabels[f] ? `${linkLabels[f]} (${f})` : f
+            }));
             if (c.relationshipField && !relationshipOptions.some(o => o.value === c.relationshipField)) {
                 relationshipOptions.unshift({ value: c.relationshipField, label: c.relationshipField });
             }

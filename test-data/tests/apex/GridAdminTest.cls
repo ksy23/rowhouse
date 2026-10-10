@@ -412,9 +412,25 @@ private class GridAdminTest {
             for (Map<String, Object> c : (List<Map<String, Object>>) described.get('children')) {
                 if (c.get('config') == 'Test_Children') {
                     childOffered = ((List<String>) c.get('fields')).contains('Parent__c');
+                    System.assert(
+                        String.isNotBlank(((Map<String, String>) c.get('fieldLabels')).get('Parent__c')),
+                        'Each link comes with its label.'
+                    );
                 }
             }
             System.assert(childOffered, 'Test_Children can be a child table: its Parent__c points here.');
+
+            // An Account grid under an Account: the Parent Account first, the Master Record ID
+            // (which only a merge fills in) after it.
+            for (
+                Map<String, Object> c : (List<Map<String, Object>>) GridAdmin.describeObject('Account').get('children')
+            ) {
+                if (c.get('config') == 'Nest_Accounts') {
+                    List<String> links = (List<String>) c.get('fields');
+                    System.assertEquals('ParentId', links[0], 'A lookup a new record can set comes first.');
+                    System.assert(links.indexOf('MasterRecordId') > 0, 'Master Record ID is offered, after it.');
+                }
+            }
 
             Set<String> configs = new Set<String>();
             for (Map<String, Object> c : GridAdmin.listConfigs()) {

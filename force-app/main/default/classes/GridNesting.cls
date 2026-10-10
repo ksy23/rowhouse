@@ -474,21 +474,31 @@ public with sharing class GridNesting {
                 binds
             )
         ) {
-            out.put((Id) r.get('p'), plain(r.get('v')));
+            out.put((Id) r.get('p'), plain(r.get('v'), t.type));
         }
         return out;
     }
 
     /** A total as the browser reads a row's value: decimal strings, ISO dates, ISO date/times in GMT. */
-    private static Object plain(Object value) {
-        if (value instanceof Decimal) {
-            return ((Decimal) value).toPlainString();
+    /**
+     * A total as the browser reads it: a decimal string, an ISO date, or an
+     * ISO date/time in GMT. Decided by the column's type, not instanceof: a
+     * Date held as an Object is also an instanceof Datetime, so a lowest date
+     * would otherwise arrive as a date/time.
+     */
+    @TestVisible
+    private static Object plain(Object value, String type) {
+        if (value == null) {
+            return null;
         }
-        if (value instanceof Datetime) {
+        if (type == 'date') {
+            return String.valueOf((Date) value);
+        }
+        if (type == 'datetime') {
             return ((Datetime) value).formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'');
         }
-        if (value instanceof Date) {
-            return String.valueOf((Date) value);
+        if (value instanceof Decimal) {
+            return ((Decimal) value).toPlainString();
         }
         return value;
     }

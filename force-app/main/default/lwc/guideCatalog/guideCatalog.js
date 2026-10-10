@@ -110,7 +110,7 @@ export const PAGES = [
     {
         "id": "tutorials",
         "title": "Tutorials",
-        "desc": "Five realistic Rowhouse tutorials: a pipeline review, a service desk triage, key accounts with related records, a contact clean-up with an audit trail, and contacts on an account page.",
+        "desc": "Eight realistic Rowhouse tutorials: a pipeline review, a service desk triage, key accounts with related records, a contact clean-up with an audit trail, contacts on an account page, a group of companies, an installed base, and a lead queue.",
         "section": "tutorials",
         "audience": "all",
         "anchors": []
@@ -204,6 +204,62 @@ export const PAGES = [
             "many",
             "import",
             "log",
+            "learned"
+        ]
+    },
+    {
+        "id": "tutorial-groups",
+        "title": "Tutorial: a group of companies",
+        "desc": "Build a Rowhouse grid of top-level accounts whose rows open into their subsidiaries, linked by Parent Account, with each group's subsidiary count and revenue on the parent row.",
+        "section": "tutorials",
+        "audience": "all",
+        "anchors": [
+            "goal",
+            "child",
+            "parent",
+            "link",
+            "totals",
+            "page",
+            "open",
+            "join",
+            "fill",
+            "learned"
+        ]
+    },
+    {
+        "id": "tutorial-assets",
+        "title": "Tutorial: the installed base",
+        "desc": "Build Rowhouse grids of the assets each customer owns: on the account page, with new assets added as rows, and as a tab under every account, with warranty dates colored and each account's asset count and earliest warranty end on its row.",
+        "section": "tutorials",
+        "audience": "all",
+        "anchors": [
+            "goal",
+            "assets",
+            "rules",
+            "base",
+            "pages",
+            "add",
+            "review",
+            "replace",
+            "learned"
+        ]
+    },
+    {
+        "id": "tutorial-leads",
+        "title": "Tutorial: the morning lead queue",
+        "desc": "Build a Rowhouse grid of open leads that marks hot leads nobody has called in red, logs a call from the row, and hands leads to a colleague in one go.",
+        "section": "tutorials",
+        "audience": "all",
+        "anchors": [
+            "goal",
+            "grid",
+            "rules",
+            "action",
+            "page",
+            "open",
+            "rate",
+            "call",
+            "handover",
             "learned"
         ]
     },

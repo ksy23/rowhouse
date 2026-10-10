@@ -1453,7 +1453,12 @@ public with sharing class GridConfig {
         if (type == 'reference' || type == 'owner') {
             return referenceValue(value, d);
         }
-        if ((type == 'picklist' || type == 'multipicklist') && operator != 'starts_with') {
+        // A picklist's equals, and a multi-select's every test, name whole values. A single
+        // picklist's contains and starts with match part of one, as they do for text.
+        if (
+            (type == 'multipicklist' && operator != 'starts_with') ||
+            (type == 'picklist' && (operator == 'equals' || operator == 'not_equals'))
+        ) {
             return picklistValue(
                 value,
                 d,

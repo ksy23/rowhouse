@@ -364,6 +364,19 @@ private class GridNestingTest {
     }
 
     @IsTest
+    static void aLowestOrHighestDateArrivesAsADate() {
+        // A Date held as an Object is also an instanceof Datetime: the column's type decides.
+        Object lowest = Date.newInstance(2026, 9, 15);
+        System.assertEquals('2026-09-15', GridNesting.plain(lowest, 'date'));
+        System.assertEquals(
+            '2026-09-15T13:30:00.000Z',
+            GridNesting.plain(Datetime.newInstanceGmt(2026, 9, 15, 13, 30, 0), 'datetime')
+        );
+        System.assertEquals('1610000000', GridNesting.plain(Decimal.valueOf('1610000000'), 'currency'));
+        System.assertEquals(null, GridNesting.plain(null, 'date'));
+    }
+
+    @IsTest
     static void aChildTotalThatCannotWorkSaysWhy() {
         System.assertEquals('this grid has no child table named "Nope".', totalRefusal('Nope', 'count', null));
         System.assertEquals(

@@ -33,6 +33,15 @@
     <template lwc:elseif={isTutorialCleanup}>
         <c-guide-page-tutorial-cleanup section={section}></c-guide-page-tutorial-cleanup>
     </template>
+    <template lwc:elseif={isTutorialGroups}>
+        <c-guide-page-tutorial-groups section={section}></c-guide-page-tutorial-groups>
+    </template>
+    <template lwc:elseif={isTutorialAssets}>
+        <c-guide-page-tutorial-assets section={section}></c-guide-page-tutorial-assets>
+    </template>
+    <template lwc:elseif={isTutorialLeads}>
+        <c-guide-page-tutorial-leads section={section}></c-guide-page-tutorial-leads>
+    </template>
     <template lwc:elseif={isReference}>
         <c-guide-page-reference section={section}></c-guide-page-reference>
     </template>

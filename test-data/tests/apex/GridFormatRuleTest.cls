@@ -71,6 +71,11 @@ private class GridFormatRuleTest {
                 check(rule('Picklist_Field__c', 'starts_with', 'Gam', 'bold')).value,
                 'A prefix is not a value of its own, so it is not matched against the list.'
             );
+            System.assertEquals(
+                'Clos',
+                check(rule('Picklist_Field__c', 'not_contains', 'Clos', 'bold')).value,
+                'Nor is part of a value: contains and does not contain match it as text.'
+            );
             System.assertEquals('$User', check(rule('OwnerId', 'equals', '$user', 'bold')).value);
             System.assertEquals(null, check(rule('Text_Field__c', 'is_blank', 'ignored', 'text_grey')).value);
         }
