@@ -47,6 +47,9 @@
     "*.{cls,trigger,js,html,css,yml}": "prettier --write"
   },
   "overrides": {
-    "@babel/core": "^7.29.6"
+    "@babel/core": "^7.29.6",
+    "js-yaml@3": {
+      "argparse": "^2.0.1"
+    }
   }
 }

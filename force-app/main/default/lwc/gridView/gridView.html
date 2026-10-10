@@ -1,5 +1,5 @@
 <template>
-    <article class={articleClass} data-view-root>
+    <article class={articleClass} style={articleStyle} data-view-root>
         <div class={headerClass}>
             <template lwc:if={showBusyBar}>
                 <!-- While rows load, a thin bar sweeps along the top of the grid, so a
@@ -174,6 +174,8 @@
                         icon-name="utility:down"
                         menu-alignment="right"
                         onselect={handleMenuSelect}
+                        onopen={handleActionsOpen}
+                        onclose={handleActionsClose}
                     >
                         <template for:each={menuItems} for:item="m">
                             <lightning-menu-item key={m.key} value={m.value} label={m.label} disabled={m.disabled}></lightning-menu-item>

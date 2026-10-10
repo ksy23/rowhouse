@@ -9,7 +9,7 @@
  * that shows it.
  */
 import { createElement } from 'lwc';
-import GridView, { readLayout, LAYOUT_DELAY_MS, NARROW_WIDTH } from 'c/gridView';
+import GridView, { readLayout, LAYOUT_DELAY_MS, NARROW_WIDTH, MENU_ITEM_HEIGHT, MENU_CHROME } from 'c/gridView';
 import getGridConfig from '@salesforce/apex/GridController.getGridConfig';
 import openGrid from '@salesforce/apex/GridController.openGrid';
 import { openGridFrom } from './openGridFrom';
@@ -417,6 +417,42 @@ describe('starting from the saved layout', () => {
         $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'reset' } }));
         await settle();
         expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Children', parentLink: 'Test_Records_Children' });
+    });
+});
+
+describe("a child table's actions menu", () => {
+    const rect = (el, box) => {
+        el.getBoundingClientRect = () => ({ left: 0, right: 300, width: 300, ...box });
+    };
+
+    it('makes room for the whole menu while it is open, so the panel grows to hold it', async () => {
+        const el = mountChild();
+        await settle();
+        const root = $(el, '[data-view-root]');
+        const menu = $(el, '.rh-actions-menu');
+        rect(root, { top: 100, bottom: 200, height: 100 });
+        rect(menu, { top: 108, bottom: 140, height: 32 });
+        const items = el.shadowRoot.querySelectorAll('lightning-menu-item').length;
+        menu.dispatchEvent(new CustomEvent('open'));
+        await settle();
+        const need = 40 + items * MENU_ITEM_HEIGHT + MENU_CHROME;
+        expect(need).toBeGreaterThan(100);
+        expect(root.style.minHeight).toBe(`${need}px`);
+        menu.dispatchEvent(new CustomEvent('close'));
+        await settle();
+        expect(root.style.minHeight).toBe('');
+    });
+
+    it('adds nothing when the grid is already tall enough', async () => {
+        const el = mountChild();
+        await settle();
+        const root = $(el, '[data-view-root]');
+        const menu = $(el, '.rh-actions-menu');
+        rect(root, { top: 100, bottom: 700, height: 600 });
+        rect(menu, { top: 108, bottom: 140, height: 32 });
+        menu.dispatchEvent(new CustomEvent('open'));
+        await settle();
+        expect(root.style.minHeight).toBe('');
     });
 });
 

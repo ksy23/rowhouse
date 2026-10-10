@@ -284,6 +284,10 @@ export const PLACEHOLDER_ROWS = 6;
 export const LAYOUT_DELAY_MS = 2000;
 /** Sort keys a saved layout may hold: the table's own limit is lower. */
 const MAX_SAVED_SORT = 5;
+/** px: one item of the compact toolbar's menu (lightning-menu-item, measured in Lightning Experience). */
+export const MENU_ITEM_HEIGHT = 34;
+/** px: the menu's gap below its button and its own padding, above and below its items. */
+export const MENU_CHROME = 12;
 /** Columns a user may freeze: as many as an admin may (Frozen Columns, 0 to 5). */
 export const MAX_FROZEN = 5;
 const NO_CHILDREN = [];
@@ -488,6 +492,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
     newRows = [];
     /** A row for the table to focus, { id, seq }: the row New just added. */
     focusRow = null;
+    /**
+     * px: how tall a child table's grid stays while its actions menu is open,
+     * so the menu fits inside the related-records panel (which grows to hold
+     * it) rather than running past the panel's bottom. 0 when closed.
+     */
+    menuRoom = 0;
     /**
      * The picklist values each record type among the rows allows, { [record
      * type Id]: { [field, lower case]: [values] } }, as Salesforce answers
@@ -1233,6 +1243,32 @@ export default class GridView extends NavigationMixin(LightningElement) {
      */
     get articleClass() {
         return this.isNested ? 'rh-app rh-app_nested' : 'slds-card rh-app';
+    }
+
+    get articleStyle() {
+        return this.menuRoom ? `min-height:${this.menuRoom}px` : null;
+    }
+
+    /**
+     * The compact toolbar's menu opened. In a child table, the panel round it
+     * is sized to what it holds, so the grid makes room below for the whole
+     * menu, and the panel grows with it until the menu closes.
+     */
+    handleActionsOpen() {
+        if (!this.isNested) return;
+        const root = this.template.querySelector('[data-view-root]');
+        const menu = this.template.querySelector('.rh-actions-menu');
+        if (!root || !menu) return;
+        const top = root.getBoundingClientRect().top;
+        const need =
+            Math.ceil(menu.getBoundingClientRect().bottom - top) +
+            this.menuItems.length * MENU_ITEM_HEIGHT +
+            MENU_CHROME;
+        this.menuRoom = need > root.getBoundingClientRect().height ? need : 0;
+    }
+
+    handleActionsClose() {
+        if (this.menuRoom) this.menuRoom = 0;
     }
 
     get titleClass() {
