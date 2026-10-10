@@ -1,0 +1,33 @@
+/* The button, and the line under it once the grids are built. */
+.rh-build {
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-build-done:not(:empty) {
+    margin-top: var(--slds-g-spacing-2, 0.5rem);
+    color: var(--slds-g-color-success-base-40, #2e844a);
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-build-cannot {
+    color: var(--slds-g-color-neutral-base-50, #747474);
+}
+
+/* The dialog's list: each grid's title, and what it holds on the line under it. */
+.rh-build-item {
+    margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-build-item-text {
+    display: block;
+    color: var(--slds-g-color-neutral-base-30, #444444);
+}
+
+.rh-build-item_clash .rh-build-item-text {
+    color: var(--slds-g-color-error-base-40, #ba0517);
+}
+
+.rh-build-loading {
+    position: relative;
+    min-height: 4rem;
+}
