@@ -123,6 +123,25 @@ public with sharing class GridDataService {
             }
         }
 
+        // Each amount's currency, in an org with more than one (GridCurrency).
+        for (String given : request.currencyFields) {
+            GridPaths.FieldPath fp = GridPaths.resolve(objectType, given);
+            if (!GridSecurity.canReadPath(fp)) {
+                continue; // the amount is then shown in the user's currency
+            }
+            if (selectedLower.add(fp.soql.toLowerCase())) {
+                selectList.add(fp.soql);
+            }
+            if (!page.selectedFields.contains(fp.local)) {
+                page.selectedFields.add(fp.local);
+            }
+            if (fp.isPath()) {
+                page.paths.put(fp.local, fp);
+                belongs(selectedLower, fp.relationships[0]);
+                belongs(selectedLower, GridDescribe.apiName(fp.hops[0]));
+            }
+        }
+
         // What the grid's formulas read, once, after the columns, by full API
         // names (GridFormulas.qualified), so a column on the same field is not
         // selected twice.

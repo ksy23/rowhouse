@@ -229,7 +229,7 @@ import {
     rowsSharingParents
 } from 'c/gridEditState';
 import { toCsv, downloadCsv } from 'c/gridCsv';
-import { sortRows, picklistRanks } from 'c/gridFormat';
+import { sortRows, picklistRanks, isMixedCurrency } from 'c/gridFormat';
 import { mark } from 'c/gridTiming';
 import {
     emptyHistory,
@@ -1608,9 +1608,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
     handleSortChange(event) {
         this.sort = (event.detail && event.detail.sort) || [];
         // Complete data: the table has already sorted it. Partial data: the loaded
-        // rows are not the right rows for the new order, so ask the server.
-        if (this.hasMore) this.reload();
+        // rows are not the right rows for the new order, so ask the server. So
+        // also for amounts in mixed currencies, which only the server can order.
+        if (this.hasMore || this.sortNeedsServer(this.sort)) this.reload();
         this.rememberLayout();
+    }
+
+    /** Does this sort put amounts in mixed currencies in order? Only the server can. */
+    sortNeedsServer(sort) {
+        const columns = (this.definition && this.definition.columns) || [];
+        return (sort || []).some(k => isMixedCurrency(columns.find(c => c.field === k.field)));
     }
 
     // ============================================================ filters
@@ -3289,7 +3296,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 field: k.field,
                 direction: k.direction,
                 type: c.type,
-                ranks: c.type === 'picklist' ? picklistRanks(c.options) : null
+                ranks: c.type === 'picklist' ? picklistRanks(c.options) : null,
+                mixed: isMixedCurrency(c)
             };
         });
         // The configuration holds only columns this user can read (forUser), and

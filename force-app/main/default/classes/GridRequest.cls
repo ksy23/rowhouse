@@ -45,6 +45,12 @@ public with sharing class GridRequest {
      * a column: never searched, sorted or grouped by.
      */
     public Boolean withRecordType = false;
+    /**
+     * Where each row's currency codes are, in an org with more than one
+     * currency (GridCurrency.fieldsToRead): read and sent with the row. Not
+     * columns: never searched, sorted or grouped by.
+     */
+    public List<String> currencyFields = new List<String>();
 
     public GridRequest(String objectApiName, List<String> fields, String cursorLocator, Integer pageSize) {
         this.objectApiName = objectApiName;

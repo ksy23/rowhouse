@@ -193,7 +193,7 @@ export default class GridMassUpdate extends LightningElement {
         const rows = Array.isArray(this.rows) ? this.rows : [];
         const col = this.nameColumn;
         if (!rows.length || !col) return '';
-        const names = rows.slice(0, NAMED_ROWS).map(r => this.shown(r[col.field], col) || 'a row with no name');
+        const names = rows.slice(0, NAMED_ROWS).map(r => this.shown(r[col.field], col, r) || 'a row with no name');
         const more = Math.max(0, (this.count || rows.length) - names.length);
         if (!more)
             return names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
@@ -207,7 +207,7 @@ export default class GridMassUpdate extends LightningElement {
         if (!c || !rows.length) return '';
         const counts = new Map();
         rows.forEach(r => {
-            const text = this.shown(r[c.field], c) || 'blank';
+            const text = this.shown(r[c.field], c, r) || 'blank';
             counts.set(text, (counts.get(text) || 0) + 1);
         });
         if (counts.size === 1) {
@@ -224,10 +224,10 @@ export default class GridMassUpdate extends LightningElement {
         );
     }
 
-    /** A value as the grid shows it: a lookup by name, anything else formatted. */
-    shown(value, column) {
+    /** A value as the grid shows it on its row: a lookup by name, anything else formatted. */
+    shown(value, column, row = null) {
         if (isBlank(value)) return '';
-        return isLookup(column.type) ? lookupText(value, this.refNames || {}) : formatValue(value, column);
+        return isLookup(column.type) ? lookupText(value, this.refNames || {}) : formatValue(value, column, row);
     }
 
     /** Tall only where a list opens inside the dialog. */

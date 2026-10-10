@@ -221,6 +221,7 @@ public with sharing class GridController {
         request.narrowedBy(GridFilters.forRequest(def, filters, recordId, scope != null));
         request.reading(def.formulaPaths());
         request.withRecordType = def.byRecordType == true;
+        request.currencyFields = GridCurrency.fieldsToRead(def.columns);
         request.withSearch(searchTerm);
         request.withCursor(cursorToken);
         request.groupedBy(GridGroupService.fields(GridGroupService.levels(def, groupBy)));
@@ -284,6 +285,7 @@ public with sharing class GridController {
             request.onlyIds(recordIds);
             request.reading(def.formulaPaths());
             request.withRecordType = def.byRecordType == true;
+            request.currencyFields = GridCurrency.fieldsToRead(def.columns);
             return toClientRows(GridDataService.fetchPage(request), def);
         } catch (Exception e) {
             throw auraError(e);

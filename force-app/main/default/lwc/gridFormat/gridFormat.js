@@ -155,8 +155,12 @@ export function formatCount(n) {
  * TC-003: zero renders as "0" (or "0.00" when the field has scale 2), never blank.
  * TC-022: negatives follow the locale.
  * TC-025: Salesforce stores 50 for 50% — displayed as "50%", never multiplied.
+ *
+ * A currency shows the user's currency by its symbol ("$78,250.00"), or,
+ * with byCode, the given currency by its ISO code ("USD 78,250.00"): in an
+ * org with more than one currency, as Salesforce shows an amount there.
  */
-export function formatNumber(value, { type = 'number', scale, currencyCode } = {}) {
+export function formatNumber(value, { type = 'number', scale, currencyCode, byCode = false } = {}) {
     if (isBlank(value)) return '';
     const hasScale = Number.isInteger(scale);
     // Round the decimal digits first (TC-023); the formatter then only lays
@@ -175,20 +179,63 @@ export function formatNumber(value, { type = 'number', scale, currencyCode } = {
         : { maximumFractionDigits: 6 };
     if (type === 'currency') {
         const currency = currencyCode || CURRENCY;
-        return formatter(
-            'currency|' + currency + '|' + (hasScale ? scale : ''),
-            () =>
-                new Intl.NumberFormat(LOCALE, {
-                    style: 'currency',
-                    currency,
-                    ...(hasScale ? options : {})
-                })
-        ).format(safe);
+        const display = byCode ? 'code' : 'symbol';
+        try {
+            return formatter(
+                'currency|' + currency + '|' + display + '|' + (hasScale ? scale : ''),
+                () =>
+                    new Intl.NumberFormat(LOCALE, {
+                        style: 'currency',
+                        currency,
+                        currencyDisplay: display,
+                        ...(hasScale ? options : {})
+                    })
+            )
+                .format(safe)
+                .replace(/\u00a0/g, ' ');
+        } catch {
+            // A code the browser does not know as a currency: shown before the number.
+            return (
+                currency +
+                ' ' +
+                formatter('number|' + (hasScale ? scale : ''), () => new Intl.NumberFormat(LOCALE, options)).format(
+                    safe
+                )
+            );
+        }
     }
     const text = formatter('number|' + (hasScale ? scale : ''), () => new Intl.NumberFormat(LOCALE, options)).format(
         safe
     );
     return type === 'percent' ? text + '%' : text;
+}
+
+/**
+ * The currency a currency column's value is in, for a row:
+ * { code, byCode }. In an org with more than one currency the server names,
+ * per column, where each row carries its record's currency (currencyField,
+ * such as 'CurrencyIsoCode' or 'Account.CurrencyIsoCode') or the one
+ * currency every value is in (currencyCode, a child total's); the amount is
+ * then shown by that code. A row that does not carry it (a new row, not yet
+ * saved) is in the user's currency, as Salesforce creates it. Otherwise the
+ * user's currency, by its symbol.
+ */
+export function currencyFor(column = {}, row = null) {
+    const byCode = Boolean(column.currencyField || column.currencyCode);
+    const own = row && column.currencyField ? row[column.currencyField] : null;
+    return { code: (isBlank(own) ? null : String(own)) || column.currencyCode || CURRENCY, byCode };
+}
+
+/**
+ * A column's Total row and subtotals, in an org with more than one
+ * currency, are in the corporate currency (totalCurrency): the column as
+ * formatValue should treat a total of it, shown by that code, or as the
+ * number alone when the corporate currency could not be read. Unchanged in
+ * an org with one currency.
+ */
+export function totalColumn(column = {}) {
+    if (!column.currencyField && !column.currencyCode) return column;
+    return { ...column, currencyField: null, currencyCode: column.totalCurrency || null, byCodeOnly: true };
 }
 
 // ------------------------------------------------------------------ dates
@@ -278,9 +325,10 @@ export function safeHref(value) {
 
 /**
  * The text a cell shows for a value. Returns a string; never throws.
- * options: { type, scale, options (picklist values), currencyCode }
+ * column: { type, scale, options (picklist values), currencyField, currencyCode };
+ * row: the record the value is from, for the currency it is in (currencyFor).
  */
-export function formatValue(value, column = {}) {
+export function formatValue(value, column = {}, row = null) {
     const type = column.type || 'text';
     if (isBlank(value)) return '';
     switch (type) {
@@ -289,8 +337,13 @@ export function formatValue(value, column = {}) {
         case 'integer':
         case 'long':
             return formatNumber(value, { type: 'number', scale: column.scale });
-        case 'currency':
-            return formatNumber(value, { type: 'currency', scale: column.scale, currencyCode: column.currencyCode });
+        case 'currency': {
+            // A total whose currency could not be read: the number alone, never a wrong code.
+            if (column.byCodeOnly && !column.currencyCode)
+                return formatNumber(value, { type: 'number', scale: column.scale });
+            const { code, byCode } = currencyFor(column, row);
+            return formatNumber(value, { type: 'currency', scale: column.scale, currencyCode: code, byCode });
+        }
         case 'percent':
             return formatNumber(value, { type: 'percent', scale: column.scale });
         case 'date':
@@ -417,11 +470,23 @@ export function compareValues(a, b, type = 'text', direction = 'asc', ranks = nu
 }
 
 /**
+ * Amounts in different currencies, in an org with more than one: a column
+ * whose rows each carry their own currency. Their numbers cannot be
+ * compared in the browser, which has no exchange rates; the server sorts
+ * them as Salesforce does, by the amount converted to the corporate currency.
+ */
+export function isMixedCurrency(column) {
+    return Boolean(column && column.type === 'currency' && column.currencyField);
+}
+
+/**
  * A stable, deterministic multi-key sort that returns a NEW array. Ties fall
  * back to the key field so two runs over the same data always agree (TC-047/048).
+ * A key on amounts in mixed currencies (`mixed`) keeps the rows in the
+ * order they came in: the server's, by converted amount.
  *
  * @param {Array<object>} rows
- * @param {Array<{field,type,direction,names?,ranks?}>} keys  primary first
+ * @param {Array<{field,type,direction,names?,ranks?,mixed?}>} keys  primary first
  * @param {string} keyField
  */
 export function sortRows(rows, keys, keyField = 'Id') {
@@ -430,8 +495,10 @@ export function sortRows(rows, keys, keyField = 'Id') {
     // { [recordId]: name } for keys on a lookup or owner column.
     const valueOf = (row, k) =>
         k.names && !isBlank(row[k.field]) ? k.names[row[k.field]] || row[k.field] : row[k.field];
+    const position = keys.some(k => k.mixed) ? new Map(rows.map((r, i) => [r, i])) : null;
     return rows.slice().sort((r1, r2) => {
         for (const k of keys) {
+            if (k.mixed) return position.get(r1) - position.get(r2);
             const c = compareValues(valueOf(r1, k), valueOf(r2, k), k.type, k.direction, k.ranks || null);
             if (c !== 0) return c;
         }

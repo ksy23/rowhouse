@@ -18,6 +18,24 @@ describe('number cell', () => {
         const el = mount({ value: -1234.56, type: 'currency', scale: 2 });
         expect(el.shadowRoot.textContent).toMatch(/-\$1,234\.56|\(\$1,234\.56\)/);
     });
+    it("in an org with more than one currency, shows the record's currency by its code and takes a plain number", async () => {
+        const shown = mount({ value: 1000, type: 'currency', scale: 2, currencyCode: 'CAD' });
+        expect(shown.shadowRoot.textContent).toBe('CAD 1,000.00');
+        const edit = mount({
+            value: 1000,
+            mode: 'edit',
+            label: 'Amount',
+            type: 'currency',
+            scale: 2,
+            currencyCode: 'CAD'
+        });
+        await flush();
+        // The input's currency format would show the user's currency instead.
+        expect(edit.shadowRoot.querySelector('lightning-input').formatter).toBe('decimal');
+        const plain = mount({ value: 1000, mode: 'edit', label: 'Amount', type: 'currency', scale: 2 });
+        await flush();
+        expect(plain.shadowRoot.querySelector('lightning-input').formatter).toBe('currency');
+    });
     it('TC-026 accepts a grouped entry on commit', async () => {
         const el = mount({ value: 1, mode: 'edit', label: 'Amount', type: 'currency', scale: 2 });
         await flush();

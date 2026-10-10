@@ -212,7 +212,7 @@
                                                         <c-cell-text data-editor mode="edit" value={f.editValue} type={f.editType} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-text>
                                                     </template>
                                                     <template lwc:if={f.editorNumber}>
-                                                        <c-cell-number data-editor mode="edit" value={f.editValue} type={f.editType} scale={f.scale} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-number>
+                                                        <c-cell-number data-editor mode="edit" value={f.editValue} type={f.editType} scale={f.scale} currency-code={f.currencyCode} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-number>
                                                     </template>
                                                     <template lwc:if={f.editorDate}>
                                                         <c-cell-date data-editor mode="edit" value={f.editValue} label={f.editorLabel} required={f.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-date>
@@ -849,7 +849,7 @@
                                                             <c-cell-text data-editor mode="edit" value={cell.editValue} seed={cell.editSeed} type={cell.editType} label={cell.editorLabel} required={cell.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-text>
                                                         </template>
                                                         <template lwc:if={cell.editorNumber}>
-                                                            <c-cell-number data-editor mode="edit" value={cell.editValue} seed={cell.editSeed} type={cell.editType} scale={cell.scale} label={cell.editorLabel} required={cell.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-number>
+                                                            <c-cell-number data-editor mode="edit" value={cell.editValue} seed={cell.editSeed} type={cell.editType} scale={cell.scale} currency-code={cell.currencyCode} label={cell.editorLabel} required={cell.required} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-number>
                                                         </template>
                                                         <template lwc:if={cell.editorDate}>
                                                             <c-cell-date data-editor mode="edit" value={cell.editValue} label={cell.editorLabel} required={cell.required} dropdown-align={cell.dropdownAlign} dropdown-up={cell.dropdownUp} oncommit={handleEditorCommit} oncancel={handleEditorCancel}></c-cell-date>

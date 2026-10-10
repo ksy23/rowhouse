@@ -52,6 +52,10 @@ w(
 w('force-app/main/default/lwc/gridKeyboard/gridKeyboard.js', 'export default (Base) => class extends Base {};'); // HR-25
 w('force-app/main/default/lwc/cellText/cellText.js', "import GridTable from 'c/gridTable';"); // HR-27
 w(
+    'force-app/main/default/lwc/badSum/badSum.js',
+    '/* BigInt in a comment is fine */\nexport const total = BigInt(1) + 2n;'
+); // HR-23
+w(
     'force-app/main/default/lwc/badSlot/badSlot.html',
     '<template><table><tbody><slot></slot></tbody></table></template>'
 ); // HR-22
@@ -84,6 +88,7 @@ const expected = [
     'HR-15',
     'HR-19',
     'HR-22',
+    'HR-23',
     'HR-25',
     'HR-26',
     'HR-27',

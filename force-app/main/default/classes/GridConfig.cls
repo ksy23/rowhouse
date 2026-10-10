@@ -312,6 +312,19 @@ public with sharing class GridConfig {
         /** A child total column: worked out on the server, read only; field is _ct_ and its API name. */
         @AuraEnabled
         public Boolean isChildTotal = false;
+        /**
+         * In an org with more than one currency (GridCurrency): where each row
+         * carries the currency its amount is in, 'CurrencyIsoCode' or
+         * 'Account.CurrencyIsoCode'; null otherwise.
+         */
+        @AuraEnabled
+        public String currencyField;
+        /** In an org with more than one currency: the one currency every value is in (a child total's). */
+        @AuraEnabled
+        public String currencyCode;
+        /** In an org with more than one currency: the corporate currency, which the Total row and subtotals are in. */
+        @AuraEnabled
+        public String totalCurrency;
         /** What a child total column totals. Never sent. */
         public GridNesting.ChildTotal childTotal;
         /**
@@ -1680,6 +1693,7 @@ public with sharing class GridConfig {
         }
         def.columns = visible;
         def.byRecordType = byRecordType(objectType, visible);
+        GridCurrency.describe(objectType, visible);
         // The default grouping keeps only columns this user can group by.
         Set<String> groupable = new Set<String>();
         for (Column c : visible) {

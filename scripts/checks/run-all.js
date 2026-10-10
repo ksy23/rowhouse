@@ -244,6 +244,16 @@ cellDirs.forEach(dir =>
     })
 );
 
+// ---------------------------------------------------------------- HR-23
+// Lightning Locker has no BigInt (nor BigInt literals such as 10n): the code
+// that used one threw as soon as it ran in an org with Locker. Tests may use
+// it to check our own arithmetic; the components may not.
+files(lwcDir, p => p.endsWith('.js') && !p.endsWith('.test.js')).forEach(f => {
+    eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /\bBigInt\b|\b\d+n\b/, (n, l) =>
+        fail('HR-23', f, n, 'BigInt is not available under Lightning Locker: ' + l)
+    );
+});
+
 // ------------------------------------------------------- HR-19 and HR-22
 checkTemplates(files(lwcDir, p => p.endsWith('.html'))).forEach(v => fail(v.rule, v.file, v.line, v.message));
 
@@ -336,5 +346,5 @@ if (violations.length) {
     process.exit(1);
 }
 console.log(
-    `Static gates passed: HR-1, HR-2, HR-3, HR-5, HR-8, HR-9, HR-15, HR-19, HR-22, HR-25, HR-26, HR-27, system-mode (${apexFiles.length} Apex files, ${cellDirs.length} cell editors), the Grid Guide matches its pages (${guideFiles} files), no scheduled class names another (${scheduled.size} scheduled), and every development-only component says so (${devOnlyFiles} files).`
+    `Static gates passed: HR-1, HR-2, HR-3, HR-5, HR-8, HR-9, HR-15, HR-19, HR-22, HR-23, HR-25, HR-26, HR-27, system-mode (${apexFiles.length} Apex files, ${cellDirs.length} cell editors), the Grid Guide matches its pages (${guideFiles} files), no scheduled class names another (${scheduled.size} scheduled), and every development-only component says so (${devOnlyFiles} files).`
 );

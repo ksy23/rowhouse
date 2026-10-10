@@ -412,6 +412,61 @@ describe('subtotals', () => {
         expect(addDecimal(null, null)).toBe(null);
     });
 
+    it('add decimals of mixed signs and places, with no negative zero', () => {
+        expect(addDecimal('-1', '1')).toBe('0');
+        expect(addDecimal('-0.50', '0.5')).toBe('0.00');
+        expect(addDecimal('-0.00', '0')).toBe('0.00');
+        expect(addDecimal('1', '-1.005')).toBe('-0.005');
+        expect(addDecimal('-12.3', '-0.07')).toBe('-12.37');
+        expect(addDecimal('+5', '0.25')).toBe('5.25');
+        expect(addDecimal('100', '-99.99')).toBe('0.01');
+        expect(addDecimal('0001.10', '2')).toBe('3.10');
+        expect(addDecimal('-123456789012345678901234567890.12', '123456789012345678901234567890.13')).toBe('0.01');
+    });
+
+    it('add decimals the same as exact integer arithmetic (checked against BigInt, which Locker lacks)', () => {
+        // A fixed pseudo-random sequence, so a failure can be reproduced.
+        let seed = 12345;
+        const next = n => {
+            seed = (seed * 48271) % 2147483647;
+            return seed % n;
+        };
+        const decimal = () => {
+            const whole = String(next(10 ** next(9)));
+            const places = next(4);
+            const frac = places ? '.' + String(next(10 ** places)).padStart(places, '0') : '';
+            return (next(2) ? '-' : '') + whole + frac;
+        };
+        const exact = (a, b) => {
+            const scale = Math.max(...[a, b].map(s => (s.includes('.') ? s.split('.')[1].length : 0)));
+            const big = s => {
+                const [w, f = ''] = s.replace('-', '').split('.');
+                const n = BigInt(w + f.padEnd(scale, '0'));
+                return s.startsWith('-') ? -n : n;
+            };
+            const sum = big(a) + big(b);
+            let text = (sum < 0 ? -sum : sum).toString().padStart(scale + 1, '0');
+            if (scale) text = text.slice(0, -scale) + '.' + text.slice(-scale);
+            return (sum < 0 ? '-' : '') + text;
+        };
+        for (let i = 0; i < 2000; i++) {
+            const a = decimal();
+            const b = decimal();
+            expect(addDecimal(a, b)).toBe(exact(a, b));
+        }
+    });
+
+    it('do not use BigInt, which Lightning Locker does not provide', () => {
+        const saved = global.BigInt;
+        try {
+            delete global.BigInt;
+            expect(addDecimal('999999999999999999.99', '0.01')).toBe('1000000000000000000.00');
+            expect(addDecimal('-2', '1.5')).toBe('-0.5');
+        } finally {
+            global.BigInt = saved;
+        }
+    });
+
     it('roll the deepest groups up into every level and the Total, slices merging', () => {
         const levels = [
             { field: 'Stage__c', unit: null },

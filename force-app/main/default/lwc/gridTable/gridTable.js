@@ -246,7 +246,17 @@ import { LightningElement, api } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import tableTemplate from './gridTable.html';
 import { nextPosition, actionFor, isNavigationKey, MODE_NAVIGATION, MODE_ACTION } from 'c/gridKeyboard';
-import { formatValue, formatCount, safeHref, sortRows, alignmentFor, isBlank, picklistRanks } from 'c/gridFormat';
+import {
+    formatValue,
+    formatCount,
+    safeHref,
+    sortRows,
+    alignmentFor,
+    isBlank,
+    picklistRanks,
+    currencyFor,
+    isMixedCurrency
+} from 'c/gridFormat';
 import { mark, measure, afterPaint } from 'c/gridTiming';
 import { copyText, toTsv, parseTsv, parseCell, pastePlan, MAX_PASTE_CELLS } from 'c/gridClipboard';
 import {
@@ -1104,7 +1114,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const names = this._config.refNames || {};
         if (!first || !row) return '';
         const value = row[first.field];
-        return isLookup(first.type) ? lookupText(value, names) : formatValue(value, first);
+        return isLookup(first.type) ? lookupText(value, names) : formatValue(value, first, row);
     }
 
     handleExpandClick(event) {
@@ -1550,7 +1560,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
                     ...k,
                     type,
                     names: isLookup(type) ? names || {} : undefined,
-                    ranks: type === 'picklist' ? this.ranksOf(column) : null
+                    ranks: type === 'picklist' ? this.ranksOf(column) : null,
+                    // Amounts in mixed currencies stay in the server's order.
+                    mixed: isMixedCurrency(column)
                 };
             });
         const sorted = keys.length ? sortRows(rows, keys, this.keyField) : rows;
@@ -2604,11 +2616,15 @@ export default class GridTable extends NavigationMixin(LightningElement) {
 
     /**
      * A subtotal in words: "Sum of Amount: $150.00", with its share of the
-     * whole list's, and that it includes unsaved changes, or will be
-     * worked out again when they are saved.
+     * whole list's, the currency it was converted to in an org with more
+     * than one, and that it includes unsaved changes, or will be worked out
+     * again when they are saved.
      */
     subtotalSpoken(sub, c, h, share) {
         let text = `${SUBTOTAL_NAMES[sub.kind]} of ${c.label || c.field}: ${sub.text}`;
+        // In an org with more than one currency, a total converts every amount.
+        if (sub.kind !== 'count' && c.type === 'currency' && (c.currencyField || c.currencyCode))
+            text += ` (every amount converted to ${c.totalCurrency ? c.totalCurrency + ', ' : ''}the corporate currency)`;
         if (share) text += `, ${share} of the total`;
         if (h && h.unknown && h.unknown[c.field]) text += ' (as saved; updated when your changes are saved)';
         else if (h && h.edited && h.edited[c.field]) text += ' (with your unsaved changes)';
@@ -2740,7 +2756,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const error = fieldErrors[c.field];
         const names = layout.names || {};
         const lookup = isLookup(c.type);
-        const text = lookup ? lookupText(value, names) : formatValue(value, c);
+        const text = lookup ? lookupText(value, names) : formatValue(value, c, row);
         const isCheckbox = c.type === 'checkbox' || c.type === 'boolean';
         const link = this.linkFor(c, id, value);
         const isEditing = Boolean(this.editing && this.editing.rowId === id && this.editing.field === c.field);
@@ -2855,6 +2871,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             editSeed: isEditing ? this.editing.seed : undefined,
             editType: c.type,
             scale: c.scale,
+            // In an org with more than one currency, the record's own currency.
+            currencyCode: c.type === 'currency' && currencyFor(c, row).byCode ? currencyFor(c, row).code : null,
             // A dependent picklist offers only the values its controlling value
             // allows, and any picklist only those the row's record type allows.
             options: isEditing ? this.editorOptions(c, row, rowDrafts, value) : c.options || [],
@@ -5634,7 +5652,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const label = c.label || c.field;
         const names = this._config.refNames || {};
         const lookup = isLookup(c.type);
-        const text = lookup ? lookupText(value, names) : formatValue(value, c);
+        const text = lookup ? lookupText(value, names) : formatValue(value, c, row);
         const isCheckbox = c.type === 'checkbox' || c.type === 'boolean';
         const link = this.linkFor(c, id, value);
         const editable = this.canEditCell(c, id);
@@ -5695,6 +5713,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             editSeed: undefined,
             editType: c.type,
             scale: c.scale,
+            currencyCode: c.type === 'currency' && currencyFor(c, row).byCode ? currencyFor(c, row).code : null,
             options: isEditing ? this.editorOptions(c, row, rowDrafts, value) : c.options || [],
             dependentOn: c.dependentOn || null,
             required: Boolean(c.required),

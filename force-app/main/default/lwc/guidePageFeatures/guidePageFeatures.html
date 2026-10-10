@@ -21,6 +21,7 @@
             <a href="#layout" data-anchor-link="layout">Each user's layout</a>
             <a href="#numbers" data-anchor-link="numbers">Row numbers</a>
             <a href="#group" data-anchor-link="group">Grouping and subtotals</a>
+            <a href="#currency" data-anchor-link="currency">More than one currency</a>
             <a href="#child" data-anchor-link="child">Child tables</a>
             <a href="#actions" data-anchor-link="actions">Actions</a>
             <a href="#import" data-anchor-link="import">Import</a>
@@ -250,6 +251,18 @@
               <p class="rh-note">Up to 5,000 groups. Beyond that, group a date by month or year, or search to narrow the list.</p>
             </div>
           </div>
+        </section>
+
+        <section id="currency" data-anchor="currency">
+          <div class="rh-sec-head"><span class="rh-sec-num">Feature</span><h2>More than one currency</h2>
+          <p class="rh-sec-sub">In an org that uses more than one currency, each record has a currency of its own, and the grid shows its amounts the way Salesforce does. Nothing needs setting up.</p></div>
+          <ul class="rh-tick">
+            <li><b>Each amount in its record's currency,</b> by its code: <span class="rh-v rh-plain">USD 78,250.00</span> on one row, <span class="rh-v rh-plain">CAD 1,000.00</span> on the next. A field from a parent record, such as the account's Annual Revenue, is in the parent's currency. A new row is in your own currency until it is saved, as Salesforce creates it.</li>
+            <li><b>The Total row, subtotals and child totals</b> are in your org's corporate currency, each record's amount converted at your org's exchange rates, and say so: <span class="rh-v rh-plain">Sum USD 80,113.86</span>, read out as "every amount converted to USD, the corporate currency".</li>
+            <li><b>An unsaved change in another currency</b> is not added into a subtotal until it is saved, because the grid does not have the exchange rates; the figure keeps its saved value and is marked as changed. A change in the corporate currency shows straight away.</li>
+            <li><b>Sorting by an amount</b> orders the rows by the amount converted to the corporate currency, as Salesforce sorts them, so the grid asks Salesforce for the rows in that order.</li>
+            <li><b>Filters and display rules</b> compare the number as it is stored, in each record's own currency: <span class="rh-v rh-plain">Greater than 50000</span> matches 50,001 dollars and 50,001 yen alike.</li>
+          </ul>
         </section>
 
         <section id="child" data-anchor="child">

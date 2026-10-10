@@ -205,7 +205,8 @@ The parser silently hoists it out of the table. Open since 2018. Columns are pro
 
 **HR-23. Assume Lightning Locker, not LWS. Feature-detect both observers with a scroll fallback.**  
 `ResizeObserver` and `IntersectionObserver` appear nowhere in the Locker bundle, and Salesforce's own `lightning/resizeObserver` ships exactly this fallback. LWS is default only for orgs created in Winter '23 or later, cannot be enabled per component, and a package cannot force it.  
-*Enforced by:* Jest (the window-resize fallback); a test org with Lightning Web Security off.
+Locker also has no `BigInt`, so exact decimal sums are done on digit strings.  
+*Enforced by:* Jest (the window-resize fallback); `scripts/checks/run-all.js` (no `BigInt` in components); a test org with Lightning Web Security off.
 
 **HR-24. Never pass `<html>`, `<head>` or `<body>` as an observer target or as `IntersectionObserver`'s `root`.**  
 LWS throws `LockerSecurityError` on shared elements. Observe our own scroll container, or omit `root` entirely. Observing our own subtree is otherwise undistorted.  

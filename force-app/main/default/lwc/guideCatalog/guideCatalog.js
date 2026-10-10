@@ -74,6 +74,7 @@ export const PAGES = [
             "layout",
             "numbers",
             "group",
+            "currency",
             "child",
             "actions",
             "import",

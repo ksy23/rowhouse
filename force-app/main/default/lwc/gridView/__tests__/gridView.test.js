@@ -391,6 +391,25 @@ describe('search and sort', () => {
         expect(fetchRows).not.toHaveBeenCalled();
     });
 
+    it('asks the server for amounts in mixed currencies, which only it can order, even with every row loaded', async () => {
+        const amount = { field: 'Amount__c', label: 'Amount', type: 'currency', sortable: true, scale: 2 };
+        getGridConfig.mockResolvedValue({
+            definition: {
+                ...DEFINITION,
+                columns: [...DEFINITION.columns, { ...amount, currencyField: 'CurrencyIsoCode' }]
+            },
+            diagnostics: false
+        });
+        const el = mount();
+        await settle();
+        fetchRows.mockClear();
+        table(el).dispatchEvent(
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Amount__c', direction: 'desc' }] } })
+        );
+        await settle();
+        expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Amount__c', sortDirection: 'desc' });
+    });
+
     it('asks the server when the view is truncated, because the loaded rows are the wrong rows', async () => {
         fetchRows.mockResolvedValue(page([row(1)], { hasMore: true, locator: 'fp:1', total: 50000 }));
         const el = mount();

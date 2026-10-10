@@ -595,7 +595,8 @@ export default class GridImportDialog extends LightningElement {
         const fields = this.plan.mapping.fields.map(f => f.column);
         const names = this.allNames;
         const loaded = new Map((this.rows || []).map(r => [String(r.Id).slice(0, 15), r]));
-        const shown = (value, c) => (isLookup(c.type) ? lookupText(value, names) : formatValue(value, c));
+        // An amount is in its record's currency: the loaded row's, or a new record's own.
+        const shown = (value, c, row) => (isLookup(c.type) ? lookupText(value, names) : formatValue(value, c, row));
         return this.plan.items
             .filter(item => !item.errors.length)
             .slice(0, PREVIEW_ROWS)
@@ -607,8 +608,8 @@ export default class GridImportDialog extends LightningElement {
                     action:
                         item.action === 'update' ? 'Update' : item.action === 'match' ? 'Update or create' : 'Create',
                     cells: fields.map(c => {
-                        const text = shown(item.values[c.field], c);
-                        const old = before ? shown(before[c.field], c) : null;
+                        const text = shown(item.values[c.field], c, before || item.values);
+                        const old = before ? shown(before[c.field], c, before) : null;
                         const changed = before !== null && old !== text;
                         return {
                             key: c.field,

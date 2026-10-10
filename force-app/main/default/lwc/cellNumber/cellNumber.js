@@ -24,6 +24,12 @@ export default class CellNumber extends LightningElement {
     @api label = '';
     @api type = 'number'; // number | currency | percent
     @api scale;
+    /**
+     * In an org with more than one currency, the record's currency: shown by
+     * its code, and typed as a plain number (the input's currency format
+     * would show the user's currency instead).
+     */
+    @api currencyCode;
     @api required = false;
     /** The character the user typed on the cell to start editing. */
     @api seed;
@@ -52,11 +58,16 @@ export default class CellNumber extends LightningElement {
     }
 
     get text() {
-        return formatNumber(this.value, { type: this.type, scale: this.scale });
+        return formatNumber(this.value, {
+            type: this.type,
+            scale: this.scale,
+            currencyCode: this.currencyCode || undefined,
+            byCode: Boolean(this.currencyCode)
+        });
     }
 
     get formatter() {
-        if (this.type === 'currency') return 'currency';
+        if (this.type === 'currency') return this.currencyCode ? 'decimal' : 'currency';
         if (this.type === 'percent') return 'percent-fixed';
         return 'decimal';
     }

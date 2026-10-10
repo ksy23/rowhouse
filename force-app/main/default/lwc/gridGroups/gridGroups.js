@@ -57,7 +57,8 @@ import {
     isBlank,
     isNumericType,
     formatValue,
-    formatNumber,
+    totalColumn,
+    currencyFor,
     formatDate,
     formatCount,
     picklistLabel,
@@ -524,11 +525,56 @@ function fraction(s) {
     return i < 0 ? 0 : s.length - i - 1;
 }
 
-function scaled(s, digits) {
+/*
+ * Exact decimal arithmetic on digit strings. BigInt would be shorter, but
+ * Lightning Locker does not provide it, and Rowhouse runs under Locker too.
+ * A decimal string becomes { negative, digits }: its digits with the point
+ * removed after padding the fraction to `scale` places, leading zeros dropped
+ * ('' is zero).
+ */
+function scaled(s, scale) {
     const negative = s.startsWith('-');
     const [whole, frac = ''] = s.replace(/^[-+]/, '').split('.');
-    const n = BigInt(whole + frac.padEnd(digits, '0'));
-    return negative ? -n : n;
+    const digits = (whole + frac.padEnd(scale, '0')).replace(/^0+/, '');
+    return { negative: negative && digits !== '', digits };
+}
+
+/** Compare two digit strings without leading zeros, by size. */
+function compareDigits(a, b) {
+    if (a.length !== b.length) return a.length < b.length ? -1 : 1;
+    return a === b ? 0 : a < b ? -1 : 1;
+}
+
+/** a + b, both digit strings. */
+function addDigits(a, b) {
+    let out = '';
+    let carry = 0;
+    for (let i = a.length - 1, j = b.length - 1; i >= 0 || j >= 0 || carry; i--, j--) {
+        const d = (i >= 0 ? a.charCodeAt(i) - 48 : 0) + (j >= 0 ? b.charCodeAt(j) - 48 : 0) + carry;
+        out = (d % 10) + out;
+        carry = d >= 10 ? 1 : 0;
+    }
+    return out.replace(/^0+/, '');
+}
+
+/** a - b, both digit strings, a not smaller than b. */
+function subtractDigits(a, b) {
+    let out = '';
+    let borrow = 0;
+    for (let i = a.length - 1, j = b.length - 1; i >= 0; i--, j--) {
+        let d = a.charCodeAt(i) - 48 - (j >= 0 ? b.charCodeAt(j) - 48 : 0) - borrow;
+        borrow = d < 0 ? 1 : 0;
+        if (d < 0) d += 10;
+        out = d + out;
+    }
+    return out.replace(/^0+/, '');
+}
+
+/** Two signed scaled values compared by number. */
+function compareScaled(x, y) {
+    if (x.negative !== y.negative) return x.negative ? -1 : 1;
+    const c = compareDigits(x.digits, y.digits);
+    return x.negative ? -c : c;
 }
 
 /** a + b, exactly, for decimal strings such as the server sends. */
@@ -538,11 +584,22 @@ export function addDecimal(a, b) {
     const x = String(a).trim();
     const y = String(b).trim();
     if (!DECIMAL_RE.test(x) || !DECIMAL_RE.test(y)) return String(Number(x) + Number(y));
-    const digits = Math.max(fraction(x), fraction(y));
-    const sum = scaled(x, digits) + scaled(y, digits);
-    const negative = sum < 0;
-    let text = (negative ? -sum : sum).toString().padStart(digits + 1, '0');
-    if (digits) text = text.slice(0, -digits) + '.' + text.slice(-digits);
+    const scale = Math.max(fraction(x), fraction(y));
+    const p = scaled(x, scale);
+    const q = scaled(y, scale);
+    let digits;
+    let negative;
+    if (p.negative === q.negative) {
+        digits = addDigits(p.digits, q.digits);
+        negative = p.negative;
+    } else {
+        const c = compareDigits(p.digits, q.digits);
+        digits = c >= 0 ? subtractDigits(p.digits, q.digits) : subtractDigits(q.digits, p.digits);
+        negative = c >= 0 ? p.negative : q.negative;
+    }
+    if (digits === '') negative = false;
+    let text = digits.padStart(scale + 1, '0');
+    if (scale) text = text.slice(0, -scale) + '.' + text.slice(-scale);
     return (negative ? '-' : '') + text;
 }
 
@@ -551,10 +608,8 @@ function compareAgg(a, b) {
     const x = String(a);
     const y = String(b);
     if (DECIMAL_RE.test(x) && DECIMAL_RE.test(y)) {
-        const digits = Math.max(fraction(x), fraction(y));
-        const a1 = scaled(x, digits);
-        const b1 = scaled(y, digits);
-        return a1 === b1 ? 0 : a1 < b1 ? -1 : 1;
+        const scale = Math.max(fraction(x), fraction(y));
+        return compareScaled(scaled(x, scale), scaled(y, scale));
     }
     return x === y ? 0 : x < y ? -1 : 1;
 }
@@ -680,15 +735,26 @@ export function withDrafts(
         changed.forEach(c => {
             const before = row[c.field];
             const after = d[c.field];
+            // In an org with more than one currency a total is in the corporate
+            // currency, each record converted at rates the browser does not
+            // have: an amount in another currency cannot be added in until it
+            // is saved, and lowest and highest cannot be worked out from rows
+            // in different currencies.
+            const mixed = Boolean(c.totalCurrency || c.currencyField || c.currencyCode) && c.subtotal !== 'count';
+            const foreign = mixed && currencyFor(c, row).code !== c.totalCurrency;
             paths.forEach(path => {
                 const entry = copyOf(path);
                 if (!entry) return;
+                entry.edited[c.field] = true;
+                if (foreign) {
+                    entry.unknown[c.field] = true;
+                    return;
+                }
                 const v = entry.values[c.field] || (entry.values[c.field] = { s: null, c: 0, mn: null, mx: null });
                 applyEdit(v, c.subtotal, before, after, () => {
-                    if (complete) recompute.add(c.field);
+                    if (complete && !mixed) recompute.add(c.field);
                     else entry.unknown[c.field] = true;
                 });
-                entry.edited[c.field] = true;
             });
         });
     });
@@ -845,11 +911,13 @@ export function subtotalFor(aggregate, column) {
 export function subtotalText(value, kind, column) {
     if (isBlank(value)) return '';
     if (kind === 'count') return formatCount(Number(value));
-    if (kind === 'average' && isNumericType(column.type)) {
-        const own = Number.isInteger(column.scale) ? column.scale : 0;
-        return formatNumber(value, { type: column.type, scale: column.type === 'currency' ? own : Math.max(own, 2) });
+    // In an org with more than one currency, a total is in the corporate one.
+    const col = totalColumn(column);
+    if (kind === 'average' && isNumericType(col.type)) {
+        const own = Number.isInteger(col.scale) ? col.scale : 0;
+        return formatValue(value, { ...col, scale: col.type === 'currency' ? own : Math.max(own, 2) });
     }
-    return formatValue(value, column);
+    return formatValue(value, col);
 }
 
 /** "12 records", in the user's locale. */
