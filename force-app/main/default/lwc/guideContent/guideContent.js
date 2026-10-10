@@ -32,16 +32,12 @@ export default class GuideContent extends LightningElement {
         return this.page === 'tutorials';
     }
 
-    get isTutorialPipeline() {
-        return this.page === 'tutorial-pipeline';
+    get isTutorialLeads() {
+        return this.page === 'tutorial-leads';
     }
 
-    get isTutorialService() {
-        return this.page === 'tutorial-service';
-    }
-
-    get isTutorialAccounts() {
-        return this.page === 'tutorial-accounts';
+    get isTutorialGroups() {
+        return this.page === 'tutorial-groups';
     }
 
     get isTutorialContacts() {
@@ -52,16 +48,20 @@ export default class GuideContent extends LightningElement {
         return this.page === 'tutorial-cleanup';
     }
 
-    get isTutorialGroups() {
-        return this.page === 'tutorial-groups';
+    get isTutorialAccounts() {
+        return this.page === 'tutorial-accounts';
+    }
+
+    get isTutorialPipeline() {
+        return this.page === 'tutorial-pipeline';
     }
 
     get isTutorialAssets() {
         return this.page === 'tutorial-assets';
     }
 
-    get isTutorialLeads() {
-        return this.page === 'tutorial-leads';
+    get isTutorialService() {
+        return this.page === 'tutorial-service';
     }
 
     get isReference() {

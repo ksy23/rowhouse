@@ -52,14 +52,14 @@ const ORDER = [
     'features',
     'using',
     'tutorials',
-    'tutorial-pipeline',
-    'tutorial-service',
-    'tutorial-accounts',
+    'tutorial-leads',
+    'tutorial-groups',
     'tutorial-contacts',
     'tutorial-cleanup',
-    'tutorial-groups',
+    'tutorial-accounts',
+    'tutorial-pipeline',
     'tutorial-assets',
-    'tutorial-leads',
+    'tutorial-service',
     'reference'
 ];
 

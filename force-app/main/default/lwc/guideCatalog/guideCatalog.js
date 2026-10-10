@@ -110,63 +110,46 @@ export const PAGES = [
     {
         "id": "tutorials",
         "title": "Tutorials",
-        "desc": "Eight realistic Rowhouse tutorials: a pipeline review, a service desk triage, key accounts with related records, a contact clean-up with an audit trail, contacts on an account page, a group of companies, an installed base, and a lead queue.",
+        "desc": "Eight realistic Rowhouse tutorials in the order a customer moves through Salesforce: a lead queue, a group of companies, contacts on an account page, a contact clean-up with an audit trail, key accounts with their people and deals, a pipeline review, an installed base, and a service desk triage.",
         "section": "tutorials",
         "audience": "all",
         "anchors": []
     },
     {
-        "id": "tutorial-pipeline",
-        "title": "Tutorial: the weekly pipeline review",
-        "desc": "Build a Rowhouse grid of opportunities grouped by stage, with a sum of amounts, overdue dates in red and big deals in green, then use it to update a pipeline.",
+        "id": "tutorial-leads",
+        "title": "Tutorial: the morning lead queue",
+        "desc": "Build a Rowhouse grid of open leads that marks hot leads nobody has called in red, logs a call from the row, and hands leads to a colleague in one go.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [
             "goal",
-            "config",
-            "columns",
-            "rules",
-            "page",
-            "review",
-            "fix",
-            "save",
-            "learned"
-        ]
-    },
-    {
-        "id": "tutorial-service",
-        "title": "Tutorial: the morning triage",
-        "desc": "Build a Rowhouse grid of cases on the Home page, with new cases flagged on the row, high priority in red, a Log a Call action, a batch status change, and a new case added in the grid.",
-        "section": "tutorials",
-        "audience": "all",
-        "anchors": [
-            "goal",
-            "config",
-            "columns",
+            "grid",
             "rules",
             "action",
             "page",
-            "triage",
+            "open",
+            "rate",
             "call",
-            "new",
+            "handover",
             "learned"
         ]
     },
     {
-        "id": "tutorial-accounts",
-        "title": "Tutorial: key accounts with their people and deals",
-        "desc": "Build a Rowhouse grid of accounts whose rows open into tabs of contacts and opportunities, each an editable grid of its own.",
+        "id": "tutorial-groups",
+        "title": "Tutorial: a group of companies",
+        "desc": "Build a Rowhouse grid of top-level accounts whose rows open into their subsidiaries, linked by Parent Account, with each group's subsidiary count and revenue on the parent row.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [
             "goal",
-            "children",
+            "child",
             "parent",
-            "links",
+            "link",
+            "totals",
             "page",
             "open",
-            "edit",
-            "keys",
+            "join",
+            "fill",
             "learned"
         ]
     },
@@ -208,21 +191,38 @@ export const PAGES = [
         ]
     },
     {
-        "id": "tutorial-groups",
-        "title": "Tutorial: a group of companies",
-        "desc": "Build a Rowhouse grid of top-level accounts whose rows open into their subsidiaries, linked by Parent Account, with each group's subsidiary count and revenue on the parent row.",
+        "id": "tutorial-accounts",
+        "title": "Tutorial: key accounts with their people and deals",
+        "desc": "Build a Rowhouse grid of accounts whose rows open into tabs of contacts and opportunities, each an editable grid of its own.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [
             "goal",
-            "child",
+            "children",
             "parent",
-            "link",
-            "totals",
+            "links",
             "page",
             "open",
-            "join",
-            "fill",
+            "edit",
+            "keys",
+            "learned"
+        ]
+    },
+    {
+        "id": "tutorial-pipeline",
+        "title": "Tutorial: the weekly pipeline review",
+        "desc": "Build a Rowhouse grid of opportunities grouped by stage, with a sum of amounts, overdue dates in red and big deals in green, then use it to update a pipeline.",
+        "section": "tutorials",
+        "audience": "all",
+        "anchors": [
+            "goal",
+            "config",
+            "columns",
+            "rules",
+            "page",
+            "review",
+            "fix",
+            "save",
             "learned"
         ]
     },
@@ -245,21 +245,21 @@ export const PAGES = [
         ]
     },
     {
-        "id": "tutorial-leads",
-        "title": "Tutorial: the morning lead queue",
-        "desc": "Build a Rowhouse grid of open leads that marks hot leads nobody has called in red, logs a call from the row, and hands leads to a colleague in one go.",
+        "id": "tutorial-service",
+        "title": "Tutorial: the morning triage",
+        "desc": "Build a Rowhouse grid of cases on the Home page, with new cases flagged on the row, high priority in red, a Log a Call action, a batch status change, and a new case added in the grid.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [
             "goal",
-            "grid",
+            "config",
+            "columns",
             "rules",
             "action",
             "page",
-            "open",
-            "rate",
+            "triage",
             "call",
-            "handover",
+            "new",
             "learned"
         ]
     },

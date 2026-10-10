@@ -1,49 +1,21 @@
-<!--meta {"title": "Tutorials", "desc": "Eight realistic Rowhouse tutorials: a pipeline review, a service desk triage, key accounts with related records, a contact clean-up with an audit trail, contacts on an account page, a group of companies, an installed base, and a lead queue.", "section": "tutorials", "audience": "all"} -->
+<!--meta {"title": "Tutorials", "desc": "Eight realistic Rowhouse tutorials in the order a customer moves through Salesforce: a lead queue, a group of companies, contacts on an account page, a contact clean-up with an audit trail, key accounts with their people and deals, a pipeline review, an installed base, and a service desk triage.", "section": "tutorials", "audience": "all"} -->
 <header class="phead hero alive" id="main">
   <div class="phead-in">
     <div class="crumbs"><a href="welcome.html">Grid Guide</a> / Tutorials</div>
     <span class="aud both">Admin and user</span>
     <h1 style="margin-top:14px">Tutorials</h1>
-    <p class="dek">Eight jobs real teams do every week. In each, you build the grid as the admin, then use it as the person it is for. Every step was followed word for word in a Salesforce org before it was published.</p>
+    <p class="dek">Eight jobs real teams do every week, in the order a customer moves through Salesforce: from lead to account and contacts, to the deal, to what was sold, to service. In each, you build the grid as the admin, then use it as the person it is for. Every step was followed word for word in a Salesforce org before it was published.</p>
   </div>
 </header>
 
 <div class="wrap">
 <section>
   <div class="paths rv-stagger" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr))">
-    <a class="path" href="tutorial-pipeline.html">
-      <div style="display:flex;gap:12px;align-items:center"><span class="avatar">AW</span><div><span class="aud both">Sales operations · 25 min</span></div></div>
-      <h3>The weekly pipeline review</h3>
-      <p>Abigail runs the Monday pipeline call. Her grid groups open opportunities by stage with a sum of amounts, turns overdue close dates red and big deals green, and lets her fix deals without opening one.</p>
-      <div class="pill-row"><span class="ptag">Grouping</span><span class="ptag">Subtotals</span><span class="ptag">Format rules</span><span class="ptag">Fill down</span><span class="ptag">Undo</span></div>
-      <span class="go">Start the tutorial →</span>
-    </a>
-    <a class="path u" href="tutorial-service.html">
-      <div style="display:flex;gap:12px;align-items:center"><span class="avatar b">KC</span><div><span class="aud both">Customer service · 20 min</span></div></div>
-      <h3>The morning triage</h3>
-      <p>Kevin leads a support team. On his Home page, a grid flags new cases on the row and high priority in red, moves a batch to Working at once, logs a call from the row's menu, and takes a new case straight into the grid.</p>
-      <div class="pill-row"><span class="ptag">Home page</span><span class="ptag">Height</span><span class="ptag">Row rules</span><span class="ptag">Update field</span><span class="ptag">Quick action</span><span class="ptag">New</span></div>
-      <span class="go">Start the tutorial →</span>
-    </a>
-    <a class="path t" href="tutorial-accounts.html">
-      <div style="display:flex;gap:12px;align-items:center"><span class="avatar c">HL</span><div><span class="aud both">Account management · 25 min</span></div></div>
-      <h3>Key accounts, with their people and deals</h3>
-      <p>Hannah manages a book of accounts. Each row opens to show the account's contacts and opportunities in tabs, each a grid she can edit in place.</p>
-      <div class="pill-row"><span class="ptag">Child tables</span><span class="ptag">Three grids</span><span class="ptag">Frozen column</span><span class="ptag">Keyboard</span></div>
-      <span class="go">Start the tutorial →</span>
-    </a>
-    <a class="path" href="tutorial-cleanup.html" style="--glow:var(--plum-soft);--edge:var(--plum-mid)">
-      <div style="display:flex;gap:12px;align-items:center"><span class="avatar d">CT</span><div><span class="aud both">Data stewardship · 25 min</span></div></div>
-      <h3>The contact clean-up, with an audit trail</h3>
-      <p>Caleb tidies contacts before a campaign, fixes an account's industry from any of its contacts, and adds a trade show's attendees from a file. Every change is logged, and the log is one tab away.</p>
-      <div class="pill-row"><span class="ptag">Import</span><span class="ptag">Log Changes</span><span class="ptag">Grid Edit Log</span><span class="ptag">Update field</span><span class="ptag">Related fields</span></div>
-      <span class="go" style="color:var(--plum)">Start the tutorial →</span>
-    </a>
-    <a class="path u" href="tutorial-contacts.html">
-      <div style="display:flex;gap:12px;align-items:center"><span class="avatar b">SP</span><div><span class="aud both">Account management · 20 min</span></div></div>
-      <h3>Contacts on an account page</h3>
-      <p>Sam keeps contact lists tidy. On each account's page, a grid of that account's people, with a formula column, an icon on the decision makers, a filter, a layout Sam keeps, and New with the account filled in.</p>
-      <div class="pill-row"><span class="ptag">Record page</span><span class="ptag">Formula column</span><span class="ptag">Icon rule</span><span class="ptag">Filters</span><span class="ptag">Saved layout</span><span class="ptag">New</span></div>
+    <a class="path u" href="tutorial-leads.html">
+      <div style="display:flex;gap:12px;align-items:center"><span class="avatar d">JR</span><div><span class="aud both">Sales development · 20 min</span></div></div>
+      <h3>The morning lead queue</h3>
+      <p>Jenna works the overnight leads. Hot leads nobody has called are red, Log a call is in each row's menu, and leads go to a colleague a few at a time.</p>
+      <div class="pill-row"><span class="ptag">Leads</span><span class="ptag">Formula rule</span><span class="ptag">Icons</span><span class="ptag">Quick action</span><span class="ptag">Update field</span></div>
       <span class="go">Start the tutorial →</span>
     </a>
     <a class="path t" href="tutorial-groups.html">
@@ -53,23 +25,51 @@
       <div class="pill-row"><span class="ptag">Child tables</span><span class="ptag">Parent Account</span><span class="ptag">Child totals</span><span class="ptag">Lookup editing</span><span class="ptag">Data bar</span></div>
       <span class="go">Start the tutorial →</span>
     </a>
-    <a class="path" href="tutorial-assets.html">
+    <a class="path u" href="tutorial-contacts.html">
+      <div style="display:flex;gap:12px;align-items:center"><span class="avatar b">SP</span><div><span class="aud both">Account management · 20 min</span></div></div>
+      <h3>Contacts on an account page</h3>
+      <p>Sam keeps contact lists tidy. On each account's page, a grid of that account's people, with a formula column, an icon on the decision makers, a filter, a layout Sam keeps, and New with the account filled in.</p>
+      <div class="pill-row"><span class="ptag">Record page</span><span class="ptag">Formula column</span><span class="ptag">Icon rule</span><span class="ptag">Filters</span><span class="ptag">Saved layout</span><span class="ptag">New</span></div>
+      <span class="go">Start the tutorial →</span>
+    </a>
+    <a class="path" href="tutorial-cleanup.html" style="--glow:var(--plum-soft);--edge:var(--plum-mid)">
+      <div style="display:flex;gap:12px;align-items:center"><span class="avatar d">CT</span><div><span class="aud both">Data stewardship · 25 min</span></div></div>
+      <h3>The contact clean-up, with an audit trail</h3>
+      <p>Caleb tidies contacts before a campaign, fixes an account's industry from any of its contacts, and adds a trade show's attendees from a file. Every change is logged, and the log is one tab away.</p>
+      <div class="pill-row"><span class="ptag">Import</span><span class="ptag">Log Changes</span><span class="ptag">Grid Edit Log</span><span class="ptag">Update field</span><span class="ptag">Related fields</span></div>
+      <span class="go" style="color:var(--plum)">Start the tutorial →</span>
+    </a>
+    <a class="path t" href="tutorial-accounts.html">
+      <div style="display:flex;gap:12px;align-items:center"><span class="avatar c">HL</span><div><span class="aud both">Account management · 25 min</span></div></div>
+      <h3>Key accounts, with their people and deals</h3>
+      <p>Hannah manages a book of accounts. Each row opens to show the account's contacts and opportunities in tabs, each a grid she can edit in place.</p>
+      <div class="pill-row"><span class="ptag">Child tables</span><span class="ptag">Three grids</span><span class="ptag">Frozen column</span><span class="ptag">Keyboard</span></div>
+      <span class="go">Start the tutorial →</span>
+    </a>
+    <a class="path" href="tutorial-pipeline.html">
+      <div style="display:flex;gap:12px;align-items:center"><span class="avatar">AW</span><div><span class="aud both">Sales operations · 25 min</span></div></div>
+      <h3>The weekly pipeline review</h3>
+      <p>Abigail runs the Monday pipeline call. Her grid groups open opportunities by stage with a sum of amounts, turns overdue close dates red and big deals green, and lets her fix deals without opening one.</p>
+      <div class="pill-row"><span class="ptag">Grouping</span><span class="ptag">Subtotals</span><span class="ptag">Format rules</span><span class="ptag">Fill down</span><span class="ptag">Undo</span></div>
+      <span class="go">Start the tutorial →</span>
+    </a>
+    <a class="path t" href="tutorial-assets.html">
       <div style="display:flex;gap:12px;align-items:center"><span class="avatar">CM</span><div><span class="aud both">Service contracts · 25 min</span></div></div>
       <h3>The installed base</h3>
       <p>Colin sells warranty renewals. Each customer's assets are a grid on its page and a tab under every account; he adds equipment as rows, and warranties ending within 90 days are amber.</p>
       <div class="pill-row"><span class="ptag">Assets</span><span class="ptag">Record page</span><span class="ptag">New rows</span><span class="ptag">TODAY+90</span><span class="ptag">Lowest</span></div>
       <span class="go">Start the tutorial →</span>
     </a>
-    <a class="path u" href="tutorial-leads.html">
-      <div style="display:flex;gap:12px;align-items:center"><span class="avatar d">JR</span><div><span class="aud both">Sales development · 20 min</span></div></div>
-      <h3>The morning lead queue</h3>
-      <p>Jenna works the overnight leads. Hot leads nobody has called are red, Log a call is in each row's menu, and leads go to a colleague a few at a time.</p>
-      <div class="pill-row"><span class="ptag">Leads</span><span class="ptag">Formula rule</span><span class="ptag">Icons</span><span class="ptag">Quick action</span><span class="ptag">Update field</span></div>
+    <a class="path u" href="tutorial-service.html">
+      <div style="display:flex;gap:12px;align-items:center"><span class="avatar b">KC</span><div><span class="aud both">Customer service · 20 min</span></div></div>
+      <h3>The morning triage</h3>
+      <p>Kevin leads a support team. On his Home page, a grid flags new cases on the row and high priority in red, moves a batch to Working at once, logs a call from the row's menu, and takes a new case straight into the grid.</p>
+      <div class="pill-row"><span class="ptag">Home page</span><span class="ptag">Height</span><span class="ptag">Row rules</span><span class="ptag">Update field</span><span class="ptag">Quick action</span><span class="ptag">New</span></div>
       <span class="go">Start the tutorial →</span>
     </a>
   </div>
   <div class="call" style="margin-top:28px"><span class="k">Before you start any of them</span>
-    <p>You need the <b>Rowhouse Grid User</b> permission set (see <a href="start.html#access">Give people access</a>). We also recommend <b>Rowhouse Grid Diagnostics</b> while you build: if you mistype a setting, the grid tells you which and why. The first four build their grids in Setup, record by record, so you see every field; the other four build theirs on the <b>Grid Admin</b> tab, which makes the same records for you (see <a href="start.html#first">Your first grid</a>). The tutorials use the sample records that come with a Developer Edition org, plus a few open deals and cases; in your org, use your own records wherever a step names one of ours.</p></div>
+    <p>You need the <b>Rowhouse Grid User</b> permission set (see <a href="start.html#access">Give people access</a>). We also recommend <b>Rowhouse Grid Diagnostics</b> while you build: if you mistype a setting, the grid tells you which and why. Four build their grids in Setup, record by record, so you see every field: the contact clean-up, key accounts, the pipeline review and the morning triage. The other four build theirs on the <b>Grid Admin</b> tab, which makes the same records for you (see <a href="start.html#first">Your first grid</a>). Each tutorial stands on its own: start with any of them. The tutorials use the sample records that come with a Developer Edition org, plus a few open deals and cases; in your org, use your own records wherever a step names one of ours.</p></div>
   <p class="note">New to Rowhouse? The <a href="start.html#first">ten-minute account directory</a> in Get started is the shortest way in.</p>
 </section>
 </div>
