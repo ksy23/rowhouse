@@ -24,7 +24,7 @@
  * if it is the same one, reads that action's rows again.
  */
 
-import GRID_CONFIGURATION from '@salesforce/schema/Grid_Configuration__mdt';
+import LOGO_URL from '@salesforce/resourceUrl/RowhouseLogo';
 
 /** The page's component name, without its namespace. */
 export const FLOW_PAGE = 'rowhouseFlow';
@@ -36,27 +36,29 @@ export const STORE_PREFIX = 'rowhouse.flow.';
 const ID_RE = /^[a-zA-Z0-9]{15}([a-zA-Z0-9]{3})?$/;
 
 /**
- * The package's namespace from a schema import of its own object. In the
- * package the platform names the import with the namespace, and with the
- * suffix __c rather than __mdt (rowhouse__Grid_Configuration__c, measured);
- * in an org built from source it has no namespace. Blank when there is none.
+ * The package's namespace from the address of its own static resource, the
+ * logo: /resource/1700000000000/rowhouse__RowhouseLogo in the package,
+ * /resource/1700000000000/RowhouseLogo in an org built from source
+ * (measured). Blank when there is none.
+ *
+ * Not a schema import of a Grid Configuration: a Custom Metadata type
+ * compiles and deploys there, but the package then fails to install.
  */
-export function packageNamespace(schemaName) {
-    const name = schemaName && typeof schemaName === 'object' ? schemaName.objectApiName : schemaName;
-    const match = /^([A-Za-z](?:[A-Za-z0-9]|_(?=[A-Za-z0-9]))*)__Grid_Configuration__(?:mdt|c)$/.exec(
-        String(name || '')
+export function packageNamespace(resourceUrl) {
+    const match = /(?:^|\/)([A-Za-z](?:[A-Za-z0-9]|_(?=[A-Za-z0-9]))*)__RowhouseLogo(?:[/?#]|$)/.exec(
+        String(resourceUrl || '')
     );
     return match ? match[1] : '';
 }
 
-const PACKAGE_NS = packageNamespace(GRID_CONFIGURATION);
+const PACKAGE_NS = packageNamespace(LOGO_URL);
 
 /**
  * The namespace a component runs in: "c", or the package's. Only the
  * component Lightning places on a page carries the namespace in its tag
  * (rowhouse-rowhouse-guide); a component rendered from the package's own
  * template is tagged c-guide-page-tutorials even in the package (measured).
- * So the schema import decides, and the element only when it names none.
+ * So the logo's address decides, and the element only when it names none.
  */
 export function namespaceOf(host) {
     if (PACKAGE_NS) {

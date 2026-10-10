@@ -42,16 +42,15 @@ describe('the namespace, and a token', () => {
         expect(namespaceOf(null)).toBe('c');
     });
 
-    it("takes the package's namespace from the schema name of its own object", () => {
+    it("takes the package's namespace from its logo's address", () => {
         // In the package a nested component is still tagged c-, so the
-        // schema import is what tells the package's namespace.
-        // The package names the import rowhouse__Grid_Configuration__c (measured).
-        expect(packageNamespace({ objectApiName: 'rowhouse__Grid_Configuration__c' })).toBe('rowhouse');
-        expect(packageNamespace({ objectApiName: 'rowhouse__Grid_Configuration__mdt' })).toBe('rowhouse');
-        expect(packageNamespace('my_ns__Grid_Configuration__mdt')).toBe('my_ns');
-        expect(packageNamespace({ objectApiName: 'Grid_Configuration__mdt' })).toBe('');
-        expect(packageNamespace({ objectApiName: 'Grid_Configuration__c' })).toBe('');
-        expect(packageNamespace({ objectApiName: 'rowhouse__Grid_Column__mdt' })).toBe('');
+        // address of the package's own static resource tells the namespace.
+        expect(packageNamespace('/resource/1760000000000/rowhouse__RowhouseLogo')).toBe('rowhouse');
+        expect(packageNamespace('/sfsites/c/resource/1760000000000/rowhouse__RowhouseLogo')).toBe('rowhouse');
+        expect(packageNamespace('/resource/1760000000000/my_ns__RowhouseLogo')).toBe('my_ns');
+        expect(packageNamespace('/resource/1760000000000/RowhouseLogo')).toBe('');
+        expect(packageNamespace('/resource/1760000000000/rowhouse__RowhouseMark')).toBe('');
+        expect(packageNamespace('RowhouseLogo')).toBe('');
         expect(packageNamespace(undefined)).toBe('');
     });
 
