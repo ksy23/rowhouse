@@ -364,17 +364,17 @@ export function parseCell(text, column = {}, locale = LOCALE, timeZone = TIME_ZO
 }
 
 /**
- * Where each pasted value goes. `block` is the parsed clipboard; the
- * target is the selected range, 1-based and inclusive, in view positions:
- * { top, left, bottom, right }. `bounds` is { rowCount, colCount }.
- *   - one value into a range fills the range;
- *   - a block into a range that is a whole multiple of it repeats the block;
- *   - otherwise the block goes in once from the range's top-left cell.
- * Cells past the last row or column are counted in `dropped`.
+ * How big a paste is, worked out from the block's and the range's sizes
+ * alone, before any cell is listed: { rows, cols } it covers from the
+ * range's top-left cell, and `cells`, how many of those fall inside the grid
+ * (`bounds`). The arguments are pastePlan's.
  */
-export function pastePlan(block, target, bounds) {
+export function pasteSize(block, target, bounds) {
     const blockRows = block.length;
-    const blockCols = Math.max(...block.map(r => r.length));
+    // The widest row, by a loop: spreading 150,000 rows into Math.max
+    // overflows the call stack.
+    let blockCols = -Infinity;
+    for (let r = 0; r < blockRows; r++) if (block[r].length > blockCols) blockCols = block[r].length;
     const targetRows = target.bottom - target.top + 1;
     const targetCols = target.right - target.left + 1;
     let rows = blockRows;
@@ -383,6 +383,23 @@ export function pastePlan(block, target, bounds) {
         rows = Math.max(targetRows, blockRows);
         cols = Math.max(targetCols, blockCols);
     }
+    const inRows = Math.max(0, Math.min(rows, bounds.rowCount - target.top + 1));
+    const inCols = Math.max(0, Math.min(cols, bounds.colCount - target.left + 1));
+    return { rows, cols, blockRows, blockCols, cells: inRows * inCols };
+}
+
+/**
+ * Where each pasted value goes. `block` is the parsed clipboard; the
+ * target is the selected range, 1-based and inclusive, in view positions:
+ * { top, left, bottom, right }. `bounds` is { rowCount, colCount }.
+ *   - one value into a range fills the range;
+ *   - a block into a range that is a whole multiple of it repeats the block;
+ *   - otherwise the block goes in once from the range's top-left cell.
+ * Cells past the last row or column are counted in `dropped`. Check
+ * pasteSize first: this lists every cell.
+ */
+export function pastePlan(block, target, bounds) {
+    const { rows, cols, blockRows, blockCols } = pasteSize(block, target, bounds);
     const cells = [];
     let dropped = 0;
     for (let r = 0; r < rows; r++) {

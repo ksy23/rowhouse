@@ -25,15 +25,6 @@ public with sharing class GridActions {
         '^(?:([A-Za-z][A-Za-z0-9_]*)\\.)?([A-Za-z][A-Za-z0-9_]*)$'
     );
 
-    /** The actions a configuration lists, in Sort Order; one that cannot work is skipped with a warning. */
-    public static List<GridConfig.Action> actionsOf(
-        Grid_Configuration__mdt cfg,
-        Schema.SObjectType objectType,
-        List<String> warnings
-    ) {
-        return actionsFrom(recordsOf(cfg), objectType, warnings);
-    }
-
     /** Every Grid Action record of a configuration, turned off or not, in no particular order. */
     public static List<Grid_Action__mdt> recordsOf(Grid_Configuration__mdt cfg) {
         List<Grid_Action__mdt> out = new List<Grid_Action__mdt>();

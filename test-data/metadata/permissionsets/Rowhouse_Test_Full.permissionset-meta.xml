@@ -41,6 +41,22 @@
         <viewAllRecords>false</viewAllRecords>
         <modifyAllRecords>false</modifyAllRecords>
     </objectPermissions>
+    <!-- Private by organization-wide default. No View All and no Modify All:
+         the sharing tests depend on each user seeing only the records they own
+         or that are shared with them. -->
+    <objectPermissions>
+        <object>Rowhouse_Test_Private__c</object>
+        <allowCreate>true</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>true</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Private__c.Text_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Private__c.Amount__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Private__c.Long_Text__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Private__c.Related__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Rowhouse_Test_Record__c.Checkbox_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Rowhouse_Test_Record__c.Controlling_Picklist__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Rowhouse_Test_Record__c.Currency_Field__c</field><readable>true</readable><editable>true</editable></fieldPermissions>

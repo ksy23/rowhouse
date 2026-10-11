@@ -74,9 +74,19 @@ public with sharing class GridSaveChunk implements Queueable {
 
         Schema.SObjectType objectType = records.isEmpty() ? null : records[0].getSObjectType();
         Map<Id, SObject> before = audit == null || objectType == null ? null : GridAudit.before(objectType, records);
+        Boolean logs = audit != null && objectType != null;
+        // In a grid that logs, the update and its log entries stand or fall
+        // together: a log that cannot be written undoes the update here, rather
+        // than leaving that to the job's failure.
+        Savepoint beforeUpdate = logs ? Database.setSavepoint() : null;
         List<Database.SaveResult> results = GridSecurity.updateRecords(records); // one DML statement
-        if (audit != null && objectType != null) {
-            GridAudit.write(GridAudit.updates(audit, objectType, records, results, before)); // throws: the update is undone
+        if (logs) {
+            try {
+                GridAudit.write(GridAudit.updates(audit, objectType, records, results, before));
+            } catch (GridException e) {
+                Database.rollback(beforeUpdate);
+                throw e;
+            }
         }
         Integer successCount = 0;
         List<GridSaveError> errors = new List<GridSaveError>();

@@ -258,7 +258,7 @@ import {
     isMixedCurrency
 } from 'c/gridFormat';
 import { mark, measure, afterPaint } from 'c/gridTiming';
-import { copyText, toTsv, parseTsv, parseCell, pastePlan, MAX_PASTE_CELLS } from 'c/gridClipboard';
+import { copyText, toTsv, parseTsv, parseCell, pastePlan, pasteSize, MAX_PASTE_CELLS } from 'c/gridClipboard';
 import {
     isLookup,
     lookupText,
@@ -3927,11 +3927,16 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     pasteText(text) {
         const rect = this.selectionRect;
         if (!rect) return;
-        const plan = pastePlan(parseTsv(text), rect, { rowCount: this.rowCount, colCount: this.ariaColCount });
-        if (plan.cells.length > MAX_PASTE_CELLS) {
-            this.announcement = `Nothing was pasted: ${plan.cells.length} cells is more than ${MAX_PASTE_CELLS} at once.`;
+        const block = parseTsv(text);
+        const bounds = { rowCount: this.rowCount, colCount: this.ariaColCount };
+        // The size first, from the block's and the range's dimensions: a huge
+        // paste is refused before a cell of it is listed.
+        const size = pasteSize(block, rect, bounds);
+        if (size.cells > MAX_PASTE_CELLS) {
+            this.announcement = `Nothing was pasted: ${size.cells} cells is more than ${MAX_PASTE_CELLS} at once.`;
             return;
         }
+        const plan = pastePlan(block, rect, bounds);
         // The cells to fill, by record, worked out now: the rows may move while names are looked up.
         const targets = [];
         let readOnly = 0;

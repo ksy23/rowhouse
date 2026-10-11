@@ -12,5 +12,5 @@
     <enableSearch>false</enableSearch>
     <enableActivities>false</enableActivities>
     <enableHistory>false</enableHistory>
-    <description>Used by Rowhouse to report the outcome of large saves back to the grid. Records are private to the user who saved, deleted once the grid has read them, and removed automatically after a day. Nothing needs to be set up or maintained.</description>
+    <description>Used by Rowhouse to report the outcome of saves to the grid and the Grid Admin tab. Each record is private to the user who saved and is deleted once read; one left unread is deleted at that user&apos;s next save in a grid once it is a day old. Nothing needs to be set up or maintained.</description>
 </CustomObject>

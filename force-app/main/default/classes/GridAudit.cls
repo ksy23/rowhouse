@@ -289,6 +289,14 @@ public with sharing class GridAudit {
     }
 
     /**
+     * A test's stand-in for a log write that fails after the change was made
+     * (the log full, a validation rule on it): write() then throws as a failed
+     * insert does, so a test can see the caller's change undone.
+     */
+    @TestVisible
+    private static Boolean failWriteForTest = false;
+
+    /**
      * Write the entries: one statement, all or nothing, in user mode. A
      * failure throws, and the caller's change is undone with it.
      */
@@ -304,6 +312,9 @@ public with sharing class GridAudit {
                     MAX_ENTRIES +
                     ' can be written at once. Nothing was changed.'
             );
+        }
+        if (failWriteForTest) {
+            throw new GridException('The change was not made because its log entry could not be written: (test).');
         }
         try {
             GridSecurity.insertOwnRecords(entries);

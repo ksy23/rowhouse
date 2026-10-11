@@ -10,13 +10,9 @@ private class GridLayoutsTest {
     @IsTest
     static void aLayoutIsKeptReadBackReplacedAndReset() {
         System.runAs(GridTestUsers.fullUser()) {
-            System.assertEquals(null, GridController.getLayout('Test_Records', null), 'Nothing kept yet.');
+            System.assertEquals(null, GridLayouts.read('Test_Records', null), 'Nothing kept yet.');
             System.assertEquals(true, GridController.saveLayout('Test_Records', LAYOUT, null));
-            System.assertEquals(
-                LAYOUT,
-                GridController.getLayout('test_records', null),
-                'The grid\'s name in any case.'
-            );
+            System.assertEquals(LAYOUT, GridLayouts.read('test_records', null), 'The grid\'s name in any case.');
 
             String changed = '{"v":1,"sort":[{"field":"Name","direction":"desc"}]}';
             GridController.saveLayout('Test_Records', changed, null);
@@ -32,7 +28,7 @@ private class GridLayoutsTest {
             System.assertEquals(UserInfo.getUserId() + ':Test_Records', kept.Key__c);
 
             GridController.resetLayout('Test_Records', null);
-            System.assertEquals(null, GridController.getLayout('Test_Records', null), 'Reset layout forgets it.');
+            System.assertEquals(null, GridLayouts.read('Test_Records', null), 'Reset layout forgets it.');
             GridController.resetLayout('Test_Records', null); // nothing to forget: no harm
         }
     }

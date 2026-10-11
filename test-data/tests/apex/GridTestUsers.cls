@@ -11,6 +11,12 @@
  *                   (Rowhouse_Test_Full). Tests that are NOT about access run
  *                   as this user, so they depend on nothing the org's admin
  *                   happens to have.
+ *   peerUser()    — fullUser()'s access, as a second person: the sharing tests'
+ *                   other user, who must not see what fullUser() owns on the
+ *                   Private test object unless it is shared.
+ *   readOnlyUser() — reads the test records but may not edit, create or delete
+ *                   them (Rowhouse_Test_Read_Only); reads the test children but
+ *                   not their Amount.
  *   diagnosticsUser() — fullUser() plus Rowhouse_Diagnostics, for the action
  *                   that requires that custom permission.
  *   noLogUser()   — fullUser()'s test-field access WITHOUT Rowhouse_User, so
@@ -22,6 +28,8 @@
  *   limitedAdmin() — Rowhouse_Admin with limitedUser()'s field access, for
  *                   what an admin who cannot read a field is told.
  * All but noLogUser() hold Rowhouse_User, the product's own permission set.
+ * A class that builds its users in @TestSetup finds them again with built(),
+ * by the alias each one is built with (LIMITED, FULL, PEER and so on).
  *
  * plain() and qualified() let a test run with or without the package's
  * namespace: the dev org has none, a package build org has 'rowhouse', where
@@ -34,6 +42,16 @@ public class GridTestUsers {
     public static final String NAMESPACE = GridTestUsers.class.getName().contains('.')
         ? GridTestUsers.class.getName().substringBefore('.')
         : '';
+
+    /** The alias each user is built with, for built(). */
+    public static final String LIMITED = 'rhltd';
+    public static final String FULL = 'rhfull';
+    public static final String PEER = 'rhpeer';
+    public static final String READ_ONLY = 'rhro';
+    public static final String DIAGNOSTICS = 'rhdiag';
+    public static final String NO_LOG = 'rhnolog';
+    public static final String ADMIN = 'rhadmin';
+    public static final String ADMIN_VIEWER = 'rhadmv';
 
     /** A name without the namespace: rowhouse__Grid_Column__mdt.X becomes Grid_Column__mdt.X. */
     public static String plain(String name) {
@@ -58,17 +76,27 @@ public class GridTestUsers {
     }
 
     public static User limitedUser() {
-        return userWith('rhltd', 'Limited', new List<String>{ 'Rowhouse_Test_Limited', 'Rowhouse_User' });
+        return userWith(LIMITED, 'Limited', new List<String>{ 'Rowhouse_Test_Limited', 'Rowhouse_User' });
     }
 
     public static User fullUser() {
-        return userWith('rhfull', 'Full', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User' });
+        return userWith(FULL, 'Full', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User' });
+    }
+
+    /** A second user with fullUser()'s access, for what one user must not see of another's. */
+    public static User peerUser() {
+        return userWith(PEER, 'Peer', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User' });
+    }
+
+    /** Reads the test records, never edits, creates or deletes them; reads the children but not their Amount. */
+    public static User readOnlyUser() {
+        return userWith(READ_ONLY, 'ReadOnly', new List<String>{ 'Rowhouse_Test_Read_Only', 'Rowhouse_User' });
     }
 
     /** fullUser() with the Rowhouse_Diagnostics custom permission, which one fixture action requires. */
     public static User diagnosticsUser() {
         return userWith(
-            'rhdiag',
+            DIAGNOSTICS,
             'Diagnostics',
             new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Diagnostics' }
         );
@@ -76,7 +104,7 @@ public class GridTestUsers {
 
     /** Every test field, but not Rowhouse_User: no access to the audit log. */
     public static User noLogUser() {
-        return userWith('rhnolog', 'NoLog', new List<String>{ 'Rowhouse_Test_Full' });
+        return userWith(NO_LOG, 'NoLog', new List<String>{ 'Rowhouse_Test_Full' });
     }
 
     /**
@@ -86,7 +114,7 @@ public class GridTestUsers {
      */
     public static User adminUser() {
         return userWith(
-            'rhadmin',
+            ADMIN,
             'Admin',
             new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' },
             'System Administrator'
@@ -105,10 +133,29 @@ public class GridTestUsers {
     /** Rowhouse Grid Admin without Customize Application: may open the Grid Admin tab, may not save. */
     public static User adminViewer() {
         return userWith(
-            'rhadmv',
+            ADMIN_VIEWER,
             'AdminViewer',
             new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' }
         );
+    }
+
+    /**
+     * The user this class built with the alias (LIMITED, FULL...), for a test
+     * whose @TestSetup built it: the newest, and only a user built here, whose
+     * username is rowhouse.<alias>.<number>@example.invalid, never a real user
+     * of the org who shares the alias. Fails, by name, when there is none.
+     */
+    public static User built(String alias) {
+        String username = 'rowhouse.' + alias + '.%@example.invalid';
+        List<User> found = [
+            SELECT Id, Alias, LastName
+            FROM User
+            WHERE Username LIKE :username AND IsActive = TRUE
+            ORDER BY CreatedDate DESC, Id DESC
+            LIMIT 1
+        ];
+        System.assert(!found.isEmpty(), 'No test user ' + alias + ': build it in @TestSetup through GridTestUsers.');
+        return found[0];
     }
 
     private static User userWith(String alias, String lastName, List<String> permissionSetNames) {

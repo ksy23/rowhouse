@@ -83,6 +83,9 @@ private class GridAdminControllerTest {
     @IsTest
     static void everyEntryPointFailsAsAnAuraHandledException() {
         System.runAs(GridTestUsers.fullUser()) {
+            // Nothing can deploy, whatever an entry point lets through.
+            Kept spy = new Kept();
+            GridAdmin.deployWith = spy;
             List<String> refused = new List<String>();
             for (Integer i = 0; i < 12; i++) {
                 try {
@@ -126,7 +129,11 @@ private class GridAdminControllerTest {
                     }
                 } catch (AuraHandledException e) {
                     refused.add(String.valueOf(i));
-                    System.assert(String.isNotBlank(e.getMessage()), 'Call ' + i + ' says why.');
+                    // Refused by the admin check itself, not by some other failure on the way.
+                    System.assert(
+                        e.getMessage().contains('Rowhouse Grid Admin'),
+                        'Call ' + i + ' is refused for want of Rowhouse Grid Admin: ' + e.getMessage()
+                    );
                 }
             }
             System.assertEquals(
@@ -134,6 +141,7 @@ private class GridAdminControllerTest {
                 refused.size(),
                 'Every entry point needs Rowhouse Grid Admin. Refused: ' + String.join(refused, ', ')
             );
+            System.assertEquals(0, spy.deploys, 'Nothing was deployed.');
         }
     }
 
@@ -150,13 +158,25 @@ private class GridAdminControllerTest {
                 GridAdminController.saveDraft('{not json');
                 System.assert(false, 'A draft that is not JSON is refused.');
             } catch (AuraHandledException e) {
-                System.assert(e.getMessage().startsWith('System.JSONException'), e.getMessage());
+                // Rowhouse Grid Admin includes Rowhouse Grid Diagnostics: the plain
+                // sentence, then the platform's own text.
+                System.assert(e.getMessage().startsWith(GridException.UNEXPECTED), e.getMessage());
+                System.assert(e.getMessage().contains('(System.JSONException: '), e.getMessage());
             }
             try {
                 GridAdminController.saveLogRetention(45);
                 System.assert(false, 'Only the offered periods are saved.');
             } catch (AuraHandledException e) {
                 System.assert(e.getMessage().contains('90 days'), e.getMessage());
+            }
+        }
+        // Without Rowhouse Grid Diagnostics, an unexpected failure is the plain sentence alone.
+        System.runAs(GridTestUsers.fullUser()) {
+            try {
+                GridAdminController.checkDraft('{not json');
+                System.assert(false, 'A draft that is not JSON is refused.');
+            } catch (AuraHandledException e) {
+                System.assertEquals(GridException.UNEXPECTED, e.getMessage());
             }
         }
     }

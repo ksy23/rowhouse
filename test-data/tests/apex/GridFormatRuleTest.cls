@@ -228,7 +228,13 @@ private class GridFormatRuleTest {
     @IsTest
     static void configurationWarningsReachOnlyDiagnosticsUsers() {
         System.runAs(GridTestUsers.fullUser()) {
-            GridConfig.Definition def = (GridConfig.Definition) GridController.getGridConfig('Test_Records')
+            GridConfig.Definition def = (GridConfig.Definition) GridController.openGrid(
+                    'Test_Records',
+                    null,
+                    null,
+                    null,
+                    null
+                )
                 .get('definition');
             System.assertEquals(0, def.warnings.size(), 'Without Rowhouse_Diagnostics, no warnings are sent.');
         }

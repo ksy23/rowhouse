@@ -94,8 +94,10 @@ private class GridSecurityTest {
             Test.stopTest();
         }
         System.assertEquals('visible and editable', row.Text_Field__c, 'A readable field must still come through.');
+        // By the field's token, not its name: in a namespaced org the result's
+        // key is rowhouse__Long_Text__c, so a name check would pass vacuously.
         System.assert(
-            !row.getPopulatedFieldsAsMap().containsKey('Long_Text__c'),
+            !row.isSet(Rowhouse_Test_Record__c.Long_Text__c),
             'An unreadable field leaked into the query result. Security-review failure.'
         );
     }
@@ -168,6 +170,64 @@ private class GridSecurityTest {
             ticket.rejectedFields.contains('Currency_Field__c'),
             'Currency_Field__c must be refused by the allow-list, and reported as such: ' + ticket
         );
+    }
+
+    @IsTest
+    static void aRowWhoseEveryFieldIsRefusedIsNotWrittenAtAll() {
+        // An update carrying only an Id still runs the org's triggers and flows
+        // and stamps Last Modified. A row whose every field was refused, by the
+        // allow-list or by field-level security, must queue nothing.
+        Rowhouse_Test_Record__c rec = probe();
+        GridSaveResult ticket;
+        Integer queued;
+        System.runAs(limitedUser()) {
+            Test.startTest();
+            ticket = GridSaveService.save(
+                'Security_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Currency_Field__c' => 1 }, // not a column
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Long_Text__c' => 'unreadable' } // stripped
+                }
+            );
+            queued = Limits.getQueueableJobs();
+            Test.stopTest();
+        }
+        System.assertEquals(0, queued, 'Nothing to write, so nothing is queued: ' + ticket);
+        System.assertEquals(0, ticket.chunkCount, String.valueOf(ticket));
+        System.assert(ticket.done, 'With nothing queued the save is done at once.');
+        System.assertEquals(0, ticket.successCount, 'Nothing was saved, and the count says so.');
+        System.assert(ticket.rejectedFields.contains('Currency_Field__c'), String.valueOf(ticket));
+        System.assert(ticket.strippedFields.contains('Long_Text__c'), String.valueOf(ticket));
+        Rowhouse_Test_Record__c after = probe();
+        System.assertEquals(500.00, after.Currency_Field__c);
+        System.assertEquals('must never reach the client', after.Long_Text__c);
+    }
+
+    @IsTest
+    static void aGridThatDoesNotEditCellsRefusesEverySave() {
+        // Read_Only_Test marks its columns Editable but has Allow Inline Edit
+        // off: that one setting must refuse the save before anything is queued.
+        Rowhouse_Test_Record__c rec = probe();
+        String refusal;
+        Integer queued;
+        System.runAs(limitedUser()) {
+            Test.startTest();
+            try {
+                GridSaveService.save(
+                    'Read_Only_Test',
+                    new List<Map<String, Object>>{
+                        new Map<String, Object>{ 'Id' => rec.Id, 'Text_Field__c' => 'should not be written' }
+                    }
+                );
+            } catch (GridException e) {
+                refusal = e.getMessage();
+            }
+            queued = Limits.getQueueableJobs();
+            Test.stopTest();
+        }
+        System.assertEquals('This grid does not allow editing records.', refusal);
+        System.assertEquals(0, queued, 'Nothing is queued for a grid that does not edit cells.');
+        System.assertEquals('visible and editable', probe().Text_Field__c);
     }
 
     @IsTest

@@ -11,8 +11,8 @@
  *
  * describeTabs() reads every app's tabs, so it is not free (about 55 ms in a
  * Developer Edition org): it runs once per transaction, cached here, and only
- * when a grid opens (GridController.openGrid; getGridConfig, whose
- * answer the browser caches). Never from the per-row or per-keystroke calls.
+ * when a grid opens (GridController.openGrid). Never from the per-row or
+ * per-keystroke calls.
  */
 public with sharing class GridIcons {
     public static final String FALLBACK = 'standard:record';

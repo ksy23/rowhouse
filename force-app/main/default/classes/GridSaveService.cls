@@ -47,6 +47,9 @@ public with sharing class GridSaveService {
             return ticket; // done, nothing queued, no DML
         }
         GridConfig.Definition def = GridConfig.load(configName);
+        if (def.allowInlineEdit != true) {
+            throw new GridException('This grid does not allow editing records.');
+        }
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         GridSecurity.requireUpdate(objectType);
         GridAudit.Context audit = GridAudit.start(def); // null unless the grid logs; throws if the user cannot
@@ -74,8 +77,8 @@ public with sharing class GridSaveService {
                 }
             }
             SObject record = toRecord(own, objectType, allowed, rejected, ticket.errors);
-            if (record != null) {
-                records.add(record);
+            if (hasValues(record)) {
+                records.add(record); // a row whose every field was refused has nothing to write
             }
         }
         Set<String> stripped = new Set<String>();
@@ -84,7 +87,12 @@ public with sharing class GridSaveService {
         records = keepWholeTexts(records, objectType, ticket.errors);
 
         SObjectAccessDecision decision = GridSecurity.stripForUpdate(records);
-        records = decision.getRecords();
+        records = new List<SObject>();
+        for (SObject record : decision.getRecords()) {
+            if (hasValues(record)) {
+                records.add(record); // one left with only its Id after stripping is not written
+            }
+        }
         for (Set<String> fields : decision.getRemovedFields().values()) {
             for (String f : fields) {
                 stripped.add(GridDescribe.localName(GridDescribe.field(objectType, f))); // HR-4
@@ -518,6 +526,15 @@ public with sharing class GridSaveService {
     }
 
     // ---------------------------------------------------------------- helpers
+
+    /**
+     * Does the record carry a value to write, beyond its Id? An update with
+     * none would still run the org's triggers and flows and stamp Last
+     * Modified, while changing nothing the user asked for.
+     */
+    private static Boolean hasValues(SObject record) {
+        return record != null && record.getPopulatedFieldsAsMap().size() > 1;
+    }
 
     private static SObject toRecord(
         Map<String, Object> row,

@@ -146,9 +146,14 @@ public with sharing class GridAdminController {
         return (GridAdmin.Draft) JSON.deserialize(draftJson, GridAdmin.Draft.class);
     }
 
-    /** Subscribers catch bare Exception (HR-1), so the message is the diagnostic. */
+    /**
+     * Subscribers catch bare Exception (HR-1), so the message is the
+     * diagnostic: a GridException's own words; anything else in a plain
+     * sentence, with the platform's text only for Rowhouse Grid Diagnostics
+     * users, which Rowhouse Grid Admin includes (GridException.messageFor).
+     */
     private static AuraHandledException auraError(Exception e) {
-        String message = e instanceof GridException ? e.getMessage() : e.getTypeName() + ': ' + e.getMessage();
+        String message = GridException.messageFor(e);
         AuraHandledException wrapped = new AuraHandledException(message);
         wrapped.setMessage(message);
         return wrapped;

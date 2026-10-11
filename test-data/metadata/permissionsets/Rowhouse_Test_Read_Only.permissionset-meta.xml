@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Rowhouse Test — Read Only</label>
+    <description>DEVELOPMENT ONLY. Read but never edit or create the test records, for GridTestUsers.readOnlyUser: the object tests prove a save, an import or a new row is refused. Never assign it to a System Administrator.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+
+    <!-- Read only: no create, edit or delete. A save, an import (update and
+         create) and a new row must each be refused by the object permission,
+         and write nothing. -->
+    <objectPermissions>
+        <object>Rowhouse_Test_Record__c</object>
+        <allowCreate>false</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>false</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <!-- The children can be read, but not their Amount__c (omitted below, and
+         that omission is the test): the Read_Only_Test grid's Children tab is
+         offered, its child total of Amount is not. -->
+    <objectPermissions>
+        <object>Rowhouse_Test_Child__c</object>
+        <allowCreate>false</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>false</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+
+    <!-- Readable, never editable. -->
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Checkbox_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Controlling_Picklist__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Currency_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.DateTime_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Date_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Decimal_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Dependent_Picklist__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Email_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Expected__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.External_Key__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Filtered_Account__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Geolocation__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Long_Text__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Lookup_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Multi_Picklist__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Number_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Percent_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Phone_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Picklist_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Read_Only_Text__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Test_Case__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Text_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Time_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.URL_Field__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Auto_Number__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Formula_Number__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Rowhouse_Test_Record__c.Rollup_Total__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+</PermissionSet>

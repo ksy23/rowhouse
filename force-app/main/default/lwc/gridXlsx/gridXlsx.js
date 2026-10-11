@@ -19,9 +19,44 @@
  * or 'b' (true or false). Empty cells are null. It throws an Error whose
  * message a user can act on when the file is not an .xlsx workbook.
  *
+ * LIMITS
+ * A small file can hold a great deal once unpacked, or name a cell a billion
+ * rows down, so the reader keeps within limits and says the file is too large
+ * (or damaged) rather than freezing the browser tab:
+ *   - rows 1 to MAX_ROWS and columns A to XFD (MAX_COLUMNS), Excel's own sheet;
+ *   - MAX_PART_BYTES unpacked for one part (a sheet, or its shared strings),
+ *     checked against the size the ZIP declares before anything is allocated,
+ *     and MAX_UNPACKED_BYTES for all the parts one sheet reads. The import
+ *     dialog takes files of up to 20 MB and 10,000 rows. Measured: a sheet of
+ *     12 columns of varied records unpacks to 8 MB at 10,000 rows and 83 MB
+ *     at 100,000 (3.7 times the file); one of 10 columns of repeated values
+ *     to 80 MB at 150,000 rows (14 times the file). So a 20 MB file of
+ *     varied records unpacks to about 75 MB, and a sheet reaches 100 MB only
+ *     far past the rows one import takes;
+ *   - MAX_CELLS cells across the sheet, empty ones included, as the rows
+ *     hold them. A 100 MB sheet has room for about 7 million cells with a
+ *     value (each takes at least 15 bytes), so this leaves room for the empty
+ *     ones between them, while a few hundred short rows that each name column
+ *     XFD are refused rather than held as hundreds of millions of empty cells;
+ *   - the tags are found with indexOf, in one pass, never a regular
+ *     expression that searches the rest of the file for every opening tag.
+ *
  * Not read: formulas (their last computed value is used), merged cells (only
  * the top-left cell holds the value), and the old binary .xls format.
  */
+
+/** Excel's last row and column (column XFD). */
+export const MAX_ROWS = 1048576;
+export const MAX_COLUMNS = 16384;
+/** The most one part of the file may unpack to. */
+export const MAX_PART_BYTES = 100 * 1024 * 1024;
+/** The most all the parts read for one sheet may unpack to. */
+export const MAX_UNPACKED_BYTES = 150 * 1024 * 1024;
+/** The most cells a sheet's rows may hold, empty ones included. */
+export const MAX_CELLS = 10000000;
+
+/** ZIP64 keeps an entry's real size elsewhere and writes this in its place. */
+const ZIP64_SIZE = 0xffffffff;
 
 // ------------------------------------------------------------------ inflate
 
@@ -39,6 +74,10 @@ const MAX_BITS = 15;
 
 function corrupt() {
     return new Error('This file could not be read: it is damaged, or it is not an Excel .xlsx workbook.');
+}
+
+function tooLarge() {
+    return new Error('This workbook is too large to read. Split it, or import fewer columns.');
 }
 
 /** A canonical Huffman code from code lengths: counts per length and symbols in code order. */
@@ -69,14 +108,21 @@ function fixed() {
 
 /**
  * Inflate raw DEFLATE data (no zlib or gzip header). `size`, when known, is
- * the inflated length, so the output is allocated once.
+ * the inflated length, so the output is allocated once. The output never
+ * grows past `limit` bytes: a size declared above it is refused before
+ * anything is allocated, and data that inflates past it stops there.
  */
-export function inflateRaw(input, size = 0) {
+export function inflateRaw(input, size = 0, limit = MAX_PART_BYTES) {
+    if (size > limit) throw tooLarge();
     const src = input;
     let pos = 0;
     let bitBuf = 0;
     let bitCount = 0;
-    let out = new Uint8Array(size > 0 ? size : Math.max(1024, src.length * 4));
+    // DEFLATE unpacks at most 1032 bytes from each byte: a declared size past
+    // that is not allocated up front.
+    let out = new Uint8Array(
+        size > 0 ? Math.min(size, src.length * 1032 + 1024) : Math.min(limit, Math.max(1024, src.length * 4))
+    );
     let length = 0;
 
     const need = n => {
@@ -96,9 +142,10 @@ export function inflateRaw(input, size = 0) {
     };
     const room = n => {
         if (length + n <= out.length) return;
-        let next = out.length * 2;
+        if (length + n > limit) throw tooLarge();
+        let next = Math.max(1024, out.length * 2);
         while (next < length + n) next *= 2;
-        const bigger = new Uint8Array(next);
+        const bigger = new Uint8Array(Math.min(next, limit));
         bigger.set(out.subarray(0, length));
         out = bigger;
     };
@@ -197,8 +244,13 @@ const u32 = (b, i) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 
 /**
  * The files in a ZIP archive, by name: { name: () => Uint8Array }. Each is
  * inflated only when asked for, so parts the reader does not need cost nothing.
+ * `limits` is { part, total }: the most one file, and all the files read from
+ * this archive together, may unpack to.
  */
-export function readZip(bytes) {
+export function readZip(bytes, limits = {}) {
+    const partLimit = limits.part === undefined ? MAX_PART_BYTES : limits.part;
+    const totalLimit = limits.total === undefined ? MAX_UNPACKED_BYTES : limits.total;
+    const read = { unpacked: 0 }; // by the files read so far
     const b = bytes;
     let end = -1;
     for (let i = b.length - 22; i >= Math.max(0, b.length - 22 - 65535); i--) {
@@ -226,9 +278,22 @@ export function readZip(bytes) {
         const start = local + 30 + u16(b, local + 26) + u16(b, local + 28);
         const data = b.subarray(start, start + compressed);
         files[name] = () => {
-            if (method === 0) return data;
-            if (method === 8) return inflateRaw(data, size);
-            throw corrupt();
+            const room = Math.min(partLimit, totalLimit - read.unpacked);
+            // The declared size, checked before anything is allocated; ZIP64's
+            // stand-in is no size at all, and the inflater's limit applies.
+            const declared = size === ZIP64_SIZE ? 0 : size;
+            if (declared > room) throw tooLarge();
+            let out;
+            if (method === 0) {
+                if (data.length > room) throw tooLarge();
+                out = data;
+            } else if (method === 8) {
+                out = inflateRaw(data, declared, room);
+            } else {
+                throw corrupt();
+            }
+            read.unpacked += out.length;
+            return out;
         };
     }
     return files;
@@ -283,30 +348,128 @@ export function xmlText(raw) {
         .replace(/_x([0-9a-fA-F]{4})_/g, (m, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
 
-/** An element's attributes, prefixes dropped: { name: value }. */
+/**
+ * An element's attributes, prefixes dropped: { name: value }. Every run of
+ * name characters is matched, with or without "=value", so a long run with no
+ * value is passed over once rather than tried again from each of its letters.
+ */
 function attributes(text) {
     const out = {};
-    const re = /([\w:.-]+)\s*=\s*("([^"]*)"|'([^']*)')/g;
+    const re = /([\w:.-]+)(?:\s*=\s*("([^"]*)"|'([^']*)'))?/g;
     let m;
     while ((m = re.exec(text))) {
+        if (m[2] === undefined) continue; // a name with no value
         const name = m[1].includes(':') ? m[1].slice(m[1].indexOf(':') + 1) : m[1];
         out[name] = xmlText(m[3] !== undefined ? m[3] : m[4]);
     }
     return out;
 }
 
+/** Whether a character code is one of [A-Za-z0-9_.-], as a tag's name is written. */
+function isNameCode(c) {
+    return (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 95 || c === 46 || c === 45;
+}
+
+/**
+ * Where a tag's name starting at `i` ends, when it is `name` with or without
+ * one namespace prefix (x:name); else -1.
+ */
+function nameAt(xml, i, name) {
+    let start = i;
+    let end = i;
+    while (end < xml.length && isNameCode(xml.charCodeAt(end))) end++;
+    if (end === start) return -1;
+    if (xml.charCodeAt(end) === 58) {
+        start = end + 1; // past the prefix's colon
+        end = start;
+        while (end < xml.length && isNameCode(xml.charCodeAt(end))) end++;
+    }
+    return end - start === name.length && xml.startsWith(name, start) ? end : -1;
+}
+
+/**
+ * Every element `name` (any namespace prefix), in order: [{ start, end, attrs,
+ * body }]; body is '' when self-closing, and an element's body ends at the
+ * first closing tag of that name. One pass with indexOf: an opening tag with
+ * no closing tag after it is passed over, and once one has none, no later
+ * opening tag can have one, so the rest of the text is not searched again.
+ */
+function scan(xml, name) {
+    const out = [];
+    let at = 0;
+    let gt = -1; // the first '>' at or after the last place looked
+    let closable = true; // whether a closing tag may still follow
+    while (at < xml.length) {
+        const open = xml.indexOf('<', at);
+        if (open < 0) break;
+        at = open + 1;
+        const after = nameAt(xml, open + 1, name);
+        if (after < 0) continue;
+        const next = xml.charAt(after);
+        let attrsEnd;
+        let tagEnd; // just past the opening tag's '>'
+        if (next === '>') {
+            attrsEnd = after;
+            tagEnd = after + 1;
+        } else if (next === '/' && xml.charAt(after + 1) === '>') {
+            out.push({ start: open, end: after + 2, attrs: '', body: '' });
+            at = after + 2;
+            continue;
+        } else if (/\s/.test(next)) {
+            if (gt < after) gt = xml.indexOf('>', after);
+            if (gt < 0) break; // no tag after this one ends
+            if (xml.charAt(gt - 1) === '/') {
+                out.push({ start: open, end: gt + 1, attrs: xml.slice(after, gt - 1), body: '' });
+                at = gt + 1;
+                continue;
+            }
+            attrsEnd = gt;
+            tagEnd = gt + 1;
+        } else {
+            continue; // a longer name, such as <cols> for <c>
+        }
+        const close = closable ? closingTag(xml, name, tagEnd) : null;
+        if (!close) {
+            closable = false;
+            continue;
+        }
+        out.push({
+            start: open,
+            end: close.end,
+            attrs: xml.slice(after, attrsEnd),
+            body: xml.slice(tagEnd, close.start)
+        });
+        at = close.end;
+    }
+    return out;
+}
+
+/** The first closing tag of `name` (any prefix) from `from`: { start, end }, or null. */
+function closingTag(xml, name, from) {
+    let at = from;
+    for (;;) {
+        const start = xml.indexOf('</', at);
+        if (start < 0) return null;
+        const after = nameAt(xml, start + 2, name);
+        if (after >= 0 && xml.charAt(after) === '>') return { start, end: after + 1 };
+        at = start + 2;
+    }
+}
+
 /** Every element `name` (any namespace prefix): [{ attrs, body }]; body is '' when self-closing. */
 function elements(xml, name) {
-    const re = new RegExp(`<(?:[\\w.-]+:)?${name}(\\s[^>]*?)?(?:/>|>([\\s\\S]*?)</(?:[\\w.-]+:)?${name}>)`, 'g');
-    const out = [];
-    let m;
-    while ((m = re.exec(xml))) out.push({ attrs: attributes(m[1] || ''), body: m[2] || '' });
-    return out;
+    return scan(xml, name).map(e => ({ attrs: attributes(e.attrs), body: e.body }));
 }
 
 /** The text of a string item: every <t> run, but not phonetic guides (<rPh>). */
 function runText(body) {
-    const plain = body.replace(/<(?:[\w.-]+:)?rPh\b[\s\S]*?<\/(?:[\w.-]+:)?rPh>/g, '');
+    let plain = '';
+    let at = 0;
+    scan(body, 'rPh').forEach(e => {
+        plain += body.slice(at, e.start);
+        at = e.end;
+    });
+    plain += body.slice(at);
     return elements(plain, 't')
         .map(t => xmlText(t.body))
         .join('');
@@ -439,15 +602,22 @@ export function readXlsx(bytes, sheetName = null) {
 
     const rows = [];
     let rowNumber = 0;
+    let spanned = 0; // the cells the rows hold so far, empty ones included
     elements(xml, 'row').forEach(row => {
         rowNumber = row.attrs.r ? Number(row.attrs.r) : rowNumber + 1;
+        // Past Excel's own sheet: not a workbook Excel wrote, and an array a
+        // billion rows long would freeze the tab.
+        if (!Number.isInteger(rowNumber) || rowNumber < 1 || rowNumber > MAX_ROWS) throw corrupt();
         const cells = [];
         let col = -1;
         elements(row.body, 'c').forEach(c => {
             col = c.attrs.r ? columnIndex(c.attrs.r) : col + 1;
+            if (!(col >= 0 && col < MAX_COLUMNS)) throw corrupt();
             const cell = readCell(c, shared, isDate, sheet.date1904);
             if (cell) cells[col] = cell;
         });
+        spanned += cells.length;
+        if (spanned + Math.max(rows.length, rowNumber) > MAX_CELLS) throw tooLarge();
         for (let i = 0; i < cells.length; i++) if (cells[i] === undefined) cells[i] = null;
         rows[rowNumber - 1] = cells;
     });

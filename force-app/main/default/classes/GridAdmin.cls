@@ -261,14 +261,14 @@ public with sharing class GridAdmin {
     // ---------------------------------------------------------------- who
 
     public static void requireAdmin() {
-        if (!FeatureManagement.checkPermission(PERMISSION)) {
+        if (!GridSecurity.hasCustomPermission(PERMISSION)) {
             throw new GridException('This needs the Rowhouse Grid Admin permission set.');
         }
     }
 
     /** May the running user save? Customize Application, as well as Rowhouse Grid Admin. */
     public static Boolean canSave() {
-        return FeatureManagement.checkPermission(PERMISSION) && GridSecurity.canCustomizeApplication();
+        return GridSecurity.hasCustomPermission(PERMISSION) && GridSecurity.canCustomizeApplication();
     }
 
     // ---------------------------------------------------------------- read

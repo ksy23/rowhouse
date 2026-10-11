@@ -6,8 +6,8 @@
  * row. A child grid is an ordinary grid in every other way: its own columns,
  * editing, mass actions, import and grouping, from its own configuration.
  *
- * THREE JOBS
- *   childrenOf()    — the tabs a configuration lists, each checked against the
+ * ITS JOBS
+ *   childrenFrom()  — the tabs a configuration lists, each checked against the
  *                     schema. A tab an admin got wrong (no such configuration,
  *                     a field that is not a lookup to the parent's object) is
  *                     left out with a warning, as for format rules.
@@ -64,15 +64,6 @@ public with sharing class GridNesting {
         public String fieldApiName;
         public Schema.SObjectField field;
         public Id parentId;
-    }
-
-    /** The tabs a configuration lists, in Sort Order; one that cannot work is skipped with a warning. */
-    public static List<GridConfig.Child> childrenOf(
-        Grid_Configuration__mdt cfg,
-        Schema.SObjectType parentType,
-        List<String> warnings
-    ) {
-        return childrenFrom(linksOf(cfg), parentType, warnings);
     }
 
     /** Every Grid Child Table record of a configuration, turned off or not, in no particular order. */
@@ -264,10 +255,21 @@ public with sharing class GridNesting {
 
     // ---------------------------------------------------------------- helpers
 
-    /** Can the user read every field these filters test? */
+    /**
+     * Can the user read every field these filters test? A filter may test a
+     * related record's field (Account.Industry), so each is read as a path:
+     * each lookup on the way, the record it points to, and the field. A path
+     * that no longer resolves stops the child grid itself, so it reads as not
+     * readable here: its tab counts and totals nothing.
+     */
+    @TestVisible
     private static Boolean readable(Schema.SObjectType objectType, List<GridFilters.Condition> filters) {
         for (GridFilters.Condition c : filters) {
-            if (!GridSecurity.canRead(GridDescribe.field(objectType, c.field))) {
+            try {
+                if (!GridSecurity.canReadPath(GridPaths.resolve(objectType, c.field))) {
+                    return false;
+                }
+            } catch (GridException e) {
                 return false;
             }
         }

@@ -154,9 +154,10 @@ public with sharing class GridLogCleanup implements Queueable {
         );
         try {
             GridSecurity.insertOwnRecords(new List<SObject>{ entry });
-        } catch (DmlException e) {
-            // The old entries are gone either way; only the note of it could not be written.
-            System.debug(LoggingLevel.WARN, 'Grid Edit Log clean-up note not written: ' + e.getMessage());
+        } catch (DmlException ignored) {
+            // The old entries are gone either way; only the note of it could not
+            // be written, and a scheduled job has no one to tell. (Named "ignored"
+            // for the code scanner: a deliberately empty catch.)
         }
     }
 }

@@ -14,34 +14,13 @@ public with sharing class GridController {
     /** A long text's characters a row carries (TC-055); a longer one ends in "…" after them. */
     public static final Integer LONG_TEXT_PREVIEW = 1000;
 
-    @AuraEnabled(cacheable=true)
-    public static Map<String, Object> getGridConfig(String configName) {
-        try {
-            return gridConfig(configName);
-        } catch (Exception e) {
-            throw auraError(e);
-        }
-    }
-
-    /**
-     * The same, never from the browser's cache: after a save from the grid's
-     * gear, the grid reads its new configuration through this.
-     */
-    @AuraEnabled
-    public static Map<String, Object> getGridConfigFresh(String configName) {
-        try {
-            return gridConfig(configName);
-        } catch (Exception e) {
-            throw auraError(e);
-        }
-    }
-
+    /** The configuration as this user may see it, with what openGrid sends beside it. */
     private static Map<String, Object> gridConfig(String configName) {
         GridConfig.Definition def = GridConfig.forUser(configName);
         // Icons only here, once per grid opened, and never on the per-page or
         // per-keystroke calls: describing the tabs takes about 55 ms.
         GridIcons.decorate(def);
-        Boolean diagnostics = FeatureManagement.checkPermission('Rowhouse_Diagnostics');
+        Boolean diagnostics = GridSecurity.hasCustomPermission(GridException.DIAGNOSTICS);
         // Configuration warnings are for whoever maintains the grid.
         if (!diagnostics) {
             def.warnings = new List<String>();
@@ -50,7 +29,7 @@ public with sharing class GridController {
             'definition' => def,
             'diagnostics' => diagnostics,
             // The gear that opens this grid's settings; the server checks again on every call.
-            'canConfigure' => FeatureManagement.checkPermission(GridAdmin.PERMISSION),
+            'canConfigure' => GridSecurity.hasCustomPermission(GridAdmin.PERMISSION),
             // For grouping the rows in hand by fiscal quarter and year; null without a date to group by.
             'fiscal' => GridGroupService.fiscalCalendarFor(def)
         };
@@ -116,12 +95,10 @@ public with sharing class GridController {
     }
 
     /**
-     * Everything a grid needs to open, in one call: what getGridConfig
-     * answers, this user's layout (as getLayout) and the first page of rows (as
-     * fetchRows), sorted and grouped as the layout says where that still fits
-     * the grid, else as the admin set it (GridLayouts.startOf). The grid used
-     * to ask for the first two together and then for the rows: two trips, and
-     * the configuration worked out twice.
+     * Everything a grid needs to open, in one call: the configuration as this
+     * user may see it, this user's layout (GridLayouts.read) and the first page
+     * of rows (as fetchRows), sorted and grouped as the layout says where that
+     * still fits the grid, else as the admin set it (GridLayouts.startOf).
      *
      * `start` is the sort and grouping the rows came in. The browser reads the
      * layout itself and, where it reads it differently, asks for the rows
@@ -576,20 +553,7 @@ public with sharing class GridController {
     }
 
     // ------------------------------------------------------- layouts
-
-    /**
-     * This user's saved layout of the grid, as JSON, or null; parentLink is
-     * the child table tab that shows it (blank: the grid on its own). Not
-     * cached: it changes as the user works.
-     */
-    @AuraEnabled
-    public static String getLayout(String configName, String parentLink) {
-        try {
-            return GridLayouts.read(configName, parentLink);
-        } catch (Exception e) {
-            throw auraError(e);
-        }
-    }
+    // A grid reads its layout when it opens (openGrid).
 
     /** Keep this user's layout of the grid (in that child table tab). False when it could not be kept: the grid works on without it. */
     @AuraEnabled
@@ -773,9 +737,13 @@ public with sharing class GridController {
             'Z';
     }
 
-    /** What a failure says: a GridException's own words, anything else with its type. */
+    /**
+     * What a failure says: a GridException's own words; anything else in a
+     * plain sentence, with the platform's text only for Rowhouse Grid
+     * Diagnostics users (GridException.messageFor).
+     */
     private static String messageOf(Exception e) {
-        return e instanceof GridException ? e.getMessage() : e.getTypeName() + ': ' + e.getMessage();
+        return GridException.messageFor(e);
     }
 
     /** Subscribers catch bare Exception (HR-1), so the message is the diagnostic. */

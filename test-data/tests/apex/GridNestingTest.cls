@@ -455,6 +455,40 @@ private class GridNestingTest {
     }
 
     @IsTest
+    static void aChildFilterOnARelatedRecordsFieldIsReadAsAPath() {
+        // A child grid's Grid Filter may test a related record's field, as the
+        // Grid Guide says. Counting and totalling its tab must read it as a
+        // path, not fail with "Unknown field".
+        Schema.SObjectType childType = Rowhouse_Test_Child__c.SObjectType;
+        Schema.SObjectType recordType = Rowhouse_Test_Record__c.SObjectType;
+        List<GridFilters.Condition> onTheParent = new List<GridFilters.Condition>{
+            GridFilters.condition(childType, 'Parent__r.Text_Field__c', 'equals', 'x', null)
+        };
+        List<GridFilters.Condition> plain = new List<GridFilters.Condition>{
+            GridFilters.condition(recordType, 'Text_Field__c', 'equals', 'x', null)
+        };
+        List<GridFilters.Condition> throughAHiddenLookup = new List<GridFilters.Condition>{
+            GridFilters.condition(recordType, 'Lookup_Field__r.Name', 'equals', 'x', null)
+        };
+        System.runAs(GridTestUsers.fullUser()) {
+            System.assert(GridNesting.readable(childType, onTheParent), 'A path the user can read.');
+            System.assert(GridNesting.readable(recordType, throughAHiddenLookup), 'The full user reads the lookup.');
+        }
+        System.runAs(GridTestUsers.limitedUser()) {
+            // Rowhouse_Test_Limited reads Test Records, not their children or Lookup_Field__c.
+            System.assert(GridNesting.readable(recordType, plain), 'A field the user can read.');
+            System.assert(
+                !GridNesting.readable(recordType, throughAHiddenLookup),
+                'A path through a lookup the user cannot read is not readable: the tab counts nothing.'
+            );
+            System.assert(
+                !GridNesting.readable(childType, onTheParent),
+                'Nor is a path on records the user cannot read at all.'
+            );
+        }
+    }
+
+    @IsTest
     static void aTabCarriesTheHeightTheAdminGaveIt() {
         System.runAs(GridTestUsers.fullUser()) {
             List<GridConfig.Child> tabs = GridConfig.forUser('Nest_Accounts').children;

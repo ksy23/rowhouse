@@ -125,9 +125,9 @@ The same code returns `rowhouse__X__c` in the managed build and `X__c` in the un
 
 ### Security
 
-**HR-5. Every FLS and CRUD decision goes through `GridSecurity`. Nowhere else.**  
-One auditable choke point is the only way to defend a dynamic-SOQL package in security review.  
-*Enforced by:* `run-all.js`.
+**HR-5. Every FLS and CRUD decision, every custom permission check, every query and every save goes through `GridSecurity`. Nowhere else. Every class is `with sharing`.**  
+One auditable choke point is the only way to defend a dynamic-SOQL package in security review: a static query or a DML statement anywhere else picks its own access mode, and a class without sharing reads records its user cannot see.  
+*Enforced by:* `run-all.js` (access checks, static queries, `Database` query and DML methods, DML statements, `FeatureManagement`, and sharing declarations).
 
 **HR-6. Never trust the client payload — server-side allow-list from describe.**  
 Deserialization lets a caller populate fields the grid never rendered, so `stripInaccessible` must sanitize *all* populated fields, not the rendered ones.  

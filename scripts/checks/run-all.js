@@ -30,12 +30,51 @@ const rel = p => path.relative(ROOT, p);
 const violations = [];
 const fail = (rule, file, line, message) => violations.push({ rule, file: rel(file), line, message });
 
-/** Strip // and /* *\/ comments and string contents so a rule quoted in a comment is not a violation. */
+/**
+ * Strip // and /* *\/ comments and string contents so a rule quoted in a comment is not a violation.
+ * Used for the components' JavaScript; Apex is read by scanApex, below.
+ */
 function apexCode(source) {
     return source
         .replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '))
         .replace(/\/\/[^\n]*/g, '')
         .replace(/'(?:\\.|[^'\\\n])*'/g, "''");
+}
+
+/**
+ * Apex with its comments blanked out, line breaks kept so line numbers hold,
+ * and its string literals emptied ('') or, with keepStrings, kept. A scanner
+ * rather than a regular expression: a // inside a string ('https://…') is not
+ * a comment, and a quote inside a comment does not open a string.
+ */
+function scanApex(source, keepStrings) {
+    let out = '';
+    let i = 0;
+    const n = source.length;
+    while (i < n) {
+        const c = source[i];
+        const next = source[i + 1];
+        if (c === '/' && next === '/') {
+            while (i < n && source[i] !== '\n') i++;
+        } else if (c === '/' && next === '*') {
+            const close = source.indexOf('*/', i + 2);
+            const end = close < 0 ? n : close + 2;
+            out += source.slice(i, end).replace(/[^\n]/g, ' ');
+            i = end;
+        } else if (c === "'") {
+            // An Apex string ends at its closing quote, and never runs past the line.
+            let j = i + 1;
+            while (j < n && source[j] !== "'" && source[j] !== '\n')
+                j += source[j] === '\\' && source[j + 1] !== '\n' ? 2 : 1;
+            const end = j < n && source[j] === "'" ? j + 1 : Math.min(j, n);
+            out += keepStrings ? source.slice(i, end) : "''";
+            i = end;
+        } else {
+            out += c;
+            i++;
+        }
+    }
+    return out;
 }
 
 function eachLine(file, source, re, fn) {
@@ -45,12 +84,21 @@ function eachLine(file, source, re, fn) {
 }
 
 const apexFiles = files(SRC, p => /\.(cls|trigger)$/.test(p));
+/** Each Apex file: `code` without comments or string contents, `withStrings` without comments only. */
+const apex = new Map(
+    apexFiles.map(f => {
+        const raw = fs.readFileSync(f, 'utf8');
+        return [f, { code: scanApex(raw, false), withStrings: scanApex(raw, true) }];
+    })
+);
+const isTest = f => /Test\.cls$/.test(f);
+const isGridSecurity = f => /(^|[\\/])GridSecurity\.cls$/.test(f);
 
 // ---------------------------------------------------------------- HR-1
 // Deliberately broad: `global with sharing class` and `webservice` members
 // defeat a pattern that only looks for `global class`.
 apexFiles.forEach(f => {
-    eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /(^|[\s(])(global|webservice)\s/i, (n, l) =>
+    eachLine(f, apex.get(f).code, /(^|[\s(])(global|webservice)\s/i, (n, l) =>
         fail('HR-1', f, n, 'global or webservice member — neither can ever be removed from a managed package: ' + l)
     );
 });
@@ -60,26 +108,70 @@ apexFiles.forEach(f => {
 const ACCESS =
     /isUpdateable\s*\(|isCreateable\s*\(|isAccessible\s*\(|isDeletable\s*\(|stripInaccessible|AccessLevel\.|WITH\s+USER_MODE|\bas\s+(user|system)\b/i;
 apexFiles
-    .filter(f => !/GridSecurity(Test)?\.cls$/.test(f) && !/Test\.cls$/.test(f))
+    .filter(f => !isGridSecurity(f) && !isTest(f))
     .forEach(f => {
-        eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), ACCESS, (n, l) =>
+        eachLine(f, apex.get(f).code, ACCESS, (n, l) =>
             fail('HR-5', f, n, 'access decision outside GridSecurity: ' + l)
         );
     });
 
+// Every query and every save happens in GridSecurity too, in user mode: a
+// static query or a DML statement elsewhere would choose its own access mode.
+// So does every custom permission check (GridSecurity.hasCustomPermission).
+const DATA_ACCESS = [
+    [/\[\s*(SELECT|FIND)\b/i, 'a static query'],
+    [
+        /\bDatabase\s*\.\s*(query|countQuery|getQueryLocator|getCursor|getPaginationCursor|insert|update|upsert|delete|undelete|merge|emptyRecycleBin|convertLead)\w*\s*\(/i,
+        'a Database query or DML method'
+    ],
+    [/\bSearch\s*\.\s*(query|find|suggest)\w*\s*\(/i, 'a search'],
+    [/(^|[;{}]|\belse\b|\))\s*(insert|update|upsert|delete|undelete|merge)\s+[\w([]/i, 'a DML statement'],
+    [/\bFeatureManagement\s*\./i, 'a custom permission check (use GridSecurity.hasCustomPermission)']
+];
+apexFiles
+    .filter(f => !isGridSecurity(f) && !isTest(f))
+    .forEach(f => {
+        DATA_ACCESS.forEach(([re, what]) =>
+            eachLine(f, apex.get(f).code, re, (n, l) =>
+                fail(
+                    'HR-5',
+                    f,
+                    n,
+                    what + ' outside GridSecurity, which alone queries, saves and checks permissions: ' + l
+                )
+            )
+        );
+    });
+
+// Every class runs with sharing. The class a file declares says `with
+// sharing`; nothing says `without sharing` or `inherited sharing`. An inner
+// class needs no keyword of its own: it queries and saves only through
+// GridSecurity, which is `with sharing`.
+apexFiles
+    .filter(f => !isTest(f))
+    .forEach(f => {
+        const code = apex.get(f).code;
+        eachLine(f, code, /\b(without|inherited)\s+sharing\b/i, (n, l) =>
+            fail('HR-5', f, n, 'every class runs with sharing; never without or inherited sharing: ' + l)
+        );
+        const lines = code.split('\n');
+        const at = lines.findIndex(l => /\b(class|interface|enum)\s+[A-Za-z_]\w*/i.test(l));
+        if (at >= 0 && /\bclass\s/i.test(lines[at]) && !/\bwith\s+sharing\b/i.test(lines[at]))
+            fail('HR-5', f, at + 1, 'every class declares `with sharing`: ' + lines[at].trim());
+    });
+
 // ------------------------------------------------ system-mode escape hatch
+// Read with the strings left in: ' WITH SYSTEM_MODE' can be added to a query
+// as text.
 apexFiles.forEach(f => {
-    eachLine(
-        f,
-        apexCode(fs.readFileSync(f, 'utf8')),
-        /AccessLevel\.SYSTEM_MODE|WITH\s+SYSTEM_MODE|\bas\s+system\b/i,
-        (n, l) => fail('system-mode', f, n, 'system mode silently voids every FLS assertion in the Apex suite: ' + l)
+    eachLine(f, apex.get(f).withStrings, /AccessLevel\.SYSTEM_MODE|WITH\s+SYSTEM_MODE|\bas\s+system\b/i, (n, l) =>
+        fail('system-mode', f, n, 'system mode silently voids every FLS assertion in the Apex suite: ' + l)
     );
 });
 
 // ---------------------------------------------------------------- HR-8
 apexFiles.forEach(f => {
-    eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /WITH\s+SECURITY_ENFORCED/i, (n, l) =>
+    eachLine(f, apex.get(f).withStrings, /WITH\s+SECURITY_ENFORCED/i, (n, l) =>
         fail('HR-8', f, n, 'WITH SECURITY_ENFORCED does not compile at API 67+: ' + l)
     );
     const meta = f + '-meta.xml';
@@ -98,21 +190,15 @@ apexFiles.forEach(f => {
 });
 
 // ---------------------------------------------------------------- HR-9
+// A named credential is a string ('callout:My_Credential/path'), so that one
+// is looked for with the strings left in.
 apexFiles
-    .filter(f => !/Test\.cls$/.test(f))
+    .filter(f => !isTest(f))
     .forEach(f => {
-        eachLine(
-            f,
-            apexCode(fs.readFileSync(f, 'utf8')),
-            /\bnew\s+Http(Request)?\s*\(|\bContinuation\b|WebServiceCallout|\bcallout:/i,
-            (n, l) =>
-                fail(
-                    'HR-9',
-                    f,
-                    n,
-                    'callout found — zero external services is both the architecture and the claim: ' + l
-                )
-        );
+        const found = (n, l) =>
+            fail('HR-9', f, n, 'callout found — zero external services is both the architecture and the claim: ' + l);
+        eachLine(f, apex.get(f).code, /\bnew\s+Http(Request)?\s*\(|\bContinuation\b|WebServiceCallout/i, found);
+        eachLine(f, apex.get(f).withStrings, /\bcallout:/i, found);
     });
 
 // ---------------------------------------------------------------- HR-26
@@ -288,13 +374,12 @@ if (fs.existsSync(guideBuild)) {
 const byName = new Map(apexFiles.map(f => [path.basename(f).replace(/\.(cls|trigger)$/, ''), f]));
 const scheduled = new Set();
 apexFiles.forEach(f => {
-    for (const m of apexCode(fs.readFileSync(f, 'utf8')).matchAll(/System\.schedule\s*\([^;]*?new\s+(\w+)\s*\(/g))
-        scheduled.add(m[1]);
+    for (const m of apex.get(f).code.matchAll(/System\.schedule\s*\([^;]*?new\s+(\w+)\s*\(/g)) scheduled.add(m[1]);
 });
 scheduled.forEach(name => {
     const f = byName.get(name);
     if (!f) return;
-    eachLine(f, apexCode(fs.readFileSync(f, 'utf8')), /\w/, (n, l) => {
+    eachLine(f, apex.get(f).code, /\w/, (n, l) => {
         const named = [...new Set((l.match(/\b[A-Za-z_]\w*\b/g) || []).filter(w => w !== name && byName.has(w)))];
         if (named.length)
             fail(
@@ -346,5 +431,5 @@ if (violations.length) {
     process.exit(1);
 }
 console.log(
-    `Static gates passed: HR-1, HR-2, HR-3, HR-5, HR-8, HR-9, HR-15, HR-19, HR-22, HR-23, HR-25, HR-26, HR-27, system-mode (${apexFiles.length} Apex files, ${cellDirs.length} cell editors), the Grid Guide matches its pages (${guideFiles} files), no scheduled class names another (${scheduled.size} scheduled), and every development-only component says so (${devOnlyFiles} files).`
+    `Static gates passed: HR-1, HR-2, HR-3, HR-5 (access checks, queries, saves, custom permissions, sharing), HR-8, HR-9, HR-15, HR-19, HR-22, HR-23, HR-25, HR-26, HR-27, system-mode (${apexFiles.length} Apex files, ${cellDirs.length} cell editors), the Grid Guide matches its pages (${guideFiles} files), no scheduled class names another (${scheduled.size} scheduled), and every development-only component says so (${devOnlyFiles} files).`
 );

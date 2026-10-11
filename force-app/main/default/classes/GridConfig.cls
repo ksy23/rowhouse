@@ -278,7 +278,7 @@ public with sharing class GridConfig {
          */
         @AuraEnabled
         public List<Map<String, String>> newTargets;
-        /** A lookup's targets' icons, by local name; set by GridIcons, for getGridConfig only. */
+        /** A lookup's targets' icons, by local name; set by GridIcons, when a grid opens only. */
         @AuraEnabled
         public Map<String, String> referenceIcons;
         /** The grid can group by this column; forUser() narrows it. */
@@ -449,7 +449,7 @@ public with sharing class GridConfig {
         public String objectApiName;
         @AuraEnabled
         public String objectLabel;
-        /** The object's icon, "standard:account"; set by GridIcons, for getGridConfig only. */
+        /** The object's icon, "standard:account"; set by GridIcons, when a grid opens only. */
         @AuraEnabled
         public String objectIcon;
         @AuraEnabled
@@ -720,7 +720,16 @@ public with sharing class GridConfig {
         if (!longFormulas.isEmpty()) {
             Map<Id, Grid_Column__mdt> whole = new Map<Id, Grid_Column__mdt>();
             try {
-                whole.putAll([SELECT Id, Formula__c FROM Grid_Column__mdt WHERE Id IN :longFormulas]);
+                whole.putAll(
+                    (List<Grid_Column__mdt>) GridSecurity.query(
+                        'SELECT Id, ' +
+                            GridDescribe.apiName(Grid_Column__mdt.Formula__c) +
+                            ' FROM ' +
+                            GridDescribe.apiName(Grid_Column__mdt.SObjectType) +
+                            ' WHERE Id IN :ids',
+                        new Map<String, Object>{ 'ids' => longFormulas }
+                    )
+                );
             } catch (Exception e) {
                 // A user who cannot query the type keeps the first 255 characters:
                 // such a formula then fails to build and is skipped, with a warning.
@@ -761,7 +770,16 @@ public with sharing class GridConfig {
         if (!longFormulas.isEmpty()) {
             Map<Id, Grid_Format_Rule__mdt> whole = new Map<Id, Grid_Format_Rule__mdt>();
             try {
-                whole.putAll([SELECT Id, Formula__c FROM Grid_Format_Rule__mdt WHERE Id IN :longFormulas]);
+                whole.putAll(
+                    (List<Grid_Format_Rule__mdt>) GridSecurity.query(
+                        'SELECT Id, ' +
+                            GridDescribe.apiName(Grid_Format_Rule__mdt.Formula__c) +
+                            ' FROM ' +
+                            GridDescribe.apiName(Grid_Format_Rule__mdt.SObjectType) +
+                            ' WHERE Id IN :ids',
+                        new Map<String, Object>{ 'ids' => longFormulas }
+                    )
+                );
             } catch (Exception e) {
                 // A user who cannot query the type keeps the first 255 characters:
                 // such a formula then fails to build and is skipped, with a warning.

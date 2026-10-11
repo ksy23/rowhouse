@@ -29,7 +29,7 @@ private class GridControllerTest {
     @IsTest
     static void configCarriesTheDefinitionAndTheDiagnosticsFlag() {
         System.runAs(GridTestUsers.fullUser()) {
-            Map<String, Object> result = GridController.getGridConfig('Test_Records');
+            Map<String, Object> result = GridController.openGrid('Test_Records', null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
             System.assertEquals('Rowhouse_Test_Record__c', def.objectApiName);
             System.assertEquals(false, result.get('diagnostics'), 'Diagnostics are off without the custom permission.');
@@ -39,7 +39,13 @@ private class GridControllerTest {
     @IsTest
     static void configCarriesIconsAndTheNameColumn() {
         System.runAs(GridTestUsers.fullUser()) {
-            GridConfig.Definition def = (GridConfig.Definition) GridController.getGridConfig('Test_Records')
+            GridConfig.Definition def = (GridConfig.Definition) GridController.openGrid(
+                    'Test_Records',
+                    null,
+                    null,
+                    null,
+                    null
+                )
                 .get('definition');
             // The object's tab icon, or the record icon for an object with no tab.
             System.assert(Pattern.matches('(standard|custom):[a-z0-9_]+', def.objectIcon), def.objectIcon);
@@ -297,7 +303,7 @@ private class GridControllerTest {
             System.assertEquals('Rowhouse_Test_Record__c', def.objectApiName);
             System.assert(
                 Pattern.matches('(standard|custom):[a-z0-9_]+', def.objectIcon),
-                'Icons, as getGridConfig has them.'
+                'Icons, once per grid opened.'
             );
             System.assertEquals(false, result.get('diagnostics'));
             System.assert(result.containsKey('canConfigure'));
@@ -487,20 +493,12 @@ private class GridControllerTest {
                 ((Map<String, Object>) result.get('page')).get('totalRows'),
                 'Only the parent\'s records: none.'
             );
-            System.assertEquals(
-                own,
-                GridController.getLayout('Test_Children', null),
-                'The grid on its own keeps its own.'
-            );
+            System.assertEquals(own, GridLayouts.read('Test_Children', null), 'The grid on its own keeps its own.');
             GridController.resetLayout('Test_Children', 'Test_Records_Children');
-            System.assertEquals(
-                null,
-                GridController.getLayout('Test_Children', 'Test_Records_Children'),
-                'Reset in the tab.'
-            );
+            System.assertEquals(null, GridLayouts.read('Test_Children', 'Test_Records_Children'), 'Reset in the tab.');
             System.assertEquals(
                 own,
-                GridController.getLayout('Test_Children', null),
+                GridLayouts.read('Test_Children', null),
                 '... leaves the grid on its own as it was.'
             );
             try {
@@ -545,11 +543,30 @@ private class GridControllerTest {
 
     @IsTest
     static void errorsReachTheClientWithTheirMessage() {
+        // Rowhouse's own refusal keeps its words.
         try {
-            GridController.getGridConfig('No_Such_Grid');
+            GridController.fetchRows('No_Such_Grid', null, null, null, null, null, null, null, null, null, null, null);
             System.assert(false, 'Expected an exception.');
         } catch (AuraHandledException e) {
             System.assert(e.getMessage().contains('No_Such_Grid'), e.getMessage());
+        }
+        // Anything else reads plainly; only Rowhouse Grid Diagnostics users see the platform's text.
+        System.runAs(GridTestUsers.fullUser()) {
+            try {
+                GridController.lookupName('Test_Records', 'Lookup_Field__c', 'not an id');
+                System.assert(false, 'Expected an exception.');
+            } catch (AuraHandledException e) {
+                System.assertEquals(GridException.UNEXPECTED, e.getMessage(), 'No type or detail without Diagnostics.');
+            }
+        }
+        System.runAs(GridTestUsers.diagnosticsUser()) {
+            try {
+                GridController.lookupName('Test_Records', 'Lookup_Field__c', 'not an id');
+                System.assert(false, 'Expected an exception.');
+            } catch (AuraHandledException e) {
+                System.assert(e.getMessage().startsWith(GridException.UNEXPECTED), e.getMessage());
+                System.assert(e.getMessage().contains('(System.StringException: '), e.getMessage());
+            }
         }
     }
 }

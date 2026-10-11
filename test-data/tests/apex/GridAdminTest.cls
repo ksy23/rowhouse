@@ -114,7 +114,7 @@ private class GridAdminTest {
             }
             System.assertEquals(
                 false,
-                GridController.getGridConfig('Test_Records').get('canConfigure'),
+                GridController.openGrid('Test_Records', null, null, null, null).get('canConfigure'),
                 'No gear without Rowhouse Grid Admin.'
             );
         }
@@ -127,7 +127,7 @@ private class GridAdminTest {
             System.assertEquals(false, read.get('canSave'));
             System.assertEquals(
                 true,
-                GridController.getGridConfig('Test_Records').get('canConfigure'),
+                GridController.openGrid('Test_Records', null, null, null, null).get('canConfigure'),
                 'The gear shows.'
             );
             GridAdmin.deployWith = new Kept();
