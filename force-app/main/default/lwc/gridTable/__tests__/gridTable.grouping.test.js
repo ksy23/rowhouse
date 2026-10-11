@@ -498,14 +498,39 @@ describe('widths', () => {
     };
 
     it('measures again when the Group column comes or goes, if the widths were pinned only to freeze columns', async () => {
-        await mount({ frozenColumns: 1 });
-        await frame(); // frozen columns pin the widths
-        expect($('table').style.width).not.toBe('');
-        await regroup([]);
-        // Unpinned: the table fills the grid again, and is pinned anew next frame.
-        expect($('table').style.width).toBe('');
-        await frame();
-        expect($('table').style.width).not.toBe('');
+        // The frames are run by hand: on a busy machine jsdom's own frame
+        // could land between the regroup and the check that follows it.
+        const queued = new Map();
+        let next = 0;
+        const raf = jest.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => {
+            next += 1;
+            queued.set(next, cb);
+            return next;
+        });
+        const caf = jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(handle => queued.delete(handle));
+        // One frame's callbacks, then whatever they rendered; again while new
+        // frames are asked for, at most 20 times.
+        const runFrames = async (left = 20) => {
+            if (!left || !queued.size) return;
+            const due = [...queued.values()];
+            queued.clear();
+            due.forEach(cb => cb(performance.now()));
+            await flush();
+            await runFrames(left - 1);
+        };
+        try {
+            await mount({ frozenColumns: 1 });
+            await runFrames(); // frozen columns pin the widths
+            expect($('table').style.width).not.toBe('');
+            await regroup([]);
+            // Unpinned: the table fills the grid again, and is pinned anew next frame.
+            expect($('table').style.width).toBe('');
+            await runFrames();
+            expect($('table').style.width).not.toBe('');
+        } finally {
+            raf.mockRestore();
+            caf.mockRestore();
+        }
     });
 
     it('keeps the widths the user chose', async () => {

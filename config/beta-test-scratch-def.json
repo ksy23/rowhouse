@@ -1,0 +1,9 @@
+{
+  "orgName": "Rowhouse beta test (multi-currency, Locker)",
+  "edition": "Developer",
+  "features": ["MultiCurrency"],
+  "settings": {
+    "currencySettings": { "enableMultiCurrency": true },
+    "securitySettings": { "sessionSettings": { "lockerServiceNext": false } }
+  }
+}
