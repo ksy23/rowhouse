@@ -268,15 +268,11 @@ h4 {
     font-weight: var(--slds-g-font-weight-6, 600);
 }
 
+/* A section's introduction runs the full width of its section, as the diagrams and tables below it do. */
 .rh-sec-sub {
     color: var(--rh-ink-2);
-    max-width: 66ch;
     margin-top: var(--slds-g-spacing-3, 0.75rem);
     font-size: var(--slds-g-font-scale-1, 0.875rem);
-}
-
-.rh-prose {
-    max-width: 70ch;
 }
 
 .rh-prose p {
@@ -886,10 +882,9 @@ h3 .rh-aud {
 }
 
 /*
- * A page's introduction and each section's runs the full width there is.
+ * A page's introduction runs the full width there is.
  */
-.rh-phead .rh-dek,
-.rh-content .rh-sec-sub {
+.rh-phead .rh-dek {
     max-width: none;
 }
 
