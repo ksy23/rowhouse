@@ -55,6 +55,9 @@ in Lightning Experience, in the browsers Salesforce supports.
   grouping, and which columns show, in which order.
 - A list view's look, with its row numbers (an admin can hide them), and a
   card layout on narrow screens.
+- Orgs with more than one currency: each amount in its record's own
+  currency, shown by its code as Salesforce shows it, and totals in the
+  corporate currency, labelled as such.
 
 **Working in bulk**
 - Select rows to update a field on all of them, or delete them (when the
