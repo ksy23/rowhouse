@@ -44,6 +44,7 @@
     <div class="lim plum"><span class="t">Child total columns in one grid</span><span class="n" data-count="5">5</span><div class="meter"><i style="--w:5%"></i></div></div>
     <div class="lim gold"><span class="t">Rows opened at once with the toggle column's button</span><span class="n" data-count="200">200</span><div class="meter"><i style="--w:20%"></i></div></div>
     <div class="lim rose"><span class="t">Records one Delete of every match takes</span><span class="n" data-count="50000">50,000</span><div class="meter"><i style="--w:50%"></i></div></div>
+    <div class="lim teal"><span class="t">An Excel sheet in an import, unpacked · cells</span><span class="n">100 MB · 10 million</span><div class="meter"><i style="--w:100%"></i></div></div>
   </div>
   <ul class="tick" style="margin-top:20px">
     <li><b>Wrapped text</b> shows up to three lines. <b>Height (px)</b> is at least 160, on a grid and on a child table. A filled grid is at least 240 pixels tall.</li>
@@ -138,7 +139,7 @@
   <details class="faq"><summary>How does it show amounts when my org has more than one currency?</summary><div class="a"><p>Each amount in its record's currency, by its code, as Salesforce does: <span class="v plain">USD 78,250.00</span>, <span class="v plain">CAD 1,000.00</span>. Totals and subtotals are in your org's corporate currency, each record converted at your org's rates, and show its code. Filters and display rules compare amounts as stored, in each record's own currency (<a href="features.html#currency">Features › More than one currency</a>).</p></div></details>
   <details class="faq"><summary>Which browsers does it support?</summary><div class="a"><p>The browsers Salesforce supports for Lightning Experience.</p></div></details>
   <details class="faq"><summary>Why does New sometimes open Salesforce's New form instead of adding a row?</summary><div class="a"><p>A row in the grid can be filled in only through the grid's own columns. When a new record needs a required field that is not an editable column, when you have more than one record type to choose from, or when the grid does not let you edit cells, <b>New</b> opens Salesforce's own form instead, with what the grid knows already filled in, such as the account on an account's page. The record you save there appears at the top of the grid.</p></div></details>
-  <details class="faq"><summary>Does a field's lookup filter apply in the grid?</summary><div class="a"><p>Yes, when you edit the cell: a lookup with a lookup filter opens Salesforce's own lookup, which offers only the records the filter allows. A paste or an import matches a record by its Id, or by the name of a record shown in the grid; if a required lookup filter rejects that record, Salesforce refuses it when you save, and the cell says why.</p></div></details>
+  <details class="faq"><summary>Does a field's lookup filter apply in the grid?</summary><div class="a"><p>Yes, when you edit the cell: a lookup with a lookup filter opens Salesforce's own lookup, which offers only the records the filter allows. A paste or an import matches a record by its Id, or by its name, looked up in Salesforce; if a required lookup filter rejects that record, Salesforce refuses it when you save, and the cell says why.</p></div></details>
 </section>
 
 <section id="glossary">
