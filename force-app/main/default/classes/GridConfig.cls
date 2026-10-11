@@ -304,8 +304,9 @@ public with sharing class GridConfig {
         @AuraEnabled
         public Boolean isPath = false;
         /**
-         * The field is encrypted (Shield Platform Encryption): shown and edited
-         * as usual, never sorted, filtered, grouped, searched or subtotalled.
+         * The field is encrypted (Shield Platform Encryption or Classic
+         * encrypted text): shown and edited as usual, never sorted, filtered,
+         * grouped, searched or subtotalled, and logged without its values.
          */
         @AuraEnabled
         public Boolean encrypted = false;
@@ -968,12 +969,17 @@ public with sharing class GridConfig {
             col.encrypted = GridDescribe.isEncrypted(d);
             col.sortable = c.Sortable__c != false && d.isSortable() && !col.encrypted;
             if (col.encrypted) {
+                // In a grid that logs, the log keeps no copy of an encrypted
+                // value (GridAudit), so the admin is told when they set it up.
                 def.warnings.add(
                     'Grid Column ' +
                         c.DeveloperName +
                         ': ' +
                         d.getLabel() +
-                        ' is encrypted, so the grid cannot sort, filter, group, search or subtotal it.'
+                        ' is encrypted, so the grid cannot sort, filter, group, search or subtotal it.' +
+                        (def.logChanges == true && col.editable
+                            ? ' Its changes are logged without their old and new values.'
+                            : '')
                 );
             }
             col.scale = d.getScale();

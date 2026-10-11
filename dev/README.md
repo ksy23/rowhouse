@@ -23,3 +23,9 @@ CONTRIBUTING.md).
   admin who builds and demos Rowhouse by Kugamon. It gives no field access, which comes from
   `test-data/metadata/permissionsets/Rowhouse_Test_Full`, assigned alongside;
   that is also what the Apex suite's `fullUser()` holds.
+- `objects/Rowhouse_Test_Record__c/fields/Encrypted_Text__c`: a Classic
+  encrypted text field on the test object, to see live how the grid and the
+  Grid Admin tab treat an encrypted field (Shield cannot be turned on here).
+  `Rowhouse_Dev_Tabs` gives read and edit access to it. Kept out of
+  `test-data`, which CI deploys to a scratch org; the Apex suite marks a field
+  encrypted through `GridDescribe.encryptedForTest` instead.

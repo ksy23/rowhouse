@@ -12,13 +12,19 @@ private class GridEncryptedFieldsTest {
     private static final Schema.SObjectType TEST_RECORD = Rowhouse_Test_Record__c.SObjectType;
 
     private static GridConfig.Definition grid(String sortField) {
+        return grid(sortField, false, true);
+    }
+
+    /** The test grid, logging its changes or not, its encrypted Text column editable or not. */
+    private static GridConfig.Definition grid(String sortField, Boolean logChanges, Boolean textEditable) {
         return GridConfig.build(
             new Grid_Configuration__mdt(
                 DeveloperName = 'Encrypted',
                 MasterLabel = 'Encrypted',
                 Object_API_Name__c = 'Rowhouse_Test_Record__c',
                 Default_Sort_Field__c = sortField,
-                Allow_Inline_Edit__c = true
+                Allow_Inline_Edit__c = true,
+                Log_Changes__c = logChanges
             ),
             new List<Grid_Column__mdt>{
                 new Grid_Column__mdt(
@@ -32,7 +38,7 @@ private class GridEncryptedFieldsTest {
                     DeveloperName = 'Encrypted_Text',
                     Field_API_Name__c = 'Text_Field__c',
                     Sort_Order__c = 20,
-                    Editable__c = true,
+                    Editable__c = textEditable,
                     Sortable__c = true,
                     Allow_Grouping__c = true,
                     Subtotal__c = 'count'
@@ -74,6 +80,33 @@ private class GridEncryptedFieldsTest {
         System.assertEquals(false, name.encrypted);
         System.assertEquals(true, name.sortable, 'Other columns as before.');
         System.assertEquals('Name', def.sortField);
+    }
+
+    @IsTest
+    static void aGridThatLogsSaysAnEncryptedColumnsChangesAreLoggedWithoutValues() {
+        GridDescribe.encryptedForTest.add('text_field__c');
+        String logged = 'Its changes are logged without their old and new values.';
+        String warning = warningFor(grid('Name', true, true));
+        System.assert(warning.endsWith(logged), warning);
+        System.assert(
+            !warningFor(grid('Name', false, true)).contains(logged),
+            'A grid that does not log says nothing of the log.'
+        );
+        System.assert(
+            !warningFor(grid('Name', true, false)).contains(logged),
+            'A column nobody edits writes no log entries.'
+        );
+    }
+
+    /** The warning about the encrypted Text column. */
+    private static String warningFor(GridConfig.Definition def) {
+        for (String w : def.warnings) {
+            if (w.startsWith('Grid Column Encrypted_Text: ')) {
+                return w;
+            }
+        }
+        System.assert(false, 'No warning about the encrypted column: ' + def.warnings);
+        return null;
     }
 
     @IsTest
