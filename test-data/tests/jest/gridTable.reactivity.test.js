@@ -19,16 +19,42 @@ const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
 
 describe('reactivity across the @api boundary', () => {
     let el;
+    let raf;
+    let caf;
     const rendered = () => el.shadowRoot.querySelectorAll('[role="row"][data-row-id]').length;
 
+    // Animation frames are run by hand. On a busy machine jsdom's own frame
+    // could land inside a test, after the rows array was changed in place,
+    // and redraw from it.
+    const queued = new Map();
+    let next = 0;
+    const runFrames = async (left = 20) => {
+        if (!left || !queued.size) return;
+        const due = [...queued.values()];
+        queued.clear();
+        due.forEach(cb => cb(performance.now()));
+        await flushPromises();
+        await runFrames(left - 1);
+    };
+
     beforeEach(async () => {
+        raf = jest.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => {
+            next += 1;
+            queued.set(next, cb);
+            return next;
+        });
+        caf = jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(handle => queued.delete(handle));
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = { columns, rows: [...seedRows] };
         document.body.appendChild(el);
         await flushPromises();
+        await runFrames();
     });
     afterEach(() => {
         while (document.body.firstChild) document.body.firstChild.remove();
+        queued.clear();
+        raf.mockRestore();
+        caf.mockRestore();
     });
 
     it('re-renders when the parent replaces the rows array (HR-17)', async () => {
@@ -47,6 +73,7 @@ describe('reactivity across the @api boundary', () => {
         const rows = [...seedRows];
         el.config = { columns, rows };
         await flushPromises();
+        await runFrames();
         const before = rendered();
 
         rows.push({ ...seedRows[0], Id: 'a00_mutated_in_place' }); // no new reference
