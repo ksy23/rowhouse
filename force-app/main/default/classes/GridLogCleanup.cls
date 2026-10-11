@@ -25,7 +25,9 @@
  *
  * AS WHOM
  * The admin who saved the setting, in user mode: entries that admin may not
- * delete stay, and are counted as not removed.
+ * delete stay, and are counted as not removed. Each step first checks that
+ * the admin still holds Rowhouse Grid Admin: if not, nothing is deleted, and
+ * the note says so and how to run it again as someone who does.
  */
 public with sharing class GridLogCleanup implements Queueable {
     /** Entries a step deletes; a test makes it small. */
@@ -47,6 +49,12 @@ public with sharing class GridLogCleanup implements Queueable {
     private Set<Id> skip = new Set<Id>();
     /** Old entries are left for the next night. */
     private Boolean more = false;
+    /** Why nothing was tried, when the clean-up did not run at all; its note says only this. */
+    private String skipped;
+
+    /** The note of a night the clean-up's admin no longer held Rowhouse Grid Admin. */
+    @TestVisible
+    private static final String NOT_AN_ADMIN = 'Clean-up skipped: the user who set the retention period no longer has Rowhouse Grid Admin. Save the retention period again to run it as you.';
     /** A test's stand-in for Salesforce refusing to chain another step. */
     @TestVisible
     private static Boolean refuseChain = false;
@@ -83,6 +91,13 @@ public with sharing class GridLogCleanup implements Queueable {
     private Boolean step() {
         steps++;
         if (cutoff == null) {
+            return false;
+        }
+        // It runs as the admin who saved the period: one who has since lost
+        // Rowhouse Grid Admin deletes nothing.
+        if (!GridSecurity.hasCustomPermission(GridAdmin.PERMISSION)) {
+            skipped = NOT_AN_ADMIN;
+            note();
             return false;
         }
         if (!GridLogRetention.canRun()) {
@@ -128,7 +143,7 @@ public with sharing class GridLogCleanup implements Queueable {
 
     /** One Cleanup entry, when there is something to say. */
     private void note() {
-        if (removed == 0 && notRemoved == 0) {
+        if (removed == 0 && notRemoved == 0 && skipped == null) {
             return;
         }
         String said = removed + (removed == 1 ? ' entry' : ' entries') + ' removed';
@@ -139,6 +154,9 @@ public with sharing class GridLogCleanup implements Queueable {
         }
         if (more) {
             said += '; more remain for the next night';
+        }
+        if (skipped != null) {
+            said = skipped;
         }
         Grid_Edit_Log__c entry = new Grid_Edit_Log__c(
             Operation__c = GridAudit.OP_CLEANUP,

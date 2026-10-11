@@ -168,7 +168,7 @@
     </ul>
     <ul class="tick">
       <li><b>An admin's filter that cannot work stops the grid</b>, with a message naming it, instead of quietly showing records it was meant to keep out.</li>
-      <li><b>Filters are not security.</b> Sharing and field-level security still decide who sees what.</li>
+      <li><b>Filters are not security.</b> They narrow what the grid shows, not what a user may reach: someone who can open a record outside the filter elsewhere in Salesforce can still change it. Sharing and field-level security decide who sees what; use them to keep records from people.</li>
     </ul>
   </div>
 </section>
@@ -323,7 +323,7 @@
 
 <section id="import">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Import from CSV or Excel</h2>
-  <p class="sec-sub">Select <b>Allow Import</b> (<i>Import from a CSV or Excel file</i> on the Grid Admin tab) and users get an Import button. A row with a record Id updates that record; a row without one creates a new record. Nothing is written until the user has seen a preview.</p></div>
+  <p class="sec-sub">Select <b>Allow Import</b> (<i>Import from a CSV or Excel file</i> on the Grid Admin tab) and users get an Import button. A row with a record Id updates that record; a row without one creates a new record, so import also needs <b>Allow New Records</b> (<i>Create records with New</i>): with it off, the grid offers no import. Nothing is written until the user has seen a preview.</p></div>
   <div class="stepper rv" aria-hidden="true">
     <div class="sp" style="--d:0s"><b>1</b><span>Choose a file</span><small>CSV (or tab-separated .txt or .tsv) or .xlsx, up to 20 MB and 10,000 rows</small></div>
     <div class="sp" style="--d:1s"><b>2</b><span>Check the rows</span><small>updates, new records and problems, row by row</small></div>
@@ -372,9 +372,10 @@
     <div>
       <ul class="tick">
         <li><b>Who and when</b> are the entry's Created By and Created Date, which Salesforce sets, not the grid.</li>
-        <li><b>Values as text</b>: dates as 2026-09-30, date/times in UTC, numbers in full, lookups as record Ids. A field encrypted with Shield Platform Encryption is logged without its values, marked Values Not Recorded.</li>
+        <li><b>Values as text</b>: dates as 2026-09-30, date/times in UTC, numbers in full, lookups as record Ids. An encrypted field, with Shield Platform Encryption or a Classic encrypted text field, is logged without its values, marked Values Not Recorded.</li>
         <li><b>All or nothing.</b> If an entry cannot be written, the change is not made either, and the user is told why. A grid that logs never changes something silently.</li>
         <li><b>Users read their own entries</b> and can never edit or delete one. The log is private, so anyone else reads an entry only as your org's sharing allows (a manager above its author in the role hierarchy, for example). To let an auditor read everyone's, give them View All on Grid Edit Log, and the Grid Edit Logs tab, in a permission set of your own.</li>
+        <li id="audit-readers"><b>Whoever reads an entry reads its values</b>, old and new, even of a field hidden from them by field-level security: the log holds its own copy. So keep the readers few. In <span class="ui">Sharing Settings</span>, edit the organization-wide defaults and clear <span class="ui">Grant Access Using Hierarchies</span> for Grid Edit Log, so managers do not read their team's entries; give View All on it only to auditors; and install Rowhouse for admins only, then give people the Rowhouse permission sets, rather than for all users.</li>
         <li><b>Not logged:</b> screen flows (they run in the browser), and changes made outside the grid.</li>
       </ul>
     </div>
@@ -394,7 +395,7 @@
   </ol>
   <ul class="tick">
     <li><b>Deleted for good.</b> The clean-up empties what it deletes from the Recycle Bin, so old entries cannot be restored. After a night that removed any, the section shows <i>Last clean-up</i> under the cards, with when and how many; the same note is an entry of its own in the log, operation <b>Cleanup</b>.</li>
-    <li><b>It runs as you.</b> At 2 AM in your time zone, with your access, so it deletes only the entries you may delete. A System Administrator may delete them all. Saving a period needs Customize Application and the right to delete Grid Edit Log entries; without that the section says to ask a System Administrator. When the clean-up runs as another admin, the second card says so, and <b>Save</b> moves it to you, for when that person leaves.</li>
+    <li><b>It runs as you.</b> At 2 AM in your time zone, with your access, so it deletes only the entries you may delete. A System Administrator may delete them all. Saving a period needs Customize Application and the right to delete Grid Edit Log entries; without that the section says to ask a System Administrator. When the clean-up runs as another admin, the second card says so, and <b>Save</b> moves it to you, for when that person leaves. If the admin it runs as no longer has Rowhouse Grid Admin, it deletes nothing, and its note in the log says <i>Clean-up skipped</i> and why.</li>
     <li><b>To stop it,</b> choose <span class="v plain">Forever</span> and click <span class="ui">Save</span>. Nothing is deleted from then on.</li>
     <li><b>Updates still deploy.</b> While the clean-up is on, a newer Rowhouse deploys as usual. Salesforce refuses to change a class while a job is scheduled for it, and every class that class names; Rowhouse keeps that class to a few lines that name no other and never change.</li>
   </ul>
@@ -502,6 +503,7 @@
   <ul class="tick" style="margin-top:18px">
     <li><b>Hidden stays hidden.</b> A column the user cannot read is not shown, exported or sent to the browser. A format rule on such a field is dropped for them, since its color would reveal the value, and so is a formula column or rule that reads a field they cannot.</li>
     <li><b>The grid's settings are read on the server</b> on every request: whether this grid allows editing, import, delete or a given action, and which columns are editable. A changed or forged request gains nothing.</li>
+    <li><b>Filters narrow, they do not protect.</b> A grid's filters choose the records it shows; sharing decides which records a user may reach. To keep records from someone, use sharing (<a href="#filters">above</a>).</li>
     <li><b>Nothing leaves Salesforce.</b> Rowhouse makes no callouts and loads no outside code; diagnostics stay in the user's own browser and never include record data.</li>
     <li id="encrypted"><b>Encrypted fields.</b> A field encrypted with Shield Platform Encryption is shown and edited as usual, but Salesforce cannot sort, filter, group, search or total it, so the grid does not offer those on its column, a search leaves it out, and a Default Sort Field on it is set aside. Diagnostics name such a column. A Grid Filter on an encrypted field stops the grid and says why, since leaving it out would show records the filter was meant to hide.</li>
   </ul>
@@ -531,7 +533,7 @@
   <details class="faq"><summary>The grid shows an error instead of rows</summary><div class="a"><p>Check that the user has the <b>Rowhouse Grid User</b> permission set and can read the grid's object. Check that the Rowhouse Grid component's <b>Grid Configuration</b> matches the record's Grid Configuration Name exactly, and that Object API Name and every Field API Name are API names that exist.</p></div></details>
   <details class="faq"><summary>A column is missing for some users</summary><div class="a"><p>They cannot read that field. Rowhouse leaves out columns a user's field-level security hides, without a message. If the field is hidden from you, the Grid Admin tab lists it as a warning, not a problem, so you can still save the grid for the people who can read it.</p></div></details>
   <details class="faq"><summary>A column cannot be edited</summary><div class="a"><p>All four must hold: Allow Inline Edit on the configuration, Editable on the column, the user may edit the object and the field, and the field can be edited at all (not a formula, roll-up, auto-number, system field or rich text). A formula column of the grid is always read-only. A lookup also needs read access to the target object's name.</p></div></details>
-  <details class="faq"><summary>There is no Import or Delete button</summary><div class="a"><p>Import needs Allow Import and Allow Inline Edit with at least one editable column, and the user must be allowed to edit the object; it is disabled while there are unsaved changes. Delete needs Allow Mass Delete and permission to delete the object, and appears in the bar that shows when rows are selected.</p></div></details>
+  <details class="faq"><summary>There is no Import or Delete button</summary><div class="a"><p>Import needs Allow Import, Allow New Records and Allow Inline Edit with at least one editable column, and the user must be allowed to edit the object; it is disabled while there are unsaved changes. Delete needs Allow Mass Delete and permission to delete the object, and appears in the bar that shows when rows are selected.</p></div></details>
   <details class="faq"><summary>A color, grouping, tab or action does not show</summary><div class="a"><p>Give yourself Rowhouse Grid Diagnostics and reload: the warning above the grid names the setting that was skipped and why. If there is no warning, the user cannot read a field it needs, or lacks the action's Required Permission.</p></div></details>
   <details class="faq"><summary>Saves fail with "This grid keeps a log of every change…"</summary><div class="a"><p>The grid has Log Changes selected and the user cannot write to Grid Edit Log. Assign them Rowhouse Grid User, which includes that access.</p></div></details>
   <details class="faq"><summary>There is no gear, or no Grid Admin tab</summary><div class="a"><p>Both are for the <b>Rowhouse Grid Admin</b> permission set. Assign it (with Rowhouse Grid User), then reload the page. The tab is in the <b>Rowhouse</b> app in the App Launcher; to have it in another app too, add it to that app's navigation bar.</p></div></details>

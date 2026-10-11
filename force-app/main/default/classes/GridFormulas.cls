@@ -121,8 +121,11 @@ public with sharing class GridFormulas {
      * by their full API names. A formula names this package's own fields
      * without the namespace, and an Apex cursor over such a name fails in a
      * namespaced org with an internal error that no catch block stops
-     * (measured), so the query always gets the full names. The path as given
-     * when a step cannot be resolved: canRead has already refused it.
+     * (measured), so the query always gets the full names. Every name in the
+     * answer comes from describe: a step that cannot be resolved throws, and
+     * nothing from the formula's text reaches the query as it was written.
+     * (canRead has already refused such a path, so the grid never gets here
+     * with one.)
      */
     public static String qualified(Schema.SObjectType objectType, String path) {
         Schema.SObjectType current = objectType;
@@ -134,16 +137,15 @@ public with sharing class GridFormulas {
                 ? new List<Schema.SObjectType>()
                 : lookup.getDescribe().getReferenceTo();
             if (targets.size() != 1) {
-                return path;
+                throw new GridException(
+                    'A formula reads ' + path + ', but ' + steps[i] + ' is not a lookup to one kind of record.'
+                );
             }
             out.add(lookup.getDescribe().getRelationshipName());
             current = targets[0];
         }
-        try {
-            out.add(GridDescribe.apiName(GridDescribe.field(current, steps[steps.size() - 1])));
-        } catch (GridException e) {
-            return path;
-        }
+        // GridDescribe.field throws, naming the field, when the last step is not one.
+        out.add(GridDescribe.apiName(GridDescribe.field(current, steps[steps.size() - 1])));
         return String.join(out, '.');
     }
 

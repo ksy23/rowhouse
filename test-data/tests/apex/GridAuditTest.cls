@@ -131,6 +131,30 @@ private class GridAuditTest {
     }
 
     @IsTest
+    static void anEncryptedFieldsChangeIsLoggedWithoutItsValues() {
+        // Shield Platform Encryption cannot be turned on in the test orgs; a
+        // Classic encrypted text field is read the same way (GridDescribe.isEncrypted).
+        GridDescribe.encryptedForTest.add('text_field__c');
+        System.runAs(GridTestUsers.fullUser()) {
+            List<Rowhouse_Test_Record__c> recs = newRecords(new List<String>{ 'Audit Secret' });
+            Test.startTest();
+            GridSaveService.save(
+                'Audit_Test',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'Id' => recs[0].Id, 'Text_Field__c' => 'new secret' }
+                }
+            );
+            Test.stopTest();
+            List<Grid_Edit_Log__c> entries = entriesFor(idsOf(recs));
+            System.assertEquals(1, entries.size(), String.valueOf(entries));
+            System.assertEquals('Text_Field__c', entries[0].Field__c, 'The change itself is logged.');
+            System.assertEquals(true, entries[0].Values_Hidden__c);
+            System.assertEquals(null, entries[0].Old_Value__c, 'The old value is not copied into the log.');
+            System.assertEquals(null, entries[0].New_Value__c, 'Nor the new one.');
+        }
+    }
+
+    @IsTest
     static void aRecordThatFailsToSaveIsNotLogged() {
         System.runAs(GridTestUsers.fullUser()) {
             List<Rowhouse_Test_Record__c> recs = newRecords(new List<String>{ 'Saved', 'Gone' });

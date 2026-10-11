@@ -227,7 +227,8 @@ private class GridLogRetentionTest {
         System.runAs(GridTestUsers.adminUser()) {
             entries(2, 2, 400);
         }
-        System.runAs(GridTestUsers.fullUser()) {
+        // Rowhouse Grid Admin, on a Standard User who may not delete the log's entries.
+        System.runAs(GridTestUsers.adminViewer()) {
             GridLogCleanup cleanup = new GridLogCleanup(365);
             System.assertEquals(false, cleanup.step());
             System.assertEquals(0, cleanup.removed);
@@ -236,6 +237,24 @@ private class GridLogRetentionTest {
             System.assertEquals(2, kept('Update'), 'Nothing was removed.');
             Grid_Edit_Log__c note = [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'Cleanup'];
             System.assert(note.New_Value__c.contains('none could be'), note.New_Value__c);
+        }
+    }
+
+    @IsTest
+    static void anAdminWhoLostRowhouseGridAdminDeletesNothingAndSaysSo() {
+        System.runAs(GridTestUsers.adminUser()) {
+            entries(2, 2, 400);
+        }
+        // The job runs as whoever saved the period; this user no longer holds Rowhouse Grid Admin.
+        System.runAs(GridTestUsers.fullUser()) {
+            GridLogCleanup cleanup = new GridLogCleanup(365);
+            System.assertEquals(false, cleanup.step(), 'One step: it stops at once.');
+            System.assertEquals(0, cleanup.removed);
+        }
+        System.runAs(GridTestUsers.adminUser()) {
+            System.assertEquals(2, kept('Update'), 'Nothing was removed.');
+            Grid_Edit_Log__c note = [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'Cleanup'];
+            System.assertEquals(GridLogCleanup.NOT_AN_ADMIN, note.New_Value__c);
         }
     }
 

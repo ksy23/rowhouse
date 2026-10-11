@@ -569,4 +569,47 @@ private class GridControllerTest {
             }
         }
     }
+
+    @IsTest
+    static void onlyASortableColumnOfTheGridSortsTheRows() {
+        System.runAs(GridTestUsers.fullUser()) {
+            // A column of the grid, in any case: sorted.
+            Map<String, Object> page = GridController.fetchRows(
+                'Test_Records',
+                null,
+                'name',
+                'desc',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) page.get('rows');
+            System.assertEquals('TC-055 long text', rows[0].get('Name'), 'Name descending.');
+            // A field the user can read, but no column of this grid: refused (HR-6).
+            try {
+                GridController.fetchRows(
+                    'Test_Records',
+                    null,
+                    'CreatedDate',
+                    'asc',
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                );
+                System.assert(false, 'The browser may sort only by the grid\'s own sortable columns.');
+            } catch (AuraHandledException e) {
+                System.assert(e.getMessage().startsWith('Cannot sort by CreatedDate'), e.getMessage());
+            }
+        }
+    }
 }

@@ -469,9 +469,10 @@ public with sharing class GridConfig {
         @AuraEnabled
         public Boolean allowMassDelete;
         /**
-         * The admin allows importing a file. forUser() narrows it to
-         * users who may edit the object, since an import writes the grid's
-         * editable columns.
+         * The admin allows importing a file, in a grid that also allows new
+         * records (an import creates a record for each row without an Id).
+         * forUser() narrows it to users who may edit the object, since an
+         * import writes the grid's editable columns.
          */
         @AuraEnabled
         public Boolean allowImport;
@@ -855,8 +856,13 @@ public with sharing class GridConfig {
         def.allowInlineEdit = cfg.Allow_Inline_Edit__c;
         def.allowCsvExport = cfg.Allow_CSV_Export__c;
         def.allowMassDelete = cfg.Allow_Mass_Delete__c == true;
-        def.allowImport = cfg.Allow_Import__c == true;
         def.allowNewRecords = cfg.Allow_New_Records__c == true;
+        // An import creates a record for each row without a record Id, so a grid
+        // without new records offers no import at all.
+        def.allowImport = cfg.Allow_Import__c == true && def.allowNewRecords;
+        if (cfg.Allow_Import__c == true && !def.allowNewRecords) {
+            def.warnings.add('Allow Import: the grid offers no import, because Allow New Records is off.');
+        }
         def.logChanges = cfg.Log_Changes__c == true;
         def.frozenColumns = cfg.Frozen_Columns__c == null ? 0 : Math.max(0, cfg.Frozen_Columns__c.intValue());
         def.showRowNumbers = cfg.Show_Row_Numbers__c == true;

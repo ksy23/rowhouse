@@ -31,8 +31,10 @@
  * Dates as 2026-09-30, date/times in UTC ISO 8601, numbers in full (a Double
  * would print as 1.0E20), checkboxes as true or false, lookups as record Ids.
  * Order matters: a Date held as an Object is also an instanceof Datetime,
- * and every number type is an instanceof Decimal. A Shield-encrypted field's
- * values are not copied into the log; its entry says Values Not Recorded.
+ * and every number type is an instanceof Decimal. An encrypted field's values,
+ * Shield Platform Encryption or Classic encrypted text alike
+ * (GridDescribe.isEncrypted), are not copied into the log; its entry says
+ * Values Not Recorded.
  *
  * LIMITS
  * A transaction may write 10,000 rows. MAX_ENTRIES caps the entries one
@@ -361,8 +363,8 @@ public with sharing class GridAudit {
         Schema.DescribeFieldResult d = field.getDescribe();
         e.Field__c = d.getLocalName();
         e.Field_Label__c = d.getLabel().left(80);
-        if (d.isEncrypted()) {
-            e.Values_Hidden__c = true; // Shield-encrypted: never copied into the log in clear
+        if (GridDescribe.isEncrypted(d)) {
+            e.Values_Hidden__c = true; // encrypted (Shield or Classic): never copied into the log in clear
         } else {
             e.Old_Value__c = text(oldValue);
             e.New_Value__c = text(newValue);

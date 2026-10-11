@@ -327,6 +327,21 @@ private class GridFormulasTest {
     }
 
     @IsTest
+    static void aPathReachesTheQueryOnlyAsDescribeNamesIt() {
+        String path = GridFormulas.qualified(TEST_RECORD, 'lookup_field__r.name');
+        System.assert(path.endsWith('Lookup_Field__r.Name'), 'Full API names from describe: ' + path);
+        for (String bad : new List<String>{ 'No_Such__r.Name', 'Text_Field__c.Name', 'Not_A_Field__c' }) {
+            String refusal;
+            try {
+                GridFormulas.qualified(TEST_RECORD, bad);
+            } catch (GridException e) {
+                refusal = e.getMessage();
+            }
+            System.assertNotEquals(null, refusal, bad + ' is not sent to the query as written.');
+        }
+    }
+
+    @IsTest
     static void columnsReadTheSameWhoeverReadsThem() {
         // By SOQL for a user who may query the type, by getAll() for one who may
         // not: the same columns. Only the first can read a formula longer

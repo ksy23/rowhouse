@@ -277,6 +277,23 @@ describe('editing', () => {
         expect($(el, '.rh-config-new').checked).toBe(false);
     });
 
+    it('turns import off with New and offers it only while New is on: an import creates records', async () => {
+        const el = await mount();
+        change($(el, '.rh-config-import'), true);
+        await afterCheck();
+        expect(lastDraft().config.allowImport).toBe(true);
+        expect($(el, '.rh-config-import').disabled).toBe(false);
+        change($(el, '.rh-config-new'), false);
+        await afterCheck();
+        expect(lastDraft().config.allowImport).toBe(false);
+        expect($(el, '.rh-config-import').checked).toBe(false);
+        expect($(el, '.rh-config-import').disabled).toBe(true);
+        change($(el, '.rh-config-new'), true);
+        await afterCheck();
+        expect($(el, '.rh-config-import').disabled).toBe(false);
+        expect(lastDraft().config.allowImport).toBe(false); // turned back on by hand, not by New
+    });
+
     it("checks the draft a moment after a change, with the grid's own code", async () => {
         const el = await mount();
         expect($(el, '.rh-editor-save').disabled).toBe(true); // nothing changed yet

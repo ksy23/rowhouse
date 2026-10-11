@@ -3,7 +3,8 @@
  * Import: what one batch of a file updates and creates, what it
  * refuses, and how a row that fails comes back. The fixture configurations
  * decide whether a grid allows it: Test_Records and Security_Test do,
- * Save_Test does not. The field-level security case is in GridSecurityTest.
+ * Save_Test does not, and Import_Without_New_Test sets Allow Import without
+ * Allow New Records, so it does not either. The field-level security case is in GridSecurityTest.
  */
 @IsTest
 private class GridImportServiceTest {
@@ -157,6 +158,32 @@ private class GridImportServiceTest {
             System.assertEquals('This grid does not allow importing records.', message);
             System.assertEquals(false, offered, 'The grid must not offer what the server refuses.');
             System.assertEquals(0, [SELECT COUNT() FROM Rowhouse_Test_Record__c]);
+        }
+    }
+
+    @IsTest
+    static void aGridWithoutNewRecordsOffersNoImportAndRefusesOneEvenToUpdate() {
+        System.runAs(GridTestUsers.fullUser()) {
+            Rowhouse_Test_Record__c existing = new Rowhouse_Test_Record__c(Name = 'Kept', Number_Field__c = 1);
+            insert existing;
+            Test.startTest();
+            String message = refusal(
+                'Import_Without_New_Test',
+                new List<Map<String, Object>>{
+                    row(new Map<String, Object>{ 'Id' => existing.Id, 'Number_Field__c' => '2' }),
+                    row(new Map<String, Object>{ 'Number_Field__c' => '3' })
+                }
+            );
+            GridConfig.Definition def = GridConfig.forUser('Import_Without_New_Test');
+            Test.stopTest();
+            System.assertEquals('This grid does not allow importing records.', message);
+            System.assertEquals(false, def.allowImport, 'The grid must not offer what the server refuses.');
+            System.assert(
+                def.warnings.contains('Allow Import: the grid offers no import, because Allow New Records is off.'),
+                String.valueOf(def.warnings)
+            );
+            System.assertEquals(1, [SELECT COUNT() FROM Rowhouse_Test_Record__c], 'Nothing was created.');
+            System.assertEquals(1, [SELECT Number_Field__c FROM Rowhouse_Test_Record__c].Number_Field__c);
         }
     }
 

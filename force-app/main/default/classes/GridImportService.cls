@@ -7,7 +7,8 @@
  * creates a record.
  *
  * Nothing about the request is trusted (HR-6):
- *   the configuration must allow import and inline edit (read here);
+ *   the configuration must allow import and inline edit (read here); a grid
+ *   that does not allow new records allows no import (GridConfig);
  *   only the grid's editable columns are written, through the same field
  *   rules as a save (GridSaveService.fillFields); any other field is refused
  *   and named in `rejectedFields`;

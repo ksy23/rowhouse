@@ -339,6 +339,8 @@
                                         type="checkbox"
                                         label="Import from a CSV or Excel file"
                                         checked={config.allowImport}
+                                        disabled={importDisabled}
+                                        field-level-help="Rows with a record Id update that record; rows without one create a record, so import needs Create records with New."
                                         data-list="config"
                                         data-prop="allowImport"
                                         data-kind="checkbox"

@@ -3,10 +3,12 @@
  *
  * Rowhouse builds SOQL dynamically from admin configuration, which is the
  * highest-scrutiny shape in an AppExchange security review. The defence is that
- * a reviewer can read ONE class and see every FLS check, every CRUD check and
- * every access-mode choice in the package. scripts/checks/run-all.js fails the
- * build if isAccessible / isUpdateable / stripInaccessible / AccessLevel /
- * WITH USER_MODE appears in any other class.
+ * a reviewer can read ONE class and see every FLS check, every CRUD check,
+ * every permission check and every access-mode choice in the package, and
+ * every query and every save. scripts/checks/run-all.js fails the build if
+ * isAccessible / isUpdateable / stripInaccessible / AccessLevel /
+ * WITH USER_MODE, a static query, a Database query or DML method, a DML
+ * statement or FeatureManagement appears in any other class.
  *
  * Everything here runs in USER mode (HR-8: API 67+, where user mode is also the
  * default). There is no system-mode path at all: a single SYSTEM_MODE call would
@@ -129,7 +131,9 @@ public with sharing class GridSecurity {
     /**
      * Does the running user hold this custom permission? A blank name
      * asks for nothing. An unknown name is false: FeatureManagement's answer
-     * (measured in a Developer Edition org).
+     * (measured in a Developer Edition org). Every custom permission check in
+     * Rowhouse comes here: Rowhouse Grid Admin and Rowhouse Grid Diagnostics, and an
+     * action's own Required Permission.
      */
     public static Boolean hasCustomPermission(String apiName) {
         return String.isBlank(apiName) || FeatureManagement.checkPermission(apiName.trim());
@@ -138,17 +142,37 @@ public with sharing class GridSecurity {
     /**
      * Does the running user hold Customize Application? Saving a grid
      * configuration deploys Custom Metadata, which needs it, and a packaged
-     * permission set cannot grant it. Read from the user's own permission set
-     * assignments, which include the profile's, in user mode: a user who may
-     * not read them does not hold it.
+     * permission set cannot grant it. Read from UserPermissionAccess, the
+     * running user's effective permissions as Salesforce works them out from
+     * their profile, permission sets and permission set groups, rather than by
+     * counting permission set assignments, which would also count a permission
+     * muted in a group or a session-based permission set not switched on. In
+     * user mode; when it cannot be read, the user does not hold it.
      */
     public static Boolean canCustomizeApplication() {
+        return holdsUserPermission(
+            'SELECT PermissionsCustomizeApplication FROM UserPermissionAccess LIMIT 1',
+            'PermissionsCustomizeApplication'
+        );
+    }
+
+    /**
+     * Does the running user hold View Setup and Configuration? The Grid Admin
+     * tab then lists fields the admin cannot read, as Setup does, so a grid can
+     * be built for people who can. Read as canCustomizeApplication is.
+     */
+    public static Boolean canViewSetup() {
+        return holdsUserPermission(
+            'SELECT PermissionsViewSetup FROM UserPermissionAccess LIMIT 1',
+            'PermissionsViewSetup'
+        );
+    }
+
+    /** The running user's UserPermissionAccess row says true for this permission; false on any failure. */
+    private static Boolean holdsUserPermission(String soql, String permission) {
         try {
-            return countQuery(
-                    'SELECT COUNT() FROM PermissionSetAssignment WHERE AssigneeId = :me ' +
-                    'AND PermissionSet.PermissionsCustomizeApplication = true',
-                    new Map<String, Object>{ 'me' => UserInfo.getUserId() }
-                ) > 0;
+            List<SObject> rows = query(soql, new Map<String, Object>());
+            return !rows.isEmpty() && (Boolean) rows[0].get(permission) == true;
         } catch (Exception e) {
             return false;
         }

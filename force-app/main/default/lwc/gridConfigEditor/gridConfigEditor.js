@@ -307,6 +307,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         return this.config.allowNewRecords !== false;
     }
 
+    /** Import creates a record for each row without an Id: it needs Create records with New. */
+    get importDisabled() {
+        return !this.allowNewRecords;
+    }
+
     get isNew() {
         return Boolean(this.draft && this.draft.config.isNew);
     }
@@ -1053,6 +1058,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         if (prop === 'name') this._memo.nameEdited = true;
         if (prop === 'sortField' && !value) config.sortField = null;
         if (prop === 'recordPageField' && !value) config.recordPageField = null;
+        if (prop === 'allowNewRecords' && value === false) config.allowImport = false; // import needs New
         this.draft = { ...this.draft, config };
         if (prop === 'objectApiName') this.changeObject(value);
         else this.scheduleCheck();

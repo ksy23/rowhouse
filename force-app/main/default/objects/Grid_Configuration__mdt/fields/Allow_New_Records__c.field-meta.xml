@@ -4,7 +4,7 @@
     <label>Allow New Records</label>
     <type>Checkbox</type>
     <defaultValue>true</defaultValue>
-    <description>Checked: the grid has a New button for users who can create its records. The new record is a row at the top, saved with the other changes; Salesforce's New form opens instead when the grid can't fill in all it needs.</description>
-    <inlineHelpText>Uncheck to hide the grid's New button.</inlineHelpText>
+    <description>Checked: the grid has a New button for users who can create its records, and may allow import. The new record is a row at the top, saved with the other changes; Salesforce's New form opens instead when the grid can't fill in all it needs.</description>
+    <inlineHelpText>Uncheck to hide the grid's New button. Unchecked, the grid offers no import either.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

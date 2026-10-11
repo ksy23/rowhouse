@@ -178,6 +178,21 @@ private class GridFieldAccessTest {
         }
     }
 
+    @IsTest
+    static void sortingByAFieldThatIsNotASortableColumnOfTheGridIsRefused() {
+        System.runAs(limited()) {
+            System.assert(
+                GridSecurity.canRead(Rowhouse_Test_Record__c.Currency_Field__c),
+                'The limited user can read Currency_Field__c, so only the grid can refuse the sort.'
+            );
+            String refused = pageRefusal('Security_Test', PROBE, 'Currency_Field__c', null);
+            System.assert(
+                refused != null && refused.startsWith('Cannot sort by Currency_Field__c'),
+                'Currency_Field__c is not a column of Security_Test: the browser may not sort by it. ' + refused
+            );
+        }
+    }
+
     // ---------------------------------------------------------------- long text
 
     @IsTest

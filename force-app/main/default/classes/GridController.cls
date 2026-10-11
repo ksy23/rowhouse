@@ -203,7 +203,7 @@ public with sharing class GridController {
         request.withCursor(cursorToken);
         request.groupedBy(GridGroupService.fields(GridGroupService.levels(def, groupBy)));
         if (String.isNotBlank(sortField)) {
-            request.orderBy(sortField, sortDirection);
+            request.orderBy(sortableColumn(def, sortField), sortDirection);
         } else if (String.isNotBlank(def.sortField)) {
             request.orderBy(def.sortField, def.sortDirection);
         }
@@ -217,6 +217,28 @@ public with sharing class GridController {
             'serverMs' => System.now().getTime() - started,
             'cpuMs' => Limits.getCpuTime()
         };
+    }
+
+    /**
+     * The sort the browser asked for, checked against the grid (HR-6): a
+     * column of this user's grid that can be sorted, as the grid spells it, or
+     * the admin's default sort, which comes from the configuration. A saved
+     * layout's sort is read the same way (GridLayouts.startOf). Whether the
+     * user may read the field is GridDataService's to check.
+     */
+    private static String sortableColumn(GridConfig.Definition def, String sortField) {
+        String wanted = sortField.trim();
+        if (String.isNotBlank(def.sortField) && wanted.equalsIgnoreCase(def.sortField.trim())) {
+            return def.sortField.trim();
+        }
+        for (GridConfig.Column c : def.columns) {
+            if (c.sortable == true && c.field != null && c.field.equalsIgnoreCase(wanted)) {
+                return c.field;
+            }
+        }
+        throw new GridException(
+            'Cannot sort by ' + wanted + ': this grid has no column of that name that can be sorted.'
+        );
     }
 
     /**

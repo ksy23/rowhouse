@@ -493,6 +493,99 @@ private class GridAdminTest {
     }
 
     @IsTest
+    static void anAdminIsOfferedOnlyObjectsTheyCanReadAndHiddenFieldsOnlyWithViewSetup() {
+        User admin = GridTestUsers.limitedAdmin();
+        // Whether this org's Standard User profile holds View Setup and
+        // Configuration, read apart from the code under test.
+        Boolean viewsSetup = [
+            SELECT PermissionsViewSetup
+            FROM PermissionSet
+            WHERE IsOwnedByProfile = TRUE AND ProfileId = :admin.ProfileId
+        ]
+        .PermissionsViewSetup;
+        System.runAs(admin) {
+            System.assertEquals(viewsSetup, GridSecurity.canViewSetup());
+            Set<String> objects = new Set<String>();
+            for (Map<String, String> o : GridAdmin.listObjects()) {
+                objects.add(o.get('name'));
+            }
+            System.assert(objects.contains('Rowhouse_Test_Record__c'));
+            System.assert(!objects.contains('Rowhouse_Test_Child__c'), 'Not an object this admin cannot read.');
+            String refusal;
+            try {
+                GridAdmin.describeObject('Rowhouse_Test_Child__c');
+            } catch (GridException e) {
+                refusal = e.getMessage();
+            }
+            System.assertEquals('You do not have access to Rowhouse_Test_Child__c.', refusal);
+
+            Map<String, Object> described = GridAdmin.describeObject('Rowhouse_Test_Record__c');
+            Set<String> fields = new Set<String>();
+            for (Map<String, Object> f : (List<Map<String, Object>>) described.get('fields')) {
+                fields.add((String) f.get('name'));
+            }
+            System.assert(fields.contains('Text_Field__c'), 'A field the admin can read.');
+            System.assertEquals(
+                viewsSetup,
+                fields.contains('Email_Field__c'),
+                'A field hidden from the admin is listed only with View Setup and Configuration, as Setup lists it.'
+            );
+            for (Map<String, Object> c : (List<Map<String, Object>>) described.get('children')) {
+                System.assertNotEquals('Test_Children', c.get('config'), 'Its object is one the admin cannot read.');
+            }
+        }
+    }
+
+    @IsTest
+    static void aDraftCannotTakeAnotherGridsRecordsByName() {
+        String otherGridsColumn = 'Save_Test_Number_Field';
+        System.assertNotEquals(null, Grid_Column__mdt.getInstance(otherGridsColumn), 'The fixture is there.');
+        System.runAs(GridTestUsers.adminUser()) {
+            // A saved grid's draft naming another grid's column.
+            GridAdmin.Draft d = (GridAdmin.Draft) GridAdmin.readConfig('Test_Records').get('draft');
+            d.columns[0].name = otherGridsColumn;
+            System.assert(
+                GridAdmin.check(d).errors.contains('Column ' + otherGridsColumn + ' belongs to another grid.'),
+                String.valueOf(GridAdmin.check(d).errors)
+            );
+            // A new grid may not take any existing record's name either.
+            GridAdmin.Draft fresh = newDraft('Fresh_Grid');
+            fresh.columns[0].name = Grid_Column__mdt.getInstance(otherGridsColumn).DeveloperName.toLowerCase();
+            System.assert(
+                String.join(GridAdmin.check(fresh).errors, ' ').contains('belongs to another grid'),
+                'In any case: record names are not case-sensitive.'
+            );
+            // A name that is not an API name is refused before anything is deployed.
+            GridAdmin.Draft badName = newDraft('Bad_Record_Name');
+            badName.columns[0].name = 'Two__Underscores';
+            System.assert(
+                String.join(GridAdmin.check(badName).errors, ' ').contains('Column API name: '),
+                String.valueOf(GridAdmin.check(badName).errors)
+            );
+            // The grid's own records keep their names.
+            GridAdmin.Draft own = (GridAdmin.Draft) GridAdmin.readConfig('Test_Records').get('draft');
+            System.assertEquals(new List<String>(), GridAdmin.check(own).errors);
+        }
+    }
+
+    @IsTest
+    static void aGridsApiNameIsMatchedInAnyCase() {
+        System.runAs(GridTestUsers.adminUser()) {
+            GridAdmin.Draft saved = (GridAdmin.Draft) GridAdmin.readConfig('Test_Records').get('draft');
+            saved.config.name = 'test_records';
+            GridAdmin.Check result = GridAdmin.check(saved);
+            System.assertEquals(new List<String>(), result.errors);
+            System.assertEquals('Test_Records', saved.config.name, 'Saved under the org\'s own spelling.');
+            GridAdmin.Draft taken = newDraft('TEST_RECORDS');
+            System.assert(
+                GridAdmin.check(taken)
+                    .errors.contains('A grid named TEST_RECORDS already exists. Choose another API name.'),
+                String.valueOf(GridAdmin.check(taken).errors)
+            );
+        }
+    }
+
+    @IsTest
     static void filtersFormulasAndTheRecordPageAreCheckedAndSaved() {
         System.runAs(GridTestUsers.adminUser()) {
             GridAdmin.Draft d = newDraft('New_Settings');

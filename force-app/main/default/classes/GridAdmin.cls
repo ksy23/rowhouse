@@ -528,13 +528,17 @@ public with sharing class GridAdmin {
         'Tag'
     };
 
-    /** The objects a grid can show: queryable, with records people work with. { name, label }, by label. */
+    /**
+     * The objects a grid can show: queryable, with records people work with,
+     * and readable by the admin, so the list names no object they cannot
+     * see. { name, label }, by label.
+     */
     public static List<Map<String, String>> listObjects() {
         requireAdmin();
         List<ObjectOption> options = new List<ObjectOption>();
         for (Schema.SObjectType t : Schema.getGlobalDescribe().values()) {
             Schema.DescribeSObjectResult d = t.getDescribe(SObjectDescribeOptions.DEFERRED);
-            if (offered(d)) {
+            if (offered(d) && GridSecurity.canRead(t)) {
                 options.add(new ObjectOption(d.getLocalName(), d.getLabel()));
             }
         }
@@ -579,13 +583,23 @@ public with sharing class GridAdmin {
      * [{ config, label, fields: [relationship field names] }] }.
      * Each field: { name, label, type, sortable, groupable, editable (can ever
      * be edited in the grid), isName, subtotals: [kinds that fit] }.
+     *
+     * The admin must be able to read the object. A field they cannot read is
+     * listed only when they hold View Setup and Configuration, as Setup lists
+     * it for them: a grid can then be built for people who can read it, and
+     * the check says the column is hidden from the admin (hiddenFromYou).
      */
     public static Map<String, Object> describeObject(String objectApiName) {
         requireAdmin();
         Schema.SObjectType objectType = GridDescribe.typeFor(objectApiName);
+        GridSecurity.requireRead(objectType);
+        Boolean viewSetup = GridSecurity.canViewSetup();
         Schema.DescribeSObjectResult od = objectType.getDescribe(SObjectDescribeOptions.DEFERRED);
         List<FieldOption> fields = new List<FieldOption>();
         for (Schema.SObjectField f : GridDescribe.fieldsFor(objectApiName).values()) {
+            if (!viewSetup && !GridSecurity.canRead(f)) {
+                continue;
+            }
             Schema.DescribeFieldResult d = f.getDescribe();
             String type = GridDescribe.cellType(f);
             List<String> subtotals = new List<String>();
@@ -639,7 +653,7 @@ public with sharing class GridAdmin {
             'label' => od.getLabel(),
             'labelPlural' => od.getLabelPlural(),
             'fields' => fieldMaps,
-            'children' => childOptions(objectType)
+            'children' => childOptions(objectType, viewSetup)
         };
     }
 
@@ -655,8 +669,13 @@ public with sharing class GridAdmin {
         }
     }
 
-    /** Configurations that could be a child table of this object: their object has a lookup to it. */
-    private static List<Map<String, Object>> childOptions(Schema.SObjectType parentType) {
+    /**
+     * Configurations that could be a child table of this object: their object
+     * has a lookup to it. As in describeObject, the admin must be able to read
+     * the child object, and a lookup they cannot read is offered only with
+     * View Setup and Configuration (viewSetup).
+     */
+    private static List<Map<String, Object>> childOptions(Schema.SObjectType parentType, Boolean viewSetup) {
         List<Map<String, Object>> out = new List<Map<String, Object>>();
         for (Grid_Configuration__mdt cfg : Grid_Configuration__mdt.getAll().values()) {
             if (cfg.Archived__c == true) {
@@ -668,6 +687,9 @@ public with sharing class GridAdmin {
             } catch (GridException e) {
                 continue;
             }
+            if (!GridSecurity.canRead(childType)) {
+                continue;
+            }
             // Lookups a new record can set come first, each group A to Z, so the
             // editor's first choice is a real link: an Account's Parent Account,
             // not its Master Record ID, which only a merge fills in.
@@ -675,6 +697,9 @@ public with sharing class GridAdmin {
             List<String> systemLinks = new List<String>();
             Map<String, String> labels = new Map<String, String>();
             for (Schema.SObjectField f : GridDescribe.fieldsFor(cfg.Object_API_Name__c).values()) {
+                if (!viewSetup && !GridSecurity.canRead(f)) {
+                    continue;
+                }
                 Schema.DescribeFieldResult d = f.getDescribe();
                 if (d.getType() == Schema.DisplayType.REFERENCE && d.getReferenceTo().contains(parentType)) {
                     labels.put(d.getLocalName(), d.getLabel());
@@ -728,16 +753,18 @@ public with sharing class GridAdmin {
             result.errors.add('The title is ' + c.label.trim().length() + ' characters; ' + MAX_NAME + ' at most.');
         }
         String nameProblem = nameProblem(c.name);
-        Grid_Configuration__mdt existing = String.isBlank(c.name)
-            ? null
-            : Grid_Configuration__mdt.getInstance(c.name.trim());
+        // In any case: getInstance() is case-sensitive, and record names are not.
+        Grid_Configuration__mdt existing = String.isBlank(c.name) ? null : configIgnoringCase(c.name.trim());
         if (nameProblem != null) {
             result.errors.add('API name: ' + nameProblem);
         } else if (c.isNew == true && existing != null) {
             result.errors.add('A grid named ' + c.name.trim() + ' already exists. Choose another API name.');
         } else if (c.isNew != true && existing == null) {
             result.errors.add('No Grid Configuration named "' + c.name + '".');
+        } else if (c.isNew != true) {
+            c.name = existing.DeveloperName; // the org's spelling, which the save reads it back by
         }
+        checkRecordNames(d, c.isNew == true ? null : existing, result);
         Schema.SObjectType objectType;
         try {
             objectType = GridDescribe.typeFor(c.objectApiName);
@@ -1033,6 +1060,115 @@ public with sharing class GridAdmin {
         Integer length = text == null ? 0 : text.trim().length();
         if (length > max) {
             result.errors.add(what + ' is ' + length + ' characters; ' + max + ' at most.');
+        }
+    }
+
+    /** The configuration of this API name, in any case, or null. */
+    private static Grid_Configuration__mdt configIgnoringCase(String name) {
+        for (Grid_Configuration__mdt cfg : Grid_Configuration__mdt.getAll().values()) {
+            if (cfg.DeveloperName.equalsIgnoreCase(name)) {
+                return cfg;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The record names a draft carries. Each must be an API name, and a name
+     * that is already a record's must be a record of this grid (owner; null
+     * for a new grid): a save deploys the record of that name whole, so
+     * another grid's column, display rule, filter, action or child table would
+     * otherwise become this grid's.
+     */
+    private static void checkRecordNames(Draft d, Grid_Configuration__mdt owner, Check result) {
+        List<String> columns = new List<String>();
+        for (ColumnDraft x : d.columns) {
+            columns.add(x.name);
+        }
+        List<String> rules = new List<String>();
+        for (RuleDraft x : d.rules) {
+            rules.add(x.name);
+        }
+        List<String> filters = new List<String>();
+        for (FilterDraft x : d.filters) {
+            filters.add(x.name);
+        }
+        List<String> actions = new List<String>();
+        for (ActionDraft x : d.actions) {
+            actions.add(x.name);
+        }
+        List<String> children = new List<String>();
+        for (ChildDraft x : d.children) {
+            children.add(x.name);
+        }
+        checkNames(
+            'Column',
+            columns,
+            Grid_Column__mdt.getAll().values(),
+            Grid_Column__mdt.Grid_Configuration__c,
+            owner,
+            result
+        );
+        checkNames(
+            'Display rule',
+            rules,
+            Grid_Format_Rule__mdt.getAll().values(),
+            Grid_Format_Rule__mdt.Grid_Configuration__c,
+            owner,
+            result
+        );
+        checkNames(
+            'Filter',
+            filters,
+            Grid_Filter__mdt.getAll().values(),
+            Grid_Filter__mdt.Grid_Configuration__c,
+            owner,
+            result
+        );
+        checkNames(
+            'Action',
+            actions,
+            Grid_Action__mdt.getAll().values(),
+            Grid_Action__mdt.Grid_Configuration__c,
+            owner,
+            result
+        );
+        checkNames(
+            'Child table',
+            children,
+            Grid_Child__mdt.getAll().values(),
+            Grid_Child__mdt.Grid_Configuration__c,
+            owner,
+            result
+        );
+    }
+
+    /** One kind of record: `records` are the org's, `link` the field that names their grid. */
+    private static void checkNames(
+        String kind,
+        List<String> given,
+        List<SObject> records,
+        Schema.SObjectField link,
+        Grid_Configuration__mdt owner,
+        Check result
+    ) {
+        Map<String, SObject> byName = new Map<String, SObject>();
+        for (SObject r : records) {
+            byName.put(((String) r.get('DeveloperName')).toLowerCase(), r);
+        }
+        for (String name : given) {
+            if (String.isBlank(name)) {
+                continue; // a new record: the save names it
+            }
+            String problem = nameProblem(name);
+            if (problem != null) {
+                result.errors.add(kind + ' API name: ' + problem);
+                continue;
+            }
+            SObject record = byName.get(name.trim().toLowerCase());
+            if (record != null && (owner == null || !GridConfig.belongsTo(record.get(link), owner))) {
+                result.errors.add(kind + ' ' + name.trim() + ' belongs to another grid.');
+            }
         }
     }
 
