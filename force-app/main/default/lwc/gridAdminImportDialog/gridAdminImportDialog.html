@@ -53,42 +53,67 @@
                     </div>
                 </template>
                 <template lwc:else>
-                    <p class="rh-import-grids-count"><b>{countText}</b> · <button class="slds-button rh-import-grids-another" disabled={working} onclick={handleAnother}>Choose another file</button></p>
-                    <p class="slds-m-top_x-small rh-import-grids-lede">{ledeText}</p>
-                    <template lwc:if={showExisting}>
-                        <lightning-radio-group
-                            class="slds-m-top_small rh-import-grids-existing"
-                            label="Grids this org already has"
-                            options={existingOptions}
-                            value={existing}
-                            disabled={choiceDisabled}
-                            onchange={handleExisting}
-                        ></lightning-radio-group>
-                    </template>
-                    <ul class="slds-m-top_small rh-import-grids-items">
-                        <template for:each={rows} for:item="row">
-                            <li key={row.key} class={row.className}>
-                                <b class="rh-import-grids-title">{row.title}</b>
-                                <span class="rh-import-grids-text">{row.text}</span>
-                                <template lwc:if={row.hasProblems}>
-                                    <ul class="slds-list_dotted rh-import-grids-problems">
-                                        <template for:each={row.problems} for:item="p">
-                                            <li key={p.key}>{p.text}</li>
-                                        </template>
-                                    </ul>
+                    <div class="rh-import-grids-body">
+                        <!-- The file, with how many grids it holds and what happens to them. -->
+                        <div class="rh-import-grids-filechip">
+                            <lightning-icon icon-name="doctype:unknown" size="small" class="rh-import-grids-fileicon"></lightning-icon>
+                            <div class="rh-import-grids-fileinfo">
+                                <span class="rh-import-grids-filename">{fileName}</span>
+                                <span class="rh-import-grids-count">{gridCountText} · <button class="slds-button rh-import-grids-another" disabled={working} onclick={handleAnother}>Choose another file</button></span>
+                            </div>
+                            <div class="rh-import-grids-totals">
+                                <template for:each={totals} for:item="t">
+                                    <span key={t.key} class={t.className}>{t.text}</span>
                                 </template>
-                                <template lwc:if={row.hasWarnings}>
-                                    <span class="rh-import-grids-warnings-lede">Imported with these warnings:</span>
-                                    <ul class="slds-list_dotted rh-import-grids-warnings">
-                                        <template for:each={row.warnings} for:item="w">
-                                            <li key={w.key}>{w.text}</li>
-                                        </template>
-                                    </ul>
-                                </template>
-                            </li>
+                            </div>
+                        </div>
+                        <template lwc:if={showExisting}>
+                            <!-- The label right beside the switch; the group keeps it as its accessible name. -->
+                            <div class="rh-import-grids-choice">
+                                <span class="rh-import-grids-choice-label" aria-hidden="true">Grids this org already has</span>
+                                <lightning-radio-group
+                                    class="rh-import-grids-existing"
+                                    type="button"
+                                    variant="label-hidden"
+                                    label="Grids this org already has"
+                                    options={existingOptions}
+                                    value={existing}
+                                    disabled={choiceDisabled}
+                                    onchange={handleExisting}
+                                ></lightning-radio-group>
+                            </div>
                         </template>
-                    </ul>
-                    <p class="slds-m-top_small slds-text-color_weak rh-import-grids-after">{afterText}</p>
+                        <p class="rh-import-grids-lede">{ledeText}</p>
+                        <!-- Each grid: a badge for what happens to it, its title and API name, the detail, its object. -->
+                        <ul class="rh-import-grids-items">
+                            <template for:each={rows} for:item="row">
+                                <li key={row.key} class={row.className}>
+                                    <span class="rh-import-grids-badgecell"><span class={row.badgeClass}>{row.badge}</span></span>
+                                    <div class="rh-import-grids-main">
+                                        <div class="rh-import-grids-title"><span class="rh-import-grids-label">{row.label}</span><span class="rh-import-grids-api">{row.spacedName}</span></div>
+                                        <div class="rh-import-grids-text">{row.before}<span class="rh-import-grids-api">{row.detailName}</span>{row.after}</div>
+                                        <template lwc:if={row.hasProblems}>
+                                            <ul class="rh-import-grids-problems">
+                                                <template for:each={row.problems} for:item="p">
+                                                    <li key={p.key}>{p.text}</li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                        <template lwc:if={row.hasWarnings}>
+                                            <div class="rh-import-grids-warnings-lede"><lightning-icon icon-name="utility:warning" size="xx-small" variant="warning" alternative-text="Warning" class="rh-import-grids-warnicon"></lightning-icon> Imported with these warnings:</div>
+                                            <ul class="rh-import-grids-warnings">
+                                                <template for:each={row.warnings} for:item="w">
+                                                    <li key={w.key}>{w.text}</li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                    </div>
+                                    <span class="rh-import-grids-object">{row.objectLabel}</span>
+                                </li>
+                            </template>
+                        </ul>
+                        <p class="rh-import-grids-after">{afterText}</p>
+                    </div>
                 </template>
                 <template lwc:if={progress}>
                     <p class="slds-m-top_small rh-import-grids-progress" role="status">{progress}</p>

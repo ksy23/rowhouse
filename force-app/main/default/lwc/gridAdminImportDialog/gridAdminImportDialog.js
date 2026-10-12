@@ -28,6 +28,7 @@ import { LightningElement } from 'lwc';
 import planImport from '@salesforce/apex/GridAdminController.planImport';
 import saveDraft from '@salesforce/apex/GridAdminController.saveDraft';
 import saveStatus from '@salesforce/apex/GridAdminController.saveStatus';
+import LOCALE from '@salesforce/i18n/locale';
 import { contents, listed, readGridFile, readText } from 'c/gridConfigFile';
 
 /** Between deploy-status checks: a deploy takes a few seconds. */
@@ -67,42 +68,58 @@ export function importable(item) {
     return Boolean(item && item.draft && item.action !== 'skip' && !(item.errors || []).length);
 }
 
+/** Each outcome's badge: its words, SLDS's own badge theme, and how a screen reader hears it. */
+const BADGES = {
+    error: { label: "Can't import", className: 'slds-badge slds-theme_error rh-import-grids-badge' },
+    new: { label: 'New', className: 'slds-badge slds-theme_success rh-import-grids-badge' },
+    copy: { label: 'Copy', className: 'slds-badge slds-badge_lightest rh-import-grids-badge' },
+    skip: { label: 'Left as it is', className: 'slds-badge rh-import-grids-badge' }
+};
+
 /**
- * One grid of the plan as the dialog lists it: { key, title, text, problems,
- * warnings, className }. `grid` is the file's grid, for what it holds.
+ * One grid of the plan as the dialog lists it, a badge first: { key, label,
+ * name, spacedName, badge, badgeClass, before, detailName, after, objectLabel, problems,
+ * warnings, className }. The detail reads before + detailName (in the API
+ * name's type) + after. `grid` is the file's grid, for what it holds.
  */
 export function describeItem(item, grid, index) {
     const errors = item.errors || [];
     const warnings = item.warnings || [];
-    const title = item.name ? `${item.label} (${item.name})` : item.label;
     const what = grid ? contents(grid) : '';
-    const object = item.objectLabel || item.objectApiName || '';
-    let text;
-    if (errors.length) {
-        text = 'Cannot be imported:';
-    } else if (item.action === 'skip') {
+    const outcome = errors.length ? 'error' : BADGES[item.action] ? item.action : 'new';
+    let before = '';
+    let detailName = '';
+    let after = '';
+    if (outcome === 'skip') {
         const other =
             item.existingObjectLabel && item.existingObjectLabel !== item.objectLabel
-                ? `, for ${item.existingObjectLabel}`
+                ? ` (it shows ${item.existingObjectLabel})`
                 : '';
-        text = `This org already has a grid named ${item.name}${other}: left as it is.`;
-    } else if (item.action === 'copy') {
-        text = `This org already has a grid named ${item.name}, so it is imported as ${item.importLabel} (${item.importName}). ${object}: ${what}.`;
-    } else {
-        text = `New: ${object}, ${what}.`;
+        before = `This org's grid of this API name stays as it is${other}.`;
+    } else if (outcome === 'copy') {
+        before = `As ${item.importLabel} `;
+        detailName = item.importName;
+        after = what ? ` · ${what}` : '';
+    } else if (outcome === 'new') {
+        before = what;
     }
-    let className = 'rh-import-grids-item';
-    if (errors.length) className += ' rh-import-grids-item_error';
-    else if (item.action === 'skip') className += ' rh-import-grids-item_skip';
     return {
         key: `${index}-${item.name || 'grid'}`,
-        title,
-        text,
+        label: item.label,
+        name: item.name || '',
+        // With its space: the template compiler drops whitespace between two tags.
+        spacedName: item.name ? ` ${item.name}` : '',
+        badge: BADGES[outcome].label,
+        badgeClass: BADGES[outcome].className,
+        before,
+        detailName,
+        after,
+        objectLabel: item.objectLabel || item.objectApiName || '',
         problems: errors.map((e, i) => ({ key: `e${i}`, text: e })),
         hasProblems: errors.length > 0,
         warnings: warnings.map((w, i) => ({ key: `w${i}`, text: w })),
         hasWarnings: !errors.length && warnings.length > 0,
-        className
+        className: `rh-import-grids-item rh-import-grids-item_${outcome}`
     };
 }
 
@@ -159,15 +176,39 @@ export default class GridAdminImportDialog extends LightningElement {
             : 'slds-file-selector__dropzone rh-import-grids-drop';
     }
 
+    /** The list: grids that can't be imported first, so they are seen; then in the order they are saved. */
     get rows() {
         const byName = new Map(
             this._runtime.grids
                 .filter(g => g && g.config && g.config.name)
                 .map(g => [String(g.config.name).trim().toLowerCase(), g])
         );
-        return this.items.map((item, i) =>
+        const rows = this.items.map((item, i) =>
             describeItem(item, item.name ? byName.get(String(item.name).toLowerCase()) : null, i)
         );
+        return [...rows.filter(r => r.hasProblems), ...rows.filter(r => !r.hasProblems)];
+    }
+
+    get blocked() {
+        return this.items.filter(i => (i.errors || []).length);
+    }
+
+    /** The file chip's totals, each a badge in its outcome's theme; none for an outcome with no grids. */
+    get totals() {
+        const n = new Intl.NumberFormat(LOCALE);
+        const out = [];
+        const add = (count, one, many, className) => {
+            if (count) out.push({ key: one, text: `${n.format(count)} ${count === 1 ? one : many}`, className });
+        };
+        add(this.toImport.length, 'to import', 'to import', 'slds-badge slds-theme_success');
+        add(this.skipped.length, 'left as it is', 'left as they are', 'slds-badge');
+        add(this.blocked.length, "can't be imported", "can't be imported", 'slds-badge slds-theme_error');
+        return out;
+    }
+
+    get gridCountText() {
+        const n = this.items.length;
+        return `${new Intl.NumberFormat(LOCALE).format(n)} ${n === 1 ? 'grid' : 'grids'}`;
     }
 
     get toImport() {
@@ -181,11 +222,6 @@ export default class GridAdminImportDialog extends LightningElement {
     /** The choice for grids this org has: only when the file has some. */
     get showExisting() {
         return this.items.some(i => i.action === 'skip' || i.action === 'copy');
-    }
-
-    get countText() {
-        const n = this.items.length;
-        return `${this.fileName}: ${n} ${n === 1 ? 'grid' : 'grids'}`;
     }
 
     get ledeText() {

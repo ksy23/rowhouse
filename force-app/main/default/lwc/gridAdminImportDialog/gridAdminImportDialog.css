@@ -1,22 +1,81 @@
-/* The file's name and the link to choose another, over the plan. */
+/* The plan fits its own width: on a narrow screen each grid's object goes under it. */
+.rh-import-grids-body {
+    container-type: inline-size;
+}
+
+/* The file: its icon, name and grid count, then a badge per outcome. */
+.rh-import-grids-filechip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-base-1, #e5e5e5);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+}
+
+.rh-import-grids-fileinfo {
+    display: flex;
+    flex: 1 1 12rem;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.rh-import-grids-filename {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+    overflow-wrap: anywhere;
+}
+
 .rh-import-grids-count {
-    color: var(--slds-g-color-neutral-base-30, #444444);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-50, #747474);
 }
 
 .rh-import-grids-another {
     vertical-align: baseline;
+    font-size: inherit;
 }
 
-/* Each grid: its title, what importing does with it on the line under it,
-   then what keeps it out or what it imports with. */
+.rh-import-grids-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+}
+
+/* The choice for grids the org has, then what Import does. */
+.rh-import-grids-choice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-import-grids-choice-label {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-import-grids-lede {
+    margin-top: var(--slds-g-spacing-2, 0.5rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-50, #747474);
+}
+
+/* The list: one row per grid, a hairline between rows. */
 .rh-import-grids-items {
-    margin-left: 0;
-    padding-left: 0;
+    margin: var(--slds-g-spacing-3, 0.75rem) 0 0;
+    padding: 0;
     list-style: none;
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-base-1, #e5e5e5);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
 }
 
 .rh-import-grids-item {
-    padding: var(--slds-g-spacing-2, 0.5rem) 0;
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr) 9rem;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    align-items: start;
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
     border-top: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-base-1, #e5e5e5);
 }
 
@@ -24,30 +83,81 @@
     border-top: none;
 }
 
-.rh-import-grids-text,
-.rh-import-grids-warnings-lede {
-    display: block;
+.rh-import-grids-badgecell {
+    padding-top: var(--slds-g-spacing-1, 0.125rem);
+}
+
+.rh-import-grids-label {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+/* An API name, in the type Salesforce shows them in. */
+.rh-import-grids-api {
+    font-family: var(--slds-g-font-family-monospace, Consolas, Menlo, monospace);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-50, #747474);
+    overflow-wrap: anywhere;
+}
+
+.rh-import-grids-text {
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
     color: var(--slds-g-color-neutral-base-30, #444444);
 }
 
-.rh-import-grids-item_skip .rh-import-grids-text {
+.rh-import-grids-object {
+    text-align: right;
     color: var(--slds-g-color-neutral-base-50, #747474);
 }
 
-.rh-import-grids-item_error .rh-import-grids-text,
+/* A grid left as it is reads quieter than one that will be saved. */
+.rh-import-grids-item_skip .rh-import-grids-label {
+    font-weight: var(--slds-g-font-weight-regular, 400);
+    color: var(--slds-g-color-neutral-base-30, #444444);
+}
+
+.rh-import-grids-problems,
+.rh-import-grids-warnings {
+    margin: var(--slds-g-spacing-1, 0.25rem) 0 0;
+    padding-left: var(--slds-g-spacing-4, 1rem);
+    list-style: disc;
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
 .rh-import-grids-problems {
     color: var(--slds-g-color-error-base-40, #ba0517);
 }
 
 .rh-import-grids-warnings-lede {
     margin-top: var(--slds-g-spacing-1, 0.25rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-30, #444444);
 }
 
 .rh-import-grids-warnings {
     color: var(--slds-g-color-neutral-base-30, #444444);
 }
 
+.rh-import-grids-after {
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-50, #747474);
+}
+
 .rh-import-grids-loading {
     position: relative;
     min-height: 4rem;
+}
+
+/* Narrow: badge and title side by side, the object under the title. */
+@container (max-width: 32rem) {
+    .rh-import-grids-item {
+        grid-template-columns: auto minmax(0, 1fr);
+        row-gap: var(--slds-g-spacing-1, 0.25rem);
+    }
+
+    .rh-import-grids-object {
+        grid-column: 2;
+        text-align: left;
+        font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    }
 }

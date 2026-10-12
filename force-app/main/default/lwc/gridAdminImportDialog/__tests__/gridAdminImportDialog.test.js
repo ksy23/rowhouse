@@ -136,21 +136,33 @@ describe('before anything is saved', () => {
         const el = await mount();
         await choose(el, FILE);
         expect(planImport).toHaveBeenCalledWith({ gridsJson: JSON.stringify(FILE_GRIDS), asCopies: false });
-        expect($(el, '.rh-import-grids-count').textContent).toContain('rowhouse-grids-2026-10-11.json: 3 grids');
-        expect($$(el, '.rh-import-grids-title').map(t => t.textContent)).toEqual([
-            'Harbor Items (Harbor_Items)',
-            'Harbor Consignments (Harbor_Consignments)',
-            'Consignments (Consignments)'
+        expect($(el, '.rh-import-grids-filename').textContent).toBe('rowhouse-grids-2026-10-11.json');
+        expect($(el, '.rh-import-grids-count').textContent).toContain('3 grids');
+        expect($$(el, '.rh-import-grids-totals span').map(b => [b.textContent, b.className])).toEqual([
+            ['2 to import', 'slds-badge slds-theme_success'],
+            ['1 left as it is', 'slds-badge']
         ]);
+        expect($$(el, '.rh-import-grids-title').map(t => t.textContent)).toEqual([
+            'Harbor Items Harbor_Items',
+            'Harbor Consignments Harbor_Consignments',
+            'Consignments Consignments'
+        ]);
+        expect($$(el, '.rh-import-grids-badge').map(b => b.textContent)).toEqual(['New', 'New', 'Left as it is']);
         expect(texts(el)).toEqual([
-            'New: Consignment Items, 2 columns.',
-            'New: Consignments, 2 columns and 1 child table.',
-            'This org already has a grid named Consignments: left as it is.'
+            '2 columns',
+            '2 columns and 1 child table',
+            "This org's grid of this API name stays as it is."
+        ]);
+        expect($$(el, '.rh-import-grids-object').map(o => o.textContent)).toEqual([
+            'Consignment Items',
+            'Consignments',
+            'Consignments'
         ]);
         expect($(el, '.rh-import-grids-lede').textContent).toBe(
             'Rowhouse saves these 2 grids in this org, one after the other. A grid this org already has is never changed.'
         );
         expect($(el, '.rh-import-grids-existing').value).toBe('keep');
+        expect($(el, '.rh-import-grids-existing').type).toBe('button');
         expect($(el, '.rh-import-grids-confirm').textContent).toBe('Import 2 grids');
         expect(saveDraft).not.toHaveBeenCalled();
     });
@@ -166,9 +178,9 @@ describe('before anything is saved', () => {
         $(el, '.rh-import-grids-existing').dispatchEvent(new CustomEvent('change', { detail: { value: 'copies' } }));
         await settle();
         expect(planImport).toHaveBeenLastCalledWith({ gridsJson: JSON.stringify(FILE_GRIDS), asCopies: true });
-        expect(texts(el)[2]).toBe(
-            'This org already has a grid named Consignments, so it is imported as Copy of Consignments (Copy_of_Consignments). Consignments: 2 columns.'
-        );
+        expect($$(el, '.rh-import-grids-badge')[2].textContent).toBe('Copy');
+        expect(texts(el)[2]).toBe('As Copy of Consignments Copy_of_Consignments · 2 columns');
+        expect($$(el, '.rh-import-grids-text .rh-import-grids-api')[2].textContent).toBe('Copy_of_Consignments');
         expect($(el, '.rh-import-grids-confirm').textContent).toBe('Import 3 grids');
     });
 
@@ -195,13 +207,18 @@ describe('before anything is saved', () => {
         ]);
         const el = await mount();
         await choose(el, FILE);
+        // A grid that can't be imported is listed first, so it is seen.
         const rows = $$(el, '.rh-import-grids-item');
-        expect(rows[0].querySelector('.rh-import-grids-warnings').textContent).toContain('a sum of a name');
-        expect(rows[1].className).toContain('rh-import-grids-item_error');
-        expect(rows[1].querySelector('.rh-import-grids-text').textContent).toBe('Cannot be imported:');
-        expect(rows[1].querySelector('.rh-import-grids-problems').textContent).toBe(
+        expect(rows[0].className).toContain('rh-import-grids-item_error');
+        expect(rows[0].querySelector('.rh-import-grids-badge').textContent).toBe("Can't import");
+        expect(rows[0].querySelector('.rh-import-grids-problems').textContent).toBe(
             'No field Hull_Number__c on Consignments.'
         );
+        expect(rows[1].querySelector('.rh-import-grids-warnings').textContent).toContain('a sum of a name');
+        expect($$(el, '.rh-import-grids-totals span').map(b => b.textContent)).toEqual([
+            '1 to import',
+            "1 can't be imported"
+        ]);
         expect($(el, '.rh-import-grids-confirm').textContent).toBe('Import 1 grid');
     });
 
@@ -314,8 +331,8 @@ describe('importing', () => {
 describe('the list', () => {
     it('says what each kind of grid does', () => {
         expect(describeItem(PLAN[2], FILE_GRIDS[2], 0).className).toContain('rh-import-grids-item_skip');
-        expect(describeItem({ ...PLAN[2], existingObjectLabel: 'Accounts' }, FILE_GRIDS[2], 0).text).toBe(
-            'This org already has a grid named Consignments, for Accounts: left as it is.'
+        expect(describeItem({ ...PLAN[2], existingObjectLabel: 'Accounts' }, FILE_GRIDS[2], 0).before).toBe(
+            "This org's grid of this API name stays as it is (it shows Accounts)."
         );
         expect(importable(PLAN[0])).toBe(true);
         expect(importable(PLAN[2])).toBe(false);
