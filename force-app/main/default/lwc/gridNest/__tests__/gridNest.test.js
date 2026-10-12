@@ -18,7 +18,7 @@ import {
     PANEL_PADDING
 } from 'c/gridNest';
 
-const rows = n => Array.from({ length: n }, (_, i) => ({ Id: 'r' + i, Name: 'Row ' + i }));
+const rows = n => Array.from({ length: n }, (_, i) => ({ Id: 'r' + i, Name: 'Penobscot Paper, load ' + (i + 1) }));
 
 describe('withDetails', () => {
     it('leaves the view alone when nothing is open', () => {
@@ -43,8 +43,8 @@ describe('withDetails', () => {
     });
 
     it('uses the key field it is given', () => {
-        const out = withDetails([{ Key__c: 'a' }], { a: true }, 'Key__c');
-        expect(out.items[1].Key__c).toBe(detailId('a'));
+        const out = withDetails([{ Bill_Of_Lading__c: 'BOL-2207' }], { 'BOL-2207': true }, 'Bill_Of_Lading__c');
+        expect(out.items[1].Bill_Of_Lading__c).toBe(detailId('BOL-2207'));
     });
 });
 

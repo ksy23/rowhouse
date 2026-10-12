@@ -93,7 +93,7 @@ describe('the page', () => {
     });
 
     it('opens Welcome for a page the guide does not have', async () => {
-        await open({ c__page: 'nonsense' });
+        await open({ c__page: 'release-notes' });
         expect($('c-guide-content').page).toBe('welcome');
     });
 });

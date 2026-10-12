@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Large_Load__c</fullName>
+    <label>Large Load</label>
+    <type>Checkbox</type>
+    <formula>Pieces__c &gt; 500000</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <description>DEVELOPMENT ONLY. Benchmark column 16-20 of 20: True for the upper half of Number Field. Read-only, like the formula columns of a real org.</description>
+</CustomField>

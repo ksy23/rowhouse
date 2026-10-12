@@ -40,7 +40,7 @@ const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
     { field: 'Email__c', label: 'Email', type: 'email', editable: true, sortable: true },
     { field: 'Phone__c', label: 'Phone', type: 'phone', editable: true, sortable: true },
-    { field: 'Web__c', label: 'Web', type: 'url', editable: true, sortable: true },
+    { field: 'Web__c', label: 'Website', type: 'url', editable: true, sortable: true },
     {
         field: 'Account__c',
         label: 'Account',
@@ -52,17 +52,17 @@ const COLUMNS = [
 ];
 const ROW = {
     Id: ID,
-    Name: 'TC-001',
-    Email__c: 'ada@example.com',
-    Phone__c: '+1 (415) 555-0100',
-    Web__c: 'https://example.com',
+    Name: 'Kennebec Lumber, 12 bundles',
+    Email__c: 'ada.whitcomb@granitecoastfreight.com',
+    Phone__c: '+1 (207) 555-0100',
+    Web__c: 'https://track.granitecoastfreight.com/PRO-1001',
     Account__c: ACC
 };
 
 let el;
 const mount = async (row = ROW) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
-    el.config = { columns: COLUMNS, rows: [row], refNames: { [ACC]: 'Alpha Corp' } };
+    el.config = { columns: COLUMNS, rows: [row], refNames: { [ACC]: 'Casco Bay Marine' } };
     document.body.appendChild(el);
     await flush();
 };
@@ -92,24 +92,24 @@ describe('links in cells', () => {
     it("links the record's name to the record", async () => {
         await mount();
         expect(link('Name').getAttribute('href')).toBe(`/lightning/r/${ID}/view`);
-        expect(link('Name').textContent).toBe('TC-001');
+        expect(link('Name').textContent).toBe('Kennebec Lumber, 12 bundles');
         expect(link('Name').getAttribute('target')).toBeNull();
     });
 
     it('writes to an email address, dials a phone number, opens a web address in a new tab', async () => {
         await mount();
-        expect(link('Email__c').getAttribute('href')).toBe('mailto:ada@example.com');
-        expect(link('Phone__c').getAttribute('href')).toBe('tel:+14155550100');
-        expect(link('Web__c').getAttribute('href')).toBe('https://example.com');
+        expect(link('Email__c').getAttribute('href')).toBe('mailto:ada.whitcomb@granitecoastfreight.com');
+        expect(link('Phone__c').getAttribute('href')).toBe('tel:+12075550100');
+        expect(link('Web__c').getAttribute('href')).toBe('https://track.granitecoastfreight.com/PRO-1001');
         expect(link('Web__c').getAttribute('target')).toBe('_blank');
         expect(link('Web__c').getAttribute('rel')).toContain('noopener');
     });
 
     it('leaves a malformed email address as plain text', async () => {
-        await mount({ ...ROW, Email__c: 'not an address' });
+        await mount({ ...ROW, Email__c: 'ada.whitcomb at granitecoastfreight.com' });
         expect(link('Email__c')).toBeNull();
         expect(el.shadowRoot.querySelector(`td[data-row-id="${ID}"][data-field="Email__c"]`).textContent).toContain(
-            'not an address'
+            'ada.whitcomb at granitecoastfreight.com'
         );
     });
 

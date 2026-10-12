@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Formula_Due_Date__c</fullName>
-    <label>Formula Due Date</label>
-    <type>Date</type>
-    <formula>Date_Field__c + 30</formula>
-    <formulaTreatBlanksAs>BlankAsBlank</formulaTreatBlanksAs>
-    <description>DEVELOPMENT ONLY. Benchmark column 16-20 of 20: Thirty days after Date Field. Read-only, like the formula columns of a real org.</description>
-</CustomField>

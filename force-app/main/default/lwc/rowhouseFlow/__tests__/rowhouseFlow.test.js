@@ -36,18 +36,18 @@ const ID = 'a01000000000003AAA';
 const BACK = {
     type: 'standard__navItemPage',
     attributes: { apiName: 'Rowhouse_Dev' },
-    state: { c__grid: 'Test_Records' }
+    state: { c__grid: 'Consignments' }
 };
 const NOTE = {
     name: 'Add_Note',
     label: 'Add a note',
-    flowName: 'Rowhouse_Test_Screen_Flow',
+    flowName: 'Add_Delivery_Note',
     inputName: 'recordId',
     onRow: true,
     onSelection: true
 };
 const rowState = (extra = {}) => ({
-    c__grid: 'Test_Records',
+    c__grid: 'Consignments',
     c__action: 'Add_Note',
     c__on: 'row',
     c__token: 'tok1',
@@ -89,18 +89,18 @@ afterEach(() => {
 describe('running the flow', () => {
     it("asks the server which flow, and runs it with the row's Id under the action's label", async () => {
         await mount(rowState());
-        expect(screenFlow).toHaveBeenCalledWith({ configName: 'Test_Records', actionName: 'Add_Note' });
+        expect(screenFlow).toHaveBeenCalledWith({ configName: 'Consignments', actionName: 'Add_Note' });
         expect($('h1').textContent).toBe('Add a note');
         expect($('.rh-flow-rows').textContent).toBe('On one row');
         const flow = $('lightning-flow');
-        expect(flow.flowApiName).toBe('Rowhouse_Test_Screen_Flow');
+        expect(flow.flowApiName).toBe('Add_Delivery_Note');
         expect(flow.flowInputVariables).toEqual([{ name: 'recordId', type: 'String', value: ID }]);
     });
 
     it('runs on a selection with the Ids as the text collection ids, from session storage when there are many', async () => {
         const ids = Array.from({ length: 30 }, (_, i) => 'a01' + String(i).padStart(15, '0'));
         sessionStorage.setItem(STORE_PREFIX + 'tok2', JSON.stringify({ ids, back: BACK }));
-        await mount({ c__grid: 'Test_Records', c__action: 'Add_Note', c__on: 'selection', c__token: 'tok2' });
+        await mount({ c__grid: 'Consignments', c__action: 'Add_Note', c__on: 'selection', c__token: 'tok2' });
         expect($('lightning-flow').flowInputVariables).toEqual([{ name: 'ids', type: 'String', value: ids }]);
         expect($('.rh-flow-rows').textContent).toBe('On 30 selected rows');
         expect(sessionStorage.getItem(STORE_PREFIX + 'tok2')).toBeNull(); // read once, then forgotten
@@ -156,10 +156,10 @@ describe('going back to the grid', () => {
 describe('what it will not run', () => {
     it('says why when the grid has no such screen flow for this user', async () => {
         screenFlow.mockRejectedValue({
-            body: { message: 'This grid has no screen flow called "Nope" that you can run.' }
+            body: { message: 'This grid has no screen flow called "Consignment_Rerate" that you can run.' }
         });
-        await mount(rowState({ c__action: 'Nope' }));
-        expect($('.rh-flow-error').textContent).toContain('no screen flow called "Nope"');
+        await mount(rowState({ c__action: 'Consignment_Rerate' }));
+        expect($('.rh-flow-error').textContent).toContain('no screen flow called "Consignment_Rerate"');
         expect($('lightning-flow')).toBeNull();
     });
 

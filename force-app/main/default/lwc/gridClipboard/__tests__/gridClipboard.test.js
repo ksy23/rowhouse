@@ -6,7 +6,7 @@ import { copyText, toTsv, parseTsv, parseCell, unneutralise, pastePlan, separato
 
 const col = (type, extra = {}) => ({ field: 'F', type, ...extra });
 const STAGES = [
-    { value: 'Alpha', label: 'Alpha' },
+    { value: 'Prospecting', label: 'Prospecting' },
     { value: 'closed_won', label: 'Closed Won' }
 ];
 
@@ -31,43 +31,45 @@ describe('copy', () => {
     });
 
     it('neutralises a formula prefix in text, as CSV export does (TC-019/020)', () => {
-        expect(copyText('=HYPERLINK("http://x")', col('text'))).toBe('\'=HYPERLINK("http://x")');
+        expect(copyText('=HYPERLINK("https://track.granitecoastfreight.com/")', col('text'))).toBe(
+            '\'=HYPERLINK("https://track.granitecoastfreight.com/")'
+        );
         expect(copyText('@SUM(A1)', col('text'))).toBe("'@SUM(A1)");
-        expect(copyText('plain', col('text'))).toBe('plain');
+        expect(copyText('Kennebec Lumber', col('text'))).toBe('Kennebec Lumber');
     });
 
     it('quotes a value with a tab, a line break or a quote, as Excel does', () => {
         expect(
             toTsv([
-                ['a', 'b\tc'],
-                ['line one\nline two', 'say "hi"']
+                ['Kennebec Lumber', 'Dock 4\tbay 2'],
+                ['Call ahead\nUse the rear dock', 'Ask for "Silas"']
             ])
-        ).toBe('a\t"b\tc"\n"line one\nline two"\t"say ""hi"""');
+        ).toBe('Kennebec Lumber\t"Dock 4\tbay 2"\n"Call ahead\nUse the rear dock"\t"Ask for ""Silas"""');
     });
 });
 
 describe('parseTsv', () => {
     it('reads rows and columns, ignoring the line break Excel adds at the end', () => {
-        expect(parseTsv('a\tb\r\nc\td\r\n')).toEqual([
-            ['a', 'b'],
-            ['c', 'd']
+        expect(parseTsv('Bangor\t12\r\nCalais\t4\r\n')).toEqual([
+            ['Bangor', '12'],
+            ['Calais', '4']
         ]);
-        expect(parseTsv('one')).toEqual([['one']]);
-        expect(parseTsv('a\t')).toEqual([['a', '']]);
+        expect(parseTsv('Bangor')).toEqual([['Bangor']]);
+        expect(parseTsv('Bangor\t')).toEqual([['Bangor', '']]);
     });
 
     it('reads a quoted multi-line cell and doubled quotes', () => {
-        expect(parseTsv('"line one\nline two"\t"say ""hi"""\nx\ty')).toEqual([
-            ['line one\nline two', 'say "hi"'],
-            ['x', 'y']
+        expect(parseTsv('"Call ahead\nUse the rear dock"\t"Ask for ""Silas"""\nBath\t3')).toEqual([
+            ['Call ahead\nUse the rear dock', 'Ask for "Silas"'],
+            ['Bath', '3']
         ]);
     });
 
     it('round-trips whatever toTsv writes', () => {
         const matrix = [
-            ['=1+1', 'tab\there'],
-            ['', '"quoted"'],
-            ['multi\r\nline', 'é 🎉']
+            ['=1+1', 'Dock 4\tbay 2'],
+            ['', '"Rush"'],
+            ['Call ahead\r\nUse the rear dock', 'Café Ouellette 🎉']
         ];
         expect(parseTsv(toTsv(matrix))).toEqual(matrix);
     });
@@ -86,7 +88,7 @@ describe('parseCell', () => {
         expect(parseCell('-$5', n, 'en-US')).toEqual({ value: -5 });
         expect(parseCell('1.234,5 €', n, 'de-DE')).toEqual({ value: 1234.5 });
         expect(parseCell('', n, 'en-US')).toEqual({ value: null });
-        expect(parseCell('12abc', n, 'en-US')).toEqual({ error: 'Not a number: 12abc' });
+        expect(parseCell('12 pallets', n, 'en-US')).toEqual({ error: 'Not a number: 12 pallets' });
     });
 
     it('keeps an 18-digit number exact (TC-024) and reads a percent sign', () => {
@@ -125,15 +127,15 @@ describe('parseCell', () => {
         const p = col('picklist', { options: STAGES });
         expect(parseCell('Closed Won', p)).toEqual({ value: 'closed_won' });
         expect(parseCell('closed won', p)).toEqual({ value: 'closed_won' });
-        expect(parseCell('alpha', p)).toEqual({ value: 'Alpha' });
-        expect(parseCell('Obsolete', p)).toEqual({ error: 'Not a value of this picklist: Obsolete' });
+        expect(parseCell('prospecting', p)).toEqual({ value: 'Prospecting' });
+        expect(parseCell('Closed Lost', p)).toEqual({ error: 'Not a value of this picklist: Closed Lost' });
     });
 
     it("takes text exactly as pasted (TC-005) and undoes copy's neutralising apostrophe", () => {
-        expect(parseCell('  padded  ', col('text'))).toEqual({ value: '  padded  ' });
+        expect(parseCell('  Kennebec Lumber  ', col('text'))).toEqual({ value: '  Kennebec Lumber  ' });
         expect(parseCell("'=1+1", col('text'))).toEqual({ value: '=1+1' });
-        expect(parseCell("'plain", col('text'))).toEqual({ value: "'plain" });
-        expect(unneutralise("'@x")).toBe('@x');
+        expect(parseCell("'Sconset Market", col('text'))).toEqual({ value: "'Sconset Market" });
+        expect(unneutralise("'@GraniteCoast")).toBe('@GraniteCoast');
     });
 
     it('round-trips a copy for every editable type', () => {
@@ -144,7 +146,7 @@ describe('parseCell', () => {
             ['2026-09-29', col('date')],
             [true, col('checkbox')],
             ['closed_won', col('picklist', { options: STAGES })],
-            ['=HYPERLINK("x")', col('text')]
+            ['=HYPERLINK("https://track.granitecoastfreight.com/")', col('text')]
         ];
         cases.forEach(([value, c]) => {
             expect(parseCell(copyText(value, c, 'en-US'), c, 'en-US')).toEqual({ value });
@@ -156,35 +158,44 @@ describe('pastePlan', () => {
     const bounds = { rowCount: 10, colCount: 4 };
 
     it('fills a range with one value', () => {
-        const plan = pastePlan([['x']], { top: 2, left: 1, bottom: 4, right: 2 }, bounds);
+        const plan = pastePlan([['Express']], { top: 2, left: 1, bottom: 4, right: 2 }, bounds);
         expect(plan.cells).toHaveLength(6);
-        expect(plan.cells.every(c => c.text === 'x')).toBe(true);
+        expect(plan.cells.every(c => c.text === 'Express')).toBe(true);
     });
 
     it('repeats a block into a range that is a whole multiple of it', () => {
-        const plan = pastePlan([['a', 'b']], { top: 1, left: 1, bottom: 2, right: 4 }, bounds);
-        expect(plan.cells.map(c => c.text)).toEqual(['a', 'b', 'a', 'b', 'a', 'b', 'a', 'b']);
+        const plan = pastePlan([['Bath', 'Camden']], { top: 1, left: 1, bottom: 2, right: 4 }, bounds);
+        expect(plan.cells.map(c => c.text)).toEqual([
+            'Bath',
+            'Camden',
+            'Bath',
+            'Camden',
+            'Bath',
+            'Camden',
+            'Bath',
+            'Camden'
+        ]);
     });
 
     it('pastes a block once from the top-left when the range is not a multiple', () => {
         const plan = pastePlan(
             [
-                ['a', 'b'],
-                ['c', 'd']
+                ['Bangor', 'Calais'],
+                ['Bath', 'Camden']
             ],
             { top: 3, left: 2, bottom: 3, right: 2 },
             bounds
         );
         expect(plan.cells).toEqual([
-            { row: 3, col: 2, text: 'a' },
-            { row: 3, col: 3, text: 'b' },
-            { row: 4, col: 2, text: 'c' },
-            { row: 4, col: 3, text: 'd' }
+            { row: 3, col: 2, text: 'Bangor' },
+            { row: 3, col: 3, text: 'Calais' },
+            { row: 4, col: 2, text: 'Bath' },
+            { row: 4, col: 3, text: 'Camden' }
         ]);
     });
 
     it('counts the cells that fall off the grid instead of pasting them', () => {
-        const plan = pastePlan([['a', 'b', 'c']], { top: 10, left: 3, bottom: 10, right: 3 }, bounds);
+        const plan = pastePlan([['Bangor', 'Calais', 'Bath']], { top: 10, left: 3, bottom: 10, right: 3 }, bounds);
         expect(plan.cells).toHaveLength(2);
         expect(plan.dropped).toBe(1);
     });

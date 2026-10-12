@@ -160,7 +160,7 @@ public with sharing class GridPaths {
         return current;
     }
 
-    /** The lookup field whose relationship is named so (Account, Lookup_Field__r), with or without the namespace. */
+    /** The lookup field whose relationship is named so (Account, Shipper__r), with or without the namespace. */
     private static Schema.SObjectField lookupNamed(Schema.SObjectType objectType, String relationshipName) {
         String wanted = withoutNamespace(relationshipName).toLowerCase();
         for (Schema.SObjectField f : GridDescribe.fieldsFor(GridDescribe.apiName(objectType)).values()) {

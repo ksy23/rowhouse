@@ -7,7 +7,7 @@ import GridTable from 'c/gridTable';
 import { seedRows, columns } from '../../../../../../test-data/tests/jest/fixtures/seed';
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
-const tc = n => seedRows.find(r => r.Test_Case__c.startsWith(n));
+const tc = n => seedRows.find(r => r.Pro_Number__c.startsWith(n));
 
 describe('sorting', () => {
     let el;
@@ -29,41 +29,41 @@ describe('sorting', () => {
     });
 
     it('TC-049..054: nulls last, case-insensitive, accents after base, text "10" before "9"', async () => {
-        await sortBy('Text_Field__c');
+        await sortBy('Consignee__c');
         const ids = order();
         const pos = n => ids.indexOf(tc(n).Id);
-        expect(pos('TC-053')).toBeLessThan(pos('TC-054')); // "10" before "9" as text
-        expect(pos('TC-050')).toBeLessThan(pos('TC-052')); // apple before Äpple
-        expect(pos('TC-051')).toBeLessThan(pos('TC-052')); // Apple before Äpple
-        expect(pos('TC-049')).toBeGreaterThan(pos('TC-052')); // null after every value
-        // Every row with a null Text_Field__c comes after every row with a value.
-        const firstNull = ids.findIndex(id => seedRows.find(r => r.Id === id).Text_Field__c == null);
-        ids.slice(firstNull).forEach(id => expect(seedRows.find(r => r.Id === id).Text_Field__c == null).toBe(true));
+        expect(pos('PRO-1053')).toBeLessThan(pos('PRO-1054')); // "10" before "9" as text
+        expect(pos('PRO-1050')).toBeLessThan(pos('PRO-1052')); // acadia before Äcadia
+        expect(pos('PRO-1051')).toBeLessThan(pos('PRO-1052')); // Acadia before Äcadia
+        expect(pos('PRO-1049')).toBeGreaterThan(pos('PRO-1052')); // null after every value
+        // Every row with a null Consignee__c comes after every row with a value.
+        const firstNull = ids.findIndex(id => seedRows.find(r => r.Id === id).Consignee__c == null);
+        ids.slice(firstNull).forEach(id => expect(seedRows.find(r => r.Id === id).Consignee__c == null).toBe(true));
     });
 
     it('sorts the Number column numerically: 9 before 10, negatives below zero (TC-022)', async () => {
-        await sortBy('Number_Field__c');
+        await sortBy('Pieces__c');
         const ids = order();
         const pos = n => ids.indexOf(tc(n).Id);
-        expect(pos('TC-054')).toBeLessThan(pos('TC-053'));
-        expect(pos('TC-022')).toBeLessThan(pos('TC-003'));
+        expect(pos('PRO-1054')).toBeLessThan(pos('PRO-1053'));
+        expect(pos('PRO-1022')).toBeLessThan(pos('PRO-1003'));
     });
 
     it('a second click flips the direction; nulls stay last', async () => {
-        await sortBy('Number_Field__c');
-        await sortBy('Number_Field__c');
-        const header = el.shadowRoot.querySelector('th[data-field="Number_Field__c"]');
+        await sortBy('Pieces__c');
+        await sortBy('Pieces__c');
+        const header = el.shadowRoot.querySelector('th[data-field="Pieces__c"]');
         expect(header.getAttribute('aria-sort')).toBe('descending');
         const ids = order();
-        expect(seedRows.find(r => r.Id === ids[ids.length - 1]).Number_Field__c).toBeNull();
+        expect(seedRows.find(r => r.Id === ids[ids.length - 1]).Pieces__c).toBeNull();
     });
 
     it('shift+click adds a secondary key that orders ties in the primary', async () => {
-        await sortBy('Text_Field__c');
-        await sortBy('Number_Field__c', true);
-        // TC-047 and TC-048 tie on both keys; the Id tiebreak keeps them stable.
+        await sortBy('Consignee__c');
+        await sortBy('Pieces__c', true);
+        // PRO-1047 and PRO-1048 tie on both keys; the Id tiebreak keeps them stable.
         const ids = order();
-        expect(ids.indexOf(tc('TC-047').Id)).toBeLessThan(ids.indexOf(tc('TC-048').Id));
+        expect(ids.indexOf(tc('PRO-1047').Id)).toBeLessThan(ids.indexOf(tc('PRO-1048').Id));
         const directed = [...el.shadowRoot.querySelectorAll('th[aria-sort="ascending"], th[aria-sort="descending"]')];
         expect(directed).toHaveLength(1); // HR-14: ARIA carries the primary key only
     });
@@ -81,7 +81,7 @@ describe('sort indicator', () => {
         el.config = { columns, rows: seedRows };
         document.body.appendChild(el);
         await flush();
-        const th = () => el.shadowRoot.querySelector('th[data-field="Number_Field__c"]');
+        const th = () => el.shadowRoot.querySelector('th[data-field="Pieces__c"]');
         const click = async () => {
             th()
                 .querySelector('.slds-th__action')
@@ -103,14 +103,14 @@ describe('keyboard column resize', () => {
         el.config = { columns, rows: seedRows.slice(0, 3) };
         document.body.appendChild(el);
         await flush();
-        const range = el.shadowRoot.querySelector('th[data-field="Text_Field__c"] input[type="range"]');
-        expect(range.getAttribute('aria-label')).toBe('Text column width');
+        const range = el.shadowRoot.querySelector('th[data-field="Consignee__c"] input[type="range"]');
+        expect(range.getAttribute('aria-label')).toBe('Consignee column width');
         expect(range.getAttribute('min')).toBe('20');
         expect(range.getAttribute('max')).toBe('1000');
         range.value = '240';
         range.dispatchEvent(new CustomEvent('input'));
         await flush();
-        expect(el.shadowRoot.querySelector('th[data-field="Text_Field__c"]').style.width).toBe('240px');
+        expect(el.shadowRoot.querySelector('th[data-field="Consignee__c"]').style.width).toBe('240px');
         el.remove();
     });
 });
@@ -148,7 +148,7 @@ describe('column widths after a resize', () => {
         // Regression, found in Lightning Experience: a fixed-layout table at 100%
         // stretched a column dragged to 406px out to 500px.
         const el = await mount();
-        const range = th(el, 'Text_Field__c').querySelector('input[type="range"]');
+        const range = th(el, 'Consignee__c').querySelector('input[type="range"]');
         range.dispatchEvent(new CustomEvent('focus'));
         await flush();
         expect(range.value).toBe('200'); // the real width, not the 150 default
@@ -158,7 +158,7 @@ describe('column widths after a resize', () => {
 
         const cells = [...el.shadowRoot.querySelectorAll('thead th[data-field]')];
         cells.forEach(cell => {
-            const expected = cell.dataset.field === 'Text_Field__c' ? '260px' : '200px';
+            const expected = cell.dataset.field === 'Consignee__c' ? '260px' : '200px';
             expect(cell.style.width).toBe(expected);
         });
         // The table is exactly its columns: 60px wider than before, not stretched.
@@ -168,13 +168,13 @@ describe('column widths after a resize', () => {
 
     it('a pointer drag pins first and then follows the pointer', async () => {
         const el = await mount();
-        const handle = th(el, 'Number_Field__c').querySelector('.slds-resizable__handle');
+        const handle = th(el, 'Pieces__c').querySelector('.slds-resizable__handle');
         handle.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true, clientX: 500 }));
         window.dispatchEvent(new MouseEvent('pointermove', { clientX: 400 }));
         window.dispatchEvent(new MouseEvent('pointerup', {}));
         await flush();
-        expect(th(el, 'Number_Field__c').style.width).toBe('100px');
-        expect(th(el, 'Text_Field__c').style.width).toBe('200px');
+        expect(th(el, 'Pieces__c').style.width).toBe('100px');
+        expect(th(el, 'Consignee__c').style.width).toBe('200px');
         const count = el.shadowRoot.querySelectorAll('thead th[data-field]').length;
         expect(el.shadowRoot.querySelector('table').style.width).toBe((count - 1) * 200 + 100 + 'px');
     });
@@ -186,7 +186,7 @@ describe('column widths after a resize', () => {
         const frame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
         const TWO = [
             { field: 'Name', label: 'Name', type: 'text', width: 220 },
-            { field: 'Amount__c', label: 'Amount', type: 'currency', width: 140 }
+            { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', width: 140 }
         ];
         let widthSpy;
         beforeEach(() => {
@@ -213,7 +213,7 @@ describe('column widths after a resize', () => {
             // 1,000px less the checkbox column and the table's 2px of border:
             // 966px of room, shared 220 : 140, rounded down.
             expect(th(el, 'Name').style.width).toBe('590px');
-            expect(th(el, 'Amount__c').style.width).toBe('375px');
+            expect(th(el, 'Freight_Charge__c').style.width).toBe('375px');
             expect(el.shadowRoot.querySelector('table').style.width).toBe(''); // still not pinned
         });
 
@@ -231,7 +231,7 @@ describe('column widths after a resize', () => {
         it('gives a column with no width its own (a figure: its fitted width) and still shares the room', async () => {
             const el = await mountTwo([TWO[0], { ...TWO[1], width: undefined }]);
             const name = parseInt(th(el, 'Name').style.width, 10);
-            const amount = parseInt(th(el, 'Amount__c').style.width, 10);
+            const amount = parseInt(th(el, 'Freight_Charge__c').style.width, 10);
             expect(amount).toBeGreaterThanOrEqual(130); // a currency column is never narrower (gridSizing)
             expect(name).toBeGreaterThan(220);
             expect(name + amount).toBeGreaterThanOrEqual(964); // 966px of room, each share rounded down
@@ -339,7 +339,7 @@ describe('column widths after a resize', () => {
     it('counts the selection column at its fixed width', async () => {
         const el = await mount({ selection: 'multi' });
         expect(th(el, '__select').style.width).toBe('32px');
-        const range = th(el, 'Text_Field__c').querySelector('input[type="range"]');
+        const range = th(el, 'Consignee__c').querySelector('input[type="range"]');
         range.value = '300';
         range.dispatchEvent(new CustomEvent('input'));
         await flush();

@@ -23,7 +23,7 @@ const mount = async (config, layout) => {
     await flush();
 };
 const $ = selector => el.shadowRoot.querySelector(selector);
-const DRAFT = { [seedRows[0].Id]: { Text_Field__c: 'x' } };
+const DRAFT = { [seedRows[0].Id]: { Consignee__c: 'Casco Bay Marine' } };
 
 afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
@@ -89,7 +89,10 @@ describe('Undo and Redo in the Save bar', () => {
 });
 
 describe('while the edits save', () => {
-    const TWO = { [seedRows[0].Id]: { Text_Field__c: 'x' }, [seedRows[1].Id]: { Text_Field__c: 'y' } };
+    const TWO = {
+        [seedRows[0].Id]: { Consignee__c: 'Casco Bay Marine' },
+        [seedRows[1].Id]: { Consignee__c: 'Wachusett Paper' }
+    };
 
     it('shows a spinner and "Saving…" on Save, in its blue, and says what is being saved', async () => {
         await mount({
@@ -139,7 +142,7 @@ describe('while the edits save', () => {
 
     it('writes counts as numbers are written elsewhere in the grid: 1,200, not 1200', async () => {
         const many = {};
-        for (let i = 0; i < 1200; i++) many['a01' + String(i).padStart(15, '0')] = { Text_Field__c: 'x' };
+        for (let i = 0; i < 1200; i++) many['a01' + String(i).padStart(15, '0')] = { Consignee__c: 'Quabbin Supply' };
         await mount({ drafts: many });
         expect($('.rh-footer-summary').textContent).toBe('1,200 unsaved changes');
         el.config = { ...el.config, saving: true, savingEdits: true };
@@ -150,7 +153,7 @@ describe('while the edits save', () => {
 
 describe('an empty list', () => {
     const EMPTY = {
-        title: 'No records match “zzz”',
+        title: 'No records match “Machais”',
         message: 'Check the spelling.',
         actionLabel: 'Clear search',
         icon: 'utility:search'
@@ -159,7 +162,7 @@ describe('an empty list', () => {
     it('says why, and offers the next step', async () => {
         await mount({ rows: [], totalRows: 0, emptyState: EMPTY });
         expect($('.rh-empty').getAttribute('role')).toBe('status');
-        expect($('.rh-empty-title').textContent).toBe('No records match “zzz”');
+        expect($('.rh-empty-title').textContent).toBe('No records match “Machais”');
         expect($('.rh-empty').textContent).toContain('Check the spelling.');
         $('.rh-empty-action').click();
         expect(events).toEqual(['emptyaction']);
@@ -185,6 +188,6 @@ describe('an empty list', () => {
 
     it('says the same in cards', async () => {
         await mount({ rows: [], totalRows: 0, emptyState: EMPTY }, 'cards');
-        expect($('.rh-empty-title').textContent).toBe('No records match “zzz”');
+        expect($('.rh-empty-title').textContent).toBe('No records match “Machais”');
     });
 });

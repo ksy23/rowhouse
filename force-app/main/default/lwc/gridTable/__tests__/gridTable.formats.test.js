@@ -14,27 +14,37 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true },
-    { field: 'Amount', label: 'Amount', type: 'currency', editable: true, scale: 2 },
+    { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', editable: true, scale: 2 },
     {
-        field: 'Stage',
-        label: 'Stage',
+        field: 'Service_Level__c',
+        label: 'Service Level',
         type: 'picklist',
         editable: true,
         options: [
-            { value: 'Beta', label: 'Beta' },
-            { value: 'Gamma', label: 'Gamma' }
+            { value: 'Standard', label: 'Standard' },
+            { value: 'Express', label: 'Express' }
         ]
     }
 ];
 const ROWS = [
-    { Id: 'a01000000000001AAA', Name: 'Small', Amount: '5', Stage: 'Beta' },
-    { Id: 'a01000000000002AAA', Name: 'Large', Amount: '4999', Stage: 'Beta' },
-    { Id: 'a01000000000003AAA', Name: 'Gamma', Amount: '-3', Stage: 'Gamma' }
+    {
+        Id: 'a01000000000001AAA',
+        Name: 'Kennebec Lumber, 12 bundles',
+        Freight_Charge__c: '5',
+        Service_Level__c: 'Standard'
+    },
+    {
+        Id: 'a01000000000002AAA',
+        Name: 'Penobscot Paper, full truck',
+        Freight_Charge__c: '4999',
+        Service_Level__c: 'Standard'
+    },
+    { Id: 'a01000000000003AAA', Name: 'Reefer load, Machias', Freight_Charge__c: '-3', Service_Level__c: 'Express' }
 ];
 const RULES = [
     {
         name: 'Negative',
-        field: 'Amount',
+        field: 'Freight_Charge__c',
         type: 'currency',
         operator: 'less_than',
         value: '0',
@@ -43,7 +53,7 @@ const RULES = [
     },
     {
         name: 'Large',
-        field: 'Amount',
+        field: 'Freight_Charge__c',
         type: 'currency',
         operator: 'greater_or_equal',
         value: '1000',
@@ -51,11 +61,11 @@ const RULES = [
         applyTo: 'cell'
     },
     {
-        name: 'Gamma',
-        field: 'Stage',
+        name: 'Express',
+        field: 'Service_Level__c',
         type: 'picklist',
         operator: 'equals',
-        value: 'Gamma',
+        value: 'Express',
         style: 'fill_purple',
         applyTo: 'row'
     }
@@ -76,9 +86,9 @@ describe('conditional formatting in the table', () => {
 
     it('gives a cell rule’s class to its own column only', async () => {
         await mount();
-        expect(cell(1, 'Amount').classList).toContain('rh-fmt_fill-green');
+        expect(cell(1, 'Freight_Charge__c').classList).toContain('rh-fmt_fill-green');
         expect(cell(1, 'Name').classList).not.toContain('rh-fmt_fill-green');
-        expect(cell(0, 'Amount').className).not.toMatch(/rh-fmt_/);
+        expect(cell(0, 'Freight_Charge__c').className).not.toMatch(/rh-fmt_/);
     });
 
     it("shows a row rule's fill on the row (a tint and a bar, from the stylesheet), not as a fill on every cell", async () => {
@@ -88,48 +98,53 @@ describe('conditional formatting in the table', () => {
         expect(tr.classList).toContain('rh-row_bar');
         expect(tr.classList).toContain('rh-fmt_bar-purple');
         const cells = [...el.shadowRoot.querySelectorAll(`td[data-row-id="${ROWS[2].Id}"][data-field]`)];
-        expect(cells.map(td => td.dataset.field)).toEqual(['Name', 'Amount', 'Stage']);
+        expect(cells.map(td => td.dataset.field)).toEqual(['Name', 'Freight_Charge__c', 'Service_Level__c']);
         cells.forEach(td => expect(td.className).not.toMatch(/rh-fmt_fill/));
         // The cell rules still show beside it.
-        expect(cell(2, 'Amount').classList).toContain('rh-fmt_text-red');
+        expect(cell(2, 'Freight_Charge__c').classList).toContain('rh-fmt_text-red');
         expect(el.shadowRoot.querySelector(`tr[data-row-id="${ROWS[0].Id}"]`).classList).not.toContain('rh-row_bar');
     });
 
     it("says what a format means: in the cell's title and to a screen reader", async () => {
         await mount();
-        const amount = cell(2, 'Amount');
+        const amount = cell(2, 'Freight_Charge__c');
         expect(amount.querySelector('.slds-assistive-text').textContent).toBe(', Negative');
         expect(amount.querySelector('[title]').getAttribute('title')).toBe('-$3.00 · Negative');
         // The row's rule is said once, on the row's first data cell.
-        expect(cell(2, 'Name').querySelector('.slds-assistive-text').textContent).toBe(', Gamma');
-        const said = [...cell(2, 'Stage').querySelectorAll('.slds-assistive-text')].map(n => n.textContent);
+        expect(cell(2, 'Name').querySelector('.slds-assistive-text').textContent).toBe(', Express');
+        const said = [...cell(2, 'Service_Level__c').querySelectorAll('.slds-assistive-text')].map(n => n.textContent);
         expect(said.filter(t => t.startsWith(', '))).toEqual([]);
     });
 
     it('follows an unsaved edit in the rest of the row, and leaves the edited cell showing as unsaved', async () => {
-        await mount({ drafts: { [ROWS[0].Id]: { Amount: '2500' } } });
+        await mount({ drafts: { [ROWS[0].Id]: { Freight_Charge__c: '2500' } } });
         // The edited cell shows as unsaved, not formatted: SLDS's yellow must not be hidden.
-        expect(cell(0, 'Amount').classList).toContain('slds-is-edited');
+        expect(cell(0, 'Freight_Charge__c').classList).toContain('slds-is-edited');
         // The row tint stands aside for an unsaved cell by this class.
-        expect(cell(0, 'Amount').classList).toContain('rh-cell_draft');
-        expect(cell(0, 'Amount').className).not.toMatch(/rh-fmt_/);
+        expect(cell(0, 'Freight_Charge__c').classList).toContain('rh-cell_draft');
+        expect(cell(0, 'Freight_Charge__c').className).not.toMatch(/rh-fmt_/);
         // A row rule met by an unsaved edit formats the rest of the row at once.
-        el.config = { columns: COLUMNS, rows: ROWS, formatRules: RULES, drafts: { [ROWS[1].Id]: { Stage: 'Gamma' } } };
+        el.config = {
+            columns: COLUMNS,
+            rows: ROWS,
+            formatRules: RULES,
+            drafts: { [ROWS[1].Id]: { Service_Level__c: 'Express' } }
+        };
         await flush();
         expect(el.shadowRoot.querySelector(`tr[data-row-id="${ROWS[1].Id}"]`).classList).toContain('rh-fmt_bar-purple');
-        expect(cell(1, 'Stage').classList).toContain('slds-is-edited');
-        expect(cell(1, 'Stage').className).not.toMatch(/rh-fmt_/);
+        expect(cell(1, 'Service_Level__c').classList).toContain('slds-is-edited');
+        expect(cell(1, 'Service_Level__c').className).not.toMatch(/rh-fmt_/);
         // Saved, the value is the record's own and the cell takes its format.
-        const saved = ROWS.map(r => (r.Id === ROWS[0].Id ? { ...r, Amount: '2500' } : r));
+        const saved = ROWS.map(r => (r.Id === ROWS[0].Id ? { ...r, Freight_Charge__c: '2500' } : r));
         el.config = { columns: COLUMNS, rows: saved, formatRules: RULES, drafts: {} };
         await flush();
-        expect(cell(0, 'Amount').classList).toContain('rh-fmt_fill-green');
+        expect(cell(0, 'Freight_Charge__c').classList).toContain('rh-fmt_fill-green');
     });
 
     it('gives no format to a cell in error', async () => {
-        await mount({ errors: { [ROWS[1].Id]: { row: null, fields: { Amount: 'Too large.' } } } });
-        expect(cell(1, 'Amount').classList).toContain('slds-has-error');
-        expect(cell(1, 'Amount').className).not.toMatch(/rh-fmt_/);
+        await mount({ errors: { [ROWS[1].Id]: { row: null, fields: { Freight_Charge__c: 'Too large.' } } } });
+        expect(cell(1, 'Freight_Charge__c').classList).toContain('slds-has-error');
+        expect(cell(1, 'Freight_Charge__c').className).not.toMatch(/rh-fmt_/);
     });
 
     it('formats nothing without rules, and leaves the selection column alone', async () => {

@@ -5,17 +5,17 @@
  * suite in a fresh build org where no script ran, and where the admin running
  * the tests has no field access to the test metadata at all.
  *
- *   limitedUser() — deliberately restricted (Rowhouse_Test_Limited). The access
+ *   limitedUser() — deliberately restricted (Freight_Limited_Access). The access
  *                   tests run as this user.
  *   fullUser()    — every test field, through permission sets alone
- *                   (Rowhouse_Test_Full). Tests that are NOT about access run
+ *                   (Freight_Full_Access). Tests that are NOT about access run
  *                   as this user, so they depend on nothing the org's admin
  *                   happens to have.
  *   peerUser()    — fullUser()'s access, as a second person: the sharing tests'
  *                   other user, who must not see what fullUser() owns on the
  *                   Private test object unless it is shared.
  *   readOnlyUser() — reads the test records but may not edit, create or delete
- *                   them (Rowhouse_Test_Read_Only); reads the test children but
+ *                   them (Freight_Read_Only); reads the test children but
  *                   not their Amount.
  *   diagnosticsUser() — fullUser() plus Rowhouse_Diagnostics, for the action
  *                   that requires that custom permission.
@@ -76,35 +76,35 @@ public class GridTestUsers {
     }
 
     public static User limitedUser() {
-        return userWith(LIMITED, 'Limited', new List<String>{ 'Rowhouse_Test_Limited', 'Rowhouse_User' });
+        return userWith(LIMITED, 'Silas Thibodeau', new List<String>{ 'Freight_Limited_Access', 'Rowhouse_User' });
     }
 
     public static User fullUser() {
-        return userWith(FULL, 'Full', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User' });
+        return userWith(FULL, 'Abigail Coffin', new List<String>{ 'Freight_Full_Access', 'Rowhouse_User' });
     }
 
     /** A second user with fullUser()'s access, for what one user must not see of another's. */
     public static User peerUser() {
-        return userWith(PEER, 'Peer', new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User' });
+        return userWith(PEER, 'Nora Pelletier', new List<String>{ 'Freight_Full_Access', 'Rowhouse_User' });
     }
 
     /** Reads the test records, never edits, creates or deletes them; reads the children but not their Amount. */
     public static User readOnlyUser() {
-        return userWith(READ_ONLY, 'ReadOnly', new List<String>{ 'Rowhouse_Test_Read_Only', 'Rowhouse_User' });
+        return userWith(READ_ONLY, 'Caleb Lambert', new List<String>{ 'Freight_Read_Only', 'Rowhouse_User' });
     }
 
     /** fullUser() with the Rowhouse_Diagnostics custom permission, which one fixture action requires. */
     public static User diagnosticsUser() {
         return userWith(
             DIAGNOSTICS,
-            'Diagnostics',
-            new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Diagnostics' }
+            'Ruth Ouellette',
+            new List<String>{ 'Freight_Full_Access', 'Rowhouse_User', 'Rowhouse_Diagnostics' }
         );
     }
 
     /** Every test field, but not Rowhouse_User: no access to the audit log. */
     public static User noLogUser() {
-        return userWith(NO_LOG, 'NoLog', new List<String>{ 'Rowhouse_Test_Full' });
+        return userWith(NO_LOG, 'Ezra Gagnon', new List<String>{ 'Freight_Full_Access' });
     }
 
     /**
@@ -115,8 +115,8 @@ public class GridTestUsers {
     public static User adminUser() {
         return userWith(
             ADMIN,
-            'Admin',
-            new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' },
+            'Harriet Hathaway',
+            new List<String>{ 'Freight_Full_Access', 'Rowhouse_User', 'Rowhouse_Admin' },
             'System Administrator'
         );
     }
@@ -125,8 +125,8 @@ public class GridTestUsers {
     public static User limitedAdmin() {
         return userWith(
             'rhladm',
-            'LimitedAdmin',
-            new List<String>{ 'Rowhouse_Test_Limited', 'Rowhouse_User', 'Rowhouse_Admin' }
+            'Mercy Thibault',
+            new List<String>{ 'Freight_Limited_Access', 'Rowhouse_User', 'Rowhouse_Admin' }
         );
     }
 
@@ -134,19 +134,19 @@ public class GridTestUsers {
     public static User adminViewer() {
         return userWith(
             ADMIN_VIEWER,
-            'AdminViewer',
-            new List<String>{ 'Rowhouse_Test_Full', 'Rowhouse_User', 'Rowhouse_Admin' }
+            'Josiah Pratt',
+            new List<String>{ 'Freight_Full_Access', 'Rowhouse_User', 'Rowhouse_Admin' }
         );
     }
 
     /**
      * The user this class built with the alias (LIMITED, FULL...), for a test
      * whose @TestSetup built it: the newest, and only a user built here, whose
-     * username is rowhouse.<alias>.<number>@example.invalid, never a real user
+     * username is rowhouse.<alias>.<number>@granitecoastfreight.com, never a real user
      * of the org who shares the alias. Fails, by name, when there is none.
      */
     public static User built(String alias) {
-        String username = 'rowhouse.' + alias + '.%@example.invalid';
+        String username = 'rowhouse.' + alias + '.%@granitecoastfreight.com';
         List<User> found = [
             SELECT Id, Alias, LastName
             FROM User
@@ -158,18 +158,19 @@ public class GridTestUsers {
         return found[0];
     }
 
-    private static User userWith(String alias, String lastName, List<String> permissionSetNames) {
-        return userWith(alias, lastName, permissionSetNames, 'Standard User');
+    private static User userWith(String alias, String fullName, List<String> permissionSetNames) {
+        return userWith(alias, fullName, permissionSetNames, 'Standard User');
     }
 
-    private static User userWith(String alias, String lastName, List<String> permissionSetNames, String profileName) {
-        String name = 'rowhouse.' + alias + '.' + Crypto.getRandomInteger() + '@example.invalid';
+    /** fullName is "First Last": each user is a person of Granite Coast Freight. */
+    private static User userWith(String alias, String fullName, List<String> permissionSetNames, String profileName) {
+        String name = 'rowhouse.' + alias + '.' + Crypto.getRandomInteger() + '@granitecoastfreight.com';
         User u = new User(
             Alias = alias,
             Email = name,
             Username = name,
-            LastName = lastName,
-            FirstName = 'Rowhouse',
+            LastName = fullName.substringAfter(' '),
+            FirstName = fullName.substringBefore(' '),
             ProfileId = [SELECT Id FROM Profile WHERE Name = :profileName LIMIT 1]
             .Id,
             TimeZoneSidKey = 'America/New_York',

@@ -1,6 +1,9 @@
 # Rowhouse test data
 
-Everything needed to stand up a test org and run the test suites.
+Everything needed to stand up an org for the test suites, with realistic data:
+Granite Coast Freight, a fictional New England freight carrier, its consignments,
+freight claims, inspections and freight bills. No value in this folder is a
+stand-in (no "test", "sample" or "example" in the data).
 
 ```
 ./scripts/seed.sh                 # scratch org + metadata + 56 seed records + limited user
@@ -12,13 +15,13 @@ Everything needed to stand up a test org and run the test suites.
 
 | Path | What it is |
 |---|---|
-| `data/Rowhouse_Test_Record__c.csv` | 56 records, one per edge case. Generated — edit the generator, not the CSV. |
+| `data/Consignment__c.csv` | 56 records, one per edge case. Generated — edit the generator, not the CSV. |
 | `data/benchmark-to-{1,5,10,50}k.csv` | The published-benchmark rows, in four steps (rows 1-1,000, 1,001-5,000, 5,001-10,000, 10,001-50,000). Generated on demand; not committed. |
-| `bench/` | `RowhouseBenchData`, which inserts the same benchmark rows from Anonymous Apex, and `run-benchmark.js`, the browser-console runner. |
-| `actions/` | What the grid actions' tests run: the autolaunched flow `Rowhouse_Test_Action_Flow`, the screen flow `Rowhouse_Test_Screen_Flow` and the Apex action `RowhouseTestAction`. The flow and the Apex action fail on a record named "Fail me", for the error paths. |
-| `metadata/objects/` | Two test-only objects carrying every field type the grid must render, and `Rowhouse_Bench__c`, which holds only the benchmark rows. `Rowhouse_Test_Record__c` allows activities, so the Log a call test action relates its Task to the row. `Rowhouse_Test_Private__c` is Private by organization-wide default (set in its object metadata, so a fresh build org starts that way), with a text, an amount, a long text and a lookup to itself: the sharing tests prove one user's records stay out of another's rows, counts, totals, lookups and saves. |
-| `metadata/permissionsets/` | `Rowhouse_Test_Limited`, deliberately restricted access that the FLS tests depend on; `Rowhouse_Test_Full`, every test field, held by the user the other tests run as (Create, Read and Edit on `Rowhouse_Test_Private__c`, never View All or Modify All); and `Rowhouse_Test_Read_Only`, which reads the test records but may not edit, create or delete them, and reads the test children but not their `Amount__c`. |
-| `config/` | Sample grid configuration as Custom Metadata (configurations, columns and format rules), plus the scratch-org and test-user definitions. `Test_Records` allows mass delete and `Save_Test` does not; the delete tests rely on both. `Test_Records` and `Security_Test` allow import and `Save_Test` does not; the import tests rely on all three. `Group_Test` opens grouped by Stage, then Date by quarter, and carries one column for each kind of subtotal, plus two settings that cannot work (a group level on a number, a sum of a checkbox) so the warnings are tested. Child tables: `Test_Records` opens a Children tab (`Test_Children`, on `Rowhouse_Test_Child__c`); `Nest_Accounts` opens Test Records and Contacts tabs (`Nest_Contacts`), so Accounts reach three levels; `Group_Test` carries three Grid Child Table links that cannot work (no child configuration, a field that is not a reference, a field that points at another object) so their warnings are tested. Actions: `Test_Records` offers a screen flow, an autolaunched flow, invocable Apex (selection only, with its own question), a quick action (row only) and one that needs `Rowhouse_Diagnostics`; `Group_Test` carries three Grid Actions that cannot work (no type, another object's quick action, a name that is not an API name). Audit trail: `Audit_Test` sets Log Changes, on `Rowhouse_Test_Record__c` with six editable columns, mass delete, import and one action (`Audit_Test_Mark_Seen`, the autolaunched flow); `Save_Test` does not log, and the tests rely on both. Grouping: `Group_Test_Text` and `Group_Test_Number` set Allow Grouping (the number to test the warning). Child tables: `Nest_Accounts` has two child total columns, `Nest_Accounts_Contact_Count` (a count of Contacts) and `Nest_Accounts_Records_Amount` (a sum of Currency_Field__c), and its Contacts tab is 250 pixels high. Import and lookups: `Import_Test` allows inline edit, export, mass delete and import, with `External_Key__c` (an External Id, to match records by) and `Filtered_Account__c` (Direct Customer, a lookup filtered to accounts of Type Customer - Direct). Archived: `Test_Archived`, on `Rowhouse_Test_Child__c` with Log Changes set, is archived, so it is refused, not offered as a child table and not in the clean-up's list; the tests rely on it staying archived. New records: `Test_Records` allows them (a row in the grid) and `Security_Test` too (Salesforce's New form, since Name is not a column); `Save_Test` and `Test_Archived` do not. Fields of a related record: `Path_Test` shows the Related Account's Name, Industry (users can group) and Annual Revenue (summed), all editable, and its owner's Email, which is not. Access and sharing: `Private_Test` shows `Rowhouse_Test_Private__c` (Text can be grouped by, Amount is summed, Long Text is read whole, Related Record is a lookup), for the sharing tests. `Read_Only_Test`, on `Rowhouse_Test_Record__c`, has Allow Inline Edit off while its columns are marked Editable and it sets Allow Import and Allow New Records, so that one setting is what refuses a save, an import and new rows; its Children tab (`Read_Only_Test_Children`) and Children Amount column (a sum of the children's `Amount__c`) let the field tests show a total the user cannot read is not offered. `Typed_Test` offers one action, `Typed_Test_Stamp` (invocable Apex), so running an action on a grid whose object the user cannot read is tested. `Import_Without_New_Test` sets Allow Import with Allow New Records off, so the grid offers no import and the server refuses one. |
+| `bench/` | `FreightBillData`, which inserts the same benchmark rows from Anonymous Apex, and `run-benchmark.js`, the browser-console runner. |
+| `actions/` | What the grid actions' tests run: the autolaunched flow `Mark_Consignment_Reviewed`, the screen flow `Add_Delivery_Note` and the Apex action `ConsignmentStampAction`. The flow and the Apex action fail on the consignment named "Held at customs, Calais", for the error paths. |
+| `metadata/objects/` | `Consignment__c` and its `Consignment_Item__c` children, carrying every field type the grid must render; `Freight_Claim__c` and `Inspection__c` (with the record types Routine and Hazmat) for the access and record-type tests; and `Freight_Bill__c`, which holds only the benchmark rows. `Consignment__c` allows activities, so the Log a call test action relates its Task to the row. `Freight_Claim__c` is Private by organization-wide default (set in its object metadata, so a fresh build org starts that way), with a text, an amount, a long text and a lookup to itself: the sharing tests prove one user's records stay out of another's rows, counts, totals, lookups and saves. |
+| `metadata/permissionsets/` | `Freight_Limited_Access`, deliberately restricted access that the FLS tests depend on; `Freight_Full_Access`, every field on these objects, held by the user the other tests run as (Create, Read and Edit on `Freight_Claim__c`, never View All or Modify All); and `Freight_Read_Only`, which reads consignments but may not edit, create or delete them, and reads consignment items but not their `Amount__c`. |
+| `config/` | The fixture grids as Custom Metadata (configurations, columns and format rules), plus the scratch-org and test-user definitions. `Consignments` allows mass delete and `Consignment_Rates` does not; the delete tests rely on both. `Consignments` and `Consignment_Charges` allow import and `Consignment_Rates` does not; the import tests rely on all three. `Consignments_By_Mode` opens grouped by Service Level, then Ship Date by quarter, and carries one column for each kind of subtotal, plus two settings that cannot work (a group level on a number, a sum of a checkbox) so the warnings are tested. Child tables: `Consignments` opens an Items tab (`Consignment_Items`, on `Consignment_Item__c`); `Nest_Accounts` opens Consignments and Contacts tabs (`Nest_Contacts`), so Accounts reach three levels; `Consignments_By_Mode` carries three Grid Child Table links that cannot work (no child configuration, a field that is not a reference, a field that points at another object) so their warnings are tested. Actions: `Consignments` offers a screen flow, an autolaunched flow, invocable Apex (selection only, with its own question), a quick action (row only) and one that needs `Rowhouse_Diagnostics`; `Consignments_By_Mode` carries three Grid Actions that cannot work (no type, another object's quick action, a name that is not an API name). Audit trail: `Consignment_Audit` sets Log Changes, on `Consignment__c` with six editable columns, mass delete, import and one action (`Consignment_Audit_Mark_Seen`, the autolaunched flow); `Consignment_Rates` does not log, and the tests rely on both. Grouping: `Consignments_By_Mode_Consignee` and `Consignments_By_Mode_Pieces` set Allow Grouping (the number to test the warning). Child tables: `Nest_Accounts` has two child total columns, `Nest_Accounts_Contact_Count` (a count of Contacts) and `Nest_Accounts_Records_Amount` (a sum of Freight_Charge__c), and its Contacts tab is 250 pixels high. Import and lookups: `Consignment_Import` allows inline edit, export, mass delete and import, with `Bill_Of_Lading__c` (an External Id, to match records by) and `Bill_To__c` (Bill To, a lookup filtered to accounts of Type Customer - Direct). Archived: `Consignment_Items_2025`, on `Consignment_Item__c` with Log Changes set, is archived, so it is refused, not offered as a child table and not in the clean-up's list; the tests rely on it staying archived. New records: `Consignments` allows them (a row in the grid) and `Consignment_Charges` too (Salesforce's New form, since Name is not a column); `Consignment_Rates` and `Consignment_Items_2025` do not. Fields of a related record: `Consignment_Shippers` shows the Shipper's Name, Industry (users can group) and Annual Revenue (summed), all editable, and its owner's Email, which is not. Access and sharing: `Freight_Claims` shows `Freight_Claim__c` (Consignee can be grouped by, Amount is summed, Delivery Notes is read whole, Related Claim is a lookup), for the sharing tests. `Consignment_Directory`, on `Consignment__c`, has Allow Inline Edit off while its columns are marked Editable and it sets Allow Import and Allow New Records, so that one setting is what refuses a save, an import and new rows; its Items tab (`Consignment_Directory_Items`) and Items Amount column (a sum of the items' `Amount__c`) let the field tests show a total the user cannot read is not offered. `Inspections` offers one action, `Inspections_Stamp` (invocable Apex), so running an action on a grid whose object the user cannot read is tested. `Consignment_Updates` sets Allow Import with Allow New Records off, so the grid offers no import and the server refuses one. |
 | `tests/jest/` | Six Jest suites — focus, keyboard, ARIA, reactivity, cell rendering, CSV export. |
 | `tests/jest/fixtures/seed.js` | Generated from the CSV so the fixtures and the org data cannot drift. |
 | `tests/apex/` | Thirty-three Apex test classes — security, chunked save, save finalizer, controller, configuration, describe normalisation, cursor paging, lookup search, object icons, format rules, filters, formula columns, mass delete, import, grouping and subtotals, child tables, grid actions, the audit trail, log retention, saved user layouts, shortened long text, the Grid Admin tab, new records from the grid, fields of a related record, encrypted fields, more than one currency, the benchmark data, and five on access: the object a user cannot read or only read (`GridObjectAccessTest`), the fields the browser names (`GridFieldAccessTest`), record sharing and save results (`GridSharingTest`), the edit log failing closed (`GridAuditFailClosedTest`), a grid that does not edit cells and an Id of another object (`GridReadOnlyGridTest`) — and `GridTestUsers`, which builds the users they run as: a restricted user (`limitedUser`), one who can only read (`readOnlyUser`), a second full user for the sharing tests (`peerUser`) and one without Rowhouse Grid User, who cannot write the audit log (`noLogUser`). A class that builds its users in `@TestSetup` finds them again with `GridTestUsers.built(alias)`. |
@@ -26,9 +29,10 @@ Everything needed to stand up a test org and run the test suites.
 
 ## The seed set is self-documenting
 
-Every record carries `Test_Case__c` (what it breaks) and `Expected__c` (what
-correct looks like). A failing test quotes the TC number, so you never have to
-read the generator to find out what went wrong.
+Every consignment's PRO number carries the test plan's case number (TC-055 is
+`PRO-1055`), and `data/edge-cases.md`, generated with the CSV, says for each one
+what it covers and what correct looks like. A failing test quotes the case, so
+you never have to read the generator to find out what went wrong.
 
 ```
 TC-001..003   null vs empty string vs zero
@@ -65,8 +69,8 @@ production in real grids:
 ## Two things to check before trusting a run
 
 **Log in as the limited user, not as yourself.** `seed.sh` creates a Standard
-User with `Rowhouse_Test_Limited`, under which `Read_Only_Text__c` and
-`Decimal_Field__c` are readable but not editable, and **fifteen fields are
+User with `Freight_Limited_Access`, under which `Carrier_Code__c` and
+`Weight__c` are readable but not editable, and **fifteen fields are
 invisible entirely**. A System Administrator sees everything, so every access
 test passes vacuously. This is the most common way an FLS suite ends up
 worthless.
@@ -76,21 +80,26 @@ because package version creation runs the tests in a fresh build org where
 `seed.sh` never ran. This one exists for the manual and browser tiers.
 
 **This whole folder is the package build's unpackaged metadata**
-(`unpackagedMetadata` in `sfdx-project.json`): the test objects, permission
-sets, test grids, test flows and action, the bench data class and the Apex
+(`unpackagedMetadata` in `sfdx-project.json`): the fixture objects, permission
+sets, grids, flows and action, the bench data class and the Apex
 tests are deployed to the build org for the test run and never packaged. Its
 files that are not metadata (this README, `data/`, `scripts/`, `tests/jest/`,
 the benchmark results) are listed in `.forceignore`; add a new one there too.
 
-**Confirm TC-036 kept the value `Obsolete`.** `Picklist_Field__c` is
+**Confirm TC-036 kept the value `White Glove`.** `Service_Level__c` is
 deliberately unrestricted so the value can be loaded. If it arrives blank, the
 picklist was created restricted and the most common real-org edge case is
 untestable.
 
 ## Known load caveats
 
-Three records do not survive the CSV path, and each needs building in Apex
+Four records do not survive the CSV path, and each needs building in Apex
 instead. Worth knowing before trusting a green run.
+
+**TC-024 (an 18-digit number) is refused.** The Bulk API reads
+`999999999999999999` as `1.0E18` and rejects it as more than 18 digits, so
+`PRO-1024` fails to load. Insert it from Anonymous Apex with
+`Pieces__c = Decimal.valueOf('999999999999999999')`.
 
 **TC-002 (empty string versus null) collapses.** The Bulk API turns `""` into
 null on load, and `build-jest-fixture.py` does the same for the fixture — so
@@ -98,26 +107,28 @@ TC-001 and TC-002 become the same record. The distinction is real and worth
 testing; it just cannot come through a CSV. Only the hardcoded assertion in
 `gridCellTypes.rendering.test.js` covers it today.
 
-**TC-023 (precision overflow) cannot arrive overflowed.** `Decimal_Field__c` is
+**TC-023 (precision overflow) cannot arrive overflowed.** `Weight__c` is
 scale 2, so `1234.567` is rounded to `1234.57` by the platform before the grid
 ever sees it. The stated expectation — showing one value while saving another —
 needs an Apex-constructed record, as `GridSaveServiceTest` does with
-`Percent_Field__c`.
+`Fuel_Surcharge__c`.
 
 **TC-038 may not load as written.** It stores a dependent picklist value that
 does not belong to its controlling value, which is exactly the state real orgs
 end up in after a value set is reorganised — but whether the Bulk API enforces
 the field dependency on insert was not confirmed from documentation. If the row
-arrives with `Dependent_Picklist__c` blank, create it by removing the dependency,
+arrives with `Equipment__c` blank, create it by removing the dependency,
 loading, then reinstating the dependency.
 
 ## The benchmark rows are deterministic
 
-Fixed seed, so anyone who clones the repo reproduces the same rows.
+Fixed seed, so anyone who clones the repo reproduces the same rows: freight
+bills `FB-000001` onward, with consignees, contacts and charges drawn from fixed
+word lists.
 
 Design choices worth knowing:
 
-- **Their own object.** The rows go into `Rowhouse_Bench__c`, not the edge-case
+- **Their own object.** The rows go into `Freight_Bill__c`, not the edge-case
   object, so none of the 56 deliberately pathological records (a 32,000
   character text value, emoji, right-to-left text) enters a timing, and the
   10,000-row step stays exactly at the grid's 10,000-row ceiling.
@@ -136,11 +147,11 @@ Design choices worth knowing:
   1 to 1,000 of the 50k set *are* the 1k set, and the measurements are one
   curve rather than unrelated samples.
 - **Two ways in, identical rows.** `scripts/generate-benchmark.py` writes CSV
-  for the Bulk API; `bench/classes/RowhouseBenchData.cls` inserts the same rows
+  for the Bulk API; `bench/classes/FreightBillData.cls` inserts the same rows
   from Anonymous Apex, for an org reached without the Salesforce CLI. Both use
   one Park-Miller random stream with a fixed number of draws per row, and
   golden rows are asserted in both languages
-  (`scripts/test_generate_benchmark.py`, `tests/apex/RowhouseBenchDataTest`).
+  (`scripts/test_generate_benchmark.py`, `tests/apex/FreightBillDataTest`).
 
 Regenerate the four step files with `python3 scripts/generate-benchmark.py`,
 or any slice with `python3 scripts/generate-benchmark.py 2001 2500`.

@@ -90,8 +90,8 @@ const DESCRIBED = {
         {
             config: 'Deal_Notes',
             label: 'Deal Notes',
-            fields: ['Deal__c', 'Other_Deal__c'],
-            fieldLabels: { Deal__c: 'Deal', Other_Deal__c: 'Other Deal' }
+            fields: ['Deal__c', 'Parent_Deal__c'],
+            fieldLabels: { Deal__c: 'Deal', Parent_Deal__c: 'Parent Deal' }
         }
     ]
 };
@@ -111,18 +111,18 @@ const DRAFT = {
         {
             name: 'Deals_Amount',
             field: 'Amount__c',
-            columnLabel: 'Value',
+            columnLabel: 'Deal Value',
             editable: true,
             sortable: true,
             subtotal: 'sum',
             inactive: false
         },
-        { name: 'Deals_Old', field: 'Score__c', columnLabel: null, editable: false, sortable: true, inactive: true }
+        { name: 'Deals_Score', field: 'Score__c', columnLabel: null, editable: false, sortable: true, inactive: true }
     ],
     rules: [
         {
             name: 'Deals_Big',
-            label: 'Big',
+            label: 'Large deal',
             field: 'Amount__c',
             operator: 'greater_than',
             value: '1000',
@@ -177,7 +177,11 @@ const afterCheck = async () => {
 
 beforeEach(() => {
     jest.useFakeTimers();
-    readConfig.mockResolvedValue({ draft: DRAFT, warnings: ['Grid Column Deals_Old: something'], canSave: true });
+    readConfig.mockResolvedValue({
+        draft: DRAFT,
+        warnings: ['Grid Column Deals_Score is inactive, so the grid leaves it out.'],
+        canSave: true
+    });
     describeObject.mockResolvedValue(DESCRIBED);
     listObjects.mockResolvedValue([
         { name: 'Account', label: 'Account' },
@@ -203,7 +207,7 @@ describe('reading a grid', () => {
         expect($(el, '.rh-config-object-text').value).toBe('Deals (Deal__c)');
         expect($$(el, '.rh-column-field').map(c => c.value)).toEqual(['Name', 'Amount__c', 'Score__c']);
         expect($$(el, '.rh-column-on').map(t => t.checked)).toEqual([true, true, false]);
-        expect($(el, '.rh-editor-warnings').textContent).toContain('Deals_Old');
+        expect($(el, '.rh-editor-warnings').textContent).toContain('Deals_Score');
         const tabs = $$(el, 'lightning-tab').map(t => t.label);
         expect(tabs).toEqual([
             'Grid',
@@ -240,7 +244,7 @@ describe('reading a grid', () => {
         readConfig.mockResolvedValue({ draft: DRAFT, warnings: [], canSave: false });
         const el = await mount();
         expect($(el, '.rh-editor-read-only')).not.toBeNull();
-        change($(el, '.rh-config-label'), 'Deals 2');
+        change($(el, '.rh-config-label'), 'Deals by Stage');
         await afterCheck();
         expect($(el, '.rh-editor-save').disabled).toBe(true);
     });
@@ -384,8 +388,8 @@ describe('editing', () => {
     it('names each linking field by its label and API name', async () => {
         const el = await mount();
         const options = $(el, '.rh-child-field').options;
-        expect(options.map(o => o.label)).toEqual(['Deal (Deal__c)', 'Other Deal (Other_Deal__c)']);
-        expect(options.map(o => o.value)).toEqual(['Deal__c', 'Other_Deal__c']);
+        expect(options.map(o => o.label)).toEqual(['Deal (Deal__c)', 'Parent Deal (Parent_Deal__c)']);
+        expect(options.map(o => o.value)).toEqual(['Deal__c', 'Parent_Deal__c']);
     });
 });
 
@@ -420,12 +424,15 @@ describe('saving', () => {
 
     it('shows what failed, record by record', async () => {
         saveDraft.mockResolvedValue('0Af000000000002');
-        saveStatus.mockResolvedValue({ status: 'Failed', messages: ['Grid_Column__mdt.Deals_X: bad value'] });
+        saveStatus.mockResolvedValue({
+            status: 'Failed',
+            messages: ['Grid_Column__mdt.Deals_Stage: Stage__c is not a field on Deal__c']
+        });
         const el = await mount();
         await changeAndSave(el);
         jest.advanceTimersByTime(1000);
         await settle();
-        expect($(el, '.rh-editor-errors').textContent).toContain('Deals_X: bad value');
+        expect($(el, '.rh-editor-errors').textContent).toContain('Deals_Stage: Stage__c is not a field on Deal__c');
         expect(events.some(e => e.type === 'saved')).toBe(false);
     });
 
@@ -480,10 +487,10 @@ describe('a new grid', () => {
 
     it('keeps an API name typed by hand', async () => {
         const el = await mount('');
-        change($(el, '.rh-config-name'), 'My_Grid');
-        change($(el, '.rh-config-label'), 'Something else');
+        change($(el, '.rh-config-name'), 'Deals_Pipeline');
+        change($(el, '.rh-config-label'), 'Pipeline review');
         await settle();
-        expect($(el, '.rh-config-name').value).toBe('My_Grid');
+        expect($(el, '.rh-config-name').value).toBe('Deals_Pipeline');
     });
 });
 
@@ -497,7 +504,7 @@ describe('closing', () => {
 
     it('asks first with unsaved changes, and can keep editing or discard', async () => {
         const el = await mount();
-        change($(el, '.rh-config-label'), 'Changed');
+        change($(el, '.rh-config-label'), 'Deals this quarter');
         await settle();
         click($(el, '.rh-editor-cancel'));
         await settle();

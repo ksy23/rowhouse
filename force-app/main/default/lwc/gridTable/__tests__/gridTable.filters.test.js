@@ -46,26 +46,26 @@ const COLUMNS = [
 const ROWS = [
     {
         Id: 'a01000000000001AAA',
-        Name: 'Acme',
+        Name: 'Casco Bay Marine',
         Stage__c: 'Open',
         Amount__c: 100,
-        Notes__c: 'First',
+        Notes__c: 'Renewal due in March',
         Region__c: 'North',
         Score__c: 3
     },
     {
         Id: 'a01000000000002AAA',
-        Name: 'Globex',
+        Name: 'Wachusett Paper',
         Stage__c: 'Won',
         Amount__c: 900,
-        Notes__c: 'Second',
+        Notes__c: 'Wants weekend pickups',
         Region__c: 'South',
         Score__c: 7
     }
 ];
 const column = field => COLUMNS.find(c => c.field === field);
 const STAGE_WON = { field: 'Stage__c', operator: 'equals', value: 'Won', valueTo: null };
-const NAME_ACME = { field: 'Name', operator: 'contains', value: 'Acme', valueTo: null };
+const NAME_CASCO = { field: 'Name', operator: 'contains', value: 'Casco Bay', valueTo: null };
 const ADMIN = [{ text: 'Status equals Active' }, { text: 'Created in the last 90 days' }];
 
 let el;
@@ -205,17 +205,17 @@ describe('the filter panel', () => {
     });
 
     it("opens on the column's filter when it has one", async () => {
-        await mount({ filters: [NAME_ACME, STAGE_WON] });
+        await mount({ filters: [NAME_CASCO, STAGE_WON] });
         await openPanel('Stage__c', 'Edit filter…');
         expect(panel().filter).toEqual(STAGE_WON);
     });
 
     it('apply: the table tells the parent the new list of filters, closes the panel and says so', async () => {
-        await mount({ filters: [NAME_ACME] });
+        await mount({ filters: [NAME_CASCO] });
         await openPanel('Stage__c');
         panel().dispatchEvent(new CustomEvent('apply', { detail: { filter: STAGE_WON } }));
         await flush();
-        expect(changes).toEqual([{ filters: [NAME_ACME, STAGE_WON] }]); // added after the ones there
+        expect(changes).toEqual([{ filters: [NAME_CASCO, STAGE_WON] }]); // added after the ones there
         expect(panel()).toBeNull();
         expect(announcement()).toBe('Filtered: Stage equals Won');
         // Focus goes back to the column's menu button.
@@ -223,20 +223,20 @@ describe('the filter panel', () => {
     });
 
     it('apply on a filtered column replaces its filter in place: one filter per column', async () => {
-        await mount({ filters: [NAME_ACME, STAGE_WON] });
+        await mount({ filters: [NAME_CASCO, STAGE_WON] });
         await openPanel('Name', 'Edit filter…');
-        const next = { field: 'Name', operator: 'starts_with', value: 'Gl', valueTo: null };
+        const next = { field: 'Name', operator: 'starts_with', value: 'Wach', valueTo: null };
         panel().dispatchEvent(new CustomEvent('apply', { detail: { filter: next } }));
         await flush();
         expect(changes).toEqual([{ filters: [next, STAGE_WON] }]);
     });
 
     it("remove: the table tells the parent the list without that column's filter", async () => {
-        await mount({ filters: [NAME_ACME, STAGE_WON] });
+        await mount({ filters: [NAME_CASCO, STAGE_WON] });
         await openPanel('Stage__c', 'Edit filter…');
         panel().dispatchEvent(new CustomEvent('remove'));
         await flush();
-        expect(changes).toEqual([{ filters: [NAME_ACME] }]);
+        expect(changes).toEqual([{ filters: [NAME_CASCO] }]);
         expect(panel()).toBeNull();
         expect(announcement()).toBe('Stage: filter removed');
     });
@@ -360,7 +360,7 @@ describe('from the keyboard', () => {
     });
 
     it("Remove filter in the menu takes the column's filter off at once", async () => {
-        await mount({ filters: [NAME_ACME, STAGE_WON] });
+        await mount({ filters: [NAME_CASCO, STAGE_WON] });
         await key(menuButton('Name'), 'ArrowUp'); // the last item: Hide column
         await key(item('Hide column'), 'ArrowUp');
         await key(item('Freeze up to this column'), 'ArrowUp');
@@ -434,7 +434,7 @@ describe('the chips above the table', () => {
     });
 
     it("show each of the user's filters with a button that removes it", async () => {
-        await mount({ adminFilters: ADMIN, filters: [NAME_ACME, STAGE_WON] });
+        await mount({ adminFilters: ADMIN, filters: [NAME_CASCO, STAGE_WON] });
         const user = chips()[3];
         expect(user.querySelector('.rh-filter-lock')).toBeNull();
         const remove = user.querySelector('button.slds-pill__remove');
@@ -442,16 +442,16 @@ describe('the chips above the table', () => {
         expect(remove.querySelector('.slds-assistive-text').textContent).toBe('Remove filter: Stage equals Won');
         remove.click();
         await flush();
-        expect(changes).toEqual([{ filters: [NAME_ACME] }]);
+        expect(changes).toEqual([{ filters: [NAME_CASCO] }]);
         expect(announcement()).toBe('Stage: filter removed');
     });
 
     it('describe a filter in words, with the value as the column shows it', async () => {
         await mount({
-            filters: [NAME_ACME, { field: 'Amount__c', operator: 'greater_than', value: '500', valueTo: null }]
+            filters: [NAME_CASCO, { field: 'Amount__c', operator: 'greater_than', value: '500', valueTo: null }]
         });
         const text = chips().map(chipText);
-        expect(text[0]).toBe('Name contains “Acme”');
+        expect(text[0]).toBe('Name contains “Casco Bay”');
         expect(text[1]).toBe(
             describeFilter({ field: 'Amount__c', operator: 'greater_than', value: '500' }, column('Amount__c'))
         );
@@ -459,7 +459,7 @@ describe('the chips above the table', () => {
     });
 
     it("Clear filters takes off every one of the user's filters, and leaves the admin's to the server", async () => {
-        await mount({ adminFilters: ADMIN, filters: [NAME_ACME, STAGE_WON] });
+        await mount({ adminFilters: ADMIN, filters: [NAME_CASCO, STAGE_WON] });
         $('.rh-filter-clear').click();
         await flush();
         expect(changes).toEqual([{ filters: [] }]);

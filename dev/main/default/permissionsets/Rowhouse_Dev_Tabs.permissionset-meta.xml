@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Rowhouse Dev — Tabs</label>
-    <description>DEVELOPMENT ONLY. The two dev tabs and the dev-only Encrypted Text field, for the admin who builds and demos Rowhouse in a dev org. Other access comes from Rowhouse_Test_Full (test-data), assigned alongside. Not part of the product.</description>
-    <fieldPermissions><editable>true</editable><field>Rowhouse_Test_Record__c.Encrypted_Text__c</field><readable>true</readable></fieldPermissions>
+    <description>DEVELOPMENT ONLY. The two dev tabs and the dev-only Customs Account field (encrypted), for the admin who builds and shows Rowhouse in a dev org. Other access comes from Freight_Full_Access (test-data), assigned alongside. Not part of the product.</description>
+    <fieldPermissions><editable>true</editable><field>Consignment__c.Customs_Account__c</field><readable>true</readable></fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <tabSettings><tab>Rowhouse_Dev</tab><visibility>Visible</visibility></tabSettings>
-    <tabSettings><tab>Rowhouse_Grid_Test</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>Consignment_Board</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

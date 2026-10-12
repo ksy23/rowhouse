@@ -65,10 +65,10 @@ jest.mock('lightning/navigation', () => {
 
 const CONFIGS = [
     {
-        name: 'Deals',
-        label: 'Deals',
-        objectApiName: 'Deal__c',
-        objectLabel: 'Deals',
+        name: 'Consignments',
+        label: 'Consignments',
+        objectApiName: 'Consignment__c',
+        objectLabel: 'Consignments',
         columns: 6,
         childTables: 2,
         logChanges: true
@@ -127,8 +127,8 @@ it('shows the Rowhouse logo from its static resource', async () => {
 it('lists every grid with its object and column count', async () => {
     const el = await mount();
     expect($(el, '.rh-admin-count').textContent).toBe('2 grids');
-    expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Deals', 'Open cases']);
-    expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual(['Deals', 'Open_Cases']);
+    expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Consignments', 'Open cases']);
+    expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual(['Consignments', 'Open_Cases']);
 });
 
 it('opens a grid in the editor, and comes back to the list', async () => {
@@ -157,9 +157,11 @@ it('stays on a new grid once it is saved, under its name', async () => {
     const el = await mount();
     $(el, '.rh-admin-new').dispatchEvent(new CustomEvent('click'));
     await settle();
-    $(el, 'c-grid-config-editor').dispatchEvent(new CustomEvent('saved', { detail: { configName: 'Open_Deals' } }));
+    $(el, 'c-grid-config-editor').dispatchEvent(
+        new CustomEvent('saved', { detail: { configName: 'Consignments_By_Mode' } })
+    );
     await settle();
-    expect($(el, 'c-grid-config-editor').configName).toBe('Open_Deals');
+    expect($(el, 'c-grid-config-editor').configName).toBe('Consignments_By_Mode');
 });
 
 it('turns New grid off without Customize Application', async () => {
@@ -235,12 +237,12 @@ describe('the Grids page', () => {
 
     it('narrows the list by search', async () => {
         const el = await mount();
-        $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'deal' } }));
+        $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'consign' } }));
         await settle();
-        expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Deals']);
+        expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Consignments']);
         expect($(el, '.rh-admin-count').textContent).toBe('1 of 2 grids');
 
-        $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'nothing like it' } }));
+        $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'Invoices' } }));
         await settle();
         expect($(el, '.rh-admin-list')).toBeNull();
         expect($(el, '.rh-admin-no-match').textContent).toBe('No grids match. Clear the search.');
@@ -256,7 +258,7 @@ describe('the side navigation', () => {
             'Available grids',
             'Archived grids',
             'Cases',
-            'Deals'
+            'Consignments'
         ]);
         expect($$(el, '.rh-admin-side-count').map(c => c.textContent)).toEqual(['2', '0', '1', '1']);
         expect(side(el, '').getAttribute('aria-label')).toBe('Available grids, 2 grids');
@@ -274,12 +276,12 @@ describe('the side navigation', () => {
 
     it("shows one object's grids, and the search narrows them", async () => {
         const el = await mount();
-        await choose(el, 'Deal__c');
-        expect(side(el, 'Deal__c').getAttribute('aria-current')).toBe('page');
+        await choose(el, 'Consignment__c');
+        expect(side(el, 'Consignment__c').getAttribute('aria-current')).toBe('page');
         expect(side(el, '').getAttribute('aria-current')).toBeNull();
-        expect($(el, '.rh-secnum').textContent).toBe('Deals');
+        expect($(el, '.rh-secnum').textContent).toBe('Consignments');
         expect($(el, '.rh-admin-count').textContent).toBe('1 grid');
-        expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Deals']);
+        expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Consignments']);
 
         $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'cases' } }));
         await settle();
@@ -325,17 +327,17 @@ describe('the side navigation', () => {
         expect(side(el, '').getAttribute('aria-current')).toBe('page');
         expect(side(el, 'Case')).toBeUndefined();
         expect($$(el, '.rh-admin-side-count').map(c => c.textContent)).toEqual(['1', '1', '1']);
-        expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Deals']);
+        expect($$(el, '.rh-admin-open').map(b => b.textContent)).toEqual(['Consignments']);
     });
 });
 
 describe('sorting the list', () => {
     const MANY = [
         {
-            name: 'Pipeline_Review',
-            label: 'Pipeline review',
-            objectApiName: 'Opportunity',
-            objectLabel: 'Opportunities',
+            name: 'Shipper_Contracts',
+            label: 'Shipper contracts',
+            objectApiName: 'Contract',
+            objectLabel: 'Contracts',
             columns: 10
         },
         {
@@ -347,10 +349,10 @@ describe('sorting the list', () => {
         },
         { name: 'Key_Accounts', label: 'Key Accounts', objectApiName: 'Account', objectLabel: 'Accounts', columns: 9 },
         {
-            name: 'Bench_20',
-            label: 'Bench 20 Columns',
-            objectApiName: 'Rowhouse_Bench__c',
-            objectLabel: 'Rowhouse Bench Records',
+            name: 'Freight_Bills_20',
+            label: 'Freight Bills (20 columns)',
+            objectApiName: 'Freight_Bill__c',
+            objectLabel: 'Freight Bills',
             columns: 20
         }
     ];
@@ -366,7 +368,12 @@ describe('sorting the list', () => {
     it('opens sorted by Grid Title, A to Z whatever the case, marked on the heading', async () => {
         listConfigs.mockResolvedValue(MANY);
         const el = await mount();
-        expect(titles(el)).toEqual(['account people', 'Bench 20 Columns', 'Key Accounts', 'Pipeline review']);
+        expect(titles(el)).toEqual([
+            'account people',
+            'Freight Bills (20 columns)',
+            'Key Accounts',
+            'Shipper contracts'
+        ]);
         expect($$(el, '.rh-admin-sortable .rh-admin-sort-label').map(l => l.textContent)).toEqual([
             'Grid Title',
             'API name',
@@ -385,12 +392,22 @@ describe('sorting the list', () => {
         listConfigs.mockResolvedValue(MANY);
         const el = await mount();
         await sortBy(el, 'Object');
-        expect(titles(el)).toEqual(['Key Accounts', 'account people', 'Pipeline review', 'Bench 20 Columns']);
+        expect(titles(el)).toEqual([
+            'Key Accounts',
+            'account people',
+            'Shipper contracts',
+            'Freight Bills (20 columns)'
+        ]);
         expect(heads(el).map(th => th.getAttribute('aria-sort'))).toEqual(['none', 'none', 'ascending', 'none']);
         expect($(el, '.rh-admin-sort-status').textContent).toBe('Sorted by Object, ascending');
 
         await sortBy(el, 'Object');
-        expect(titles(el)).toEqual(['Bench 20 Columns', 'Pipeline review', 'account people', 'Key Accounts']);
+        expect(titles(el)).toEqual([
+            'Freight Bills (20 columns)',
+            'Shipper contracts',
+            'account people',
+            'Key Accounts'
+        ]);
         expect(heads(el)[2].getAttribute('aria-sort')).toBe('descending');
         expect(heads(el)[2].querySelector('lightning-icon').iconName).toBe('utility:arrowdown');
         expect($(el, '.rh-admin-sort-status').textContent).toBe('Sorted by Object, descending');
@@ -400,19 +417,29 @@ describe('sorting the list', () => {
         listConfigs.mockResolvedValue(MANY);
         const el = await mount();
         await sortBy(el, 'Columns');
-        expect(titles(el)).toEqual(['account people', 'Key Accounts', 'Pipeline review', 'Bench 20 Columns']);
+        expect(titles(el)).toEqual([
+            'account people',
+            'Key Accounts',
+            'Shipper contracts',
+            'Freight Bills (20 columns)'
+        ]);
         await sortBy(el, 'Columns');
-        expect(titles(el)).toEqual(['Bench 20 Columns', 'Pipeline review', 'account people', 'Key Accounts']);
+        expect(titles(el)).toEqual([
+            'Freight Bills (20 columns)',
+            'Shipper contracts',
+            'account people',
+            'Key Accounts'
+        ]);
     });
 
     it('sorts API names as a person reads them, and keeps the sort through search and the side navigation', async () => {
         listConfigs.mockResolvedValue([
             ...MANY,
             {
-                name: 'Bench_5',
-                label: 'Bench 5 Columns',
-                objectApiName: 'Rowhouse_Bench__c',
-                objectLabel: 'Rowhouse Bench Records',
+                name: 'Freight_Bills_5',
+                label: 'Freight Bills (5 columns)',
+                objectApiName: 'Freight_Bill__c',
+                objectLabel: 'Freight Bills',
                 columns: 5
             }
         ]);
@@ -420,17 +447,17 @@ describe('sorting the list', () => {
         await sortBy(el, 'API name');
         expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual([
             'account_people',
-            'Bench_5',
-            'Bench_20',
+            'Freight_Bills_5',
+            'Freight_Bills_20',
             'Key_Accounts',
-            'Pipeline_Review'
+            'Shipper_Contracts'
         ]);
         await sortBy(el, 'API name');
-        $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'bench' } }));
+        $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'freight' } }));
         await settle();
-        expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual(['Bench_20', 'Bench_5']);
-        await choose(el, 'Rowhouse_Bench__c');
-        expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual(['Bench_20', 'Bench_5']);
+        expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual(['Freight_Bills_20', 'Freight_Bills_5']);
+        await choose(el, 'Freight_Bill__c');
+        expect($$(el, '.rh-admin-name').map(c => c.textContent)).toEqual(['Freight_Bills_20', 'Freight_Bills_5']);
         expect(heads(el)[1].getAttribute('aria-sort')).toBe('descending');
     });
 
@@ -476,12 +503,12 @@ describe('Settings', () => {
 
 describe('the row menu', () => {
     const WITH_ARCHIVED = [
-        ...CONFIGS.map(c => (c.name === 'Deals' ? { ...c, usedBy: ['Accounts'] } : c)),
+        ...CONFIGS.map(c => (c.name === 'Consignments' ? { ...c, usedBy: ['Accounts'] } : c)),
         {
-            name: 'Old_Deals',
-            label: 'Old deals',
-            objectApiName: 'Deal__c',
-            objectLabel: 'Deals',
+            name: 'Consignments_2025',
+            label: 'Consignments 2025',
+            objectApiName: 'Consignment__c',
+            objectLabel: 'Consignments',
             columns: 3,
             childTables: 0,
             logChanges: true,
@@ -497,7 +524,7 @@ describe('the row menu', () => {
 
     it('gives every grid Edit, Clone and Archive', async () => {
         const el = await mount();
-        expect(menus(el).map(m => m.alternativeText)).toEqual(['Actions for Deals', 'Actions for Open cases']);
+        expect(menus(el).map(m => m.alternativeText)).toEqual(['Actions for Consignments', 'Actions for Open cases']);
         expect(items(menus(el)[0]).map(i => i.label)).toEqual(['Edit', 'Clone', 'Archive']);
         expect(items(menus(el)[0]).map(i => i.prefixIconName)).toEqual([
             'utility:edit',
@@ -527,8 +554,8 @@ describe('the row menu', () => {
         await pick(menus(el)[0], 'archive');
         const dialog = $(el, 'c-grid-admin-row-dialog');
         expect(dialog.action).toBe('archive');
-        expect(dialog.grid).toEqual({ name: 'Deals', label: 'Deals', usedBy: ['Accounts'] });
-        expect(dialog.names).toEqual(['Deals', 'Open_Cases', 'Old_Deals']);
+        expect(dialog.grid).toEqual({ name: 'Consignments', label: 'Consignments', usedBy: ['Accounts'] });
+        expect(dialog.names).toEqual(['Consignments', 'Open_Cases', 'Consignments_2025']);
         dialog.dispatchEvent(new CustomEvent('cancel'));
         await settle();
         expect($(el, 'c-grid-admin-row-dialog')).toBeNull();
@@ -542,14 +569,14 @@ describe('the row menu', () => {
         el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
         await pick(menus(el)[0], 'clone');
         $(el, 'c-grid-admin-row-dialog').dispatchEvent(
-            new CustomEvent('done', { detail: { action: 'clone', configName: 'Copy_of_Deals' } })
+            new CustomEvent('done', { detail: { action: 'clone', configName: 'Copy_of_Consignments' } })
         );
         await settle();
         expect($(el, 'c-grid-admin-row-dialog')).toBeNull();
         expect(toasts).toEqual([
-            { title: 'Grid cloned', message: 'Copy_of_Deals is a copy of Deals.', variant: 'success' }
+            { title: 'Grid cloned', message: 'Copy_of_Consignments is a copy of Consignments.', variant: 'success' }
         ]);
-        expect($(el, 'c-grid-config-editor').configName).toBe('Copy_of_Deals');
+        expect($(el, 'c-grid-config-editor').configName).toBe('Copy_of_Consignments');
         expect(listConfigs).toHaveBeenCalledTimes(2);
     });
 
@@ -565,7 +592,7 @@ describe('the row menu', () => {
         expect($(el, '.rh-admin-count').textContent).toBe('1 archived grid');
         expect($(el, '.rh-admin-archived-note').textContent).toContain('Restore one to use it again');
         expect($$(el, '.rh-admin-open')).toEqual([]);
-        expect($(el, '.rh-admin-archived-title').textContent).toBe('Old deals');
+        expect($(el, '.rh-admin-archived-title').textContent).toBe('Consignments 2025');
         expect(items(menus(el)[0]).map(i => i.label)).toEqual(['Restore', 'Delete in Setup']);
         expect(items(menus(el)[0]).map(i => i.prefixIconName)).toEqual(['utility:undo', 'utility:delete']);
 
@@ -580,7 +607,7 @@ describe('the row menu', () => {
         await pick(menus(el)[0], 'restore');
         listConfigs.mockResolvedValue(WITH_ARCHIVED.map(c => ({ ...c, archived: false })));
         $(el, 'c-grid-admin-row-dialog').dispatchEvent(
-            new CustomEvent('done', { detail: { action: 'restore', configName: 'Old_Deals' } })
+            new CustomEvent('done', { detail: { action: 'restore', configName: 'Consignments_2025' } })
         );
         await settle();
         expect(side(el, '__archived__').getAttribute('aria-current')).toBe('page');

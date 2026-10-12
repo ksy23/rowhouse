@@ -34,25 +34,25 @@ describe('gridApp', () => {
     it('shows one top-level grid for its configuration, with no parent record', async () => {
         getGridConfig.mockReturnValue(new Promise(() => {})); // still loading: only the hand-over is under test
         const el = createElement('c-grid-app', { is: GridApp });
-        el.configName = '  Test_Records ';
+        el.configName = '  Consignments ';
         document.body.appendChild(el);
         await flush();
         const views = el.shadowRoot.querySelectorAll('c-grid-view');
         expect(views.length).toBe(1);
-        expect(views[0].configName).toBe('Test_Records');
+        expect(views[0].configName).toBe('Consignments');
         expect(views[0].parent).toBeFalsy();
-        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Test_Records' });
+        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Consignments' });
     });
 
     it('passes a new configuration name on', async () => {
         getGridConfig.mockReturnValue(new Promise(() => {}));
         const el = createElement('c-grid-app', { is: GridApp });
-        el.configName = 'Test_Records';
+        el.configName = 'Consignments';
         document.body.appendChild(el);
         await flush();
-        el.configName = 'Group_Test';
+        el.configName = 'Consignments_By_Mode';
         await flush();
-        expect(el.shadowRoot.querySelector('c-grid-view').configName).toBe('Group_Test');
+        expect(el.shadowRoot.querySelector('c-grid-view').configName).toBe('Consignments_By_Mode');
     });
 
     describe('on a record page', () => {

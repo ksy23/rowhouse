@@ -8,7 +8,7 @@ import { batchesOf, IMPORT_BATCH, IMPORT_CELLS } from 'c/gridImportDialog';
 
 const rowWith = (values, withId = true) => {
     const row = withId ? { Id: 'a01000000000001AAA' } : {};
-    for (let i = 0; i < values; i++) row['Field_' + i + '__c'] = 'v' + i;
+    for (let i = 0; i < values; i++) row['Field_' + i + '__c'] = String(i);
     return row;
 };
 const rows = (count, values, withId) => Array.from({ length: count }, () => rowWith(values, withId));
@@ -49,12 +49,18 @@ describe('batchesOf', () => {
     });
 
     it('keeps the rows in their order, and sends nothing for no rows', () => {
-        const input = rows(5, 2).map((row, i) => ({ ...row, Name: 'Row ' + i }));
+        const input = rows(5, 2).map((row, i) => ({ ...row, Name: 'Kennebec Lumber, load ' + (i + 1) }));
         expect(
             batchesOf(input)
                 .flat()
                 .map(r => r.Name)
-        ).toEqual(['Row 0', 'Row 1', 'Row 2', 'Row 3', 'Row 4']);
+        ).toEqual([
+            'Kennebec Lumber, load 1',
+            'Kennebec Lumber, load 2',
+            'Kennebec Lumber, load 3',
+            'Kennebec Lumber, load 4',
+            'Kennebec Lumber, load 5'
+        ]);
         expect(batchesOf([])).toEqual([]);
     });
 });

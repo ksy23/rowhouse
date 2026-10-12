@@ -43,18 +43,18 @@ describe('API names', () => {
         expect(apiNameFrom('  Q3 — pipeline (EMEA) ')).toBe('Q3_pipeline_EMEA');
         expect(apiNameFrom('2026 deals')).toBe('X2026_deals');
         expect(apiNameFrom('')).toBe('');
-        const long = apiNameFrom('A title that is very much longer than forty characters in all');
+        const long = apiNameFrom('Consignments awaiting pickup in Presque Isle and Houlton');
         expect(long.length).toBeLessThanOrEqual(40);
         expect(long.endsWith('_')).toBe(false);
     });
 
     it('says why a name will not do, as the server does', () => {
-        expect(nameProblem('Good_Name_1')).toBe('');
+        expect(nameProblem('Consignments_2026')).toBe('');
         expect(nameProblem('')).toMatch(/API name/);
-        expect(nameProblem('Two__Underscores')).toMatch(/single underscores/);
-        expect(nameProblem('Ends_')).toMatch(/not ending/);
-        expect(nameProblem('1Starts')).toMatch(/start with a letter/);
-        expect(nameProblem('A'.repeat(41))).toMatch(/41 characters/);
+        expect(nameProblem('Consignments__Open')).toMatch(/single underscores/);
+        expect(nameProblem('Consignments_')).toMatch(/not ending/);
+        expect(nameProblem('2026_Consignments')).toMatch(/start with a letter/);
+        expect(nameProblem('Consignments_Awaiting_Pickup_Presque_Isle')).toMatch(/41 characters/);
     });
 });
 
@@ -105,8 +105,8 @@ describe('operators by field type', () => {
 describe('the draft', () => {
     it('gives every entry a template key and takes it off for the server', () => {
         const draft = withKeys({
-            config: { name: 'X', label: 'X', isNew: false },
-            columns: [{ name: 'X_Name', field: 'Name' }],
+            config: { name: 'Consignments', label: 'Consignments', isNew: false },
+            columns: [{ name: 'Consignments_Name', field: 'Name' }],
             rules: [],
             actions: [],
             children: []
@@ -127,16 +127,16 @@ describe('the draft', () => {
     });
 
     it('knows an unchanged draft whatever its keys', () => {
-        const a = withKeys({ config: { name: 'X' }, columns: [{ field: 'Name' }] });
-        const b = withKeys({ config: { name: 'X' }, columns: [{ field: 'Name' }] });
+        const a = withKeys({ config: { name: 'Consignments' }, columns: [{ field: 'Name' }] });
+        const b = withKeys({ config: { name: 'Consignments' }, columns: [{ field: 'Name' }] });
         expect(sameDraft(a, b)).toBe(true);
         expect(sameDraft(a, { ...b, columns: [] })).toBe(false);
     });
 
     it('moves an entry, and leaves the list alone at either end', () => {
-        const list = ['a', 'b', 'c'];
-        expect(moveItem(list, 0, 1)).toEqual(['b', 'a', 'c']);
-        expect(moveItem(list, 2, -1)).toEqual(['a', 'c', 'b']);
+        const list = ['Name', 'Pieces__c', 'Ship_Date__c'];
+        expect(moveItem(list, 0, 1)).toEqual(['Pieces__c', 'Name', 'Ship_Date__c']);
+        expect(moveItem(list, 2, -1)).toEqual(['Name', 'Ship_Date__c', 'Pieces__c']);
         expect(moveItem(list, 0, -1)).toBe(list);
         expect(moveItem(list, 2, 1)).toBe(list);
     });
@@ -157,7 +157,7 @@ describe('the draft', () => {
         expect(fitted.groupUnit).toBeNull();
         expect(fitted.subtotal).toBeNull();
         const formula = {
-            name: 'F',
+            name: 'Pallet_Positions__c',
             type: 'number',
             editable: false,
             sortable: true,
@@ -365,21 +365,32 @@ describe('filters and the record page field in the draft', () => {
 
     it('gives each filter a template key, and an empty list when the server sent none', () => {
         const draft = withKeys({
-            config: { name: 'X', recordPageField: 'AccountId' },
+            config: { name: 'Consignments', recordPageField: 'AccountId' },
             columns: [],
-            filters: [{ name: 'X_Open', field: 'Stage__c', operator: 'not_equals', value: 'Closed', inactive: false }]
+            filters: [
+                {
+                    name: 'Consignments_Open',
+                    field: 'Stage__c',
+                    operator: 'not_equals',
+                    value: 'Closed',
+                    inactive: false
+                }
+            ]
         });
         expect(draft.filters[0]._key).toMatch(/^flt\d+$/);
         expect(draft.filters[0].field).toBe('Stage__c');
         expect(draft.config.recordPageField).toBe('AccountId');
         // A draft from before filters: an empty list, and no record page field.
-        const old = withKeys({ config: { name: 'X' }, columns: [], rules: [], actions: [], children: [] });
+        const old = withKeys({ config: { name: 'Consignments' }, columns: [], rules: [], actions: [], children: [] });
         expect(old.filters).toEqual([]);
         expect(old.config.recordPageField).toBeNull();
     });
 
     it('sends filters and the record page field to the server, without keys and with blank text as null', () => {
-        const d = withKeys({ config: { name: 'X', label: 'X', recordPageField: 'AccountId' }, columns: [] });
+        const d = withKeys({
+            config: { name: 'Consignments', label: 'Consignments', recordPageField: 'AccountId' },
+            columns: []
+        });
         d.filters = [
             { ...newFilter(), field: 'Amount__c', operator: 'between', value: ' 100 ', valueTo: '500', label: '  ' }
         ];
@@ -447,12 +458,12 @@ describe('filters and the record page field in the draft', () => {
 
     it('sees a change to the filters or the record page field', () => {
         const a = withKeys({
-            config: { name: 'X' },
+            config: { name: 'Consignments' },
             columns: [{ field: 'Name' }],
             filters: [{ field: 'Stage__c', operator: 'equals', value: 'Won' }]
         });
         const b = withKeys({
-            config: { name: 'X' },
+            config: { name: 'Consignments' },
             columns: [{ field: 'Name' }],
             filters: [{ field: 'Stage__c', operator: 'equals', value: 'Won' }]
         });
@@ -464,10 +475,10 @@ describe('filters and the record page field in the draft', () => {
 
     it('moves a filter like any other entry', () => {
         const filters = [
-            { ...newFilter(), field: 'A' },
-            { ...newFilter(), field: 'B' }
+            { ...newFilter(), field: 'Mode__c' },
+            { ...newFilter(), field: 'Service_Level__c' }
         ];
-        expect(moveItem(filters, 1, -1).map(f => f.field)).toEqual(['B', 'A']);
+        expect(moveItem(filters, 1, -1).map(f => f.field)).toEqual(['Service_Level__c', 'Mode__c']);
     });
 });
 

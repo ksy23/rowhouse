@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Consignment Item</label>
+    <pluralLabel>Consignment Items</pluralLabel>
+    <nameField>
+        <label>Item Name</label>
+        <type>Text</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ControlledByParent</sharingModel>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <description>DEVELOPMENT ONLY. Child of Consignment__c. Exists only so the parent can carry a rollup summary field, which needs a master-detail relationship.</description>
+</CustomObject>

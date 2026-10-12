@@ -68,21 +68,21 @@ describe('focus restoration (HR-13)', () => {
     it('keeps focus on the same record after a column sort reorders rows', async () => {
         // TC-047 and TC-048 are two records with identical field values. Pick a
         // record that demonstrably moves when sorted.
-        const target = seedRows.find(r => r.Test_Case__c.startsWith('TC-054'));
-        focusCell(target.Id, 'Text_Field__c');
+        const target = seedRows.find(r => r.Pro_Number__c.startsWith('PRO-1054'));
+        focusCell(target.Id, 'Consignee__c');
 
-        el.shadowRoot.querySelector('[data-field="Text_Field__c"] .slds-th__action').click();
+        el.shadowRoot.querySelector('[data-field="Consignee__c"] .slds-th__action').click();
         await flushPromises();
 
         const active = activeIn(el);
         expect(active.dataset.rowId).toBe(target.Id); // the record, not the position
-        expect(active.dataset.field).toBe('Text_Field__c');
+        expect(active.dataset.field).toBe('Consignee__c');
     });
 
     it('keeps exactly one cell carrying slds-has-focus (HR-12)', async () => {
-        focusCell(seedRows[0].Id, 'Text_Field__c');
+        focusCell(seedRows[0].Id, 'Consignee__c');
         await flushPromises();
-        focusCell(seedRows[3].Id, 'Number_Field__c');
+        focusCell(seedRows[3].Id, 'Pieces__c');
         await flushPromises();
 
         // SLDS sets outline:0 on focused cells and relies on this class for the
@@ -93,7 +93,7 @@ describe('focus restoration (HR-13)', () => {
     });
 
     it('restores focus to the last focused cell when the grid is re-entered', async () => {
-        focusCell(seedRows[2].Id, 'Currency_Field__c');
+        focusCell(seedRows[2].Id, 'Freight_Charge__c');
         el.shadowRoot.querySelector('[data-grid-root]').blur();
         await flushPromises();
         el.focus();

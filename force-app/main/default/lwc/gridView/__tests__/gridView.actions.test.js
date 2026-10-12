@@ -56,12 +56,12 @@ const NOTE = {
     onRow: true,
     onSelection: true,
     confirmation: null,
-    flowName: 'Rowhouse_Test_Screen_Flow',
+    flowName: 'Add_Delivery_Note',
     inputName: 'recordId'
 };
 const SEEN = {
-    name: 'Mark_Seen',
-    label: 'Mark as seen',
+    name: 'Mark_Delivered',
+    label: 'Mark as delivered',
     type: 'flow',
     onRow: true,
     onSelection: true,
@@ -70,12 +70,12 @@ const SEEN = {
     inputName: null
 };
 const STAMP = {
-    name: 'Stamp',
-    label: 'Stamp',
+    name: 'Rerate',
+    label: 'Rerate',
     type: 'apex',
     onRow: false,
     onSelection: true,
-    confirmation: 'Stamp these?',
+    confirmation: 'Rerate these consignments?',
     flowName: null,
     inputName: null
 };
@@ -91,10 +91,10 @@ const CALL = {
 };
 
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -102,15 +102,15 @@ const DEFINITION = {
     allowCsvExport: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
-        { field: 'Text_Field__c', label: 'Text', type: 'text', editable: true, sortable: true }
+        { field: 'Consignee__c', label: 'Consignee', type: 'text', editable: true, sortable: true }
     ],
     actions: [NOTE, SEEN, STAMP, CALL]
 };
 
 const row = (i, extra = {}) => ({
     Id: 'a00' + String(i).padStart(15, '0'),
-    Name: 'Row ' + i,
-    Text_Field__c: 'before',
+    Name: 'Penobscot Paper, load ' + i,
+    Consignee__c: 'Wachusett Paper',
     ...extra
 });
 const page = rows => ({
@@ -133,7 +133,7 @@ const settle = async () => {
 let toasts;
 function mount() {
     const el = createElement('c-grid-view', { is: GridView });
-    el.configName = 'Test_Records';
+    el.configName = 'Consignments';
     toasts = [];
     el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
     document.body.appendChild(el);
@@ -159,7 +159,7 @@ beforeEach(() => {
     getGridConfig.mockResolvedValue({ definition: DEFINITION, diagnostics: false });
     fetchRows.mockResolvedValue(page([row(1), row(2), row(3)]));
     fetchRowsById.mockImplementation(({ recordIds }) =>
-        Promise.resolve(recordIds.map(id => ({ ...row(Number(id.slice(3))), Text_Field__c: 'after' })))
+        Promise.resolve(recordIds.map(id => ({ ...row(Number(id.slice(3))), Consignee__c: 'Quabbin Supply' })))
     );
     runAction.mockImplementation(({ recordIds }) => Promise.resolve({ succeededIds: recordIds, errors: [] }));
 });
@@ -177,7 +177,7 @@ describe('what is offered where', () => {
         const first = tableConfig(el).rowActions;
         expect(first).toEqual([
             { name: 'Add_Note', label: 'Add a note' },
-            { name: 'Mark_Seen', label: 'Mark as seen' },
+            { name: 'Mark_Delivered', label: 'Mark as delivered' },
             { name: 'Log_Call', label: 'Log a call' }
         ]);
         select(el, [row(1).Id]);
@@ -204,12 +204,12 @@ describe('what is offered where', () => {
         await settle();
         select(el, [row(1).Id]);
         await settle();
-        expect($$(el, '.rh-selection-action').map(b => b.label)).toEqual(['Add a note', 'Mark as seen', 'Stamp']);
+        expect($$(el, '.rh-selection-action').map(b => b.label)).toEqual(['Add a note', 'Mark as delivered', 'Rerate']);
         expect($(el, '.rh-selection-actions')).toBeNull();
     });
 
     it('puts more selection actions in one Actions menu', async () => {
-        const extra = { ...SEEN, name: 'Seen_Again', label: 'Mark again' };
+        const extra = { ...SEEN, name: 'Request_POD', label: 'Request proof of delivery' };
         getGridConfig.mockResolvedValue({
             definition: { ...DEFINITION, actions: [NOTE, SEEN, STAMP, extra] },
             diagnostics: false
@@ -223,20 +223,20 @@ describe('what is offered where', () => {
         expect(menu.label).toBe('Actions');
         expect([...menu.querySelectorAll('lightning-menu-item')].map(m => m.label)).toEqual([
             'Add a note',
-            'Mark as seen',
-            'Stamp',
-            'Mark again'
+            'Mark as delivered',
+            'Rerate',
+            'Request proof of delivery'
         ]);
-        menu.dispatchEvent(new CustomEvent('select', { detail: { value: 'Seen_Again' } }));
+        menu.dispatchEvent(new CustomEvent('select', { detail: { value: 'Request_POD' } }));
         await settle();
-        expect(dialog(el).label).toBe('Mark again');
+        expect(dialog(el).label).toBe('Request proof of delivery');
     });
 
     it('ignores an action the grid does not offer where it was chosen', async () => {
         const el = mount();
         await settle();
-        rowAction(el, 'Stamp', row(1).Id); // selection only
-        rowAction(el, 'No_Such_Action', row(1).Id);
+        rowAction(el, 'Rerate', row(1).Id); // selection only
+        rowAction(el, 'Cancel_Pickup', row(1).Id);
         await settle();
         expect(dialog(el)).toBeNull();
         expect(runAction).not.toHaveBeenCalled();
@@ -247,18 +247,22 @@ describe('a server action', () => {
     it('runs on a row at once, reads the row again, and says it is done', async () => {
         const el = mount();
         await settle();
-        rowAction(el, 'Mark_Seen', row(2).Id);
+        rowAction(el, 'Mark_Delivered', row(2).Id);
         await settle();
         expect(dialog(el)).toBeNull();
         expect(runAction).toHaveBeenCalledWith({
-            configName: 'Test_Records',
-            actionName: 'Mark_Seen',
+            configName: 'Consignments',
+            actionName: 'Mark_Delivered',
             recordIds: [row(2).Id]
         });
-        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Test_Records', recordIds: [row(2).Id] });
-        expect(tableConfig(el).rows.map(r => r.Text_Field__c)).toEqual(['before', 'after', 'before']);
+        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Consignments', recordIds: [row(2).Id] });
+        expect(tableConfig(el).rows.map(r => r.Consignee__c)).toEqual([
+            'Wachusett Paper',
+            'Quabbin Supply',
+            'Wachusett Paper'
+        ]);
         expect(toasts).toEqual([
-            { title: 'Mark as seen', message: 'Mark as seen: done on 1 record.', variant: 'success' }
+            { title: 'Mark as delivered', message: 'Mark as delivered: done on 1 record.', variant: 'success' }
         ]);
     });
 
@@ -267,13 +271,23 @@ describe('a server action', () => {
         await settle();
         table(el).dispatchEvent(
             new CustomEvent('cellchange', {
-                detail: { recordId: row(1).Id, field: 'Text_Field__c', value: 'typed', originalValue: 'before' }
+                detail: {
+                    recordId: row(1).Id,
+                    field: 'Consignee__c',
+                    value: 'Mill River Energy',
+                    originalValue: 'Wachusett Paper'
+                }
             })
         );
         await settle();
-        rowAction(el, 'Mark_Seen', row(1).Id);
+        rowAction(el, 'Mark_Delivered', row(1).Id);
         await settle();
-        expect(dialog(el)).toMatchObject({ label: 'Mark as seen', count: 1, hasDrafts: true, names: ['Row 1'] });
+        expect(dialog(el)).toMatchObject({
+            label: 'Mark as delivered',
+            count: 1,
+            hasDrafts: true,
+            names: ['Penobscot Paper, load 1']
+        });
         await answer(el, 'cancel');
         expect(dialog(el)).toBeNull();
         expect(runAction).not.toHaveBeenCalled();
@@ -281,14 +295,14 @@ describe('a server action', () => {
 
     it("asks the admin's question first, even on one row", async () => {
         getGridConfig.mockResolvedValue({
-            definition: { ...DEFINITION, actions: [{ ...SEEN, confirmation: 'Mark it?' }] },
+            definition: { ...DEFINITION, actions: [{ ...SEEN, confirmation: 'Mark this consignment as delivered?' }] },
             diagnostics: false
         });
         const el = mount();
         await settle();
-        rowAction(el, 'Mark_Seen', row(1).Id);
+        rowAction(el, 'Mark_Delivered', row(1).Id);
         await settle();
-        expect(dialog(el)).toMatchObject({ question: 'Mark it?' });
+        expect(dialog(el)).toMatchObject({ question: 'Mark this consignment as delivered?' });
         await answer(el, 'confirm');
         expect(runAction).toHaveBeenCalledTimes(1);
     });
@@ -304,14 +318,20 @@ describe('a server action', () => {
         );
         await settle();
         $$(el, '.rh-selection-action')
-            .find(b => b.label === 'Stamp')
+            .find(b => b.label === 'Rerate')
             .click();
         await settle();
         expect(dialog(el)).toMatchObject({
-            label: 'Stamp',
-            question: 'Stamp these?',
+            label: 'Rerate',
+            question: 'Rerate these consignments?',
             count: rows.length,
-            names: ['Row 1', 'Row 2', 'Row 3', 'Row 4', 'Row 5'],
+            names: [
+                'Penobscot Paper, load 1',
+                'Penobscot Paper, load 2',
+                'Penobscot Paper, load 3',
+                'Penobscot Paper, load 4',
+                'Penobscot Paper, load 5'
+            ],
             hasDrafts: false
         });
         expect(runAction).not.toHaveBeenCalled();
@@ -320,7 +340,7 @@ describe('a server action', () => {
         expect(runAction).toHaveBeenCalledTimes(2);
         expect(runAction.mock.calls[0][0].recordIds).toEqual(rows.slice(0, ACTION_BATCH).map(r => r.Id));
         expect(runAction.mock.calls[1][0].recordIds).toEqual(rows.slice(ACTION_BATCH).map(r => r.Id));
-        expect(toasts[0].message).toBe(`Stamp: done on ${rows.length} records.`);
+        expect(toasts[0].message).toBe(`Rerate: done on ${rows.length} records.`);
         expect(tableConfig(el).selection).toBe('multi');
         expect($(el, '.rh-selection-bar')).not.toBeNull(); // the selection stays for another action
     });
@@ -337,23 +357,23 @@ describe('a server action', () => {
         select(el, [row(1).Id, row(2).Id]);
         await settle();
         $$(el, '.rh-selection-action')
-            .find(b => b.label === 'Mark as seen')
+            .find(b => b.label === 'Mark as delivered')
             .click();
         await settle();
         await answer(el, 'confirm');
         await settle();
         expect(tableConfig(el).errors[row(2).Id].row).toBe(
-            'Mark as seen: An error occurred when executing a flow interview.'
+            'Mark as delivered: An error occurred when executing a flow interview.'
         );
         expect(tableConfig(el).errors[row(1).Id]).toBeUndefined();
         expect(toasts[0]).toEqual({
-            title: 'Mark as seen, with errors',
-            message: 'Mark as seen: done on 1 record. 1 failed; see the marked row.',
+            title: 'Mark as delivered, with errors',
+            message: 'Mark as delivered: done on 1 record. 1 failed; see the marked row.',
             variant: 'warning'
         });
         expect(fetchRowsById.mock.calls[0][0].recordIds).toEqual([row(1).Id, row(2).Id]);
 
-        rowAction(el, 'Mark_Seen', row(2).Id);
+        rowAction(el, 'Mark_Delivered', row(2).Id);
         await settle();
         expect(tableConfig(el).errors[row(2).Id]).toBeUndefined();
     });
@@ -361,7 +381,7 @@ describe('a server action', () => {
     it('stops at a call the server refuses, and says why', async () => {
         const rows = Array.from({ length: ACTION_BATCH + 10 }, (_, i) => row(i + 1));
         fetchRows.mockResolvedValue(page(rows));
-        runAction.mockRejectedValueOnce({ body: { message: 'You do not have permission to run Mark as seen.' } });
+        runAction.mockRejectedValueOnce({ body: { message: 'You do not have permission to run Mark as delivered.' } });
         const el = mount();
         await settle();
         select(
@@ -370,15 +390,15 @@ describe('a server action', () => {
         );
         await settle();
         $$(el, '.rh-selection-action')
-            .find(b => b.label === 'Mark as seen')
+            .find(b => b.label === 'Mark as delivered')
             .click();
         await settle();
         await answer(el, 'confirm');
         await settle();
         expect(runAction).toHaveBeenCalledTimes(1);
         expect(toasts[0]).toEqual({
-            title: 'Mark as seen',
-            message: 'Mark as seen did not run: You do not have permission to run Mark as seen.',
+            title: 'Mark as delivered',
+            message: 'Mark as delivered did not run: You do not have permission to run Mark as delivered.',
             variant: 'error'
         });
         expect(fetchRowsById).not.toHaveBeenCalled();
@@ -396,11 +416,11 @@ describe('a server action', () => {
         await settle();
         select(el, [row(1).Id]);
         await settle();
-        rowAction(el, 'Mark_Seen', row(1).Id);
+        rowAction(el, 'Mark_Delivered', row(1).Id);
         await settle();
         expect(tableConfig(el).saving).toBe(true);
         expect($$(el, '.rh-selection-action').every(b => b.disabled)).toBe(true);
-        rowAction(el, 'Mark_Seen', row(2).Id); // one action at a time
+        rowAction(el, 'Mark_Delivered', row(2).Id); // one action at a time
         await settle();
         expect(runAction).toHaveBeenCalledTimes(1);
         finish();
@@ -413,7 +433,7 @@ describe('a screen flow, on its own page', () => {
     const PAGE = {
         type: 'standard__navItemPage',
         attributes: { apiName: 'Rowhouse_Dev' },
-        state: { c__grid: 'Test_Records' }
+        state: { c__grid: 'Consignments' }
     };
     const sent = () => mockNavigate.mock.calls[mockNavigate.mock.calls.length - 1][0];
     const comeBack = async (token, extra = {}) => {
@@ -439,7 +459,7 @@ describe('a screen flow, on its own page', () => {
         expect(ref.type).toBe('standard__component');
         expect(ref.attributes).toEqual({ componentName: 'c__rowhouseFlow' });
         expect(ref.state).toMatchObject({
-            c__grid: 'Test_Records',
+            c__grid: 'Consignments',
             c__action: 'Add_Note',
             c__on: 'row',
             c__ids: row(3).Id
@@ -447,7 +467,7 @@ describe('a screen flow, on its own page', () => {
         expect(JSON.parse(ref.state.c__back)).toEqual(PAGE);
         expect(ref.state.c__token).toMatch(/^[a-z0-9]{8,}$/);
         // The flow is the server's to name (GridController.screenFlow), never the address's.
-        expect(JSON.stringify(ref)).not.toContain('Rowhouse_Test_Screen_Flow');
+        expect(JSON.stringify(ref)).not.toContain('Add_Delivery_Note');
     });
 
     it('reads the row again when the flow comes back, once', async () => {
@@ -461,11 +481,11 @@ describe('a screen flow, on its own page', () => {
         await comeBack('someone-else');
         expect(fetchRowsById).not.toHaveBeenCalled();
         await comeBack(token);
-        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Test_Records', recordIds: [row(3).Id] });
+        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Consignments', recordIds: [row(3).Id] });
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toContain('Add a note');
-        await comeBack(token, { c__other: 'x' });
+        await comeBack(token, { c__other: 'Portland' });
         expect(fetchRowsById).toHaveBeenCalledTimes(1);
-        expect(tableConfig(el).rows.find(r => r.Id === row(3).Id).Text_Field__c).toBe('after');
+        expect(tableConfig(el).rows.find(r => r.Id === row(3).Id).Consignee__c).toBe('Quabbin Supply');
     });
 
     it('goes from a selection with the Ids, without asking first', async () => {
@@ -512,7 +532,12 @@ describe('a screen flow, on its own page', () => {
         await settle();
         table(el).dispatchEvent(
             new CustomEvent('cellchange', {
-                detail: { recordId: row(2).Id, field: 'Text_Field__c', value: 'changed', originalValue: 'before' }
+                detail: {
+                    recordId: row(2).Id,
+                    field: 'Consignee__c',
+                    value: 'Berkshire Mills',
+                    originalValue: 'Wachusett Paper'
+                }
             })
         );
         await settle();
@@ -534,10 +559,10 @@ describe('a screen flow, on its own page', () => {
         select(el, [row(1).Id]);
         await settle();
         $$(el, '.rh-selection-action')
-            .find(b => b.label === 'Stamp')
+            .find(b => b.label === 'Rerate')
             .click();
         await settle();
-        expect(dialog(el)).toMatchObject({ label: 'Stamp', question: 'Stamp these?', count: 1 });
+        expect(dialog(el)).toMatchObject({ label: 'Rerate', question: 'Rerate these consignments?', count: 1 });
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 });

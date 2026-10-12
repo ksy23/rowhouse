@@ -28,7 +28,7 @@ const STAGE = {
         { value: 'Closed_Won', label: 'Closed Won' }
     ]
 };
-const AMOUNT = { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, filterable: true };
+const AMOUNT = { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', scale: 2, filterable: true };
 const OWNER = { field: 'OwnerId', label: 'Owner', type: 'owner', referenceTo: ['User'], filterable: true };
 const ACCOUNT = {
     field: 'Account__c',
@@ -42,7 +42,7 @@ describe('which columns can be filtered', () => {
     it('is what the server says, never a formula column', () => {
         expect(canFilter(STAGE)).toBe(true);
         expect(canFilter({ ...STAGE, filterable: false })).toBe(false);
-        expect(canFilter({ field: 'X', type: 'text' })).toBe(false);
+        expect(canFilter({ field: 'Consignee__c', type: 'text' })).toBe(false);
         expect(canFilter({ ...AMOUNT, isFormula: true })).toBe(false);
         expect(canFilter(null)).toBe(false);
     });
@@ -120,14 +120,14 @@ describe('the value box', () => {
 
 describe('what goes to the server', () => {
     it('sends a complete filter, values as text', () => {
-        expect(toRequest({ field: 'Amount__c', operator: 'greater_than', value: 1000 })).toEqual({
-            field: 'Amount__c',
+        expect(toRequest({ field: 'Freight_Charge__c', operator: 'greater_than', value: 1000 })).toEqual({
+            field: 'Freight_Charge__c',
             operator: 'greater_than',
             value: '1000',
             valueTo: null
         });
-        expect(toRequest({ field: 'Amount__c', operator: 'between', value: '1', valueTo: '9' })).toEqual({
-            field: 'Amount__c',
+        expect(toRequest({ field: 'Freight_Charge__c', operator: 'between', value: '1', valueTo: '9' })).toEqual({
+            field: 'Freight_Charge__c',
             operator: 'between',
             value: '1',
             valueTo: '9'
@@ -141,7 +141,7 @@ describe('what goes to the server', () => {
             value: '$User',
             valueTo: null
         });
-        expect(toRequest({ field: 'Stage__c', operator: 'is_blank', value: 'ignored' })).toEqual({
+        expect(toRequest({ field: 'Stage__c', operator: 'is_blank', value: 'Open' })).toEqual({
             field: 'Stage__c',
             operator: 'is_blank',
             value: null,
@@ -150,8 +150,8 @@ describe('what goes to the server', () => {
     });
 
     it('sends nothing when a value is missing, or Between lacks an end', () => {
-        expect(toRequest({ field: 'Amount__c', operator: 'equals', value: '' })).toBeNull();
-        expect(toRequest({ field: 'Amount__c', operator: 'between', value: '1', valueTo: '' })).toBeNull();
+        expect(toRequest({ field: 'Freight_Charge__c', operator: 'equals', value: '' })).toBeNull();
+        expect(toRequest({ field: 'Freight_Charge__c', operator: 'between', value: '1', valueTo: '' })).toBeNull();
         expect(toRequest({ operator: 'equals', value: '1' })).toBeNull();
         expect(toRequest(null)).toBeNull();
     });
@@ -163,7 +163,7 @@ describe('what goes to the server', () => {
             'Enter both ends of the range.'
         );
         expect(problemOf({ operator: 'equals', value: '1,000' }, AMOUNT)).toBe('Enter a number, such as 1000.');
-        expect(problemOf({ operator: 'between', value: '1', valueTo: 'x' }, AMOUNT)).toBe(
+        expect(problemOf({ operator: 'between', value: '1', valueTo: '$900' }, AMOUNT)).toBe(
             'Enter a number, such as 1000.'
         );
         expect(problemOf({ operator: 'equals', value: '-1.5' }, AMOUNT)).toBe('');
@@ -179,21 +179,24 @@ describe('a filter in words, for its chip', () => {
         expect(describeFilter({ field: 'Stage__c', operator: 'is_blank' }, STAGE)).toBe('Stage is blank');
         expect(
             describeFilter(
-                { field: 'Name', operator: 'contains', value: 'acme' },
+                { field: 'Name', operator: 'contains', value: 'casco' },
                 { field: 'Name', label: 'Name', type: 'text' }
             )
-        ).toBe('Name contains “acme”');
+        ).toBe('Name contains “casco”');
         expect(
             describeFilter(
-                { field: 'Done__c', operator: 'equals', value: 'true' },
-                { field: 'Done__c', label: 'Done', type: 'checkbox' }
+                { field: 'Delivered__c', operator: 'equals', value: 'true' },
+                { field: 'Delivered__c', label: 'Delivered', type: 'checkbox' }
             )
-        ).toBe('Done is checked');
+        ).toBe('Delivered is checked');
     });
 
     it('reads Between with both ends', () => {
-        const text = describeFilter({ field: 'Amount__c', operator: 'between', value: '1', valueTo: '9' }, AMOUNT);
-        expect(text).toMatch(/^Amount between .*1\.00 and .*9\.00$/);
+        const text = describeFilter(
+            { field: 'Freight_Charge__c', operator: 'between', value: '1', valueTo: '9' },
+            AMOUNT
+        );
+        expect(text).toMatch(/^Freight Charge between .*1\.00 and .*9\.00$/);
     });
 
     it('reads "is me" both as the panel holds it and as the server took it', () => {
@@ -203,28 +206,33 @@ describe('a filter in words, for its chip', () => {
 });
 
 describe('the list of filters', () => {
-    const a = { field: 'A', operator: 'equals', value: '1' };
-    const b = { field: 'B', operator: 'equals', value: '2' };
+    const a = { field: 'Pieces__c', operator: 'equals', value: '1' };
+    const b = { field: 'Weight__c', operator: 'equals', value: '2' };
 
     it('adds a column’s filter, replaces it in place, and removes it', () => {
-        const one = withFilter([], 'A', a);
+        const one = withFilter([], 'Pieces__c', a);
         expect(one).toEqual([a]);
-        const two = withFilter(one, 'B', b);
+        const two = withFilter(one, 'Weight__c', b);
         expect(two).toEqual([a, b]);
-        const replaced = withFilter(two, 'A', { ...a, value: '3' });
-        expect(replaced.map(f => f.field)).toEqual(['A', 'B']);
+        const replaced = withFilter(two, 'Pieces__c', { ...a, value: '3' });
+        expect(replaced.map(f => f.field)).toEqual(['Pieces__c', 'Weight__c']);
         expect(replaced[0].value).toBe('3');
-        expect(withFilter(replaced, 'A', null)).toEqual([b]);
+        expect(withFilter(replaced, 'Pieces__c', null)).toEqual([b]);
     });
 
     it('hands back the same list when nothing changes', () => {
         const list = [a];
-        expect(withFilter(list, 'Z', null)).toBe(list);
+        expect(withFilter(list, 'Ship_Date__c', null)).toBe(list);
     });
 
     it('adds no column past the most one grid takes, but still changes one already filtered', () => {
-        const full = Array.from({ length: MAX_FILTERS }, (_, i) => ({ field: 'F' + i, operator: 'is_blank' }));
-        expect(withFilter(full, 'New', a)).toBe(full);
-        expect(withFilter(full, 'F0', { field: 'F0', operator: 'is_not_blank' })[0].operator).toBe('is_not_blank');
+        const full = Array.from({ length: MAX_FILTERS }, (_, i) => ({
+            field: 'Stop_' + (i + 1) + '__c',
+            operator: 'is_blank'
+        }));
+        expect(withFilter(full, 'Consignee__c', a)).toBe(full);
+        expect(withFilter(full, 'Stop_1__c', { field: 'Stop_1__c', operator: 'is_not_blank' })[0].operator).toBe(
+            'is_not_blank'
+        );
     });
 });

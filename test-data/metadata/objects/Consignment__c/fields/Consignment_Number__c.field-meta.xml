@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Consignment_Number__c</fullName>
+    <label>Consignment Number</label>
+    <type>AutoNumber</type>
+    <displayFormat>CN-{00000}</displayFormat>
+    <externalId>false</externalId>
+    <description>DEVELOPMENT ONLY. Read-only by type. The grid must detect isUpdateable() == false and render without an edit affordance.</description>
+</CustomField>

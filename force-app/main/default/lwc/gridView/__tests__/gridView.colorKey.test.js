@@ -34,7 +34,7 @@ const path = require('path');
 const rule = (name, label, style, applyTo = 'cell') => ({
     name,
     label,
-    field: 'Amount__c',
+    field: 'Freight_Charge__c',
     type: 'currency',
     operator: 'greater_than',
     value: '0',
@@ -44,22 +44,29 @@ const rule = (name, label, style, applyTo = 'cell') => ({
 const RULES = [
     rule('Risk', 'At risk', 'icon_warning'),
     rule('Note', 'Has a note', 'icon_info', 'row'),
-    rule('Size', 'Deal size', 'data_bar'),
-    rule('Big', 'Large deal', 'fill_green', 'row'),
+    rule('Size', 'Charge size', 'data_bar'),
+    rule('Big', 'Large shipment', 'fill_green', 'row'),
     rule('Late', 'Overdue', 'text_red')
 ];
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
     allowInlineEdit: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-        { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, sortable: true, scale: 2 }
+        {
+            field: 'Freight_Charge__c',
+            label: 'Freight Charge',
+            type: 'currency',
+            editable: true,
+            sortable: true,
+            scale: 2
+        }
     ],
     formatRules: RULES
 };
@@ -77,7 +84,7 @@ const paint = () => jest.advanceTimersByTimeAsync(20);
 /** The grid with its Display Key open: one entry per rule, in the rules' order. */
 async function openKey() {
     const el = createElement('c-grid-view', { is: GridView });
-    el.configName = 'Test_Records';
+    el.configName = 'Consignments';
     document.body.appendChild(el);
     await settle();
     el.shadowRoot.querySelector('.rh-legend-toggle').click();
@@ -135,7 +142,7 @@ describe("the Display Key's samples", () => {
             ])
         );
         expect(size.icon).toBeNull();
-        expect(size.li.textContent).toBe('AaDeal size: Data bar, Cell');
+        expect(size.li.textContent).toBe('AaCharge size: Data bar, Cell');
     });
 
     it('keeps the color samples as they were', async () => {

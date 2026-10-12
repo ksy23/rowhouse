@@ -42,10 +42,10 @@ jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jes
 jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.fn(() => true) }));
 
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Open Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -53,14 +53,14 @@ const DEFINITION = {
     allowCsvExport: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, required: true },
-        { field: 'Number_Field__c', label: 'Number', type: 'number', editable: true, sortable: true, scale: 2 }
+        { field: 'Pieces__c', label: 'Pieces', type: 'number', editable: true, sortable: true, scale: 2 }
     ]
 };
 
 const row = (i, extra = {}) => ({
     Id: 'a00' + String(i).padStart(15, '0'),
-    Name: 'Row ' + i,
-    Number_Field__c: String(i),
+    Name: 'Penobscot Paper, load ' + i,
+    Pieces__c: String(i),
     ...extra
 });
 const page = (rows, { hasMore = false, locator = null, total = rows.length, token = null } = {}) => ({
@@ -81,7 +81,7 @@ const settle = async () => {
     }
 };
 
-function mount(configName = 'Test_Records') {
+function mount(configName = 'Consignments') {
     const el = createElement('c-grid-view', { is: GridView });
     el.configName = configName;
     document.body.appendChild(el);
@@ -110,7 +110,7 @@ describe('loading', () => {
         await settle();
         expect(tableConfig(el).rowNumbers).toBe(true);
         getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, showRowNumbers: false }, diagnostics: false });
-        const hidden = mount('No_Numbers');
+        const hidden = mount('Consignment_Directory');
         await settle();
         expect(tableConfig(hidden).rowNumbers).toBe(false);
     });
@@ -118,9 +118,9 @@ describe('loading', () => {
     it('reads the configuration by name, then the rows, and hands both to the table', async () => {
         const el = mount();
         await settle();
-        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Test_Records' });
+        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Consignments' });
         expect(fetchRows).toHaveBeenCalledWith({
-            configName: 'Test_Records',
+            configName: 'Consignments',
             searchTerm: null,
             sortField: 'Name',
             sortDirection: 'asc',
@@ -133,7 +133,11 @@ describe('loading', () => {
         });
         const cfg = tableConfig(el);
         expect(cfg.columns).toEqual(DEFINITION.columns);
-        expect(cfg.rows.map(r => r.Name)).toEqual(['Row 1', 'Row 2', 'Row 3']);
+        expect(cfg.rows.map(r => r.Name)).toEqual([
+            'Penobscot Paper, load 1',
+            'Penobscot Paper, load 2',
+            'Penobscot Paper, load 3'
+        ]);
         expect(cfg.totalRows).toBe(3);
         expect(el.shadowRoot.querySelector('.rh-count').textContent).toBe('3 items');
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('3 rows loaded.');
@@ -147,7 +151,12 @@ describe('loading', () => {
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(2);
         expect(fetchRows.mock.calls[1][0]).toMatchObject({ cursorLocator: 'fp:2', pageSize: FOLLOW_PAGE_SIZE });
-        expect(tableConfig(el).rows.map(r => r.Name)).toEqual(['Row 1', 'Row 2', 'Row 3', 'Row 4']);
+        expect(tableConfig(el).rows.map(r => r.Name)).toEqual([
+            'Penobscot Paper, load 1',
+            'Penobscot Paper, load 2',
+            'Penobscot Paper, load 3',
+            'Penobscot Paper, load 4'
+        ]);
     });
 
     it('preloads up to the preload size, then says how to get more', async () => {
@@ -248,11 +257,11 @@ describe('loading', () => {
         expect(el.shadowRoot.querySelector('lightning-icon.rh-object-icon')).toBeNull();
         expect(el.shadowRoot.querySelector('h2').textContent).toBe('Loading the grid');
         expect(el.shadowRoot.querySelector('.rh-count').textContent).toBe('Loading…');
-        release(await openGridFrom({ getGridConfig, fetchRows })({ configName: 'Test_Records' }));
+        release(await openGridFrom({ getGridConfig, fetchRows })({ configName: 'Consignments' }));
         await settle();
         expect(el.shadowRoot.querySelector('.rh-busy')).toBeNull();
         expect(el.shadowRoot.querySelector('.rh-skeleton_title')).toBeNull();
-        expect(el.shadowRoot.querySelector('h2').textContent).toBe('Test Records');
+        expect(el.shadowRoot.querySelector('h2').textContent).toBe('Open Consignments');
         expect(el.shadowRoot.querySelector('lightning-icon.rh-object-icon')).not.toBeNull();
     });
 
@@ -267,8 +276,8 @@ describe('loading', () => {
             })
         );
         const search = el.shadowRoot.querySelector('.rh-search');
-        search.value = 'Row 2';
-        search.dispatchEvent(new CustomEvent('change', { detail: { value: 'Row 2' } }));
+        search.value = 'Penobscot';
+        search.dispatchEvent(new CustomEvent('change', { detail: { value: 'Penobscot' } }));
         jest.advanceTimersByTime(SEARCH_DELAY_MS);
         await settle();
         expect(el.shadowRoot.querySelector('.rh-busy')).not.toBeNull();
@@ -279,20 +288,20 @@ describe('loading', () => {
     });
 
     it('shows no bar when it cannot open, and says why under the title', async () => {
-        getGridConfig.mockRejectedValue({ body: { message: 'No Grid Configuration named "Nope".' } });
-        const el = mount('Nope');
+        getGridConfig.mockRejectedValue({ body: { message: 'No Grid Configuration named "Consignment_Rerate".' } });
+        const el = mount('Consignment_Rerate');
         await settle();
         expect(el.shadowRoot.querySelector('.rh-busy')).toBeNull();
         expect(el.shadowRoot.querySelector('.rh-skeleton_title')).toBeNull();
     });
 
     it('shows the server message when the configuration cannot be read', async () => {
-        getGridConfig.mockRejectedValue({ body: { message: 'No Grid Configuration named "Nope".' } });
-        const el = mount('Nope');
+        getGridConfig.mockRejectedValue({ body: { message: 'No Grid Configuration named "Consignment_Rerate".' } });
+        const el = mount('Consignment_Rerate');
         await settle();
         const alert = el.shadowRoot.querySelector('.rh-load-error');
         expect(alert.getAttribute('role')).toBe('alert');
-        expect(alert.textContent).toContain('No Grid Configuration named "Nope".');
+        expect(alert.textContent).toContain('No Grid Configuration named "Consignment_Rerate".');
         expect(table(el)).toBeNull();
     });
 
@@ -306,27 +315,27 @@ describe('loading', () => {
     it('titles the card with the configuration label, and the grid with the same name', async () => {
         const el = mount();
         await settle();
-        expect(el.shadowRoot.querySelector('.slds-card__header-title').textContent.trim()).toBe('Test Records');
-        expect(tableConfig(el).ariaLabel).toBe('Test Records');
+        expect(el.shadowRoot.querySelector('.slds-card__header-title').textContent.trim()).toBe('Open Consignments');
+        expect(tableConfig(el).ariaLabel).toBe('Open Consignments');
     });
 
     it('falls back to the object label when the configuration has no label', async () => {
         getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, label: null }, diagnostics: false });
         const el = mount();
         await settle();
-        expect(tableConfig(el).ariaLabel).toBe('Rowhouse Test Records');
+        expect(tableConfig(el).ariaLabel).toBe('Consignments');
     });
 
     it('reloads when the admin points it at another configuration, and not otherwise', async () => {
         const el = mount();
         await settle();
         expect(getGridConfig).toHaveBeenCalledTimes(1);
-        el.configName = ' Test_Records ';
+        el.configName = ' Consignments ';
         await settle();
         expect(getGridConfig).toHaveBeenCalledTimes(1);
-        el.configName = 'Other_Grid';
+        el.configName = 'Freight_Claims';
         await settle();
-        expect(getGridConfig).toHaveBeenLastCalledWith({ configName: 'Other_Grid' });
+        expect(getGridConfig).toHaveBeenLastCalledWith({ configName: 'Freight_Claims' });
     });
 
     it('hands the table the SAME config object when nothing changed (HR-17)', async () => {
@@ -370,14 +379,14 @@ describe('search and sort', () => {
         );
         fetchRows.mockResolvedValueOnce(page([row(9)]));
         const input = el.shadowRoot.querySelector('.rh-search');
-        input.dispatchEvent(new CustomEvent('change', { detail: { value: 'a' } }));
+        input.dispatchEvent(new CustomEvent('change', { detail: { value: 'Penob' } }));
         jest.advanceTimersByTime(SEARCH_DELAY_MS);
-        input.dispatchEvent(new CustomEvent('change', { detail: { value: 'ab' } }));
+        input.dispatchEvent(new CustomEvent('change', { detail: { value: 'Penobscot' } }));
         jest.advanceTimersByTime(SEARCH_DELAY_MS);
         await settle();
         slow(page([row(1), row(2)]));
         await settle();
-        expect(tableConfig(el).rows.map(r => r.Name)).toEqual(['Row 9']);
+        expect(tableConfig(el).rows.map(r => r.Name)).toEqual(['Penobscot Paper, load 9']);
     });
 
     it('leaves sorting to the table when every row is loaded', async () => {
@@ -385,14 +394,20 @@ describe('search and sort', () => {
         await settle();
         fetchRows.mockClear();
         table(el).dispatchEvent(
-            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } })
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Pieces__c', direction: 'desc' }] } })
         );
         await settle();
         expect(fetchRows).not.toHaveBeenCalled();
     });
 
     it('asks the server for amounts in mixed currencies, which only it can order, even with every row loaded', async () => {
-        const amount = { field: 'Amount__c', label: 'Amount', type: 'currency', sortable: true, scale: 2 };
+        const amount = {
+            field: 'Freight_Charge__c',
+            label: 'Freight Charge',
+            type: 'currency',
+            sortable: true,
+            scale: 2
+        };
         getGridConfig.mockResolvedValue({
             definition: {
                 ...DEFINITION,
@@ -404,10 +419,10 @@ describe('search and sort', () => {
         await settle();
         fetchRows.mockClear();
         table(el).dispatchEvent(
-            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Amount__c', direction: 'desc' }] } })
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Freight_Charge__c', direction: 'desc' }] } })
         );
         await settle();
-        expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Amount__c', sortDirection: 'desc' });
+        expect(fetchRows.mock.calls[0][0]).toMatchObject({ sortField: 'Freight_Charge__c', sortDirection: 'desc' });
     });
 
     it('asks the server when the view is truncated, because the loaded rows are the wrong rows', async () => {
@@ -418,11 +433,11 @@ describe('search and sort', () => {
         fetchRows.mockClear();
         fetchRows.mockResolvedValue(page([row(7)]));
         table(el).dispatchEvent(
-            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } })
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Pieces__c', direction: 'desc' }] } })
         );
         await settle();
         expect(fetchRows.mock.calls[0][0]).toMatchObject({
-            sortField: 'Number_Field__c',
+            sortField: 'Pieces__c',
             sortDirection: 'desc',
             cursorLocator: null
         });
@@ -472,7 +487,7 @@ describe('loading more as you scroll', () => {
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
         expect(fetchRows.mock.calls[0][0]).toMatchObject({
-            configName: 'Test_Records',
+            configName: 'Consignments',
             sortField: 'Name',
             sortDirection: 'asc',
             cursorLocator: 'fp:10000:50000',
@@ -520,14 +535,16 @@ describe('loading more as you scroll', () => {
         fetchRows.mockResolvedValueOnce(page([row(9)]));
         loadMore(el);
         await settle();
-        el.shadowRoot.querySelector('.rh-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'x' } }));
+        el.shadowRoot
+            .querySelector('.rh-search')
+            .dispatchEvent(new CustomEvent('change', { detail: { value: 'Bangor' } }));
         jest.advanceTimersByTime(SEARCH_DELAY_MS);
         await settle();
         slow(
             page([row(20001), row(20002)], { hasMore: true, locator: 'fp:10002:50000', total: 50000, token: 'tok-1' })
         );
         await settle();
-        expect(tableConfig(el).rows.map(r => r.Name)).toEqual(['Row 9']);
+        expect(tableConfig(el).rows.map(r => r.Name)).toEqual(['Penobscot Paper, load 9']);
         expect(tableConfig(el)).toMatchObject({ loadingMore: false, hasMore: false });
     });
 
@@ -586,16 +603,16 @@ describe('editing and saving', () => {
         const el = mount();
         await settle();
         const before = tableConfig(el);
-        edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
         await settle();
         expect(tableConfig(el)).not.toBe(before);
-        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'Renamed' } });
+        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'Kennebec Lumber, 12 bundles' } });
     });
 
     it('saves, polls until every batch reports, re-reads the rows, and clears the drafts', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
         saveRows.mockResolvedValue({
             saveId: 's1',
             done: false,
@@ -614,15 +631,15 @@ describe('editing and saving', () => {
                 successCount: 1,
                 errors: []
             });
-        fetchRowsById.mockResolvedValue([row(1, { Name: 'Renamed (server)' })]);
+        fetchRowsById.mockResolvedValue([row(1, { Name: 'Kennebec Lumber, 12 bundles, Augusta' })]);
         const toast = jest.fn();
         el.addEventListener('lightning__showtoast', toast);
 
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
         expect(saveRows).toHaveBeenCalledWith({
-            configName: 'Test_Records',
-            rows: [{ Id: row(1).Id, Name: 'Renamed' }]
+            configName: 'Consignments',
+            rows: [{ Id: row(1).Id, Name: 'Kennebec Lumber, 12 bundles' }]
         });
         expect(tableConfig(el).saving).toBe(true);
         // The Save button shows the save under way.
@@ -631,12 +648,12 @@ describe('editing and saving', () => {
         await settle();
 
         expect(saveStatus).toHaveBeenCalledTimes(2);
-        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Test_Records', recordIds: [row(1).Id] });
+        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Consignments', recordIds: [row(1).Id] });
         const cfg = tableConfig(el);
         expect(cfg.saving).toBe(false);
         expect(cfg.savingEdits).toBe(false);
         expect(cfg.drafts).toEqual({});
-        expect(cfg.rows[0].Name).toBe('Renamed (server)');
+        expect(cfg.rows[0].Name).toBe('Kennebec Lumber, 12 bundles, Augusta');
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('Saved 1 record.');
         expect(toast).toHaveBeenCalledTimes(1);
         expect(toast.mock.calls[0][0].detail.variant).toBe('success');
@@ -645,8 +662,8 @@ describe('editing and saving', () => {
     it('keeps a failed edit and puts the server message on its cell', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Number_Field__c', '99999999', '1');
-        edit(el, row(2).Id, 'Name', 'Fine', 'Row 2');
+        edit(el, row(1).Id, 'Pieces__c', '99999999', '1');
+        edit(el, row(2).Id, 'Name', 'Wachusett Paper, 6 rolls', 'Penobscot Paper, load 2');
         saveRows.mockResolvedValue({
             saveId: 's2',
             done: false,
@@ -661,15 +678,15 @@ describe('editing and saving', () => {
             chunkCount: 1,
             chunksReported: 1,
             successCount: 1,
-            errors: [{ recordId: row(1).Id, fieldName: 'Number_Field__c', message: 'Value too large.' }]
+            errors: [{ recordId: row(1).Id, fieldName: 'Pieces__c', message: 'Value too large.' }]
         });
-        fetchRowsById.mockResolvedValue([row(2, { Name: 'Fine' })]);
+        fetchRowsById.mockResolvedValue([row(2, { Name: 'Wachusett Paper, 6 rolls' })]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await jest.advanceTimersByTimeAsync(5000);
         await settle();
         const cfg = tableConfig(el);
-        expect(cfg.drafts).toEqual({ [row(1).Id]: { Number_Field__c: '99999999' } });
-        expect(cfg.errors[row(1).Id].fields.Number_Field__c).toBe('Value too large.');
+        expect(cfg.drafts).toEqual({ [row(1).Id]: { Pieces__c: '99999999' } });
+        expect(cfg.errors[row(1).Id].fields.Pieces__c).toBe('Value too large.');
         expect(fetchRowsById.mock.calls[0][0].recordIds).toEqual([row(2).Id]);
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('Saved 1 record. 1 record has errors.');
     });
@@ -677,14 +694,14 @@ describe('editing and saving', () => {
     it('tells the user when field-level security removed an edit, instead of dropping it silently', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Number_Field__c', '5', '1');
+        edit(el, row(1).Id, 'Pieces__c', '5', '1');
         saveRows.mockResolvedValue({
             saveId: 's3',
             done: false,
             chunkCount: 1,
             errors: [],
             rejectedFields: [],
-            strippedFields: ['Number_Field__c']
+            strippedFields: ['Pieces__c']
         });
         saveStatus.mockResolvedValue({
             saveId: 's3',
@@ -699,22 +716,22 @@ describe('editing and saving', () => {
         await jest.advanceTimersByTimeAsync(5000);
         await settle();
         const cfg = tableConfig(el);
-        expect(cfg.drafts).toEqual({ [row(1).Id]: { Number_Field__c: '5' } });
-        expect(cfg.errors[row(1).Id].fields.Number_Field__c).toBe(REFUSED_BY_PERMISSION);
+        expect(cfg.drafts).toEqual({ [row(1).Id]: { Pieces__c: '5' } });
+        expect(cfg.errors[row(1).Id].fields.Pieces__c).toBe(REFUSED_BY_PERMISSION);
     });
 
     it('merges errors refused up front with those the batches reported', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Number_Field__c', 'abc', '1');
-        edit(el, row(2).Id, 'Name', 'x', 'Row 2');
+        edit(el, row(1).Id, 'Pieces__c', 'twelve', '1');
+        edit(el, row(2).Id, 'Name', 'Quabbin Supply, 3 crates', 'Penobscot Paper, load 2');
         saveRows.mockResolvedValue({
             saveId: 's4',
             done: false,
             chunkCount: 1,
             rejectedFields: [],
             strippedFields: [],
-            errors: [{ recordId: row(1).Id, fieldName: 'Number_Field__c', message: 'Not a number.' }]
+            errors: [{ recordId: row(1).Id, fieldName: 'Pieces__c', message: 'Not a number.' }]
         });
         saveStatus.mockResolvedValue({
             saveId: 's4',
@@ -728,7 +745,7 @@ describe('editing and saving', () => {
         await jest.advanceTimersByTimeAsync(5000);
         await settle();
         const cfg = tableConfig(el);
-        expect(cfg.errors[row(1).Id].fields.Number_Field__c).toBe('Not a number.');
+        expect(cfg.errors[row(1).Id].fields.Pieces__c).toBe('Not a number.');
         expect(cfg.errors[row(2).Id].row).toBe('Record locked.');
         expect(fetchRowsById).not.toHaveBeenCalled();
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('Nothing was saved. 2 records have errors.');
@@ -737,11 +754,11 @@ describe('editing and saving', () => {
     it('keeps every draft and says so when the save call itself fails', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
         saveRows.mockRejectedValue({ body: { message: 'Insufficient access.' } });
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
-        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'Renamed' } });
+        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'Kennebec Lumber, 12 bundles' } });
         expect(tableConfig(el).saving).toBe(false);
         expect(el.shadowRoot.querySelector('.rh-notice').textContent).toBe(
             'Your changes were not saved. Insufficient access.'
@@ -751,7 +768,7 @@ describe('editing and saving', () => {
     it('keeps an edit typed while the save was running', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'First', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Casco Bay Marine, 2 skids', 'Penobscot Paper, load 1');
         saveRows.mockResolvedValue({
             saveId: 's5',
             done: false,
@@ -768,19 +785,19 @@ describe('editing and saving', () => {
             successCount: 1,
             errors: []
         });
-        fetchRowsById.mockResolvedValue([row(1, { Name: 'First' })]);
+        fetchRowsById.mockResolvedValue([row(1, { Name: 'Casco Bay Marine, 2 skids' })]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
-        edit(el, row(2).Id, 'Name', 'During', 'Row 2');
+        edit(el, row(2).Id, 'Name', 'Mill River Energy, 4 drums', 'Penobscot Paper, load 2');
         await jest.advanceTimersByTimeAsync(5000);
         await settle();
-        expect(tableConfig(el).drafts).toEqual({ [row(2).Id]: { Name: 'During' } });
+        expect(tableConfig(el).drafts).toEqual({ [row(2).Id]: { Name: 'Mill River Energy, 4 drums' } });
     });
 
     it('clears a cell error when the user edits that cell again', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Bad', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Saco River Outfitters, 40 kayaks, Brunswick', 'Penobscot Paper, load 1');
         saveRows.mockResolvedValue({
             saveId: 's6',
             done: true,
@@ -792,7 +809,7 @@ describe('editing and saving', () => {
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
         expect(tableConfig(el).errors[row(1).Id].fields.Name).toBe('Too long.');
-        edit(el, row(1).Id, 'Name', 'Good', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Saco River Outfitters, 40 kayaks', 'Penobscot Paper, load 1');
         await settle();
         expect(tableConfig(el).errors).toEqual({});
     });
@@ -800,7 +817,7 @@ describe('editing and saving', () => {
     it('refuses to send a blank required field and marks the cell (found in Lightning Experience)', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', '', 'Row 1');
+        edit(el, row(1).Id, 'Name', '', 'Penobscot Paper, load 1');
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
         expect(saveRows).not.toHaveBeenCalled();
@@ -814,7 +831,7 @@ describe('editing and saving', () => {
     it('discards drafts and errors on Cancel', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
         await settle();
         table(el).dispatchEvent(new CustomEvent('cancel'));
         await settle();
@@ -836,26 +853,49 @@ describe('spreadsheet actions and undo', () => {
         cells(el, {
             label: 'paste',
             changes: [
-                { recordId: row(1).Id, field: 'Name', value: 'A', originalValue: 'Row 1' },
-                { recordId: row(2).Id, field: 'Name', value: 'B', originalValue: 'Row 2' }
+                {
+                    recordId: row(1).Id,
+                    field: 'Name',
+                    value: 'Bangor Brick & Tile, 8 pallets',
+                    originalValue: 'Penobscot Paper, load 1'
+                },
+                {
+                    recordId: row(2).Id,
+                    field: 'Name',
+                    value: 'Monadnock Granite, 2 slabs',
+                    originalValue: 'Penobscot Paper, load 2'
+                }
             ],
-            errors: [{ recordId: row(3).Id, field: 'Number_Field__c', message: 'Not a number: x' }]
+            errors: [{ recordId: row(3).Id, field: 'Pieces__c', message: 'Not a number: 4 pallets' }]
         });
         await settle();
         const cfg = tableConfig(el);
-        expect(cfg.drafts).toEqual({ [row(1).Id]: { Name: 'A' }, [row(2).Id]: { Name: 'B' } });
-        expect(cfg.errors[row(3).Id].fields.Number_Field__c).toBe('Not a number: x');
+        expect(cfg.drafts).toEqual({
+            [row(1).Id]: { Name: 'Bangor Brick & Tile, 8 pallets' },
+            [row(2).Id]: { Name: 'Monadnock Granite, 2 slabs' }
+        });
+        expect(cfg.errors[row(3).Id].fields.Pieces__c).toBe('Not a number: 4 pallets');
     });
 
     it('undoes a whole paste in one step, and redoes it', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Typed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Housatonic Hardware, 5 cartons', 'Penobscot Paper, load 1');
         cells(el, {
             label: 'paste',
             changes: [
-                { recordId: row(1).Id, field: 'Name', value: 'A', originalValue: 'Row 1' },
-                { recordId: row(2).Id, field: 'Name', value: 'B', originalValue: 'Row 2' }
+                {
+                    recordId: row(1).Id,
+                    field: 'Name',
+                    value: 'Bangor Brick & Tile, 8 pallets',
+                    originalValue: 'Penobscot Paper, load 1'
+                },
+                {
+                    recordId: row(2).Id,
+                    field: 'Name',
+                    value: 'Monadnock Granite, 2 slabs',
+                    originalValue: 'Penobscot Paper, load 2'
+                }
             ],
             errors: []
         });
@@ -870,14 +910,17 @@ describe('spreadsheet actions and undo', () => {
 
         table(el).dispatchEvent(new CustomEvent('undo'));
         await settle();
-        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'Typed' } });
+        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'Housatonic Hardware, 5 cartons' } });
         expect(live(el)).toBe('Undid paste of 2 cells.');
         expect(tableConfig(el).history.canRedo).toBe(true);
         expect(tableConfig(el).history.redoLabel).toBe('Redo paste of 2 cells');
 
         table(el).dispatchEvent(new CustomEvent('redo'));
         await settle();
-        expect(tableConfig(el).drafts).toEqual({ [row(1).Id]: { Name: 'A' }, [row(2).Id]: { Name: 'B' } });
+        expect(tableConfig(el).drafts).toEqual({
+            [row(1).Id]: { Name: 'Bangor Brick & Tile, 8 pallets' },
+            [row(2).Id]: { Name: 'Monadnock Granite, 2 slabs' }
+        });
         expect(live(el)).toBe('Redid paste of 2 cells.');
 
         table(el).dispatchEvent(new CustomEvent('undo'));
@@ -900,13 +943,13 @@ describe('spreadsheet actions and undo', () => {
     it('starts a fresh history after Cancel and after a save', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
         await settle();
         table(el).dispatchEvent(new CustomEvent('cancel'));
         await settle();
         expect(tableConfig(el).history).toMatchObject({ canUndo: false, canRedo: false });
 
-        edit(el, row(1).Id, 'Name', 'Again', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Berkshire Mills, 9 bales', 'Penobscot Paper, load 1');
         saveRows.mockResolvedValue({
             saveId: 's1',
             done: true,
@@ -916,7 +959,7 @@ describe('spreadsheet actions and undo', () => {
             rejectedFields: [],
             strippedFields: []
         });
-        fetchRowsById.mockResolvedValue([row(1, { Name: 'Again' })]);
+        fetchRowsById.mockResolvedValue([row(1, { Name: 'Berkshire Mills, 9 bales' })]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
         await jest.advanceTimersByTimeAsync(100);
@@ -954,20 +997,24 @@ describe('export', () => {
         const el = mount();
         await settle();
         table(el).dispatchEvent(
-            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Number_Field__c', direction: 'desc' }] } })
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Pieces__c', direction: 'desc' }] } })
         );
         await settle();
         el.shadowRoot.querySelector('.rh-export').dispatchEvent(new CustomEvent('click'));
         const [rows, columns] = toCsv.mock.calls[0];
-        expect(rows.map(r => r.Name)).toEqual(['Row 3', 'Row 2', 'Row 1']);
+        expect(rows.map(r => r.Name)).toEqual([
+            'Penobscot Paper, load 3',
+            'Penobscot Paper, load 2',
+            'Penobscot Paper, load 1'
+        ]);
         expect(columns).toEqual([
             { field: 'Id', label: 'Id', type: 'id' }, // so the file can come back in as an import
             { field: 'Name', label: 'Name', type: 'text' },
-            { field: 'Number_Field__c', label: 'Number', type: 'number' }
+            { field: 'Pieces__c', label: 'Pieces', type: 'number' }
         ]);
         const [, fileName, container] = downloadCsv.mock.calls[0];
         // Named after the grid title, which is the configuration label.
-        expect(fileName).toMatch(/^Test-Records-\d{4}-\d{2}-\d{2}\.csv$/);
+        expect(fileName).toMatch(/^Open-Consignments-\d{4}-\d{2}-\d{2}\.csv$/);
         expect(container).toBe(el.shadowRoot.querySelector('.rh-download'));
     });
 
@@ -1012,17 +1059,26 @@ describe('telemetry', () => {
         await settle();
         const events = info.mock.calls.map(c => JSON.parse(c[1]));
         expect(events.map(e => e.event)).toEqual(['config', 'page', 'load']);
-        expect(events[1]).toMatchObject({ source: 'rowhouse', grid: 'Test_Records', rows: 3, serverMs: 5, cpuMs: 3 });
-        expect(JSON.stringify(events)).not.toContain('Row 1');
+        expect(events[1]).toMatchObject({ source: 'rowhouse', grid: 'Consignments', rows: 3, serverMs: 5, cpuMs: 3 });
+        expect(JSON.stringify(events)).not.toContain('Penobscot Paper, load 1');
         info.mockRestore();
     });
 });
 
 describe('messageOf', () => {
     it('reads every error shape Apex and the browser produce', () => {
-        expect(messageOf({ body: { message: 'From Apex.' } })).toBe('From Apex.');
-        expect(messageOf({ body: [{ message: 'One.' }, { message: 'Two.' }] })).toBe('One. Two.');
-        expect(messageOf(new Error('Plain.'))).toBe('Plain.');
+        expect(messageOf({ body: { message: 'Unable to obtain exclusive access to this record.' } })).toBe(
+            'Unable to obtain exclusive access to this record.'
+        );
+        expect(
+            messageOf({
+                body: [
+                    { message: 'Required fields are missing: [Consignee].' },
+                    { message: 'Pieces: value outside of valid range.' }
+                ]
+            })
+        ).toBe('Required fields are missing: [Consignee]. Pieces: value outside of valid range.');
+        expect(messageOf(new Error('Failed to fetch.'))).toBe('Failed to fetch.');
         expect(messageOf(null)).toBe('Unknown error.');
     });
 });
@@ -1040,36 +1096,41 @@ describe('lookup names', () => {
     const ACC = '001000000000001AAA';
 
     it('learns names from the rows and from the lookup editor, and passes the grid name to the table', async () => {
-        fetchRows.mockResolvedValue(page([row(1, { Lookup_Field__c: ACC, _labels: { Lookup_Field__c: 'Acme' } })]));
+        fetchRows.mockResolvedValue(page([row(1, { Shipper__c: ACC, _labels: { Shipper__c: 'Casco Bay Marine' } })]));
         const el = mount();
         await settle();
-        expect(tableConfig(el).refNames).toEqual({ [ACC]: 'Acme' });
-        expect(tableConfig(el).configName).toBe('Test_Records');
+        expect(tableConfig(el).refNames).toEqual({ [ACC]: 'Casco Bay Marine' });
+        expect(tableConfig(el).configName).toBe('Consignments');
 
         const other = '001000000000002AAA';
         table(el).dispatchEvent(
             new CustomEvent('cellchange', {
                 detail: {
                     recordId: row(1).Id,
-                    field: 'Lookup_Field__c',
+                    field: 'Shipper__c',
                     value: other,
                     originalValue: ACC,
-                    valueLabel: 'Other Co'
+                    valueLabel: 'Merrimack Valley Foods'
                 }
             })
         );
         await settle();
-        expect(tableConfig(el).refNames).toEqual({ [ACC]: 'Acme', [other]: 'Other Co' });
+        expect(tableConfig(el).refNames).toEqual({ [ACC]: 'Casco Bay Marine', [other]: 'Merrimack Valley Foods' });
     });
 
     it('keeps the same names object when a page brings nothing new (HR-17)', async () => {
-        fetchRows.mockResolvedValue(page([row(1, { Lookup_Field__c: ACC, _labels: { Lookup_Field__c: 'Acme' } })]));
+        fetchRows.mockResolvedValue(page([row(1, { Shipper__c: ACC, _labels: { Shipper__c: 'Casco Bay Marine' } })]));
         const el = mount();
         await settle();
         const names = tableConfig(el).refNames;
         table(el).dispatchEvent(
             new CustomEvent('cellchange', {
-                detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' }
+                detail: {
+                    recordId: row(1).Id,
+                    field: 'Name',
+                    value: 'Green Mountain Maple, 30 cases',
+                    originalValue: 'Penobscot Paper, load 1'
+                }
             })
         );
         await settle();
@@ -1080,8 +1141,8 @@ describe('lookup names', () => {
 describe('conditional formatting', () => {
     const RULES = [
         {
-            name: 'Big',
-            field: 'Number_Field__c',
+            name: 'Large_Load',
+            field: 'Pieces__c',
             type: 'number',
             operator: 'greater_than',
             value: '2',
@@ -1104,7 +1165,7 @@ describe('conditional formatting', () => {
     });
 
     it('shows configuration warnings to diagnostics users only', async () => {
-        const warnings = ['Format rule Bad was skipped: Value "x" is not a number.'];
+        const warnings = ['Format rule Heavy_Freight was skipped: Value "heavy" is not a number.'];
         getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, warnings }, diagnostics: true });
         let el = mount();
         await settle();
@@ -1207,7 +1268,7 @@ describe('mass update and mass delete', () => {
         expect($(el, '.rh-search')).not.toBeNull();
 
         const key = tableConfig(el).selectionKey;
-        $(el, '.rh-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'Row' } }));
+        $(el, '.rh-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'Penobscot' } }));
         await jest.advanceTimersByTimeAsync(SEARCH_DELAY_MS + 10);
         await settle();
         expect(tableConfig(el).selectionKey).not.toBe(key);
@@ -1230,12 +1291,12 @@ describe('mass update and mass delete', () => {
     it('hands the dialog the selected rows as they are now, with lookup names', async () => {
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
         select(el, [row(1).Id, row(3).Id]);
         await settle();
         $(el, '.rh-mass-edit').click();
         await settle();
-        expect(dialog(el).rows.map(r => r.Name)).toEqual(['Renamed', 'Row 3']);
+        expect(dialog(el).rows.map(r => r.Name)).toEqual(['Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 3']);
         expect(dialog(el).refNames).toEqual({});
     });
 
@@ -1247,21 +1308,21 @@ describe('mass update and mass delete', () => {
         $(el, '.rh-mass-edit').click();
         await settle();
         expect(dialog(el).count).toBe(2);
-        expect(dialog(el).configName).toBe('Test_Records');
-        expect(dialog(el).columns.map(c => c.field)).toEqual(['Name', 'Number_Field__c']);
+        expect(dialog(el).configName).toBe('Consignments');
+        expect(dialog(el).columns.map(c => c.field)).toEqual(['Name', 'Pieces__c']);
 
         dialog(el).dispatchEvent(
-            new CustomEvent('apply', { detail: { field: 'Number_Field__c', value: 50, valueLabel: null } })
+            new CustomEvent('apply', { detail: { field: 'Pieces__c', value: 50, valueLabel: null } })
         );
         await settle();
         expect(dialog(el)).toBeNull();
         expect(tableConfig(el).drafts).toEqual({
-            [row(1).Id]: { Number_Field__c: 50 },
-            [row(3).Id]: { Number_Field__c: 50 }
+            [row(1).Id]: { Pieces__c: 50 },
+            [row(3).Id]: { Pieces__c: 50 }
         });
         // Undo is in the Save bar, the table's.
         expect(tableConfig(el).history.undoLabel).toBe('Undo mass update of 2 cells');
-        expect(live(el)).toBe('Number changed on 2 rows. Save to keep it; Undo takes it back.');
+        expect(live(el)).toBe('Pieces changed on 2 rows. Save to keep it; Undo takes it back.');
         expect(toasts).toEqual([]); // the yellow cells say it; a toast is for exceptions
         expect(saveRows).not.toHaveBeenCalled();
 
@@ -1301,8 +1362,8 @@ describe('mass update and mass delete', () => {
             editable: true,
             dependentOn: 'Region__c',
             options: [
-                { value: 'Oslo', label: 'Oslo', validFor: ['North'] },
-                { value: 'Rome', label: 'Rome', validFor: ['South'] }
+                { value: 'Bangor', label: 'Bangor', validFor: ['North'] },
+                { value: 'Worcester', label: 'Worcester', validFor: ['South'] }
             ]
         };
         getGridConfig.mockResolvedValue({
@@ -1310,7 +1371,7 @@ describe('mass update and mass delete', () => {
             diagnostics: false
         });
         fetchRows.mockResolvedValue(
-            page([row(1, { Region__c: 'North', City__c: null }), row(2, { Region__c: 'South', City__c: 'Rome' })])
+            page([row(1, { Region__c: 'North', City__c: null }), row(2, { Region__c: 'South', City__c: 'Worcester' })])
         );
         const el = mountWatched();
         await settle();
@@ -1318,11 +1379,11 @@ describe('mass update and mass delete', () => {
         await settle();
         $(el, '.rh-mass-edit').click();
         await settle();
-        dialog(el).dispatchEvent(new CustomEvent('apply', { detail: { field: 'City__c', value: 'Oslo' } }));
+        dialog(el).dispatchEvent(new CustomEvent('apply', { detail: { field: 'City__c', value: 'Bangor' } }));
         await settle();
         let cfg = tableConfig(el);
-        expect(cfg.drafts).toEqual({ [row(1).Id]: { City__c: 'Oslo' } });
-        expect(cfg.errors[row(2).Id].fields.City__c).toBe('Oslo is not offered when Region is South.');
+        expect(cfg.drafts).toEqual({ [row(1).Id]: { City__c: 'Bangor' } });
+        expect(cfg.errors[row(2).Id].fields.City__c).toBe('Bangor is not offered when Region is South.');
         expect(toasts[0]).toMatchObject({ variant: 'warning' });
         expect(live(el)).toContain('1 row keeps its value; see the marked cells.');
 
@@ -1339,13 +1400,13 @@ describe('mass update and mass delete', () => {
         withDelete();
         const el = mount();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Renamed', 'Row 1');
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
         select(el, [row(1).Id, row(2).Id]);
         await settle();
         $(el, '.rh-mass-delete').click();
         await settle();
         const ask = $(el, 'c-grid-delete-dialog');
-        expect(ask.names).toEqual(['Row 1', 'Row 2']); // as saved: the dialog names the records
+        expect(ask.names).toEqual(['Penobscot Paper, load 1', 'Penobscot Paper, load 2']); // as saved: the dialog names the records
         expect(ask.count).toBe(2);
         expect(ask.hasDrafts).toBe(true);
         ask.dispatchEvent(new CustomEvent('cancel'));
@@ -1370,8 +1431,8 @@ describe('mass update and mass delete', () => {
         );
         const el = mountWatched();
         await settle();
-        edit(el, row(1).Id, 'Name', 'Gone', 'Row 1');
-        edit(el, row(260).Id, 'Name', 'Kept', 'Row 260');
+        edit(el, row(1).Id, 'Name', 'Cape Ann Seafood, 14 totes', 'Penobscot Paper, load 1');
+        edit(el, row(260).Id, 'Name', 'Narragansett Shellfish, 6 totes', 'Penobscot Paper, load 260');
         select(
             el,
             rows.slice(0, 250).map(r => r.Id)
@@ -1383,11 +1444,11 @@ describe('mass update and mass delete', () => {
 
         expect(deleteRows).toHaveBeenCalledTimes(2);
         expect(deleteRows.mock.calls.map(([args]) => args.recordIds.length)).toEqual([DELETE_BATCH, 50]);
-        expect(deleteRows.mock.calls[0][0].configName).toBe('Test_Records');
+        expect(deleteRows.mock.calls[0][0].configName).toBe('Consignments');
         const cfg = tableConfig(el);
         expect(cfg.rows.map(r => r.Id)).toEqual([refused, ...rows.slice(250).map(r => r.Id)]);
         expect(cfg.errors[refused].row).toBe('insufficient access rights on object id');
-        expect(cfg.drafts).toEqual({ [row(260).Id]: { Name: 'Kept' } });
+        expect(cfg.drafts).toEqual({ [row(260).Id]: { Name: 'Narragansett Shellfish, 6 totes' } });
         expect(cfg.totalRows).toBe(11);
         expect(cfg.selectionKey).not.toBe(key);
         expect($(el, '.rh-count').textContent).toBe('11 items');
@@ -1432,7 +1493,7 @@ describe('mass update and mass delete', () => {
     it('says plainly when nothing was deleted', async () => {
         withDelete();
         deleteRows.mockRejectedValue({
-            body: { message: 'You do not have permission to delete Rowhouse_Test_Record__c records.' }
+            body: { message: 'You do not have permission to delete Consignment__c records.' }
         });
         const el = mountWatched();
         await settle();
@@ -1442,7 +1503,7 @@ describe('mass update and mass delete', () => {
         expect(tableConfig(el).rows).toHaveLength(3);
         expect(toasts[0]).toEqual({
             title: 'Not deleted',
-            message: 'Nothing was deleted: You do not have permission to delete Rowhouse_Test_Record__c records.',
+            message: 'Nothing was deleted: You do not have permission to delete Consignment__c records.',
             variant: 'error'
         });
     });
@@ -1480,7 +1541,12 @@ describe('import', () => {
         await settle();
         table(el).dispatchEvent(
             new CustomEvent('cellchange', {
-                detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' }
+                detail: {
+                    recordId: row(1).Id,
+                    field: 'Name',
+                    value: 'Green Mountain Maple, 30 cases',
+                    originalValue: 'Penobscot Paper, load 1'
+                }
             })
         );
         await settle();
@@ -1495,10 +1561,10 @@ describe('import', () => {
         $(el, '.rh-import').click();
         await settle();
         const d = dialog(el);
-        expect(d.configName).toBe('Test_Records');
+        expect(d.configName).toBe('Consignments');
         expect(d.canCreate).toBe(true);
         expect(d.rows.map(r => r.Id)).toEqual([row(1).Id, row(2).Id, row(3).Id]);
-        expect(d.columns.map(c => c.field)).toEqual(['Name', 'Number_Field__c']);
+        expect(d.columns.map(c => c.field)).toEqual(['Name', 'Pieces__c']);
         const calls = fetchRows.mock.calls.length;
         d.dispatchEvent(new CustomEvent('close', { detail: { changed: false } }));
         await settle();
@@ -1548,11 +1614,25 @@ describe('grouping and subtotals', () => {
         ...DEFINITION,
         columns: [
             ...DEFINITION.columns,
-            { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true },
-            { field: 'Close__c', label: 'Close', type: 'date', editable: true, sortable: true, groupable: true },
             {
-                field: 'Amount__c',
-                label: 'Amount',
+                field: 'Service_Level__c',
+                label: 'Service Level',
+                type: 'picklist',
+                editable: true,
+                sortable: true,
+                groupable: true
+            },
+            {
+                field: 'Ship_Date__c',
+                label: 'Ship Date',
+                type: 'date',
+                editable: true,
+                sortable: true,
+                groupable: true
+            },
+            {
+                field: 'Freight_Charge__c',
+                label: 'Freight Charge',
                 type: 'currency',
                 scale: 2,
                 editable: true,
@@ -1560,13 +1640,13 @@ describe('grouping and subtotals', () => {
                 subtotal: 'sum'
             }
         ],
-        grouping: [{ field: 'Stage__c', unit: null }]
+        grouping: [{ field: 'Service_Level__c', unit: null }]
     };
-    const group = (stage, n, sum) => ({ k: [stage], l: [null], n, v: { Amount__c: { s: sum } } });
+    const group = (stage, n, sum) => ({ k: [stage], l: [null], n, v: { Freight_Charge__c: { s: sum } } });
     const summaryCall = (extra = {}) => ({
-        configName: 'Test_Records',
+        configName: 'Consignments',
         searchTerm: null,
-        grouping: ['Stage__c'],
+        grouping: ['Service_Level__c'],
         fromId: null,
         toId: null,
         filters: null,
@@ -1586,7 +1666,7 @@ describe('grouping and subtotals', () => {
     beforeEach(() => {
         getGridConfig.mockResolvedValue({ definition: GROUPED, diagnostics: false });
         summarizeGroups.mockResolvedValue({
-            groups: [group('Open', 2, '150'), group('Won', 1, '500')],
+            groups: [group('Standard', 2, '150'), group('Express', 1, '500')],
             boundaries: null,
             tooManyGroups: false
         });
@@ -1595,29 +1675,29 @@ describe('grouping and subtotals', () => {
     it('opens with the admin grouping: rows in group order, and counts and subtotals from the server', async () => {
         const el = mount();
         await settle();
-        expect(fetchRows.mock.calls[0][0].groupBy).toEqual(['Stage__c']);
+        expect(fetchRows.mock.calls[0][0].groupBy).toEqual(['Service_Level__c']);
         expect(summarizeGroups).toHaveBeenCalledTimes(1);
         expect(summarizeGroups).toHaveBeenCalledWith(summaryCall());
         const cfg = tableConfig(el);
-        expect(cfg.grouping).toEqual([{ field: 'Stage__c', unit: null }]);
+        expect(cfg.grouping).toEqual([{ field: 'Service_Level__c', unit: null }]);
         expect(cfg.groupSummary.status).toBe('ready');
         expect(cfg.groupSummary.totals.total.count).toBe(3);
-        expect(cfg.groupSummary.totals.total.values.Amount__c.s).toBe('650');
+        expect(cfg.groupSummary.totals.total.values.Freight_Charge__c.s).toBe('650');
     });
 
     it('adds up the slices of a large list, each asked for by its Id range', async () => {
         summarizeGroups
             .mockResolvedValueOnce({
-                groups: [group('Open', 45000, '1.5')],
+                groups: [group('Standard', 45000, '1.5')],
                 boundaries: ['a01A', 'a01B'],
                 tooManyGroups: false
             })
             .mockResolvedValueOnce({
-                groups: [group('Open', 45000, '2.25'), group('Won', 1, '7')],
+                groups: [group('Standard', 45000, '2.25'), group('Express', 1, '7')],
                 boundaries: null,
                 tooManyGroups: false
             })
-            .mockResolvedValueOnce({ groups: [group('Won', 3, '0.25')], boundaries: null, tooManyGroups: false });
+            .mockResolvedValueOnce({ groups: [group('Express', 3, '0.25')], boundaries: null, tooManyGroups: false });
         const el = mount();
         await settle();
         await settle();
@@ -1629,8 +1709,8 @@ describe('grouping and subtotals', () => {
         const totals = tableConfig(el).groupSummary.totals;
         expect(totals.total.count).toBe(90004);
         // 1.5 + 2.25 + 7 + 0.25, added as decimals: exact, at the widest scale.
-        expect(totals.total.values.Amount__c.s).toBe('11.00');
-        expect(totals.byPath.get('open').count).toBe(90000);
+        expect(totals.total.values.Freight_Charge__c.s).toBe('11.00');
+        expect(totals.byPath.get('standard').count).toBe(90000);
     });
 
     it('with every row loaded, a new grouping asks only for counts; the same grouping asks for nothing', async () => {
@@ -1638,20 +1718,20 @@ describe('grouping and subtotals', () => {
         await settle();
         fetchRows.mockClear();
         summarizeGroups.mockClear();
-        groupChange(el, [{ field: 'Close__c', unit: 'quarter' }]);
+        groupChange(el, [{ field: 'Ship_Date__c', unit: 'quarter' }]);
         await settle();
         expect(fetchRows).not.toHaveBeenCalled();
-        expect(summarizeGroups).toHaveBeenCalledWith(summaryCall({ grouping: ['Close__c:quarter'] }));
-        expect(tableConfig(el).grouping).toEqual([{ field: 'Close__c', unit: 'quarter' }]);
+        expect(summarizeGroups).toHaveBeenCalledWith(summaryCall({ grouping: ['Ship_Date__c:quarter'] }));
+        expect(tableConfig(el).grouping).toEqual([{ field: 'Ship_Date__c', unit: 'quarter' }]);
 
         summarizeGroups.mockClear();
-        groupChange(el, [{ field: 'Close__c', unit: 'quarter' }]);
+        groupChange(el, [{ field: 'Ship_Date__c', unit: 'quarter' }]);
         await settle();
         expect(summarizeGroups).not.toHaveBeenCalled();
     });
 
     it('with rows still on the server, a new grouping reloads them in group order', async () => {
-        fetchRows.mockResolvedValue(page([row(1), row(2)], { hasMore: true, locator: 'L1', total: 50000 }));
+        fetchRows.mockResolvedValue(page([row(1), row(2)], { hasMore: true, locator: 'fp:2', total: 50000 }));
         const el = mount();
         await settle();
         fetchRows.mockClear();
@@ -1661,7 +1741,7 @@ describe('grouping and subtotals', () => {
         expect(fetchRows).toHaveBeenCalledTimes(1);
         expect(fetchRows.mock.calls[0][0].groupBy).toBeUndefined();
         expect(fetchRows.mock.calls[0][0].cursorLocator).toBeNull();
-        // Not grouped, but Amount has a subtotal: the Total row still needs one call.
+        // Not grouped, but Freight Charge has a subtotal: the Total row still needs one call.
         expect(summarizeGroups).toHaveBeenLastCalledWith(summaryCall({ grouping: [] }));
     });
 
@@ -1672,15 +1752,17 @@ describe('grouping and subtotals', () => {
         await settle();
         expect(tableConfig(el).groupSummary).toEqual({ status: 'loading' });
         summarizeGroups.mockResolvedValueOnce({
-            groups: [group('Won', 1, '5')],
+            groups: [group('Express', 1, '5')],
             boundaries: null,
             tooManyGroups: false
         });
-        el.shadowRoot.querySelector('.rh-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'x' } }));
+        el.shadowRoot
+            .querySelector('.rh-search')
+            .dispatchEvent(new CustomEvent('change', { detail: { value: 'Bangor' } }));
         jest.advanceTimersByTime(SEARCH_DELAY_MS);
         await settle();
-        expect(summarizeGroups).toHaveBeenLastCalledWith(summaryCall({ searchTerm: 'x' }));
-        slow.resolve({ groups: [group('Open', 99, '1')], boundaries: null, tooManyGroups: false });
+        expect(summarizeGroups).toHaveBeenLastCalledWith(summaryCall({ searchTerm: 'Bangor' }));
+        slow.resolve({ groups: [group('Standard', 99, '1')], boundaries: null, tooManyGroups: false });
         await settle();
         expect(tableConfig(el).groupSummary.totals.total.count).toBe(1);
     });
@@ -1696,13 +1778,13 @@ describe('grouping and subtotals', () => {
     });
 
     it('a failed call leaves the grid working, without counts, and says why', async () => {
-        summarizeGroups.mockRejectedValue({ body: { message: 'Cannot group by Stage.' } });
+        summarizeGroups.mockRejectedValue({ body: { message: 'Cannot group by Service Level.' } });
         const el = mount();
         await settle();
         expect(tableConfig(el).rows).toHaveLength(3);
         expect(tableConfig(el).groupSummary).toEqual({ status: 'unavailable' });
         expect(el.shadowRoot.querySelector('.rh-notice').textContent).toBe(
-            'Counts and subtotals could not be loaded. Cannot group by Stage.'
+            'Counts and subtotals could not be loaded. Cannot group by Service Level.'
         );
     });
 
@@ -1712,7 +1794,12 @@ describe('grouping and subtotals', () => {
         summarizeGroups.mockClear();
         table(el).dispatchEvent(
             new CustomEvent('cellchange', {
-                detail: { recordId: row(1).Id, field: 'Name', value: 'X', originalValue: 'Row 1' }
+                detail: {
+                    recordId: row(1).Id,
+                    field: 'Name',
+                    value: 'Pioneer Valley Orchards, 60 bushels',
+                    originalValue: 'Penobscot Paper, load 1'
+                }
             })
         );
         saveRows.mockResolvedValue({
@@ -1724,7 +1811,7 @@ describe('grouping and subtotals', () => {
             rejectedFields: [],
             strippedFields: []
         });
-        fetchRowsById.mockResolvedValue([row(1, { Name: 'X' })]);
+        fetchRowsById.mockResolvedValue([row(1, { Name: 'Pioneer Valley Orchards, 60 bushels' })]);
         table(el).dispatchEvent(new CustomEvent('save'));
         await settle();
         await jest.advanceTimersByTimeAsync(100);
@@ -1745,16 +1832,22 @@ describe('grouping and subtotals', () => {
 describe('child tables', () => {
     const CHILDREN = [
         {
-            name: 'Test_Records_Children',
-            label: 'Children',
-            configName: 'Test_Children',
-            objectApiName: 'Rowhouse_Test_Child__c',
-            relationshipField: 'Parent__c'
+            name: 'Consignments_Items',
+            label: 'Consignment Items',
+            configName: 'Consignment_Items',
+            objectApiName: 'Consignment_Item__c',
+            relationshipField: 'Consignment__c'
         }
     ];
-    const PARENT = { link: 'Test_Records_Children', id: 'a00000000000000001', name: 'Row 1', level: 2, height: null };
+    const PARENT = {
+        link: 'Consignments_Items',
+        id: 'a00000000000000001',
+        name: 'Penobscot Paper, load 1',
+        level: 2,
+        height: null
+    };
     const $ = (el, selector) => el.shadowRoot.querySelector(selector);
-    const mountChild = (parent = PARENT, configName = 'Test_Children') => {
+    const mountChild = (parent = PARENT, configName = 'Consignment_Items') => {
         const el = createElement('c-grid-view', { is: GridView });
         el.configName = configName;
         el.parent = parent;
@@ -1781,11 +1874,11 @@ describe('child tables', () => {
     it("a child table asks for its parent's rows only, through the link it is shown in", async () => {
         mountChild();
         await settle();
-        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Test_Children' });
+        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Consignment_Items' });
         expect(fetchRows).toHaveBeenCalledWith(
             expect.objectContaining({
-                configName: 'Test_Children',
-                parentLink: 'Test_Records_Children',
+                configName: 'Consignment_Items',
+                parentLink: 'Consignments_Items',
                 parentId: PARENT.id
             })
         );
@@ -1801,7 +1894,7 @@ describe('child tables', () => {
         expect(cfg.children).toEqual(CHILDREN);
         expect($(el, 'article').className).toBe('rh-app rh-app_nested');
         expect($(el, 'h2').className).toBe('slds-assistive-text');
-        expect($(el, 'h2').textContent.trim()).toContain('Test Records');
+        expect($(el, 'h2').textContent.trim()).toContain('Open Consignments');
     });
 
     it('a child table is as tall as the Height the admin gave its tab', async () => {
@@ -1827,14 +1920,14 @@ describe('child tables', () => {
         await settle();
         expect(fetchRows.mock.calls.length).toBe(calls);
         expect(tableConfig(el)).toBe(before);
-        el.parent = { ...PARENT, id: 'a00000000000000002', name: 'Row 2' };
+        el.parent = { ...PARENT, id: 'a00000000000000002', name: 'Penobscot Paper, load 2' };
         await settle();
         expect(fetchRows.mock.calls.length).toBeGreaterThan(calls);
         expect(fetchRows.mock.calls[fetchRows.mock.calls.length - 1][0].parentId).toBe('a00000000000000002');
     });
 
     it('ignores a parent without a link or a record', async () => {
-        const el = mountChild({ link: 'Test_Records_Children' });
+        const el = mountChild({ link: 'Consignments_Items' });
         await settle();
         expect(el.parent).toBeNull();
         expect(fetchRows.mock.calls[0][0]).not.toHaveProperty('parentId');
@@ -1846,20 +1939,20 @@ describe('child tables', () => {
                 ...DEFINITION,
                 columns: [
                     ...DEFINITION.columns,
-                    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, subtotal: 'sum' }
+                    { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', scale: 2, subtotal: 'sum' }
                 ]
             },
             diagnostics: false
         });
         summarizeGroups.mockResolvedValue({
-            groups: [{ k: [], l: [], n: 3, v: { Amount__c: { s: '6' } } }],
+            groups: [{ k: [], l: [], n: 3, v: { Freight_Charge__c: { s: '6' } } }],
             boundaries: null,
             tooManyGroups: false
         });
         mountChild();
         await settle();
         expect(summarizeGroups).toHaveBeenCalledWith(
-            expect.objectContaining({ parentLink: 'Test_Records_Children', parentId: PARENT.id })
+            expect.objectContaining({ parentLink: 'Consignments_Items', parentId: PARENT.id })
         );
     });
 
@@ -1921,14 +2014,14 @@ describe('list view details', () => {
                 new CustomEvent('sortchange', {
                     detail: {
                         sort: [
-                            { field: 'Number_Field__c', direction: 'desc' },
+                            { field: 'Pieces__c', direction: 'desc' },
                             { field: 'Name', direction: 'asc' }
                         ]
                     }
                 })
             );
             await settle();
-            expect($(el, '.rh-sorted').textContent).toBe('Sorted by Number, then Name');
+            expect($(el, '.rh-sorted').textContent).toBe('Sorted by Pieces, then Name');
         });
 
         it('labels Import and Export, and offers Refresh, which waits for unsaved changes', async () => {
@@ -1941,7 +2034,12 @@ describe('list view details', () => {
             expect(refresh.disabled).toBe(false);
             table(el).dispatchEvent(
                 new CustomEvent('cellchange', {
-                    detail: { recordId: row(1).Id, field: 'Name', value: 'x', originalValue: 'Row 1' }
+                    detail: {
+                        recordId: row(1).Id,
+                        field: 'Name',
+                        value: 'Green Mountain Maple, 30 cases',
+                        originalValue: 'Penobscot Paper, load 1'
+                    }
                 })
             );
             await settle();
@@ -2020,7 +2118,7 @@ describe('list view details', () => {
             {
                 name: 'Late',
                 label: 'Overdue',
-                field: 'Number_Field__c',
+                field: 'Pieces__c',
                 type: 'number',
                 operator: 'less_than',
                 value: '0',
@@ -2028,9 +2126,9 @@ describe('list view details', () => {
                 applyTo: 'cell'
             },
             {
-                name: 'Big',
-                label: 'Large deal',
-                field: 'Number_Field__c',
+                name: 'Large_Load',
+                label: 'Large load',
+                field: 'Pieces__c',
                 type: 'number',
                 operator: 'greater_than',
                 value: '9',
@@ -2119,7 +2217,7 @@ describe('list view details', () => {
             expect(toggle.getAttribute('aria-expanded')).toBe('true');
             expect($(el, '.rh-legend').getAttribute('aria-label')).toBe('Display Key');
             const items = [...el.shadowRoot.querySelectorAll('.rh-legend li')];
-            expect(items.map(li => li.textContent)).toEqual(['AaOverdue: Red text, Cell', 'AaLarge deal: Purple, Row']);
+            expect(items.map(li => li.textContent)).toEqual(['AaOverdue: Red text, Cell', 'AaLarge load: Purple, Row']);
             const swatches = [...el.shadowRoot.querySelectorAll('.rh-legend .rh-legend-swatch')].map(
                 sw => sw.className
             );
@@ -2134,9 +2232,9 @@ describe('list view details', () => {
             const el = mount();
             await settle();
             fetchRows.mockResolvedValue(page([]));
-            await search(el, 'zzz');
+            await search(el, 'Calais');
             expect(tableConfig(el).emptyState).toMatchObject({
-                title: 'No records match “zzz”',
+                title: 'No records match “Calais”',
                 actionLabel: 'Clear search'
             });
             fetchRows.mockResolvedValue(page([row(1)]));
@@ -2166,28 +2264,28 @@ describe('list view details', () => {
     });
 
     describe('child tables: counts', () => {
-        const CHILDREN = [{ name: 'Test_Records_Children', label: 'Children', configName: 'Test_Children' }];
+        const CHILDREN = [{ name: 'Consignments_Items', label: 'Consignment Items', configName: 'Consignment_Items' }];
 
         it('asks how many related records each row has, and hands the counts to the table', async () => {
             getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, children: CHILDREN }, diagnostics: false });
-            countChildren.mockResolvedValue({ [row(1).Id]: { total: 2, byTab: { Test_Records_Children: 2 } } });
+            countChildren.mockResolvedValue({ [row(1).Id]: { total: 2, byTab: { Consignments_Items: 2 } } });
             const el = mount();
             await settle();
             expect(countChildren).toHaveBeenCalledWith({
-                configName: 'Test_Records',
+                configName: 'Consignments',
                 parentIds: [row(1).Id, row(2).Id, row(3).Id]
             });
-            expect(tableConfig(el).childCounts[row(1).Id]).toEqual({ total: 2, byTab: { Test_Records_Children: 2 } });
+            expect(tableConfig(el).childCounts[row(1).Id]).toEqual({ total: 2, byTab: { Consignments_Items: 2 } });
             expect(tableConfig(el).childCountsFailed).toBe(false);
 
             // A child table's own count changed: the row's follows.
             table(el).dispatchEvent(
                 new CustomEvent('childcount', {
-                    detail: { parentId: row(1).Id, tab: 'Test_Records_Children', count: 5 }
+                    detail: { parentId: row(1).Id, tab: 'Consignments_Items', count: 5 }
                 })
             );
             await settle();
-            expect(tableConfig(el).childCounts[row(1).Id]).toEqual({ total: 5, byTab: { Test_Records_Children: 5 } });
+            expect(tableConfig(el).childCounts[row(1).Id]).toEqual({ total: 5, byTab: { Consignments_Items: 5 } });
         });
 
         it(`asks in batches of ${COUNT_BATCH}, and does not ask again for rows it knows`, async () => {
@@ -2208,7 +2306,7 @@ describe('list view details', () => {
             await settle();
             expect(countChildren).not.toHaveBeenCalled();
             getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, children: CHILDREN }, diagnostics: false });
-            countChildren.mockRejectedValue({ body: { message: 'nope' } });
+            countChildren.mockRejectedValue({ body: { message: 'Your query request was running for too long.' } });
             const el = mount();
             await settle();
             expect(tableConfig(el).childCounts).toEqual({});
@@ -2230,22 +2328,27 @@ describe('list view details', () => {
             expect(tableConfig(el).rows).toHaveLength(3);
             expect(tableConfig(el).childCounts).toEqual({});
             expect(tableConfig(el).childCountsFailed).toBe(false);
-            answer({ [row(1).Id]: { total: 1, byTab: { Test_Records_Children: 1 } } });
+            answer({ [row(1).Id]: { total: 1, byTab: { Consignments_Items: 1 } } });
             await settle();
             expect(tableConfig(el).childCounts[row(1).Id].total).toBe(1);
         });
 
         it("a child table tells its tab its count after it loads, but not a search's", async () => {
             const el = createElement('c-grid-view', { is: GridView });
-            el.configName = 'Test_Children';
-            el.parent = { link: 'Test_Records_Children', id: 'a00000000000000001', name: 'Row 1', level: 2 };
+            el.configName = 'Consignment_Items';
+            el.parent = {
+                link: 'Consignments_Items',
+                id: 'a00000000000000001',
+                name: 'Penobscot Paper, load 1',
+                level: 2
+            };
             const told = [];
             el.addEventListener('countchange', e => told.push(e.detail.count));
             document.body.appendChild(el);
             await settle();
             expect(told).toEqual([3]);
             fetchRows.mockResolvedValue(page([row(1)]));
-            await search(el, 'Row 1');
+            await search(el, 'Penobscot');
             expect(told).toEqual([3]);
             // A nested grid shows no count line: its tab says it.
             expect($(el, '.rh-count')).toBeNull();

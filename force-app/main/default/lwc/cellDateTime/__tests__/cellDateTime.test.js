@@ -14,7 +14,7 @@ const KOLKATA = 'Asia/Kolkata';
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const mount = props => {
     const el = createElement('rowhouse-cell-date-time', { is: CellDateTime });
-    Object.assign(el, { mode: 'edit', label: 'Meeting', ...props });
+    Object.assign(el, { mode: 'edit', label: 'Picked Up', ...props });
     document.body.appendChild(el);
     return el;
 };

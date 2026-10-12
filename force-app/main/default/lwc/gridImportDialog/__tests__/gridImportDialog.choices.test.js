@@ -15,8 +15,8 @@ const zlib = require('zlib');
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, scale: 2 },
-    { field: 'Key__c', label: 'Key', type: 'text', editable: true, externalId: true }
+    { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', editable: true, scale: 2 },
+    { field: 'Bill_Of_Lading__c', label: 'Bill of Lading', type: 'text', editable: true, externalId: true }
 ];
 const ID1 = 'a00000000000001AAA';
 const NEW1 = 'a00000000000009AAA';
@@ -102,10 +102,10 @@ describe('gridImportDialog choices and undo', () => {
         el = createElement('c-grid-import-dialog', { is: GridImportDialog });
         Object.assign(el, {
             columns: COLUMNS,
-            rows: [{ Id: ID1, Name: 'One', Amount__c: '1' }],
+            rows: [{ Id: ID1, Name: 'Kennebec Lumber to Augusta', Freight_Charge__c: '1' }],
             refNames: {},
             canCreate: true,
-            configName: 'Import_Test'
+            configName: 'Consignment_Import'
         });
         document.body.appendChild(el);
         await tick();
@@ -120,7 +120,7 @@ describe('gridImportDialog choices and undo', () => {
         target.dispatchEvent(new CustomEvent('change'));
         await tick();
     };
-    const csv = content => new File([content], 'records.csv', { type: 'text/csv' });
+    const csv = content => new File([content], 'Consignments.csv', { type: 'text/csv' });
     afterEach(() => {
         while (document.body.firstChild) document.body.firstChild.remove();
         jest.clearAllMocks();
@@ -129,29 +129,32 @@ describe('gridImportDialog choices and undo', () => {
     it("offers a workbook's sheets and checks the one chosen", async () => {
         await mount();
         const book = xlsx({
-            First: sheetOf([['Name'], ['From the first']]),
-            Second: sheetOf([
-                ['Name', 'Amount'],
-                ['From the second', '7'],
-                ['Also', '8']
+            Portland: sheetOf([['Name'], ['Saco River Outfitters to Portland']]),
+            Bangor: sheetOf([
+                ['Name', 'Freight Charge'],
+                ['Penobscot Paper to Bangor', '7'],
+                ['Androscoggin Pulp to Bangor', '8']
             ])
         });
-        await choose(new File([book], 'book.xlsx'));
-        expect($$('.rh-import-sheet select option').map(o => o.value)).toEqual(['First', 'Second']);
-        expect($('.rh-import-sheet select').value).toBe('First');
-        expect(text('.rh-import-summary')).toBe('book.xlsx: 1 row creates a record.');
-        await select($('.rh-import-sheet select'), 'Second');
-        expect(text('.rh-import-summary')).toBe('book.xlsx: 2 rows create records.');
-        expect($('.rh-import-sheet select').value).toBe('Second');
-        expect($$('.rh-import-map').map(m => m.value)).toEqual(['Name', 'Amount__c']);
+        await choose(new File([book], 'Consignments.xlsx'));
+        expect($$('.rh-import-sheet select option').map(o => o.value)).toEqual(['Portland', 'Bangor']);
+        expect($('.rh-import-sheet select').value).toBe('Portland');
+        expect(text('.rh-import-summary')).toBe('Consignments.xlsx: 1 row creates a record.');
+        await select($('.rh-import-sheet select'), 'Bangor');
+        expect(text('.rh-import-summary')).toBe('Consignments.xlsx: 2 rows create records.');
+        expect($('.rh-import-sheet select').value).toBe('Bangor');
+        expect($$('.rh-import-map').map(m => m.value)).toEqual(['Name', 'Freight_Charge__c']);
     });
 
     it('opens a workbook on its first sheet that names a column, past a sheet of notes', async () => {
         await mount();
-        const book = xlsx({ Notes: sheetOf([['Read me'], ['Not records']]), Data: sheetOf([['Name'], ['A'], ['B']]) });
-        await choose(new File([book], 'book.xlsx'));
-        expect($('.rh-import-sheet select').value).toBe('Data');
-        expect(text('.rh-import-summary')).toBe('book.xlsx: 2 rows create records.');
+        const book = xlsx({
+            Notes: sheetOf([['Rates from 1 October 2026'], ['Prepared by dispatch']]),
+            Consignments: sheetOf([['Name'], ['Wachusett Paper to Worcester'], ['Quabbin Supply to Springfield']])
+        });
+        await choose(new File([book], 'Consignments.xlsx'));
+        expect($('.rh-import-sheet select').value).toBe('Consignments');
+        expect(text('.rh-import-summary')).toBe('Consignments.xlsx: 2 rows create records.');
         await select($('.rh-import-sheet select'), 'Notes');
         expect(text('.rh-import-error')).toBe(
             'None of the file’s column names is a column of this grid. Choose below what each column is imported as.'
@@ -161,26 +164,33 @@ describe('gridImportDialog choices and undo', () => {
 
     it('lets a file column be mapped by hand, or left out', async () => {
         await mount();
-        await choose(csv('Name,Price\nA,5\n'));
+        await choose(csv('Name,Rate\nWachusett Paper to Worcester,5\n'));
         expect($$('.rh-import-map').map(m => m.value)).toEqual(['Name', '__skip']);
         expect(text('.rh-import-map-note')).toBe('Not a column of this grid.');
-        await select($$('.rh-import-map')[1], 'Amount__c');
-        expect($$('.rh-import-map').map(m => m.value)).toEqual(['Name', 'Amount__c']);
-        expect([...$$('.rh-import-preview tbody td')].map(td => td.textContent)).toEqual(['2', 'Create', 'A', '$5.00']);
+        await select($$('.rh-import-map')[1], 'Freight_Charge__c');
+        expect($$('.rh-import-map').map(m => m.value)).toEqual(['Name', 'Freight_Charge__c']);
+        expect([...$$('.rh-import-preview tbody td')].map(td => td.textContent)).toEqual([
+            '2',
+            'Create',
+            'Wachusett Paper to Worcester',
+            '$5.00'
+        ]);
         await select($$('.rh-import-map')[0], '__skip');
         expect([...$$('.rh-import-preview tbody td')].map(td => td.textContent)).toEqual(['2', 'Create', '$5.00']);
     });
 
     it('matches records by an External Id column when asked, and sends the server that column', async () => {
         importRows.mockResolvedValue({
-            rows: [{ index: 0, success: true, created: false, recordId: ID1, previous: { Amount__c: '1' } }]
+            rows: [{ index: 0, success: true, created: false, recordId: ID1, previous: { Freight_Charge__c: '1' } }]
         });
         await mount();
-        await choose(csv('Key,Amount\nK-1,9\n'));
-        expect($$('.rh-import-match select option').map(o => o.textContent)).toEqual(['Record Id', 'Key']);
+        await choose(csv('Bill of Lading,Freight Charge\nBOL-40217,9\n'));
+        expect($$('.rh-import-match select option').map(o => o.textContent)).toEqual(['Record Id', 'Bill of Lading']);
         // No Id column: matched by the key to begin with, so no record is copied by mistake.
-        expect($('.rh-import-match select').value).toBe('Key__c');
-        expect(text('.rh-import-summary')).toBe('records.csv: 1 row updates the record with Key, or creates one.');
+        expect($('.rh-import-match select').value).toBe('Bill_Of_Lading__c');
+        expect(text('.rh-import-summary')).toBe(
+            'Consignments.csv: 1 row updates the record with Bill of Lading, or creates one.'
+        );
         expect($$('.rh-import-count p').map(p => p.textContent)).toEqual([
             '1',
             'update or create',
@@ -188,9 +198,9 @@ describe('gridImportDialog choices and undo', () => {
             'rows with problems'
         ]);
         await select($('.rh-import-match select'), '');
-        expect(text('.rh-import-summary')).toBe('records.csv: 1 row creates a record.');
-        await select($('.rh-import-match select'), 'Key__c');
-        expect(text('.rh-import-id-text')).toContain('Records are matched by Key');
+        expect(text('.rh-import-summary')).toBe('Consignments.csv: 1 row creates a record.');
+        await select($('.rh-import-match select'), 'Bill_Of_Lading__c');
+        expect(text('.rh-import-id-text')).toContain('Records are matched by Bill of Lading');
         expect([...$$('.rh-import-preview tbody td')].map(td => td.textContent).slice(0, 2)).toEqual([
             '2',
             'Update or create'
@@ -198,30 +208,38 @@ describe('gridImportDialog choices and undo', () => {
         $('.rh-import-go').click();
         await until(() => $('.rh-import-result'));
         expect(importRows).toHaveBeenCalledWith({
-            configName: 'Import_Test',
-            rows: [{ Key__c: 'K-1', Amount__c: 9 }],
+            configName: 'Consignment_Import',
+            rows: [{ Bill_Of_Lading__c: 'BOL-40217', Freight_Charge__c: 9 }],
             recordId: null,
-            matchField: 'Key__c'
+            matchField: 'Bill_Of_Lading__c'
         });
     });
 
     it('keeps matching by the record Id when the file has one, whatever else it has', async () => {
         await mount();
-        await choose(csv(`Id,Key\n${ID1},K-1\n`));
+        await choose(csv(`Id,Bill of Lading\n${ID1},BOL-40217\n`));
         expect($('.rh-import-match select').value).toBe('');
-        expect(text('.rh-import-summary')).toBe('records.csv: 1 row updates a record.');
+        expect(text('.rh-import-summary')).toBe('Consignments.csv: 1 row updates a record.');
     });
 
     it('undoes an import: the old values back through the import, the new records deleted', async () => {
         importRows.mockResolvedValueOnce({
             rows: [
-                // Amount was blank: Apex leaves a null out, so Undo writes it back blank.
-                { index: 0, success: true, created: false, recordId: ID1, previous: { Name: 'One' } },
+                // Freight Charge was blank: Apex leaves a null out, so Undo writes it back blank.
+                {
+                    index: 0,
+                    success: true,
+                    created: false,
+                    recordId: ID1,
+                    previous: { Name: 'Kennebec Lumber to Augusta' }
+                },
                 { index: 1, success: true, created: true, recordId: NEW1 }
             ]
         });
         await mount();
-        await choose(csv(`Id,Name,Amount\n${ID1},One changed,2\n,Brand new,3\n`));
+        await choose(
+            csv(`Id,Name,Freight Charge\n${ID1},Kennebec Lumber to Bangor,2\n,Penobscot Paper full truck,3\n`)
+        );
         $('.rh-import-go').click();
         await until(() => $('.rh-import-result'));
         expect($('.rh-import-undo')).not.toBeNull();
@@ -235,11 +253,11 @@ describe('gridImportDialog choices and undo', () => {
         $('.rh-import-undo-go').click();
         await until(() => $('.rh-import-undo-result'));
         expect(importRows).toHaveBeenLastCalledWith({
-            configName: 'Import_Test',
-            rows: [{ Id: ID1, Name: 'One', Amount__c: null }],
+            configName: 'Consignment_Import',
+            rows: [{ Id: ID1, Name: 'Kennebec Lumber to Augusta', Freight_Charge__c: null }],
             recordId: null
         });
-        expect(undoImport).toHaveBeenCalledWith({ configName: 'Import_Test', recordIds: [NEW1] });
+        expect(undoImport).toHaveBeenCalledWith({ configName: 'Consignment_Import', recordIds: [NEW1] });
         expect(text('.rh-import-undo-result')).toBe('Undo put back 1 record and deleted 1 new record.');
         expect($('.rh-import-undo')).toBeNull(); // once
     });
@@ -247,7 +265,7 @@ describe('gridImportDialog choices and undo', () => {
     it('keeps the import when the user thinks better of undoing it', async () => {
         importRows.mockResolvedValueOnce({ rows: [{ index: 0, success: true, created: true, recordId: NEW1 }] });
         await mount();
-        await choose(csv('Name\nKeep me\n'));
+        await choose(csv('Name\nCasco Bay Marine to Portland\n'));
         $('.rh-import-go').click();
         await until(() => $('.rh-import-result'));
         $('.rh-import-undo').click();

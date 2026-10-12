@@ -7,7 +7,7 @@
  * importing the table (HR-27).
  *
  * The edge cases each function handles are named by test-case number; the
- * records are in test-data/data/Rowhouse_Test_Record__c.csv.
+ * records are in test-data/data/Consignment__c.csv.
  */
 import LOCALE from '@salesforce/i18n/locale';
 import CURRENCY from '@salesforce/i18n/currency';

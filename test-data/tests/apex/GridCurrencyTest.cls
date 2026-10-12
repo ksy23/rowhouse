@@ -10,7 +10,7 @@
  */
 @IsTest
 private class GridCurrencyTest {
-    static final Schema.SObjectType TEST_RECORD = Rowhouse_Test_Record__c.SObjectType;
+    static final Schema.SObjectType TEST_RECORD = Consignment__c.SObjectType;
 
     static GridConfig.Column column(String field, String type) {
         GridConfig.Column c = new GridConfig.Column();
@@ -28,7 +28,7 @@ private class GridCurrencyTest {
     @IsTest
     static void oneCurrencyLeavesColumnsAsTheyWere() {
         GridCurrency.multiCurrencyForTest = false;
-        List<GridConfig.Column> columns = new List<GridConfig.Column>{ column('Currency_Field__c', 'currency') };
+        List<GridConfig.Column> columns = new List<GridConfig.Column>{ column('Freight_Charge__c', 'currency') };
         GridCurrency.describe(TEST_RECORD, columns);
         System.assertEquals(null, columns[0].currencyField);
         System.assertEquals(null, columns[0].currencyCode);
@@ -40,13 +40,13 @@ private class GridCurrencyTest {
     @IsTest
     static void eachAmountIsInItsRecordsCurrencyAndEachTotalInTheCorporateOne() {
         manyCurrencies('USD');
-        GridConfig.Column own = column('Currency_Field__c', 'currency');
-        GridConfig.Column parent = column('Lookup_Field__r.AnnualRevenue', 'currency');
+        GridConfig.Column own = column('Freight_Charge__c', 'currency');
+        GridConfig.Column parent = column('Shipper__r.AnnualRevenue', 'currency');
         GridConfig.Column formula = column('_fx_Doubled', 'currency');
         formula.isFormula = true;
         GridConfig.Column childTotal = column('_ct_Total', 'currency');
         childTotal.isChildTotal = true;
-        GridConfig.Column numeric = column('Number_Field__c', 'number');
+        GridConfig.Column numeric = column('Pieces__c', 'number');
         List<GridConfig.Column> columns = new List<GridConfig.Column>{ own, parent, formula, childTotal, numeric };
 
         GridCurrency.describe(TEST_RECORD, columns);
@@ -55,7 +55,7 @@ private class GridCurrencyTest {
         System.assertEquals(null, own.currencyCode);
         System.assertEquals('USD', own.totalCurrency);
         System.assertEquals(
-            'Lookup_Field__r.CurrencyIsoCode',
+            'Shipper__r.CurrencyIsoCode',
             parent.currencyField,
             'A parent record’s amount is in the parent’s currency.'
         );
@@ -67,7 +67,7 @@ private class GridCurrencyTest {
         System.assertEquals(null, numeric.totalCurrency);
 
         System.assertEquals(
-            new List<String>{ 'CurrencyIsoCode', 'Lookup_Field__r.CurrencyIsoCode' },
+            new List<String>{ 'CurrencyIsoCode', 'Shipper__r.CurrencyIsoCode' },
             GridCurrency.fieldsToRead(columns),
             'Each currency once.'
         );
@@ -77,7 +77,7 @@ private class GridCurrencyTest {
     static void anObjectWithoutACurrencyHasItsAmountsInTheCorporateOne() {
         manyCurrencies('EUR');
         GridCurrency.currencyFieldForTest = false;
-        GridConfig.Column own = column('Currency_Field__c', 'currency');
+        GridConfig.Column own = column('Freight_Charge__c', 'currency');
         GridCurrency.describe(TEST_RECORD, new List<GridConfig.Column>{ own });
         System.assertEquals(null, own.currencyField);
         System.assertEquals('EUR', own.currencyCode);
@@ -90,7 +90,7 @@ private class GridCurrencyTest {
         // org has one currency): the grid then names no currency for a total.
         GridCurrency.multiCurrencyForTest = true;
         System.assertEquals(null, GridCurrency.corporate());
-        GridConfig.Column own = column('Currency_Field__c', 'currency');
+        GridConfig.Column own = column('Freight_Charge__c', 'currency');
         GridCurrency.currencyFieldForTest = true;
         GridCurrency.describe(TEST_RECORD, new List<GridConfig.Column>{ own });
         System.assertEquals(null, own.totalCurrency);
@@ -102,7 +102,7 @@ private class GridCurrencyTest {
         manyCurrencies('USD');
         GridConfig.Definition def;
         System.runAs(GridTestUsers.fullUser()) {
-            def = GridConfig.forUser('Test_Records');
+            def = GridConfig.forUser('Consignments');
         }
         Boolean found = false;
         for (GridConfig.Column c : def.columns) {
@@ -114,7 +114,7 @@ private class GridCurrencyTest {
                 System.assertEquals(null, c.currencyField, c.field);
             }
         }
-        System.assert(found, 'Test_Records has a currency column.');
+        System.assert(found, 'Consignments has a currency column.');
     }
 
     @IsTest
@@ -122,7 +122,7 @@ private class GridCurrencyTest {
         // The development org: nothing changes, and the rows read nothing extra.
         GridConfig.Definition def;
         System.runAs(GridTestUsers.fullUser()) {
-            def = GridConfig.forUser('Test_Records');
+            def = GridConfig.forUser('Consignments');
         }
         System.assertEquals(UserInfo.isMultiCurrencyOrganization(), GridCurrency.isMultiCurrency());
         if (!UserInfo.isMultiCurrencyOrganization()) {

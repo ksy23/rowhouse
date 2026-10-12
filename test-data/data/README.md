@@ -1,6 +1,6 @@
 # data/
 
-`Rowhouse_Test_Record__c.csv` — the 56 edge-case records. Committed, because
+`Consignment__c.csv` — the 56 edge-case records. Committed, because
 each row is a deliberate choice rather than generated filler.
 
 `benchmark-to-{1,5,10,50}k.csv` — **not here until you generate them:**

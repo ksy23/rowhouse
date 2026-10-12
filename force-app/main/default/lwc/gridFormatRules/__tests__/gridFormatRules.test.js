@@ -49,7 +49,7 @@ describe('each type', () => {
         expect(one(rule, '2026-01-31T23:30:00.000Z')).toBe(true);
         expect(one(rule, '2026-02-01T04:30:00.000Z')).toBe(true); // 04:30 UTC on 1 Feb is 23:30 on 31 Jan in New York
         expect(one(rule, '2026-02-01T05:30:00.000Z')).toBe(false); // and 05:30 UTC is 00:30 on 1 Feb
-        expect(one(rule, 'not a date')).toBe(false);
+        expect(one(rule, 'TBD')).toBe(false);
     });
 
     it('compares times as HH:MM:SS', () => {
@@ -66,22 +66,27 @@ describe('each type', () => {
     });
 
     it('compares text and picklists without regard to case', () => {
-        expect(one({ type: 'picklist', operator: 'equals', value: 'Gamma' }, 'gamma')).toBe(true);
-        expect(one({ type: 'text', operator: 'contains', value: 'smith' }, 'Smith, John and Sons, Ltd.')).toBe(true);
-        expect(one({ type: 'text', operator: 'starts_with', value: 'tc-0' }, 'TC-056')).toBe(true);
-        expect(one({ type: 'text', operator: 'not_contains', value: 'x' }, 'abc')).toBe(true);
-        expect(one({ type: 'email', operator: 'contains', value: '@example' }, 'a@EXAMPLE.com')).toBe(true);
+        expect(one({ type: 'picklist', operator: 'equals', value: 'Express' }, 'express')).toBe(true);
+        expect(one({ type: 'text', operator: 'contains', value: 'brick' }, 'Bangor Brick & Tile, Ltd.')).toBe(true);
+        expect(one({ type: 'text', operator: 'starts_with', value: 'pro-10' }, 'PRO-1056')).toBe(true);
+        expect(one({ type: 'text', operator: 'not_contains', value: 'reefer' }, 'Dry van, 12 pallets')).toBe(true);
+        expect(
+            one(
+                { type: 'email', operator: 'contains', value: '@granitecoast' },
+                'hannah.pelletier@GRANITECOASTFREIGHT.com'
+            )
+        ).toBe(true);
     });
 
     it('treats a multi-select as a set of values', () => {
-        const has = { type: 'multipicklist', operator: 'contains', value: 'Green' };
-        expect(one(has, 'Red;Green;Blue')).toBe(true);
-        expect(one(has, 'Red;Blue')).toBe(false);
-        expect(one(has, 'Greenish')).toBe(false); // contains means includes that value, not the letters
-        const same = { type: 'multipicklist', operator: 'equals', value: 'Red;Blue' };
-        expect(one(same, 'Blue;Red')).toBe(true);
-        expect(one(same, 'Red;Blue;Green')).toBe(false);
-        expect(one({ type: 'multipicklist', operator: 'not_contains', value: 'Green' }, 'Red')).toBe(true);
+        const has = { type: 'multipicklist', operator: 'contains', value: 'Liftgate' };
+        expect(one(has, 'Fragile;Liftgate;Inside Delivery')).toBe(true);
+        expect(one(has, 'Fragile;Inside Delivery')).toBe(false);
+        expect(one(has, 'Liftgate Pickup')).toBe(false); // contains means includes that value, not the letters
+        const same = { type: 'multipicklist', operator: 'equals', value: 'Fragile;Inside Delivery' };
+        expect(one(same, 'Inside Delivery;Fragile')).toBe(true);
+        expect(one(same, 'Fragile;Inside Delivery;Liftgate')).toBe(false);
+        expect(one({ type: 'multipicklist', operator: 'not_contains', value: 'Liftgate' }, 'Fragile')).toBe(true);
     });
 
     it('compares lookups by record Id, 15 or 18 characters, and $User with the viewer', () => {
@@ -100,9 +105,9 @@ describe('blank values', () => {
         [null, undefined, ''].forEach(blank => {
             expect(one({ type: 'text', operator: 'is_blank' }, blank)).toBe(true);
             expect(one({ type: 'text', operator: 'is_not_blank' }, blank)).toBe(false);
-            expect(one({ type: 'text', operator: 'equals', value: 'x' }, blank)).toBe(false);
-            expect(one({ type: 'text', operator: 'not_equals', value: 'x' }, blank)).toBe(true);
-            expect(one({ type: 'text', operator: 'not_contains', value: 'x' }, blank)).toBe(true);
+            expect(one({ type: 'text', operator: 'equals', value: 'Bangor' }, blank)).toBe(false);
+            expect(one({ type: 'text', operator: 'not_equals', value: 'Bangor' }, blank)).toBe(true);
+            expect(one({ type: 'text', operator: 'not_contains', value: 'Bangor' }, blank)).toBe(true);
             expect(one({ type: 'number', operator: 'less_than', value: '0' }, blank)).toBe(false);
         });
     });
@@ -117,8 +122,8 @@ describe('which classes a cell takes', () => {
     const RULES = [
         {
             name: 'Negative',
-            label: 'Negative amount',
-            field: 'Amount',
+            label: 'Negative charge',
+            field: 'Freight_Charge__c',
             type: 'currency',
             operator: 'less_than',
             value: '0',
@@ -127,8 +132,8 @@ describe('which classes a cell takes', () => {
         },
         {
             name: 'Large',
-            label: 'Large amount',
-            field: 'Amount',
+            label: 'Large charge',
+            field: 'Freight_Charge__c',
             type: 'currency',
             operator: 'greater_or_equal',
             value: '1000',
@@ -136,18 +141,18 @@ describe('which classes a cell takes', () => {
             applyTo: 'cell'
         },
         {
-            name: 'Gamma',
-            label: 'Gamma stage',
-            field: 'Stage',
+            name: 'Express',
+            label: 'Express service',
+            field: 'Service_Level__c',
             type: 'picklist',
             operator: 'equals',
-            value: 'Gamma',
+            value: 'Express',
             style: 'fill_purple',
             applyTo: 'row'
         },
         {
             name: 'Late',
-            field: 'Due',
+            field: 'Ship_Date__c',
             type: 'date',
             operator: 'less_than',
             value: 'TODAY',
@@ -156,27 +161,27 @@ describe('which classes a cell takes', () => {
         },
         {
             name: 'Heavy',
-            label: 'Has a stage',
-            field: 'Stage',
+            label: 'Has a service level',
+            field: 'Service_Level__c',
             type: 'picklist',
             operator: 'is_not_blank',
             style: 'bold',
             applyTo: 'row'
         }
     ];
-    const FIELDS = ['Name', 'Amount', 'Stage', 'Due'];
+    const FIELDS = ['Name', 'Freight_Charge__c', 'Service_Level__c', 'Ship_Date__c'];
     const compiled = compileRules(RULES, CONTEXT);
     const formats = row => formatsFor(compiled, f => row[f], FIELDS);
 
     it('gives nothing when no rule matches', () => {
-        expect(formats({ Amount: '10', Stage: '', Due: '2027-01-01' })).toBeNull();
+        expect(formats({ Freight_Charge__c: '10', Service_Level__c: '', Ship_Date__c: '2027-01-01' })).toBeNull();
         expect(formatsFor([], f => f, FIELDS)).toBeNull();
     });
 
     it('formats only the rule’s own column for a cell rule, with its label', () => {
-        expect(formats({ Amount: '-5', Stage: null, Due: null })).toEqual({
-            cells: { Amount: STYLES.text_red.cls },
-            labels: { Amount: 'Negative amount' },
+        expect(formats({ Freight_Charge__c: '-5', Service_Level__c: null, Ship_Date__c: null })).toEqual({
+            cells: { Freight_Charge__c: STYLES.text_red.cls },
+            labels: { Freight_Charge__c: 'Negative charge' },
             bar: null,
             rowLabels: [],
             icons: {},
@@ -185,37 +190,39 @@ describe('which classes a cell takes', () => {
     });
 
     it('marks a row fill with a bar, not a fill on every cell', () => {
-        const f = formats({ Amount: '4999', Stage: 'Gamma', Due: null });
+        const f = formats({ Freight_Charge__c: '4999', Service_Level__c: 'Express', Ship_Date__c: null });
         expect(f.bar).toBe('rh-fmt_bar-purple');
         expect(f.cells.Name).toBe('rh-fmt_bold');
-        expect(f.cells.Amount).toBe('rh-fmt_fill-green rh-fmt_bold'); // the cell fill still shows
-        expect(f.cells.Stage).toBe('rh-fmt_bold');
-        expect(f.labels).toEqual({ Amount: 'Large amount' });
-        expect(f.rowLabels).toEqual(['Gamma stage', 'Has a stage']);
+        expect(f.cells.Freight_Charge__c).toBe('rh-fmt_fill-green rh-fmt_bold'); // the cell fill still shows
+        expect(f.cells.Service_Level__c).toBe('rh-fmt_bold');
+        expect(f.labels).toEqual({ Freight_Charge__c: 'Large charge' });
+        expect(f.rowLabels).toEqual(['Express service', 'Has a service level']);
     });
 
     it('takes the first row fill for the bar, and the first rule to set each thing on a cell', () => {
-        const f = formats({ Amount: '-5', Stage: 'Gamma', Due: '2026-01-01' });
-        expect(f.bar).toBe('rh-fmt_bar-purple'); // Gamma (earlier) beats Late
-        expect(f.cells.Amount).toBe('rh-fmt_text-red rh-fmt_bold');
-        expect(f.cells.Due).toBe('rh-fmt_bold');
-        expect(f.rowLabels).toEqual(['Gamma stage', 'Has a stage']); // Late lost the bar: not listed
+        const f = formats({ Freight_Charge__c: '-5', Service_Level__c: 'Express', Ship_Date__c: '2026-01-01' });
+        expect(f.bar).toBe('rh-fmt_bar-purple'); // Express (earlier) beats Late
+        expect(f.cells.Freight_Charge__c).toBe('rh-fmt_text-red rh-fmt_bold');
+        expect(f.cells.Ship_Date__c).toBe('rh-fmt_bold');
+        expect(f.rowLabels).toEqual(['Express service', 'Has a service level']); // Late lost the bar: not listed
     });
 
     it('returns a bar alone when only a row fill matches', () => {
         const only = compileRules([RULES[3]], CONTEXT);
-        const f = formatsFor(only, field => ({ Due: '2026-01-01' })[field], FIELDS);
+        const f = formatsFor(only, field => ({ Ship_Date__c: '2026-01-01' })[field], FIELDS);
         expect(f).toEqual({ cells: {}, labels: {}, bar: 'rh-fmt_bar-red', rowLabels: ['Late'], icons: {}, bars: {} });
     });
 
     it('has no blue fill, because a blue row looks selected', () => {
         expect(compileRules([{ ...RULES[2], style: 'fill_blue' }], CONTEXT)).toEqual([]);
         const purple = compileRules([{ ...RULES[2], style: 'fill_purple' }], CONTEXT);
-        expect(formatsFor(purple, f => ({ Stage: 'Gamma' })[f], FIELDS).bar).toBe('rh-fmt_bar-purple');
+        expect(formatsFor(purple, f => ({ Service_Level__c: 'Express' })[f], FIELDS).bar).toBe('rh-fmt_bar-purple');
     });
 
     it('leaves out a rule with a style the grid does not know', () => {
-        expect(compileRules([{ field: 'F', type: 'text', operator: 'is_blank', style: 'mauve' }], CONTEXT)).toEqual([]);
+        expect(
+            compileRules([{ field: 'Consignee__c', type: 'text', operator: 'is_blank', style: 'mauve' }], CONTEXT)
+        ).toEqual([]);
         expect(compileRules(undefined)).toEqual([]);
     });
 });
@@ -223,15 +230,15 @@ describe('which classes a cell takes', () => {
 describe('the Formatting legend', () => {
     it('lists each rule with its label and what it looks like', () => {
         const legend = legendFor([
-            { name: 'Large', label: 'Large amount', field: 'Amount', style: 'fill_green', applyTo: 'cell' },
-            { name: 'Gamma', field: 'Stage', style: 'fill_purple', applyTo: 'row' },
-            { name: 'Heavy', label: 'Has a stage', field: 'Stage', style: 'bold', applyTo: 'row' },
-            { name: 'Odd', field: 'X', style: 'mauve', applyTo: 'cell' }
+            { name: 'Large', label: 'Large charge', field: 'Freight_Charge__c', style: 'fill_green', applyTo: 'cell' },
+            { name: 'Express', field: 'Service_Level__c', style: 'fill_purple', applyTo: 'row' },
+            { name: 'Heavy', label: 'Has a service level', field: 'Service_Level__c', style: 'bold', applyTo: 'row' },
+            { name: 'Odd', field: 'Carrier_Code__c', style: 'mauve', applyTo: 'cell' }
         ]);
         expect(legend.map(l => [l.label, l.cls, l.bar, l.row])).toEqual([
-            ['Large amount', 'rh-fmt_fill-green', null, false],
-            ['Gamma', null, 'rh-fmt_bar-purple', true],
-            ['Has a stage', 'rh-fmt_bold', null, true]
+            ['Large charge', 'rh-fmt_fill-green', null, false],
+            ['Express', null, 'rh-fmt_bar-purple', true],
+            ['Has a service level', 'rh-fmt_bold', null, true]
         ]);
         expect(legendFor(undefined)).toEqual([]);
     });

@@ -25,15 +25,15 @@ const built = () => new Set(lists).size;
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'text', editable: true, sortable: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, sortable: true }
+    { field: 'Service_Level__c', label: 'Service Level', type: 'text', editable: true, sortable: true },
+    { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', editable: true, sortable: true }
 ];
 const id = n => `a01${String(n).padStart(15, '0')}`;
 const ROWS = Array.from({ length: 12 }, (_, i) => ({
     Id: id(i + 1),
-    Name: 'Row ' + (i + 1),
-    Stage__c: 'Open',
-    Amount__c: i * 10
+    Name: 'Kennebec Lumber, load ' + (i + 1),
+    Service_Level__c: 'Standard',
+    Freight_Charge__c: i * 10
 }));
 
 describe('the column list is built once per change', () => {
@@ -77,7 +77,7 @@ describe('the column list is built once per change', () => {
         el.config = { ...el.config, rows: ROWS.slice(0, 10) };
         await flush();
         const first = lists[0];
-        el.config = { ...el.config, rows: ROWS.slice(0, 8), drafts: { [id(1)]: { Stage__c: 'Won' } } };
+        el.config = { ...el.config, rows: ROWS.slice(0, 8), drafts: { [id(1)]: { Service_Level__c: 'Express' } } };
         await flush();
         expect(built()).toBe(1);
         expect(lists[lists.length - 1]).toBe(first);
@@ -88,10 +88,10 @@ describe('the column list is built once per change', () => {
         el.config = { ...el.config, columns: COLUMNS.slice(0, 2) };
         await flush();
         expect(built()).toBe(1);
-        expect(lists[0].map(c => c.field)).toEqual(['Name', 'Stage__c']);
+        expect(lists[0].map(c => c.field)).toEqual(['Name', 'Service_Level__c']);
         expect([...el.shadowRoot.querySelectorAll('thead th[data-field]')].map(th => th.dataset.field)).toEqual([
             'Name',
-            'Stage__c'
+            'Service_Level__c'
         ]);
     });
 
@@ -99,10 +99,15 @@ describe('the column list is built once per change', () => {
         await mount();
         el.config = { ...el.config, errors: { [id(2)]: { row: 'Could not be saved', fields: {} } } };
         await flush();
-        expect(lists[lists.length - 1].map(c => c.field)).toEqual(['__status', 'Name', 'Stage__c', 'Amount__c']);
+        expect(lists[lists.length - 1].map(c => c.field)).toEqual([
+            '__status',
+            'Name',
+            'Service_Level__c',
+            'Freight_Charge__c'
+        ]);
         el.config = { ...el.config, errors: {} };
         await flush();
-        expect(lists[lists.length - 1].map(c => c.field)).toEqual(['Name', 'Stage__c', 'Amount__c']);
+        expect(lists[lists.length - 1].map(c => c.field)).toEqual(['Name', 'Service_Level__c', 'Freight_Charge__c']);
     });
 
     it('builds a new list with the selection column', async () => {
@@ -110,19 +115,19 @@ describe('the column list is built once per change', () => {
         el.config = { ...el.config, selection: 'multi' };
         await flush();
         const last = lists[lists.length - 1];
-        expect(last.map(c => c.field)).toEqual(['__select', 'Name', 'Stage__c', 'Amount__c']);
+        expect(last.map(c => c.field)).toEqual(['__select', 'Name', 'Service_Level__c', 'Freight_Charge__c']);
         expect(last.map(c => c.colIndex)).toEqual([1, 2, 3, 4]);
     });
 
     it('builds a new list when a column is wrapped from its menu', async () => {
         await mount();
         const before = lists.length ? lists[lists.length - 1] : null;
-        el.shadowRoot.querySelector('th[data-field="Stage__c"] [data-menu-button]').click();
+        el.shadowRoot.querySelector('th[data-field="Service_Level__c"] [data-menu-button]').click();
         await flush();
-        el.shadowRoot.querySelector('[role="menuitemradio"][data-field="Stage__c"][data-wrap="true"]').click();
+        el.shadowRoot.querySelector('[role="menuitemradio"][data-field="Service_Level__c"][data-wrap="true"]').click();
         await flush();
         const last = lists[lists.length - 1];
         expect(last).not.toBe(before);
-        expect(last.find(c => c.field === 'Stage__c').wrapped).toBe(true);
+        expect(last.find(c => c.field === 'Service_Level__c').wrapped).toBe(true);
     });
 });

@@ -1,25 +1,25 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
  * Nesting: the tabs a grid lists under its rows, and a child grid's
- * parent filter. The fixture: Test_Records opens Test_Children (by Parent__c);
- * Nest_Accounts opens Test_Records (by Lookup_Field__c) and Nest_Contacts (by
- * AccountId); Group_Test lists three tabs that cannot work, on purpose.
+ * parent filter. The fixture: Consignments opens Consignment_Items (by Consignment__c);
+ * Nest_Accounts opens Consignments (by Shipper__c) and Nest_Contacts (by
+ * AccountId); Consignments_By_Mode lists three tabs that cannot work, on purpose.
  */
 @IsTest
 private class GridNestingTest {
-    private static Rowhouse_Test_Record__c parentA;
-    private static Rowhouse_Test_Record__c parentB;
+    private static Consignment__c parentA;
+    private static Consignment__c parentB;
 
     /** A with three children (10, 20, 30), B with one (5). */
     private static void seed() {
-        parentA = new Rowhouse_Test_Record__c(Name = 'Parent A');
-        parentB = new Rowhouse_Test_Record__c(Name = 'Parent B');
-        insert new List<Rowhouse_Test_Record__c>{ parentA, parentB };
-        insert new List<Rowhouse_Test_Child__c>{
-            new Rowhouse_Test_Child__c(Name = 'A one', Amount__c = 10, Parent__c = parentA.Id),
-            new Rowhouse_Test_Child__c(Name = 'A two', Amount__c = 20, Parent__c = parentA.Id),
-            new Rowhouse_Test_Child__c(Name = 'A three', Amount__c = 30, Parent__c = parentA.Id),
-            new Rowhouse_Test_Child__c(Name = 'B one', Amount__c = 5, Parent__c = parentB.Id)
+        parentA = new Consignment__c(Name = 'Kennebec Lumber, 12 bundles');
+        parentB = new Consignment__c(Name = 'Saco River Outfitters, 3 crates');
+        insert new List<Consignment__c>{ parentA, parentB };
+        insert new List<Consignment_Item__c>{
+            new Consignment_Item__c(Name = 'Spruce studs, 6 bundles', Amount__c = 10, Consignment__c = parentA.Id),
+            new Consignment_Item__c(Name = 'Pine boards, 3 bundles', Amount__c = 20, Consignment__c = parentA.Id),
+            new Consignment_Item__c(Name = 'Cedar shingles, 2 pallets', Amount__c = 30, Consignment__c = parentA.Id),
+            new Consignment_Item__c(Name = 'Canoe paddles, 1 pallet', Amount__c = 5, Consignment__c = parentB.Id)
         };
     }
 
@@ -46,21 +46,21 @@ private class GridNestingTest {
             List<GridConfig.Child> tabs = GridConfig.forUser('Nest_Accounts').children;
             System.assertEquals(2, tabs.size(), String.valueOf(tabs));
             System.assertEquals('Nest_Accounts_Records', tabs[0].name);
-            System.assertEquals('Test Records', tabs[0].label, 'The Tab Label.');
-            System.assertEquals('Test_Records', tabs[0].configName);
-            System.assertEquals('Rowhouse_Test_Record__c', tabs[0].objectApiName);
-            System.assertEquals('Lookup_Field__c', tabs[0].relationshipField);
+            System.assertEquals('Consignments', tabs[0].label, 'The Tab Label.');
+            System.assertEquals('Consignments', tabs[0].configName);
+            System.assertEquals('Consignment__c', tabs[0].objectApiName);
+            System.assertEquals('Shipper__c', tabs[0].relationshipField);
             System.assertEquals('Nest_Accounts_Contacts', tabs[1].name);
             System.assertEquals('Contacts', tabs[1].label, 'No Tab Label: the child configuration\'s label.');
             System.assertEquals('AccountId', tabs[1].relationshipField);
 
-            List<GridConfig.Child> children = GridConfig.forUser('Test_Records').children;
+            List<GridConfig.Child> children = GridConfig.forUser('Consignments').children;
             System.assertEquals(1, children.size());
-            System.assertEquals('Children', children[0].label);
-            System.assertEquals('Parent__c', children[0].relationshipField);
+            System.assertEquals('Items', children[0].label);
+            System.assertEquals('Consignment__c', children[0].relationshipField);
             System.assertEquals(
                 0,
-                GridConfig.forUser('Test_Children').children.size(),
+                GridConfig.forUser('Consignment_Items').children.size(),
                 'A grid with no tabs lists none.'
             );
         }
@@ -69,25 +69,27 @@ private class GridNestingTest {
     @IsTest
     static void skipsATabThatCannotWorkWithAWarning() {
         System.runAs(GridTestUsers.fullUser()) {
-            GridConfig.Definition def = GridConfig.load('Group_Test');
-            System.assertEquals(0, def.children.size(), 'None of Group_Test\'s tabs can work.');
+            GridConfig.Definition def = GridConfig.load('Consignments_By_Mode');
+            System.assertEquals(0, def.children.size(), 'None of Consignments_By_Mode\'s tabs can work.');
             String all = String.join(def.warnings, '\n');
             System.assert(
                 all.contains(
-                    'Grid Child Table Group_Test_Bad_Field was skipped: ' +
-                    'Rowhouse_Test_Child__c.Amount__c does not point to Rowhouse_Test_Record__c records.'
+                    'Grid Child Table Consignments_By_Mode_Bad_Field was skipped: ' +
+                    'Consignment_Item__c.Amount__c does not point to Consignment__c records.'
                 ),
                 all
             );
             System.assert(
                 all.contains(
-                    'Grid Child Table Group_Test_Wrong_Parent was skipped: ' +
-                    'Contact.AccountId does not point to Rowhouse_Test_Record__c records.'
+                    'Grid Child Table Consignments_By_Mode_Wrong_Parent was skipped: ' +
+                    'Contact.AccountId does not point to Consignment__c records.'
                 ),
                 all
             );
             System.assert(
-                all.contains('Grid Child Table Group_Test_No_Child was skipped: it has no Child Configuration.'),
+                all.contains(
+                    'Grid Child Table Consignments_By_Mode_No_Child was skipped: it has no Child Configuration.'
+                ),
                 all
             );
         }
@@ -95,9 +97,9 @@ private class GridNestingTest {
 
     @IsTest
     static void aTabTheUserCannotReadIsNotOffered() {
-        // Rowhouse_Test_Limited reads Test Records but not their children.
+        // Freight_Limited_Access reads Consignments but not their items.
         System.runAs(GridTestUsers.limitedUser()) {
-            System.assertEquals(0, GridConfig.forUser('Test_Records').children.size());
+            System.assertEquals(0, GridConfig.forUser('Consignments').children.size());
         }
     }
 
@@ -107,7 +109,7 @@ private class GridNestingTest {
             seed();
             Test.startTest();
             Map<String, Object> a = GridController.fetchRows(
-                'Test_Children',
+                'Consignment_Items',
                 null,
                 null,
                 null,
@@ -115,13 +117,13 @@ private class GridNestingTest {
                 null,
                 null,
                 null,
-                'Test_Records_Children',
+                'Consignments_Items',
                 parentA.Id,
                 null,
                 null
             );
             Map<String, Object> b = GridController.fetchRows(
-                'Test_Children',
+                'Consignment_Items',
                 null,
                 null,
                 null,
@@ -129,34 +131,38 @@ private class GridNestingTest {
                 null,
                 null,
                 null,
-                'Test_Records_Children',
+                'Consignments_Items',
                 parentB.Id,
                 null,
                 null
             );
             Map<String, Object> searched = GridController.fetchRows(
-                'Test_Children',
-                'one',
+                'Consignment_Items',
+                'pallet',
                 null,
                 null,
                 null,
                 null,
                 null,
                 null,
-                'Test_Records_Children',
+                'Consignments_Items',
                 parentA.Id,
                 null,
                 null
             );
             Test.stopTest();
             System.assertEquals(
-                new List<String>{ 'A one', 'A three', 'A two' },
+                new List<String>{ 'Cedar shingles, 2 pallets', 'Pine boards, 3 bundles', 'Spruce studs, 6 bundles' },
                 names(a),
                 'Sorted by Name, A\'s only.'
             );
             System.assertEquals(3, a.get('totalRows'));
-            System.assertEquals(new List<String>{ 'B one' }, names(b));
-            System.assertEquals(new List<String>{ 'A one' }, names(searched), 'Search stays within the parent.');
+            System.assertEquals(new List<String>{ 'Canoe paddles, 1 pallet' }, names(b));
+            System.assertEquals(
+                new List<String>{ 'Cedar shingles, 2 pallets' },
+                names(searched),
+                'Search stays within the parent.'
+            );
         }
     }
 
@@ -166,12 +172,12 @@ private class GridNestingTest {
             seed();
             Test.startTest();
             GridGroupService.Result result = GridController.summarizeGroups(
-                'Test_Children',
+                'Consignment_Items',
                 null,
                 new List<String>(),
                 null,
                 null,
-                'Test_Records_Children',
+                'Consignments_Items',
                 parentA.Id,
                 null,
                 null
@@ -192,23 +198,23 @@ private class GridNestingTest {
             seed();
             Test.startTest();
             GridImportService.Result result = GridController.importRows(
-                'Test_Children',
+                'Consignment_Items',
                 new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'Name' => 'Imported child', 'Amount__c' => '7' }
+                    new Map<String, Object>{ 'Name' => 'Life jackets, 2 cartons', 'Amount__c' => '7' }
                 },
-                'Test_Records_Children',
+                'Consignments_Items',
                 parentB.Id,
                 null,
                 null
             );
             Test.stopTest();
             System.assert(result.rows[0].success && result.rows[0].created, String.valueOf(result.rows[0]));
-            Rowhouse_Test_Child__c made = [
-                SELECT Parent__c, Amount__c
-                FROM Rowhouse_Test_Child__c
+            Consignment_Item__c made = [
+                SELECT Consignment__c, Amount__c
+                FROM Consignment_Item__c
                 WHERE Id = :result.rows[0].recordId
             ];
-            System.assertEquals(parentB.Id, made.Parent__c, 'The parent is filled in from the tab.');
+            System.assertEquals(parentB.Id, made.Consignment__c, 'The parent is filled in from the tab.');
             System.assertEquals(7, made.Amount__c);
         }
     }
@@ -219,34 +225,37 @@ private class GridNestingTest {
             seed();
             System.assertEquals(
                 null,
-                GridNesting.scopeFor(GridConfig.forUser('Test_Children'), null, null),
+                GridNesting.scopeFor(GridConfig.forUser('Consignment_Items'), null, null),
                 'No tab and no parent: a top-level grid.'
             );
-            System.assertEquals('No Grid Child Table named "Nope".', refusal('Test_Children', 'Nope', parentA.Id));
             System.assertEquals(
-                'Grid Child Table Nest_Accounts_Contacts does not show the grid Test_Children.',
-                refusal('Test_Children', 'Nest_Accounts_Contacts', parentA.Id)
+                'No Grid Child Table named "Consignment_Items_Claims".',
+                refusal('Consignment_Items', 'Consignment_Items_Claims', parentA.Id)
             );
             System.assertEquals(
-                'Record ' + UserInfo.getUserId() + ' is not a Rowhouse_Test_Record__c.',
-                refusal('Test_Children', 'Test_Records_Children', UserInfo.getUserId())
+                'Grid Child Table Nest_Accounts_Contacts does not show the grid Consignment_Items.',
+                refusal('Consignment_Items', 'Nest_Accounts_Contacts', parentA.Id)
+            );
+            System.assertEquals(
+                'Record ' + UserInfo.getUserId() + ' is not a Consignment__c.',
+                refusal('Consignment_Items', 'Consignments_Items', UserInfo.getUserId())
             );
             System.assertEquals(
                 'Not a record Id: not-an-id',
-                refusal('Test_Children', 'Test_Records_Children', 'not-an-id')
+                refusal('Consignment_Items', 'Consignments_Items', 'not-an-id')
             );
             System.assertEquals(
                 'A child table needs both its tab and its parent record.',
-                refusal('Test_Children', 'Test_Records_Children', null)
+                refusal('Consignment_Items', 'Consignments_Items', null)
             );
             System.assertEquals(
                 'A child table needs both its tab and its parent record.',
-                refusal('Test_Children', null, parentA.Id)
+                refusal('Consignment_Items', null, parentA.Id)
             );
             // Through the controller, the message reaches the browser as it is.
             try {
                 GridController.fetchRows(
-                    'Test_Children',
+                    'Consignment_Items',
                     null,
                     null,
                     null,
@@ -254,14 +263,14 @@ private class GridNestingTest {
                     null,
                     null,
                     null,
-                    'Nope',
+                    'Consignment_Items_Claims',
                     parentA.Id,
                     null,
                     null
                 );
                 System.assert(false, 'Expected a refusal.');
             } catch (AuraHandledException e) {
-                System.assertEquals('No Grid Child Table named "Nope".', e.getMessage());
+                System.assertEquals('No Grid Child Table named "Consignment_Items_Claims".', e.getMessage());
             }
         }
     }
@@ -273,11 +282,11 @@ private class GridNestingTest {
         System.runAs(GridTestUsers.fullUser()) {
             seed();
             GridNesting.Scope s = GridNesting.scopeFor(
-                GridConfig.forUser('Test_Children'),
-                'Test_Records_Children',
+                GridConfig.forUser('Consignment_Items'),
+                'Consignments_Items',
                 parentA.Id
             );
-            System.assertEquals('Parent__c', GridDescribe.localName(s.field));
+            System.assertEquals('Consignment__c', GridDescribe.localName(s.field));
             System.assertEquals(parentA.Id, s.parentId);
             Map<String, Object> binds = new Map<String, Object>();
             String condition = GridDataService.parentCondition(s.fieldApiName, s.parentId, binds);
@@ -299,25 +308,25 @@ private class GridNestingTest {
     }
 
     private static GridConfig.Column totalColumn(String name, String kind, String field) {
-        Grid_Configuration__mdt cfg = Grid_Configuration__mdt.getInstance('Test_Records');
+        Grid_Configuration__mdt cfg = Grid_Configuration__mdt.getInstance('Consignments');
         return GridConfig.childTotalColumn(
             column(
                 name,
                 new Map<String, Object>{
-                    'Child_Table__c' => 'Test_Records_Children',
+                    'Child_Table__c' => 'Consignments_Items',
                     'Child_Total__c' => kind,
                     'Child_Field__c' => field
                 }
             ),
-            Rowhouse_Test_Record__c.SObjectType,
+            Consignment__c.SObjectType,
             GridNesting.linksOf(cfg)
         );
     }
 
     private static String totalRefusal(String table, String kind, String field) {
-        Grid_Configuration__mdt cfg = Grid_Configuration__mdt.getInstance('Test_Records');
+        Grid_Configuration__mdt cfg = Grid_Configuration__mdt.getInstance('Consignments');
         try {
-            GridNesting.childTotalOf(table, kind, field, Rowhouse_Test_Record__c.SObjectType, GridNesting.linksOf(cfg));
+            GridNesting.childTotalOf(table, kind, field, Consignment__c.SObjectType, GridNesting.linksOf(cfg));
         } catch (GridException e) {
             return e.getMessage();
         }
@@ -328,16 +337,16 @@ private class GridNestingTest {
     static void aChildTotalColumnTotalsEachRowsChildRecords() {
         System.runAs(GridTestUsers.fullUser()) {
             seed();
-            Rowhouse_Test_Record__c none = new Rowhouse_Test_Record__c(Name = 'No children');
+            Consignment__c none = new Consignment__c(Name = 'Quabbin Supply, 2 crates');
             insert none;
-            GridConfig.Definition def = GridConfig.forUser('Test_Records');
+            GridConfig.Definition def = GridConfig.forUser('Consignments');
             GridConfig.Column sum = totalColumn('Sum_Amount', 'sum', 'Amount__c');
-            GridConfig.Column count = totalColumn('Count_Children', 'count', null);
+            GridConfig.Column count = totalColumn('Count_Items', 'count', null);
             GridConfig.Column top = totalColumn('Top_Amount', 'max', 'Amount__c');
             def.columns.addAll(new List<GridConfig.Column>{ sum, count, top });
             System.assertEquals('_ct_Sum_Amount', sum.field);
-            System.assertEquals('Children: Sum of Amount', sum.label, 'Named after the tab, the total and the field.');
-            System.assertEquals('Children', count.label, 'A count of records is named after the tab.');
+            System.assertEquals('Items: Sum of Amount', sum.label, 'Named after the tab, the total and the field.');
+            System.assertEquals('Items', count.label, 'A count of records is named after the tab.');
             System.assertEquals('number', count.type);
             System.assert(sum.isChildTotal && !sum.editable && !sum.sortable && !sum.groupable && !sum.filterable);
             System.assert(!def.fieldNames().contains(sum.field), 'A total is not a field to read.');
@@ -378,26 +387,26 @@ private class GridNestingTest {
 
     @IsTest
     static void aChildTotalThatCannotWorkSaysWhy() {
-        System.assertEquals('this grid has no child table named "Nope".', totalRefusal('Nope', 'count', null));
+        System.assertEquals(
+            'this grid has no child table named "Consignments_Claims".',
+            totalRefusal('Consignments_Claims', 'count', null)
+        );
         System.assertEquals(
             'a sum needs the Child Field to work out.',
-            totalRefusal('Test_Records_Children', 'sum', null)
+            totalRefusal('Consignments_Items', 'sum', null)
         );
+        System.assertEquals('unknown Child Total "median".', totalRefusal('Consignments_Items', 'median', 'Amount__c'));
         System.assertEquals(
-            'unknown Child Total "median".',
-            totalRefusal('Test_Records_Children', 'median', 'Amount__c')
-        );
-        System.assertEquals(
-            'Rowhouse_Test_Child__c has no field "Nope__c".',
-            totalRefusal('Test_Records_Children', 'sum', 'Nope__c')
+            'Consignment_Item__c has no field "Declared_Value__c".',
+            totalRefusal('Consignments_Items', 'sum', 'Declared_Value__c')
         );
         System.assert(
-            totalRefusal('Test_Records_Children', 'sum', 'Name').startsWith('a sum does not apply to'),
-            totalRefusal('Test_Records_Children', 'sum', 'Name')
+            totalRefusal('Consignments_Items', 'sum', 'Name').startsWith('a sum does not apply to'),
+            totalRefusal('Consignments_Items', 'sum', 'Name')
         );
         System.assertEquals(
             null,
-            totalRefusal('Test_Records_Children', 'count', 'Name'),
+            totalRefusal('Consignments_Items', 'count', 'Name'),
             'A count of a field counts its values.'
         );
     }
@@ -405,15 +414,15 @@ private class GridNestingTest {
     @IsTest
     static void aGridShowsItsChildTotalColumnsWithItsRows() {
         System.runAs(GridTestUsers.fullUser()) {
-            Account acme = new Account(Name = 'Acme Totals');
+            Account acme = new Account(Name = 'Casco Bay Marine');
             insert acme;
             insert new List<Contact>{
-                new Contact(LastName = 'One', AccountId = acme.Id),
-                new Contact(LastName = 'Two', AccountId = acme.Id)
+                new Contact(FirstName = 'Ada', LastName = 'Whitcomb', AccountId = acme.Id),
+                new Contact(FirstName = 'Clara', LastName = 'Fogg', AccountId = acme.Id)
             };
-            insert new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Name = 'R1', Lookup_Field__c = acme.Id, Currency_Field__c = 100),
-                new Rowhouse_Test_Record__c(Name = 'R2', Lookup_Field__c = acme.Id, Currency_Field__c = 25.5)
+            insert new List<Consignment__c>{
+                new Consignment__c(Name = 'Casco Bay Marine, 4 pallets', Shipper__c = acme.Id, Freight_Charge__c = 100),
+                new Consignment__c(Name = 'Casco Bay Marine, 2 crates', Shipper__c = acme.Id, Freight_Charge__c = 25.5)
             };
             GridConfig.Definition def = GridConfig.forUser('Nest_Accounts');
             Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
@@ -428,7 +437,7 @@ private class GridNestingTest {
             );
             Map<String, Object> page = GridController.fetchRows(
                 'Nest_Accounts',
-                'Acme Totals',
+                'Casco Bay Marine',
                 null,
                 null,
                 null,
@@ -459,23 +468,23 @@ private class GridNestingTest {
         // A child grid's Grid Filter may test a related record's field, as the
         // Grid Guide says. Counting and totalling its tab must read it as a
         // path, not fail with "Unknown field".
-        Schema.SObjectType childType = Rowhouse_Test_Child__c.SObjectType;
-        Schema.SObjectType recordType = Rowhouse_Test_Record__c.SObjectType;
+        Schema.SObjectType childType = Consignment_Item__c.SObjectType;
+        Schema.SObjectType recordType = Consignment__c.SObjectType;
         List<GridFilters.Condition> onTheParent = new List<GridFilters.Condition>{
-            GridFilters.condition(childType, 'Parent__r.Text_Field__c', 'equals', 'x', null)
+            GridFilters.condition(childType, 'Consignment__r.Consignee__c', 'equals', 'Kennebec Lumber', null)
         };
         List<GridFilters.Condition> plain = new List<GridFilters.Condition>{
-            GridFilters.condition(recordType, 'Text_Field__c', 'equals', 'x', null)
+            GridFilters.condition(recordType, 'Consignee__c', 'equals', 'Kennebec Lumber', null)
         };
         List<GridFilters.Condition> throughAHiddenLookup = new List<GridFilters.Condition>{
-            GridFilters.condition(recordType, 'Lookup_Field__r.Name', 'equals', 'x', null)
+            GridFilters.condition(recordType, 'Shipper__r.Name', 'equals', 'Casco Bay Marine', null)
         };
         System.runAs(GridTestUsers.fullUser()) {
             System.assert(GridNesting.readable(childType, onTheParent), 'A path the user can read.');
             System.assert(GridNesting.readable(recordType, throughAHiddenLookup), 'The full user reads the lookup.');
         }
         System.runAs(GridTestUsers.limitedUser()) {
-            // Rowhouse_Test_Limited reads Test Records, not their children or Lookup_Field__c.
+            // Freight_Limited_Access reads Consignments, not their items or Shipper__c.
             System.assert(GridNesting.readable(recordType, plain), 'A field the user can read.');
             System.assert(
                 !GridNesting.readable(recordType, throughAHiddenLookup),

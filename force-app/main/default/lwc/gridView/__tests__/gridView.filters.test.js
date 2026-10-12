@@ -33,15 +33,15 @@ jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.f
 jest.mock('@salesforce/apex/GridController.resetLayout', () => ({ default: jest.fn() }), { virtual: true });
 
 const STAGES = [
-    { value: 'Open', label: 'Open' },
-    { value: 'Won', label: 'Won' }
+    { value: 'Standard', label: 'Standard' },
+    { value: 'Express', label: 'Express' }
 ];
-// Amount has a subtotal, so every load also asks for counts and subtotals.
+// Freight Charge has a subtotal, so every load also asks for counts and subtotals.
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -50,8 +50,8 @@ const DEFINITION = {
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
         {
-            field: 'Stage__c',
-            label: 'Stage',
+            field: 'Service_Level__c',
+            label: 'Service Level',
             type: 'picklist',
             editable: true,
             sortable: true,
@@ -59,8 +59,8 @@ const DEFINITION = {
             options: STAGES
         },
         {
-            field: 'Amount__c',
-            label: 'Amount',
+            field: 'Freight_Charge__c',
+            label: 'Freight Charge',
             type: 'currency',
             editable: true,
             sortable: true,
@@ -69,10 +69,15 @@ const DEFINITION = {
         }
     ]
 };
-const WON = { field: 'Stage__c', operator: 'equals', value: 'Won', valueTo: null };
-const MID_SIZED = { field: 'Amount__c', operator: 'between', value: '10', valueTo: '99' };
+const WON = { field: 'Service_Level__c', operator: 'equals', value: 'Express', valueTo: null };
+const MID_SIZED = { field: 'Freight_Charge__c', operator: 'between', value: '10', valueTo: '99' };
 
-const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Stage__c: 'Open', Amount__c: i });
+const row = i => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Penobscot Paper, load ' + i,
+    Service_Level__c: 'Standard',
+    Freight_Charge__c: i
+});
 const page = (rows, { hasMore = false, locator = null, total = rows.length, token = null } = {}) => ({
     rows,
     hasMore,
@@ -99,7 +104,7 @@ const search = async (el, value) => {
     await settle();
 };
 
-function mount(configName = 'Test_Records') {
+function mount(configName = 'Consignments') {
     const el = createElement('c-grid-view', { is: GridView });
     el.configName = configName;
     document.body.appendChild(el);
@@ -144,7 +149,7 @@ describe("the user's filters", () => {
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
         expect(fetchRows).toHaveBeenCalledWith({
-            configName: 'Test_Records',
+            configName: 'Consignments',
             searchTerm: null,
             sortField: 'Name',
             sortDirection: 'asc',
@@ -156,7 +161,7 @@ describe("the user's filters", () => {
         });
         expect(summarizeGroups).toHaveBeenCalledTimes(1);
         expect(summarizeGroups).toHaveBeenCalledWith({
-            configName: 'Test_Records',
+            configName: 'Consignments',
             searchTerm: null,
             grouping: [],
             fromId: null,
@@ -172,13 +177,20 @@ describe("the user's filters", () => {
     it('sends each filter as a plain { field, operator, value, valueTo }, whatever else came with it', async () => {
         const el = mount();
         await settle();
-        filterChange(el, [{ field: 'Stage__c', operator: 'is_blank', label: 'Stage is blank', chip: { key: 'x' } }]);
+        filterChange(el, [
+            {
+                field: 'Service_Level__c',
+                operator: 'is_blank',
+                label: 'Service Level is blank',
+                chip: { key: 'Service_Level__c' }
+            }
+        ]);
         await settle();
         expect(lastCall(fetchRows).filters).toEqual([
-            { field: 'Stage__c', operator: 'is_blank', value: null, valueTo: null }
+            { field: 'Service_Level__c', operator: 'is_blank', value: null, valueTo: null }
         ]);
         expect(lastCall(summarizeGroups).filters).toEqual([
-            { field: 'Stage__c', operator: 'is_blank', value: null, valueTo: null }
+            { field: 'Service_Level__c', operator: 'is_blank', value: null, valueTo: null }
         ]);
     });
 
@@ -214,7 +226,7 @@ describe("the user's filters", () => {
         await settle();
         filterChange(el, [WON]);
         await settle();
-        table(el).dispatchEvent(new CustomEvent('filterchange', { detail: { filters: 'Stage = Won' } }));
+        table(el).dispatchEvent(new CustomEvent('filterchange', { detail: { filters: 'Service Level = Express' } }));
         await settle();
         expect(lastCall(fetchRows).filters).toBeNull();
         expect(tableConfig(el).filters).toEqual([]);
@@ -225,12 +237,12 @@ describe("the user's filters", () => {
         await settle();
         filterChange(el, [WON]);
         await settle();
-        await search(el, 'acme');
-        expect(lastCall(fetchRows)).toMatchObject({ searchTerm: 'acme', filters: [WON] });
-        expect(lastCall(summarizeGroups)).toMatchObject({ searchTerm: 'acme', filters: [WON] });
+        await search(el, 'casco');
+        expect(lastCall(fetchRows)).toMatchObject({ searchTerm: 'casco', filters: [WON] });
+        expect(lastCall(summarizeGroups)).toMatchObject({ searchTerm: 'casco', filters: [WON] });
         filterChange(el, [WON, MID_SIZED]);
         await settle();
-        expect(lastCall(fetchRows)).toMatchObject({ searchTerm: 'acme', filters: [WON, MID_SIZED] });
+        expect(lastCall(fetchRows)).toMatchObject({ searchTerm: 'casco', filters: [WON, MID_SIZED] });
     });
 
     it('keeps the filters for a sort that reloads and for more rows as you scroll', async () => {
@@ -265,11 +277,11 @@ describe("the user's filters", () => {
 
         fetchRows.mockClear();
         table(el).dispatchEvent(
-            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Amount__c', direction: 'desc' }] } })
+            new CustomEvent('sortchange', { detail: { sort: [{ field: 'Freight_Charge__c', direction: 'desc' }] } })
         );
         await settle();
         expect(fetchRows.mock.calls[0][0]).toMatchObject({
-            sortField: 'Amount__c',
+            sortField: 'Freight_Charge__c',
             sortDirection: 'desc',
             cursorLocator: null,
             filters: [WON]
@@ -301,17 +313,17 @@ describe("the user's filters", () => {
         await settle();
         filterChange(el, [WON]);
         await settle();
-        el.configName = 'Other_Grid';
+        el.configName = 'Consignments_By_Mode';
         await settle();
-        expect(lastCall(fetchRows)).toMatchObject({ configName: 'Other_Grid', filters: null });
+        expect(lastCall(fetchRows)).toMatchObject({ configName: 'Consignments_By_Mode', filters: null });
         expect(tableConfig(el).filters).toEqual([]);
     });
 });
 
 describe("the admin's filters", () => {
     const ADMIN = [
-        { text: 'Stage equals Open', field: 'Stage__c', operator: 'equals', value: 'Open' },
-        { text: 'Amount greater than 0', field: 'Amount__c', operator: 'greater_than', value: '0' }
+        { text: 'Service Level equals Standard', field: 'Service_Level__c', operator: 'equals', value: 'Standard' },
+        { text: 'Freight Charge greater than 0', field: 'Freight_Charge__c', operator: 'greater_than', value: '0' }
     ];
 
     it('are handed to the table as text only, to show locked', async () => {
@@ -319,8 +331,8 @@ describe("the admin's filters", () => {
         const el = mount();
         await settle();
         expect(tableConfig(el).adminFilters).toEqual([
-            { text: 'Stage equals Open' },
-            { text: 'Amount greater than 0' }
+            { text: 'Service Level equals Standard' },
+            { text: 'Freight Charge greater than 0' }
         ]);
     });
 
@@ -365,7 +377,7 @@ describe('"Filtered" in the header', () => {
     });
 
     it('is shown whenever the admin has filtered the grid', async () => {
-        withDefinition({ filters: [{ text: 'Stage equals Open' }] });
+        withDefinition({ filters: [{ text: 'Service Level equals Standard' }] });
         const el = mount();
         await settle();
         expect($(el, '.rh-filtered').textContent).toBe('Filtered');
@@ -412,7 +424,7 @@ describe('an empty list with filters', () => {
     });
 
     it("says when the admin's filters are why it is empty, not that there are no records", async () => {
-        withDefinition({ filters: [{ text: 'Stage is Won' }] });
+        withDefinition({ filters: [{ text: 'Service Level equals Express' }] });
         fetchRows.mockResolvedValue(page([]));
         const el = mount();
         await settle();
@@ -425,7 +437,7 @@ describe('an empty list with filters', () => {
     });
 
     it('still offers an import there, when the grid allows one', async () => {
-        withDefinition({ filters: [{ text: 'Stage is Won' }], allowImport: true, canCreate: true });
+        withDefinition({ filters: [{ text: 'Service Level equals Express' }], allowImport: true, canCreate: true });
         fetchRows.mockResolvedValue(page([]));
         const el = mount();
         await settle();
@@ -442,9 +454,9 @@ describe('an empty list with filters', () => {
         filterChange(el, [WON]);
         await settle();
         fetchRows.mockResolvedValue(page([]));
-        await search(el, 'zzz');
+        await search(el, 'Houlton');
         expect(tableConfig(el).emptyState).toMatchObject({
-            title: 'No records match “zzz”',
+            title: 'No records match “Houlton”',
             actionLabel: 'Clear search'
         });
 
@@ -464,8 +476,8 @@ describe('an empty list with filters', () => {
 describe('a child table with filters', () => {
     it("does not tell its tab a filtered count: 0 would hide the parent row's toggle", async () => {
         const el = createElement('c-grid-view', { is: GridView });
-        el.configName = 'Test_Children';
-        el.parent = { link: 'Test_Records_Children', id: 'a00000000000000001', name: 'Row 1', level: 2 };
+        el.configName = 'Consignment_Items';
+        el.parent = { link: 'Consignments_Items', id: 'a00000000000000001', name: 'Penobscot Paper, load 1', level: 2 };
         const told = [];
         el.addEventListener('countchange', e => told.push(e.detail.count));
         document.body.appendChild(el);

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Owner</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignment_Review</value></values>
+    <values><field>Field_API_Name__c</field><value xsi:type="xsd:string">OwnerId</value></values>
+    <values><field>Editable__c</field><value xsi:type="xsd:boolean">false</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">90</value></values>
+</CustomMetadata>

@@ -5,8 +5,8 @@
  */
 import { parseCell } from 'c/gridClipboard';
 
-const TIME = { field: 'Time__c', type: 'time' };
-const WHEN = { field: 'When__c', type: 'datetime' };
+const TIME = { field: 'Pickup_Time__c', type: 'time' };
+const WHEN = { field: 'Picked_Up__c', type: 'datetime' };
 
 describe('times', () => {
     it('stores a pasted time as Salesforce writes one', () => {
@@ -61,7 +61,7 @@ describe('date/times', () => {
 
     it('clears on an empty cell, and refuses what is not a date and time', () => {
         expect(parseCell('', WHEN, 'en-US', 'UTC')).toEqual({ value: null });
-        expect(parseCell('soon', WHEN, 'en-US', 'UTC').error).toMatch(/^Not a date and time/);
+        expect(parseCell('TBD', WHEN, 'en-US', 'UTC').error).toMatch(/^Not a date and time/);
         expect(parseCell('10/1/2026 25:00', WHEN, 'en-US', 'UTC').error).toMatch(/^Not a date and time/);
     });
 });

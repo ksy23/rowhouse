@@ -25,9 +25,9 @@ const COLUMNS = [{ field: 'Name', label: 'Name', type: 'text', editable: true, s
 const id = n => `006000000000000${n}AA`.slice(0, 18);
 // In the server's order for Amount, ascending: by the amount converted to USD.
 const ROWS = [
-    { Id: id(1), Name: 'Initial Sale - CAD', Amount: '1000.00', CurrencyIsoCode: 'CAD' },
-    { Id: id(2), Name: 'Initial Sale - Euro', Amount: '900.00', CurrencyIsoCode: 'EUR' },
-    { Id: id(3), Name: 'Initial Sale - USD', Amount: '78250.00', CurrencyIsoCode: 'USD' }
+    { Id: id(1), Name: 'Kennebec Lumber - Quebec lane', Amount: '1000.00', CurrencyIsoCode: 'CAD' },
+    { Id: id(2), Name: 'Cape Ann Seafood - Rotterdam reefer', Amount: '900.00', CurrencyIsoCode: 'EUR' },
+    { Id: id(3), Name: 'Penobscot Paper - annual contract', Amount: '78250.00', CurrencyIsoCode: 'USD' }
 ];
 const SUMMARY = {
     status: 'ready',

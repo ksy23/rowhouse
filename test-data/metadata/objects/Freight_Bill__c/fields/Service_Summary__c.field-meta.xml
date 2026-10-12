@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Service_Summary__c</fullName>
+    <label>Service Summary</label>
+    <type>Text</type>
+    <formula>TEXT(Service_Level__c) &amp; " / " &amp; TEXT(Mode__c)</formula>
+    <formulaTreatBlanksAs>BlankAsBlank</formulaTreatBlanksAs>
+    <description>DEVELOPMENT ONLY. Benchmark column 16-20 of 20: Two picklists joined. Read-only, like the formula columns of a real org.</description>
+</CustomField>

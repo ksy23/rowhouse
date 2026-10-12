@@ -16,7 +16,7 @@ const mount = async config => {
     document.body.appendChild(el);
     await flush();
 };
-const row = seedRows.find(r => r.Number_Field__c !== null && r.Number_Field__c !== undefined);
+const row = seedRows.find(r => r.Pieces__c !== null && r.Pieces__c !== undefined);
 const cell = field => el.shadowRoot.querySelector(`td[data-row-id="${row.Id}"][data-field="${field}"]`);
 const header = field => el.shadowRoot.querySelector(`th[data-field="${field}"]`);
 
@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 describe('numbers align right', () => {
-    it.each(['Number_Field__c', 'Currency_Field__c'])('%s: the value fills the cell and aligns right', async field => {
+    it.each(['Pieces__c', 'Freight_Charge__c'])('%s: the value fills the cell and aligns right', async field => {
         await mount({ columns, rows: [row] });
         expect(cell(field).classList).toContain('slds-text-align_right');
         const text = cell(field).querySelector('.rh-cell-content > span');
@@ -37,16 +37,16 @@ describe('numbers align right', () => {
     it('covers percent columns too', async () => {
         const cols = [
             ...columns,
-            { field: 'Percent_Field__c', label: 'Rate', type: 'percent', editable: true, sortable: true }
+            { field: 'Fuel_Surcharge__c', label: 'Fuel Surcharge', type: 'percent', editable: true, sortable: true }
         ];
-        await mount({ columns: cols, rows: [{ ...row, Percent_Field__c: 12.5 }] });
-        expect(cell('Percent_Field__c').classList).toContain('slds-text-align_right');
-        expect(header('Percent_Field__c').querySelector('.slds-has-flexi-truncate').classList).toContain(
+        await mount({ columns: cols, rows: [{ ...row, Fuel_Surcharge__c: 12.5 }] });
+        expect(cell('Fuel_Surcharge__c').classList).toContain('slds-text-align_right');
+        expect(header('Fuel_Surcharge__c').querySelector('.slds-has-flexi-truncate').classList).toContain(
             'slds-grid_align-end'
         );
     });
 
-    it.each(['Text_Field__c', 'Date_Field__c', 'Picklist_Field__c'])(
+    it.each(['Consignee__c', 'Ship_Date__c', 'Service_Level__c'])(
         '%s stays at the left, header included',
         async field => {
             await mount({ columns, rows: [row] });
@@ -61,19 +61,19 @@ describe('numbers align right', () => {
 
     it('right-aligns the header label, with the sort arrow before it', async () => {
         await mount({ columns, rows: [row] });
-        const grid = header('Currency_Field__c').querySelector('.slds-has-flexi-truncate');
+        const grid = header('Freight_Charge__c').querySelector('.slds-has-flexi-truncate');
         expect(grid.classList).toContain('slds-grid_align-end');
         // The arrow only shows on hover; before the label, it cannot push the label about.
         expect(grid.firstElementChild.classList).toContain('slds-icon_container');
-        const textGrid = header('Text_Field__c').querySelector('.slds-has-flexi-truncate');
+        const textGrid = header('Consignee__c').querySelector('.slds-has-flexi-truncate');
         expect(textGrid.classList).not.toContain('slds-grid_align-end');
         expect(textGrid.lastElementChild.classList).toContain('slds-icon_container');
     });
 
     it('right-aligns an unsortable number column header as well', async () => {
-        const cols = columns.map(c => (c.field === 'Number_Field__c' ? { ...c, sortable: false } : c));
+        const cols = columns.map(c => (c.field === 'Pieces__c' ? { ...c, sortable: false } : c));
         await mount({ columns: cols, rows: [row] });
-        expect(header('Number_Field__c').querySelector('.slds-th__action').classList).toContain('slds-grid_align-end');
+        expect(header('Pieces__c').querySelector('.slds-th__action').classList).toContain('slds-grid_align-end');
     });
 
     it('puts numbers beside their labels in cards, as a record page does', async () => {
@@ -82,7 +82,7 @@ describe('numbers align right', () => {
         card.querySelector('.rh-card-more').click(); // every field
         await flush();
         const value = field => card.querySelector(`dd [data-field="${field}"] .rh-card-value`);
-        ['Currency_Field__c', 'Number_Field__c', 'Text_Field__c'].forEach(field => {
+        ['Freight_Charge__c', 'Pieces__c', 'Consignee__c'].forEach(field => {
             expect(value(field)).not.toBeNull();
             expect(value(field).classList).not.toContain('slds-grid_align-end');
         });
@@ -94,11 +94,11 @@ describe('numbers align right', () => {
  * reads as a column, as in Google Sheets and Excel. Header included.
  */
 describe('checkboxes centre', () => {
-    const tickRow = { ...row, Checkbox_Field__c: true };
+    const tickRow = { ...row, Delivered__c: true };
 
     it('centres the tick in its cell', async () => {
         await mount({ columns, rows: [tickRow] });
-        const td = cell('Checkbox_Field__c');
+        const td = cell('Delivered__c');
         expect(td.classList).toContain('slds-text-align_center');
         expect(td.classList).not.toContain('slds-text-align_right');
         const value = td.querySelector('.rh-cell-content > span');
@@ -109,31 +109,29 @@ describe('checkboxes centre', () => {
 
     it('centres the tick in a read-only grid too', async () => {
         await mount({ columns: columns.map(c => ({ ...c, editable: false })), rows: [tickRow] });
-        expect(cell('Checkbox_Field__c').classList).toContain('slds-text-align_center');
-        expect(cell('Checkbox_Field__c').querySelector('button')).toBeNull();
+        expect(cell('Delivered__c').classList).toContain('slds-text-align_center');
+        expect(cell('Delivered__c').querySelector('button')).toBeNull();
     });
 
     it('centres the header label, with the sort arrow after it', async () => {
         await mount({ columns, rows: [tickRow] });
-        const grid = header('Checkbox_Field__c').querySelector('.slds-has-flexi-truncate');
+        const grid = header('Delivered__c').querySelector('.slds-has-flexi-truncate');
         expect(grid.classList).toContain('slds-grid_align-center');
         expect(grid.classList).not.toContain('slds-grid_align-end');
         expect(grid.lastElementChild.classList).toContain('slds-icon_container');
     });
 
     it('centres an unsortable checkbox header as well', async () => {
-        const cols = columns.map(c => (c.field === 'Checkbox_Field__c' ? { ...c, sortable: false } : c));
+        const cols = columns.map(c => (c.field === 'Delivered__c' ? { ...c, sortable: false } : c));
         await mount({ columns: cols, rows: [tickRow] });
-        expect(header('Checkbox_Field__c').querySelector('.slds-th__action').classList).toContain(
-            'slds-grid_align-center'
-        );
+        expect(header('Delivered__c').querySelector('.slds-th__action').classList).toContain('slds-grid_align-center');
     });
 
     it('leaves the checkbox value where it was in cards, beside its label', async () => {
         await mount({ columns, rows: [tickRow], layout: 'cards' });
         el.shadowRoot.querySelector('li.rh-card .rh-card-more').click(); // every field
         await flush();
-        const checkbox = el.shadowRoot.querySelector('li.rh-card [data-field="Checkbox_Field__c"] .rh-card-value');
+        const checkbox = el.shadowRoot.querySelector('li.rh-card [data-field="Delivered__c"] .rh-card-value');
         expect(checkbox).not.toBeNull();
         expect(checkbox.classList).not.toContain('slds-grid_align-center');
         expect(checkbox.classList).not.toContain('slds-text-align_center');

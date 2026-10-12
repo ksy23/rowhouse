@@ -22,9 +22,9 @@ jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jes
 });
 
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -32,8 +32,8 @@ const DEFINITION = {
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true },
         {
-            field: 'Lookup_Field__c',
-            label: 'Related Account',
+            field: 'Shipper__c',
+            label: 'Shipper',
             type: 'reference',
             editable: true,
             referenceTo: ['Account'],
@@ -41,7 +41,7 @@ const DEFINITION = {
         }
     ]
 };
-const ROW = { Id: 'a00000000000000001', Name: 'Row 1', Lookup_Field__c: null };
+const ROW = { Id: 'a00000000000000001', Name: 'Kennebec Lumber, 12 bundles', Shipper__c: null };
 const NEW_ID = '001000000000009AAA';
 const settle = async () => {
     for (let i = 0; i < 20; i++) {
@@ -74,17 +74,17 @@ afterEach(() => {
 describe("a lookup's New item", () => {
     const open = async () => {
         const el = createElement('c-grid-view', { is: GridView });
-        el.configName = 'Test_Records';
+        el.configName = 'Consignments';
         document.body.appendChild(el);
         await settle();
         $(el, 'c-grid-table').dispatchEvent(
             new CustomEvent('newrecord', {
                 detail: {
                     recordId: ROW.Id,
-                    field: 'Lookup_Field__c',
+                    field: 'Shipper__c',
                     object: 'Account',
                     objectLabel: 'Account',
-                    term: 'Acm'
+                    term: 'Saco'
                 }
             })
         );
@@ -97,27 +97,27 @@ describe("a lookup's New item", () => {
         const dialog = $(el, 'c-grid-new-record');
         expect(dialog.objectApiName).toBe('Account');
         expect(dialog.objectLabel).toBe('Account');
-        expect(dialog.fieldLabel).toBe('Related Account');
-        expect($(el, 'c-grid-table').config.objectApiName).toBe('Rowhouse_Test_Record__c');
+        expect(dialog.fieldLabel).toBe('Shipper');
+        expect($(el, 'c-grid-table').config.objectApiName).toBe('Consignment__c');
     });
 
     it('puts the saved record in the cell as an unsaved change, with its name', async () => {
-        lookupName.mockResolvedValue('Acme New');
+        lookupName.mockResolvedValue('Saco River Outfitters');
         const el = await open();
         $(el, 'c-grid-new-record').dispatchEvent(new CustomEvent('created', { detail: { id: NEW_ID } }));
         await settle();
         expect($(el, 'c-grid-new-record')).toBeNull();
         expect(lookupName).toHaveBeenCalledWith({
-            configName: 'Test_Records',
-            field: 'Lookup_Field__c',
+            configName: 'Consignments',
+            field: 'Shipper__c',
             recordId: NEW_ID
         });
         const config = $(el, 'c-grid-table').config;
-        expect(config.drafts).toEqual({ [ROW.Id]: { Lookup_Field__c: NEW_ID } });
-        expect(config.refNames[NEW_ID]).toBe('Acme New');
+        expect(config.drafts).toEqual({ [ROW.Id]: { Shipper__c: NEW_ID } });
+        expect(config.refNames[NEW_ID]).toBe('Saco River Outfitters');
         expect(config.history.undoLabel).toBe('Undo edit');
         expect($(el, '.rh-live').textContent).toBe(
-            'Account Acme New created and put in Related Account. Save to keep the change.'
+            'Account Saco River Outfitters created and put in Shipper. Save to keep the change.'
         );
     });
 

@@ -33,8 +33,8 @@ public with sharing class GridDescribe {
 
     /**
      * A name without this package's namespace prefix: in the managed build
-     * describe calls a relationship rowhouse__Lookup_Field__r, while a
-     * configuration or a formula calls it Lookup_Field__r. Other names are
+     * describe calls a relationship rowhouse__Shipper__r, while a
+     * configuration or a formula calls it Shipper__r. Other names are
      * returned as they are.
      */
     public static String withoutNamespace(String name) {

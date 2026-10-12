@@ -2617,7 +2617,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * so the table does not move under the pointer when the first row is
      * ticked (found in Lightning Experience: the second click
      * landed a row higher), and the header stays in view and usable. Narrow, the title takes the first line and
-     * the search the second: side by side, the title was cut to "Test Rec…"
+     * the search the second: side by side, the title was cut to "Consignm…"
      * and its count line broke into six lines (found at 420px in Lightning
      * Experience).
      */

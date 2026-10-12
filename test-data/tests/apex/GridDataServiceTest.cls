@@ -20,9 +20,9 @@ private class GridDataServiceTest {
         // At API 67 plain DML runs in user mode too, so even the seed rows are
         // written by a user with field access, never by whoever runs the suite.
         System.runAs(GridTestUsers.fullUser()) {
-            List<Rowhouse_Test_Record__c> recs = new List<Rowhouse_Test_Record__c>();
+            List<Consignment__c> recs = new List<Consignment__c>();
             for (Integer i = 1; i <= 550; i++) {
-                recs.add(new Rowhouse_Test_Record__c(Name = String.valueOf(1000 + i), Number_Field__c = i));
+                recs.add(new Consignment__c(Name = String.valueOf(1000 + i), Pieces__c = i));
             }
             insert recs;
         }
@@ -34,7 +34,7 @@ private class GridDataServiceTest {
             Set<Id> seen = new Set<Id>();
             Test.startTest();
             GridPage page = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200)
+                new GridRequest('Consignment__c', new List<String>{ 'Name' }, null, 200)
             );
             while (true) {
                 for (SObject r : page.rows) {
@@ -43,7 +43,7 @@ private class GridDataServiceTest {
                 if (!page.hasMore)
                     break;
                 page = GridDataService.fetchPage(
-                    new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, page.cursorLocator, 200)
+                    new GridRequest('Consignment__c', new List<String>{ 'Name' }, page.cursorLocator, 200)
                 );
             }
             Test.stopTest();
@@ -54,23 +54,23 @@ private class GridDataServiceTest {
     @IsTest
     static void deletingARowMidCursorDoesNotShiftThePage() {
         System.runAs(GridTestUsers.fullUser()) {
-            User owner = new User(Id = [SELECT OwnerId FROM Rowhouse_Test_Record__c LIMIT 1].OwnerId);
+            User owner = new User(Id = [SELECT OwnerId FROM Consignment__c LIMIT 1].OwnerId);
             // If deleted rows are skipped
             // cleanly, page 2 has no gap and no duplicate. If this fails, paging
             // needs its own reconciliation and the design changes.
             Test.startTest();
             GridPage first = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200)
+                new GridRequest('Consignment__c', new List<String>{ 'Name' }, null, 200)
             );
 
             // Someone else deletes rows while this user pages: the seed rows'
             // owner, since deleting a record needs ownership, not just edit access.
             System.runAs(owner) {
-                delete [SELECT Id FROM Rowhouse_Test_Record__c WHERE Number_Field__c > 250 AND Number_Field__c <= 260];
+                delete [SELECT Id FROM Consignment__c WHERE Pieces__c > 250 AND Pieces__c <= 260];
             }
 
             GridPage second = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, first.cursorLocator, 200)
+                new GridRequest('Consignment__c', new List<String>{ 'Name' }, first.cursorLocator, 200)
             );
             Test.stopTest();
 
@@ -87,19 +87,19 @@ private class GridDataServiceTest {
     @IsTest
     static void nullsSortLastOnAscending() {
         System.runAs(GridTestUsers.fullUser()) {
-            insert new Rowhouse_Test_Record__c(Name = 'null sort probe'); // Number_Field__c null
+            insert new Consignment__c(Name = 'Quabbin Supply, pieces not counted'); // Pieces__c null
             Test.startTest();
             GridPage page = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Number_Field__c' }, null, 600)
-                    .orderBy('Number_Field__c', 'asc')
+                new GridRequest('Consignment__c', new List<String>{ 'Pieces__c' }, null, 600)
+                    .orderBy('Pieces__c', 'asc')
             );
             Test.stopTest();
             // NOTE: NULLS FIRST is the SOQL default for ASC, so this passes only if
             // the service emits an explicit NULLS LAST. This asserts a Rowhouse
             // requirement, not platform behaviour — TC-049 to TC-054 assert the same
             // rule client-side, and the two must agree.
-            Rowhouse_Test_Record__c last = (Rowhouse_Test_Record__c) page.rows[page.rows.size() - 1];
-            System.assertEquals(null, last.Number_Field__c, 'Nulls must sort last on ascending.');
+            Consignment__c last = (Consignment__c) page.rows[page.rows.size() - 1];
+            System.assertEquals(null, last.Pieces__c, 'Nulls must sort last on ascending.');
         }
     }
 
@@ -114,7 +114,7 @@ private class GridDataServiceTest {
             // before startTest, so a read there measures the outer context and
             // passes regardless of what the service did.
             Test.startTest();
-            GridDataService.fetchPage(new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 10));
+            GridDataService.fetchPage(new GridRequest('Consignment__c', new List<String>{ 'Name' }, null, 10));
             Integer callouts = Limits.getCallouts();
             Test.stopTest();
             System.assertEquals(0, callouts, 'Rowhouse must make no callouts.');
@@ -133,12 +133,12 @@ private class GridDataServiceTest {
             Test.startTest();
             Integer fetches = 0;
             GridPage page = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 200)
+                new GridRequest('Consignment__c', new List<String>{ 'Name' }, null, 200)
             );
             fetches++;
             while (page.hasMore && fetches < 10) {
                 page = GridDataService.fetchPage(
-                    new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, page.cursorLocator, 200)
+                    new GridRequest('Consignment__c', new List<String>{ 'Name' }, page.cursorLocator, 200)
                 );
                 fetches++;
             }
@@ -171,22 +171,27 @@ private class GridDataServiceTest {
             // carries a quote, a backslash, double quotes and both LIKE wildcards. If
             // it were concatenated into the SOQL, the quote would break the query; if
             // the wildcards were not escaped, "%" would match every row.
-            insert new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Name = 'TC-021 probe', Text_Field__c = 'O\'Brien \\ "quoted" %wildcard%_'),
-                new Rowhouse_Test_Record__c(Name = 'wildcard decoy', Text_Field__c = 'wildcard without percent signs')
+            insert new List<Consignment__c>{
+                new Consignment__c(
+                    Name = 'O\'Brien and Sons, Dockside',
+                    Consignee__c = 'O\'Brien & Sons \\ "Dockside" 20%_off'
+                ),
+                new Consignment__c(
+                    Name = 'Saco River Outfitters, Biddeford',
+                    Consignee__c = 'Saco River Outfitters, 20 cases, drop off'
+                )
             };
             Test.startTest();
             GridPage quoted = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Text_Field__c' }, null, 50)
-                    .withSearch('O\'Brien \\')
+                new GridRequest('Consignment__c', new List<String>{ 'Name', 'Consignee__c' }, null, 50)
+                    .withSearch('O\'Brien & Sons \\')
             );
             GridPage wildcard = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Text_Field__c' }, null, 50)
-                    .withSearch('%wildcard%_')
+                new GridRequest('Consignment__c', new List<String>{ 'Name', 'Consignee__c' }, null, 50)
+                    .withSearch('20%_off')
             );
             GridPage percentOnly = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Text_Field__c' }, null, 50)
-                    .withSearch('%')
+                new GridRequest('Consignment__c', new List<String>{ 'Name', 'Consignee__c' }, null, 50).withSearch('%')
             );
             Test.stopTest();
 
@@ -195,12 +200,8 @@ private class GridDataServiceTest {
                 quoted.rows.size(),
                 'A quote and a backslash must be searchable, not a syntax error.'
             );
-            System.assertEquals(
-                1,
-                wildcard.rows.size(),
-                '"%wildcard%_" must match the literal text only, not the decoy.'
-            );
-            System.assertEquals('TC-021 probe', (String) wildcard.rows[0].get('Name'));
+            System.assertEquals(1, wildcard.rows.size(), '"20%_off" must match the literal text only, not the decoy.');
+            System.assertEquals('O\'Brien and Sons, Dockside', (String) wildcard.rows[0].get('Name'));
             System.assertEquals(
                 1,
                 percentOnly.rows.size(),
@@ -217,7 +218,7 @@ private class GridDataServiceTest {
     // in for the gap between two requests.
 
     private static GridRequest nameRequest(String locator, String token) {
-        return new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, locator, 200)
+        return new GridRequest('Consignment__c', new List<String>{ 'Name' }, locator, 200)
             .orderBy('Name', 'asc')
             .withCursor(token);
     }
@@ -357,7 +358,7 @@ private class GridDataServiceTest {
         System.runAs(GridTestUsers.fullUser()) {
             Test.startTest();
             GridPage wider = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name', 'Number_Field__c' }, null, 200)
+                new GridRequest('Consignment__c', new List<String>{ 'Name', 'Pieces__c' }, null, 200)
                     .orderBy('Name', 'asc')
             );
             GridPage first = GridDataService.fetchPage(nameRequest(null, null));
@@ -398,17 +399,12 @@ private class GridDataServiceTest {
     static void aLocatorFromAnotherQueryIsRefused() {
         System.runAs(GridTestUsers.fullUser()) {
             GridPage first = GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'Name' }, null, 10)
+                new GridRequest('Consignment__c', new List<String>{ 'Name' }, null, 10)
             );
             Boolean refused = false;
             try {
                 GridDataService.fetchPage(
-                    new GridRequest(
-                        'Rowhouse_Test_Record__c',
-                        new List<String>{ 'Name', 'Number_Field__c' },
-                        first.cursorLocator,
-                        10
-                    )
+                    new GridRequest('Consignment__c', new List<String>{ 'Name', 'Pieces__c' }, first.cursorLocator, 10)
                 );
             } catch (GridException e) {
                 refused = true;
@@ -421,7 +417,7 @@ private class GridDataServiceTest {
     static void anUnknownFieldFailsWithItsName() {
         try {
             GridDataService.fetchPage(
-                new GridRequest('Rowhouse_Test_Record__c', new List<String>{ 'No_Such_Field__c' }, null, 10)
+                new GridRequest('Consignment__c', new List<String>{ 'No_Such_Field__c' }, null, 10)
             );
             System.assert(false, 'Expected an exception.');
         } catch (GridException e) {

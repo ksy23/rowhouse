@@ -78,7 +78,7 @@ describe('ARIA grid structure', () => {
     });
 
     it('marks a sort direction on at most one column (HR-14)', async () => {
-        el.shadowRoot.querySelector('[data-field="Text_Field__c"] .slds-th__action').click();
+        el.shadowRoot.querySelector('[data-field="Consignee__c"] .slds-th__action').click();
         await flushPromises();
         const directed = [...root.querySelectorAll('[role="columnheader"]')].filter(h =>
             ['ascending', 'descending'].includes(h.getAttribute('aria-sort'))

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Freight Read Only</label>
+    <description>DEVELOPMENT ONLY. Read but never edit or create the consignments, for GridTestUsers.readOnlyUser: the object checks prove a save, an import or a new row is refused. Never assign it to a System Administrator.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+
+    <!-- Read only: no create, edit or delete. A save, an import (update and
+         create) and a new row must each be refused by the object permission,
+         and write nothing. -->
+    <objectPermissions>
+        <object>Consignment__c</object>
+        <allowCreate>false</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>false</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <!-- The children can be read, but not their Amount__c (omitted below, and
+         that omission is the point): the Consignment_Directory grid's Items tab is
+         offered, its child total of Amount is not. -->
+    <objectPermissions>
+        <object>Consignment_Item__c</object>
+        <allowCreate>false</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>false</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+
+    <!-- Readable, never editable. -->
+    <fieldPermissions><field>Consignment__c.Delivered__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Mode__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Freight_Charge__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Picked_Up__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Ship_Date__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Weight__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Equipment__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Contact_Email__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Handling_Instructions__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Bill_Of_Lading__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Bill_To__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Delivery_Location__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Delivery_Notes__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Shipper__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Handling__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Pieces__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Fuel_Surcharge__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Contact_Phone__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Service_Level__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Carrier_Code__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Pro_Number__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Consignee__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Pickup_Time__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Tracking_Link__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Consignment_Number__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Pallet_Positions__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Consignment__c.Items_Value__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+</PermissionSet>

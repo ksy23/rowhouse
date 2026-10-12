@@ -23,7 +23,7 @@ const id = n => 'a01' + String(n).padStart(15, '0');
 const PAGE = {
     type: 'standard__recordPage',
     attributes: { recordId: '001000000000001AAA', actionName: 'view' },
-    state: { c__x: '1' }
+    state: { c__tab: 'Consignments' }
 };
 const memory = () => {
     const kept = new Map();
@@ -47,7 +47,7 @@ describe('the namespace, and a token', () => {
         // address of the package's own static resource tells the namespace.
         expect(packageNamespace('/resource/1760000000000/rowhouse__RowhouseLogo')).toBe('rowhouse');
         expect(packageNamespace('/sfsites/c/resource/1760000000000/rowhouse__RowhouseLogo')).toBe('rowhouse');
-        expect(packageNamespace('/resource/1760000000000/my_ns__RowhouseLogo')).toBe('my_ns');
+        expect(packageNamespace('/resource/1760000000000/gcf_ops__RowhouseLogo')).toBe('gcf_ops');
         expect(packageNamespace('/resource/1760000000000/RowhouseLogo')).toBe('');
         expect(packageNamespace('/resource/1760000000000/rowhouse__RowhouseMark')).toBe('');
         expect(packageNamespace('RowhouseLogo')).toBe('');
@@ -63,14 +63,14 @@ describe('the namespace, and a token', () => {
 
 describe('the way back', () => {
     it('is a plain copy of the page, without an earlier marker', () => {
-        const ref = backRef({ ...PAGE, state: { ...PAGE.state, c__flowDone: 'old' } }, 'c');
+        const ref = backRef({ ...PAGE, state: { ...PAGE.state, c__flowDone: 'k7m2q9xd' } }, 'c');
         expect(ref).toEqual(PAGE);
         expect(backRef(null, 'c')).toBeNull();
     });
 
     it('is marked with the token, which the grid reads back', () => {
         const back = withDone(PAGE, 'c', 'tok1');
-        expect(back.state).toEqual({ c__x: '1', c__flowDone: 'tok1' });
+        expect(back.state).toEqual({ c__tab: 'Consignments', c__flowDone: 'tok1' });
         expect(PAGE.state.c__flowDone).toBeUndefined(); // not changed
         expect(doneToken(back, 'c')).toBe('tok1');
         expect(doneToken(PAGE, 'c')).toBe('');
@@ -83,15 +83,15 @@ describe('the address', () => {
         const store = memory();
         const ref = flowPageRef(
             'c',
-            { grid: 'Deals', action: 'Note', on: 'row', ids: [id(1)], back: PAGE, token: 't1' },
+            { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'row', ids: [id(1)], back: PAGE, token: 't1' },
             store
         );
         expect(ref).toEqual({
             type: 'standard__component',
             attributes: { componentName: `c__${FLOW_PAGE}` },
             state: {
-                c__grid: 'Deals',
-                c__action: 'Note',
+                c__grid: 'Consignments',
+                c__action: 'Reschedule_Pickup',
                 c__on: 'row',
                 c__token: 't1',
                 c__ids: id(1),
@@ -106,13 +106,13 @@ describe('the address', () => {
         const ids = Array.from({ length: IDS_IN_URL + 1 }, (_, i) => id(i));
         const ref = flowPageRef(
             'rowhouse',
-            { grid: 'Deals', action: 'Note', on: 'selection', ids, back: PAGE, token: 't2' },
+            { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'selection', ids, back: PAGE, token: 't2' },
             store
         );
         expect(ref.attributes.componentName).toBe(`rowhouse__${FLOW_PAGE}`);
         expect(ref.state).toEqual({
-            rowhouse__grid: 'Deals',
-            rowhouse__action: 'Note',
+            rowhouse__grid: 'Consignments',
+            rowhouse__action: 'Reschedule_Pickup',
             rowhouse__on: 'selection',
             rowhouse__token: 't2'
         });
@@ -126,14 +126,32 @@ describe('the address', () => {
             }
         };
         const ids = Array.from({ length: IDS_IN_URL + 1 }, (_, i) => id(i));
-        expect(flowPageRef('c', { grid: 'G', action: 'A', on: 'selection', ids, token: 't' }, broken)).toBeNull();
-        expect(flowPageRef('c', { grid: 'G', action: 'A', on: 'selection', ids, token: 't' }, null)).toBeNull();
+        expect(
+            flowPageRef(
+                'c',
+                { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'selection', ids, token: 't' },
+                broken
+            )
+        ).toBeNull();
+        expect(
+            flowPageRef(
+                'c',
+                { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'selection', ids, token: 't' },
+                null
+            )
+        ).toBeNull();
     });
 
     it('drops anything that is not a record Id', () => {
         const ref = flowPageRef(
             'c',
-            { grid: 'G', action: 'A', on: 'row', ids: [id(1), 'x,y', ''], token: 't' },
+            {
+                grid: 'Consignments',
+                action: 'Reschedule_Pickup',
+                on: 'row',
+                ids: [id(1), 'PRO-1001,PRO-1002', ''],
+                token: 't'
+            },
             memory()
         );
         expect(ref.state.c__ids).toBe(id(1));
@@ -144,12 +162,12 @@ describe('what the page reads', () => {
     it('reads the address', () => {
         const state = flowPageRef(
             'c',
-            { grid: 'Deals', action: 'Note', on: 'row', ids: [id(7)], back: PAGE, token: 't' },
+            { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'row', ids: [id(7)], back: PAGE, token: 't' },
             memory()
         ).state;
         expect(readFlowState(state, null)).toEqual({
-            grid: 'Deals',
-            action: 'Note',
+            grid: 'Consignments',
+            action: 'Reschedule_Pickup',
             on: 'row',
             ids: [id(7)],
             back: PAGE,
@@ -162,12 +180,12 @@ describe('what the page reads', () => {
         const ids = Array.from({ length: IDS_IN_URL + 3 }, (_, i) => id(i));
         const state = flowPageRef(
             'rowhouse',
-            { grid: 'Deals', action: 'Note', on: 'selection', ids, back: PAGE, token: 't3' },
+            { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'selection', ids, back: PAGE, token: 't3' },
             store
         ).state;
         expect(readFlowState(state, store)).toEqual({
-            grid: 'Deals',
-            action: 'Note',
+            grid: 'Consignments',
+            action: 'Reschedule_Pickup',
             on: 'selection',
             ids,
             back: PAGE,
@@ -180,17 +198,27 @@ describe('what the page reads', () => {
 
     it('says what is missing, in words', () => {
         expect(readFlowState({}, null).error).toMatch(/not told which/);
-        expect(readFlowState({ c__grid: 'G', c__action: 'A', c__ids: 'nope' }, null).error).toMatch(/not given a row/);
         expect(
-            readFlowState({ c__grid: 'G', c__action: 'A', c__ids: id(1), c__back: 'not json' }, null).back
+            readFlowState({ c__grid: 'Consignments', c__action: 'Reschedule_Pickup', c__ids: 'PRO-1017' }, null).error
+        ).toMatch(/not given a row/);
+        expect(
+            readFlowState(
+                {
+                    c__grid: 'Consignments',
+                    c__action: 'Reschedule_Pickup',
+                    c__ids: id(1),
+                    c__back: '{"type":"standard__recordPage","attributes":{'
+                },
+                null
+            ).back
         ).toBeNull();
     });
 });
 
 describe("the flow's inputs", () => {
     it("hands one row's Id to the action's input, or recordId", () => {
-        expect(flowInputs({ inputName: 'theRecord' }, { on: 'row', ids: [id(1)] })).toEqual([
-            { name: 'theRecord', type: 'String', value: id(1) }
+        expect(flowInputs({ inputName: 'consignmentId' }, { on: 'row', ids: [id(1)] })).toEqual([
+            { name: 'consignmentId', type: 'String', value: id(1) }
         ]);
         expect(flowInputs({ inputName: null }, { on: 'row', ids: [id(1)] })).toEqual([
             { name: 'recordId', type: 'String', value: id(1) }
@@ -198,7 +226,7 @@ describe("the flow's inputs", () => {
     });
 
     it("hands a selection's Ids as the text collection ids", () => {
-        expect(flowInputs({ inputName: 'theRecord' }, { on: 'selection', ids: [id(1), id(2)] })).toEqual([
+        expect(flowInputs({ inputName: 'consignmentId' }, { on: 'selection', ids: [id(1), id(2)] })).toEqual([
             { name: 'ids', type: 'String', value: [id(1), id(2)] }
         ]);
     });

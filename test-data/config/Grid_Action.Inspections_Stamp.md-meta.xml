@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An action on a grid of Inspection__c, which Freight_Limited_Access cannot read: GridObjectAccessTest proves running it is refused by the object check. Invocable Apex (ConsignmentStampAction), which changes no typed record if it ever runs. -->
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Stamp inspections</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Inspections</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">Apex</value></values>
+    <values><field>Action_Name__c</field><value xsi:type="xsd:string">ConsignmentStampAction</value></values>
+    <values><field>Show_In__c</field><value xsi:type="xsd:string">Both</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">10</value></values>
+</CustomMetadata>

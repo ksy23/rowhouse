@@ -1,8 +1,8 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
  * Columns that show a field of a parent record, named by a path through
- * lookups (Lookup_Field__r.Industry: the record's Related Account's
- * Industry). The Path_Test configuration (test-data/config) has four: the
+ * lookups (Shipper__r.Industry: the record's Shipper's Industry). The
+ * Consignment_Shippers configuration (test-data/config) has four: the
  * account's Name, Industry (users can group by it) and Annual Revenue
  * (summed), all editable, and its owner's Email, which is not.
  *
@@ -14,16 +14,16 @@
  */
 @IsTest
 private class GridPathsTest {
-    private static final Schema.SObjectType TEST_RECORD = Rowhouse_Test_Record__c.SObjectType;
-    private static final String INDUSTRY = 'Lookup_Field__r.Industry';
+    private static final Schema.SObjectType TEST_RECORD = Consignment__c.SObjectType;
+    private static final String INDUSTRY = 'Shipper__r.Industry';
 
     private class Data {
         Account harbor;
         Account mill;
-        Rowhouse_Test_Record__c first;
-        Rowhouse_Test_Record__c second;
-        Rowhouse_Test_Record__c third;
-        Rowhouse_Test_Record__c alone;
+        Consignment__c first;
+        Consignment__c second;
+        Consignment__c third;
+        Consignment__c alone;
     }
 
     /** Two accounts; two records on Harbor Bank, one on Mill River Energy, one with no account. */
@@ -32,11 +32,11 @@ private class GridPathsTest {
         d.harbor = new Account(Name = 'Harbor Bank', Industry = 'Banking', AnnualRevenue = 100);
         d.mill = new Account(Name = 'Mill River Energy', Industry = 'Energy', AnnualRevenue = 250);
         insert new List<Account>{ d.harbor, d.mill };
-        d.first = new Rowhouse_Test_Record__c(Name = 'Path A', Lookup_Field__c = d.harbor.Id);
-        d.second = new Rowhouse_Test_Record__c(Name = 'Path B', Lookup_Field__c = d.harbor.Id);
-        d.third = new Rowhouse_Test_Record__c(Name = 'Path C', Lookup_Field__c = d.mill.Id);
-        d.alone = new Rowhouse_Test_Record__c(Name = 'Path D');
-        insert new List<Rowhouse_Test_Record__c>{ d.first, d.second, d.third, d.alone };
+        d.first = new Consignment__c(Name = 'Safe deposit boxes, Portland', Shipper__c = d.harbor.Id);
+        d.second = new Consignment__c(Name = 'Teller counters, Bath', Shipper__c = d.harbor.Id);
+        d.third = new Consignment__c(Name = 'Transformer parts, Lewiston', Shipper__c = d.mill.Id);
+        d.alone = new Consignment__c(Name = 'Granite curbing, Concord');
+        insert new List<Consignment__c>{ d.first, d.second, d.third, d.alone };
         return d;
     }
 
@@ -54,20 +54,20 @@ private class GridPathsTest {
         System.assertEquals(INDUSTRY, one.local);
         System.assertEquals(Account.SObjectType, one.holder);
         System.assertEquals(Account.Industry, one.field);
-        System.assertEquals('Lookup_Field__c', one.holderIdLocal);
-        System.assertEquals('Related Account: Industry', GridPaths.defaultLabel(one));
+        System.assertEquals('Shipper__c', one.holderIdLocal);
+        System.assertEquals('Shipper: Industry', GridPaths.defaultLabel(one));
 
-        GridPaths.FieldPath two = GridPaths.resolve(TEST_RECORD, 'lookup_field__r.owner.email');
+        GridPaths.FieldPath two = GridPaths.resolve(TEST_RECORD, 'shipper__r.owner.email');
         System.assertEquals(User.SObjectType, two.holder);
-        System.assertEquals('Lookup_Field__r.Owner.Email', two.local, 'Spelled as describe spells it.');
-        System.assertEquals('Lookup_Field__r.OwnerId', two.holderIdLocal);
-        System.assertEquals('Related Account: Owner: Email', GridPaths.defaultLabel(two));
+        System.assertEquals('Shipper__r.Owner.Email', two.local, 'Spelled as describe spells it.');
+        System.assertEquals('Shipper__r.OwnerId', two.holderIdLocal);
+        System.assertEquals('Shipper: Owner: Email', GridPaths.defaultLabel(two));
     }
 
     @IsTest
     static void aPathThatCannotWorkIsRefusedInAnAdminsTerms() {
-        assertRefused(TEST_RECORD, 'Nothing__r.Name', 'has no lookup called Nothing__r');
-        assertRefused(TEST_RECORD, 'Lookup_Field__r.Nothing__c', 'Nothing__c');
+        assertRefused(TEST_RECORD, 'Carrier__r.Name', 'has no lookup called Carrier__r');
+        assertRefused(TEST_RECORD, 'Shipper__r.Nothing__c', 'Nothing__c');
         assertRefused(Case.SObjectType, 'Owner.Email', 'can point to more than one kind of record');
         assertRefused(Contact.SObjectType, 'Account.Parent.Parent.Parent.Parent.Parent.Name', 'at most 5');
         // Five lookups is the most, and allowed.
@@ -89,16 +89,16 @@ private class GridPathsTest {
     @IsTest
     static void pathColumnsAreReadAndEditedThroughTheirParent() {
         System.runAs(GridTestUsers.fullUser()) {
-            GridConfig.Definition def = GridConfig.forUser('Path_Test');
+            GridConfig.Definition def = GridConfig.forUser('Consignment_Shippers');
             GridConfig.Column industry = column(def, INDUSTRY);
             System.assert(industry.isPath);
             System.assertEquals(true, industry.editable, 'A user who may edit accounts edits it.');
             System.assertEquals(false, industry.creatable, 'A new row sets its own fields only.');
             System.assertEquals(true, industry.groupable);
-            System.assertEquals('sum', column(def, 'Lookup_Field__r.AnnualRevenue').subtotal);
-            GridConfig.Column name = column(def, 'Lookup_Field__r.Name');
+            System.assertEquals('sum', column(def, 'Shipper__r.AnnualRevenue').subtotal);
+            GridConfig.Column name = column(def, 'Shipper__r.Name');
             System.assertEquals(false, name.isName, 'The account name does not link to the row.');
-            System.assertEquals(false, column(def, 'Lookup_Field__r.Owner.Email').editable);
+            System.assertEquals(false, column(def, 'Shipper__r.Owner.Email').editable);
         }
     }
 
@@ -108,14 +108,14 @@ private class GridPathsTest {
             new Grid_Configuration__mdt(
                 DeveloperName = 'Paths',
                 MasterLabel = 'Paths',
-                Object_API_Name__c = 'Rowhouse_Test_Record__c',
+                Object_API_Name__c = 'Consignment__c',
                 Allow_Inline_Edit__c = true
             ),
             new List<Grid_Column__mdt>{
                 new Grid_Column__mdt(DeveloperName = 'Paths_Name', Field_API_Name__c = 'Name', Sort_Order__c = 10),
                 new Grid_Column__mdt(
                     DeveloperName = 'Paths_Bad',
-                    Field_API_Name__c = 'Lookup_Field__r.Nothing__c',
+                    Field_API_Name__c = 'Shipper__r.Nothing__c',
                     Sort_Order__c = 20
                 )
             },
@@ -150,10 +150,10 @@ private class GridPathsTest {
             Map<Id, Map<String, Object>> rows = byId(fetch(null, INDUSTRY, 'asc', null));
             Map<String, Object> first = rows.get(d.first.Id);
             System.assertEquals('Banking', first.get(INDUSTRY));
-            System.assertEquals('Harbor Bank', first.get('Lookup_Field__r.Name'));
+            System.assertEquals('Harbor Bank', first.get('Shipper__r.Name'));
             Map<String, Object> parents = (Map<String, Object>) first.get('_parents');
             System.assertEquals(String.valueOf(d.harbor.Id), parents.get(INDUSTRY));
-            System.assertEquals(String.valueOf(UserInfo.getUserId()), parents.get('Lookup_Field__r.Owner.Email'));
+            System.assertEquals(String.valueOf(UserInfo.getUserId()), parents.get('Shipper__r.Owner.Email'));
 
             Map<String, Object> alone = rows.get(d.alone.Id);
             System.assertEquals(null, alone.get(INDUSTRY));
@@ -184,7 +184,7 @@ private class GridPathsTest {
             System.assertEquals(new Set<Object>{ d.first.Id, d.second.Id }, filtered);
 
             GridGroupService.Result groups = GridController.summarizeGroups(
-                'Path_Test',
+                'Consignment_Shippers',
                 null,
                 new List<String>{ INDUSTRY },
                 null,
@@ -206,7 +206,7 @@ private class GridPathsTest {
         List<Map<String, Object>> filters
     ) {
         Map<String, Object> page = GridController.fetchRows(
-            'Path_Test',
+            'Consignment_Shippers',
             term,
             sortField,
             direction,
@@ -247,7 +247,7 @@ private class GridPathsTest {
             Test.startTest();
             Integer jobsBefore = Limits.getQueueableJobs();
             GridSaveResult ticket = GridSaveService.save(
-                'Path_Test',
+                'Consignment_Shippers',
                 new List<Map<String, Object>>{
                     new Map<String, Object>{ 'Id' => d.first.Id, INDUSTRY => 'Energy' },
                     new Map<String, Object>{ 'Id' => d.second.Id, INDUSTRY => 'Energy' }
@@ -270,20 +270,20 @@ private class GridPathsTest {
             Data d = seed();
             Test.startTest();
             GridSaveResult ticket = GridSaveService.save(
-                'Path_Test',
+                'Consignment_Shippers',
                 new List<Map<String, Object>>{
                     new Map<String, Object>{
                         'Id' => d.third.Id,
-                        'Name' => 'Path C renamed',
-                        'Lookup_Field__r.AnnualRevenue' => '300.50'
+                        'Name' => 'Transformer parts, Auburn',
+                        'Shipper__r.AnnualRevenue' => '300.50'
                     }
                 }
             );
             Test.stopTest();
             System.assertEquals(2, ticket.chunkCount);
             System.assertEquals(
-                'Path C renamed',
-                [SELECT Name FROM Rowhouse_Test_Record__c WHERE Id = :d.third.Id].Name
+                'Transformer parts, Auburn',
+                [SELECT Name FROM Consignment__c WHERE Id = :d.third.Id].Name
             );
             // Annual Revenue holds no decimals: rounded half up, as on the row's own fields (TC-023).
             System.assertEquals(301, [SELECT AnnualRevenue FROM Account WHERE Id = :d.mill.Id].AnnualRevenue);
@@ -295,7 +295,7 @@ private class GridPathsTest {
         System.runAs(GridTestUsers.fullUser()) {
             Data d = seed();
             GridSaveResult ticket = GridSaveService.save(
-                'Path_Test',
+                'Consignment_Shippers',
                 new List<Map<String, Object>>{
                     new Map<String, Object>{ 'Id' => d.first.Id, INDUSTRY => 'Energy' },
                     new Map<String, Object>{ 'Id' => d.second.Id, INDUSTRY => 'energy' }
@@ -316,16 +316,13 @@ private class GridPathsTest {
         System.runAs(GridTestUsers.fullUser()) {
             Data d = seed();
             GridSaveResult ticket = GridSaveService.save(
-                'Path_Test',
+                'Consignment_Shippers',
                 new List<Map<String, Object>>{ new Map<String, Object>{ 'Id' => d.alone.Id, INDUSTRY => 'Energy' } }
             );
             System.assertEquals(1, ticket.errors.size());
             System.assertEquals(d.alone.Id, ticket.errors[0].recordId);
             System.assertEquals(INDUSTRY, ticket.errors[0].fieldName);
-            System.assertEquals(
-                'This record has no Related Account, so Industry can\'t be changed.',
-                ticket.errors[0].message
-            );
+            System.assertEquals('This record has no Shipper, so Industry can\'t be changed.', ticket.errors[0].message);
         }
     }
 
@@ -334,18 +331,18 @@ private class GridPathsTest {
         System.runAs(GridTestUsers.fullUser()) {
             Data d = seed();
             GridSaveResult ticket = GridSaveService.save(
-                'Path_Test',
+                'Consignment_Shippers',
                 new List<Map<String, Object>>{
                     new Map<String, Object>{
                         'Id' => d.first.Id,
-                        'Lookup_Field__r.Owner.Email' => 'someone@example.invalid',
-                        'Lookup_Field__r.Phone' => '555-0100'
+                        'Shipper__r.Owner.Email' => 'hannah.pelletier@granitecoastfreight.com',
+                        'Shipper__r.Phone' => '(207) 555-0100'
                     }
                 }
             );
             System.assertEquals(0, ticket.chunkCount);
-            System.assert(ticket.rejectedFields.contains('Lookup_Field__r.Owner.Email'), ticket.rejectedFields);
-            System.assert(ticket.rejectedFields.contains('Lookup_Field__r.Phone'), 'Not a column at all.');
+            System.assert(ticket.rejectedFields.contains('Shipper__r.Owner.Email'), ticket.rejectedFields);
+            System.assert(ticket.rejectedFields.contains('Shipper__r.Phone'), 'Not a column at all.');
         }
     }
 
@@ -353,13 +350,14 @@ private class GridPathsTest {
     static void aParentsSaveErrorIsReportedOnEveryRowCellThatEditedIt() {
         System.runAs(GridTestUsers.fullUser()) {
             Data d = seed();
-            String tooLong = 'x'.repeat(300); // Account Name holds 255
+            // Account Name holds 255
+            String tooLong = 'Harbor Bank, Commercial Lending, 1 Monument Square, Portland; '.repeat(5).left(300);
             Test.startTest();
             GridSaveResult ticket = GridSaveService.save(
-                'Path_Test',
+                'Consignment_Shippers',
                 new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'Id' => d.first.Id, 'Lookup_Field__r.Name' => tooLong },
-                    new Map<String, Object>{ 'Id' => d.second.Id, 'Lookup_Field__r.Name' => tooLong }
+                    new Map<String, Object>{ 'Id' => d.first.Id, 'Shipper__r.Name' => tooLong },
+                    new Map<String, Object>{ 'Id' => d.second.Id, 'Shipper__r.Name' => tooLong }
                 }
             );
             Test.stopTest();
@@ -368,7 +366,7 @@ private class GridPathsTest {
             System.assertEquals(0, done.successCount);
             Set<Id> rows = new Set<Id>();
             for (GridSaveError e : done.errors) {
-                System.assertEquals('Lookup_Field__r.Name', e.fieldName, String.valueOf(done.errors));
+                System.assertEquals('Shipper__r.Name', e.fieldName, String.valueOf(done.errors));
                 rows.add(e.recordId);
             }
             System.assertEquals(new Set<Id>{ d.first.Id, d.second.Id }, rows);
@@ -381,14 +379,12 @@ private class GridPathsTest {
         System.runAs(GridTestUsers.fullUser()) {
             Data d = seed();
             GridSaveResult ticket = GridSaveService.save(
-                'Path_Test',
-                new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'Id' => d.first.Id, 'Lookup_Field__r.Name' => ' ' }
-                }
+                'Consignment_Shippers',
+                new List<Map<String, Object>>{ new Map<String, Object>{ 'Id' => d.first.Id, 'Shipper__r.Name' => ' ' } }
             );
             System.assertEquals(1, ticket.errors.size());
             System.assertEquals(GridSaveService.REQUIRED_MESSAGE, ticket.errors[0].message);
-            System.assertEquals('Lookup_Field__r.Name', ticket.errors[0].fieldName);
+            System.assertEquals('Shipper__r.Name', ticket.errors[0].fieldName);
         }
     }
 }

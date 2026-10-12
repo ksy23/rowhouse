@@ -43,7 +43,7 @@ def apex_value(el):
 
 
 def record(path):
-    # Grid_Child.Test_Records_Children.md-meta.xml -> Grid_Child, Test_Records_Children
+    # Grid_Child.Consignments_Items.md-meta.xml -> Grid_Child, Consignments_Items
     type_name, dev_name = Path(path).name[:-len('.md-meta.xml')].split('.', 1)
     root = ET.parse(path).getroot()
     label = root.find('md:label', NS).text

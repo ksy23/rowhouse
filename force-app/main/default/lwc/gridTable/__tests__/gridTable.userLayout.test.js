@@ -28,17 +28,43 @@ const frame = () => new Promise(resolve => requestAnimationFrame(() => resolve()
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, width: 200, wrap: true },
-    { field: 'Notes__c', label: 'Notes', type: 'text', editable: true, sortable: true, width: 160 },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true, sortable: true, width: 140 },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: false, width: 120 }
+    { field: 'Delivery_Notes__c', label: 'Delivery Notes', type: 'text', editable: true, sortable: true, width: 160 },
+    {
+        field: 'Freight_Charge__c',
+        label: 'Freight Charge',
+        type: 'currency',
+        scale: 2,
+        editable: true,
+        sortable: true,
+        width: 140
+    },
+    { field: 'Service_Level__c', label: 'Service Level', type: 'picklist', editable: true, sortable: false, width: 120 }
 ];
 const id = n => 'a01' + String(n).padStart(15, '0'); // 18 characters, as a record Id
 const ROWS = [
-    { Id: id(1), Name: 'One', Notes__c: 'First note', Amount__c: 100, Stage__c: 'Open' },
-    { Id: id(2), Name: 'Two', Notes__c: 'Second note', Amount__c: 300, Stage__c: 'Won' },
-    { Id: id(3), Name: 'Three', Notes__c: 'Third note', Amount__c: 200, Stage__c: 'Open' }
+    {
+        Id: id(1),
+        Name: 'Casco Bay Marine, 4 pallets',
+        Delivery_Notes__c: 'Call before delivery',
+        Freight_Charge__c: 100,
+        Service_Level__c: 'Standard'
+    },
+    {
+        Id: id(2),
+        Name: 'Wachusett Paper, 6 rolls',
+        Delivery_Notes__c: 'Use dock door 4',
+        Freight_Charge__c: 300,
+        Service_Level__c: 'Express'
+    },
+    {
+        Id: id(3),
+        Name: 'Kennebec Lumber, 12 bundles',
+        Delivery_Notes__c: 'Liftgate required',
+        Freight_Charge__c: 200,
+        Service_Level__c: 'Standard'
+    }
 ];
-const CHILDREN = [{ name: 'Test_Records_Children', label: 'Children', configName: 'Test_Children' }];
+const CHILDREN = [{ name: 'Consignments_Items', label: 'Items', configName: 'Consignment_Items' }];
 
 let el;
 let layouts;
@@ -113,34 +139,40 @@ afterEach(() => {
 
 describe('applying a saved layout', () => {
     it('pins each saved column at its width, and the table is exactly its columns', async () => {
-        await mount({ userLayout: { key: 'k1', widths: { Name: 300, Amount__c: 180 } } });
+        await mount({ userLayout: { key: 'k1', widths: { Name: 300, Freight_Charge__c: 180 } } });
         expect(width('Name')).toBe('300px');
-        expect(width('Amount__c')).toBe('180px');
+        expect(width('Freight_Charge__c')).toBe('180px');
         // A column with no saved width keeps its own.
-        expect(width('Notes__c')).toBe('160px');
+        expect(width('Delivery_Notes__c')).toBe('160px');
         const total = dataHeaders().reduce((sum, cell) => sum + parseInt(cell.style.width, 10), 0);
         expect($('table').style.width).toBe(total + 'px');
     });
 
     it('keeps a saved width within 20 to 1,000px, and ignores a column the grid no longer has or a width that is not a number', async () => {
         await mount();
-        const stage = width('Stage__c');
+        const stage = width('Service_Level__c');
         await handOver({
-            userLayout: { key: 'k1', widths: { Name: 5, Amount__c: 5000, Gone__c: 400, Stage__c: 'wide' } }
+            userLayout: {
+                key: 'k1',
+                widths: { Name: 5, Freight_Charge__c: 5000, Gone__c: 400, Service_Level__c: 'wide' }
+            }
         });
         expect(width('Name')).toBe('20px');
-        expect(width('Amount__c')).toBe('1000px');
-        expect(width('Stage__c')).toBe(stage);
+        expect(width('Freight_Charge__c')).toBe('1000px');
+        expect(width('Service_Level__c')).toBe(stage);
         expect(th('Gone__c')).toBeNull();
     });
 
     it("applies Wrap or Clip over the admin's default, for wrappable columns the grid has", async () => {
         await mount({
-            userLayout: { key: 'k1', wrap: { Name: false, Notes__c: true, Amount__c: true, Gone__c: true } }
+            userLayout: {
+                key: 'k1',
+                wrap: { Name: false, Delivery_Notes__c: true, Freight_Charge__c: true, Gone__c: true }
+            }
         });
         expect(wraps(id(1), 'Name')).toBe(false); // the admin wraps it; the user clipped it
-        expect(wraps(id(1), 'Notes__c')).toBe(true);
-        expect(wraps(id(1), 'Amount__c')).toBe(false); // a number never wraps
+        expect(wraps(id(1), 'Delivery_Notes__c')).toBe(true);
+        expect(wraps(id(1), 'Freight_Charge__c')).toBe(false); // a number never wraps
         // The column menu shows the user's choice.
         menuButton('Name').click();
         await flush();
@@ -153,14 +185,14 @@ describe('applying a saved layout', () => {
             userLayout: {
                 key: 'k1',
                 sort: [
-                    { field: 'Amount__c', direction: 'desc' },
-                    { field: 'Stage__c', direction: 'asc' },
+                    { field: 'Freight_Charge__c', direction: 'desc' },
+                    { field: 'Service_Level__c', direction: 'asc' },
                     { field: 'Gone__c' }
                 ]
             }
         });
         expect(order()).toEqual([id(2), id(3), id(1)]); // 300, 200, 100
-        expect(th('Amount__c').getAttribute('aria-sort')).toBe('descending');
+        expect(th('Freight_Charge__c').getAttribute('aria-sort')).toBe('descending');
         expect($$('th[aria-sort="ascending"], th[aria-sort="descending"]')).toHaveLength(1);
         expect(sorts).toEqual([]); // the parent asked for it
     });
@@ -168,15 +200,15 @@ describe('applying a saved layout', () => {
     it("wins over the config's first sort", async () => {
         await mount({
             sort: [{ field: 'Name', direction: 'asc' }],
-            userLayout: { key: 'k1', sort: [{ field: 'Amount__c', direction: 'asc' }] }
+            userLayout: { key: 'k1', sort: [{ field: 'Freight_Charge__c', direction: 'asc' }] }
         });
         expect(order()).toEqual([id(1), id(3), id(2)]);
-        expect(th('Amount__c').getAttribute('aria-sort')).toBe('ascending');
+        expect(th('Freight_Charge__c').getAttribute('aria-sort')).toBe('ascending');
         expect(th('Name').getAttribute('aria-sort')).toBe('none');
     });
 
     it('does not send a layoutchange back', async () => {
-        await mount({ userLayout: { key: 'k1', widths: { Name: 300 }, wrap: { Notes__c: true } } });
+        await mount({ userLayout: { key: 'k1', widths: { Name: 300 }, wrap: { Delivery_Notes__c: true } } });
         await frame();
         expect(layouts).toEqual([]);
     });
@@ -184,8 +216,8 @@ describe('applying a saved layout', () => {
     it('is applied when it arrives after the rows', async () => {
         await mount();
         expect($('table').style.width).toBe(''); // fills the grid until a width is set
-        await handOver({ userLayout: { key: 'k1', widths: { Notes__c: 260 } } });
-        expect(width('Notes__c')).toBe('260px');
+        await handOver({ userLayout: { key: 'k1', widths: { Delivery_Notes__c: 260 } } });
+        expect(width('Delivery_Notes__c')).toBe('260px');
         expect($('table').style.width).not.toBe('');
     });
 
@@ -196,26 +228,30 @@ describe('applying a saved layout', () => {
     });
 
     it('is applied once per key: what the user changes afterwards stays', async () => {
-        await mount({ userLayout: { key: 'k1', widths: { Name: 300 }, wrap: { Notes__c: true } } });
+        await mount({ userLayout: { key: 'k1', widths: { Name: 300 }, wrap: { Delivery_Notes__c: true } } });
         await resizeByKeyboard('Name', 250);
-        menuButton('Notes__c').click();
+        menuButton('Delivery_Notes__c').click();
         await flush();
         item('Clip text').click();
         await flush();
         // New rows and the same layout key, even with other values in it: nothing is put back.
         await handOver({
             rows: ROWS.slice(0, 2),
-            userLayout: { key: 'k1', widths: { Name: 999 }, wrap: { Notes__c: true } }
+            userLayout: { key: 'k1', widths: { Name: 999 }, wrap: { Delivery_Notes__c: true } }
         });
         expect(width('Name')).toBe('250px');
-        expect(wraps(id(1), 'Notes__c')).toBe(false);
+        expect(wraps(id(1), 'Delivery_Notes__c')).toBe(false);
     });
 
     it("a new key with nothing in it puts the admin's widths and wrapping back (Reset layout)", async () => {
         await mount();
         const admin = Object.fromEntries(dataHeaders().map(cell => [cell.dataset.field, cell.style.width]));
         await handOver({
-            userLayout: { key: 'k1', widths: { Name: 300, Notes__c: 90 }, wrap: { Name: false, Notes__c: true } }
+            userLayout: {
+                key: 'k1',
+                widths: { Name: 300, Delivery_Notes__c: 90 },
+                wrap: { Name: false, Delivery_Notes__c: true }
+            }
         });
         expect(width('Name')).toBe('300px');
         // What gridView hands over for Reset layout: no widths at all.
@@ -223,9 +259,9 @@ describe('applying a saved layout', () => {
         expect($('table').style.width).toBe(''); // not pinned: the table fills the grid again
         dataHeaders().forEach(cell => expect(cell.style.width).toBe(admin[cell.dataset.field]));
         expect(wraps(id(1), 'Name')).toBe(true); // the admin's default
-        expect(wraps(id(1), 'Notes__c')).toBe(false);
+        expect(wraps(id(1), 'Delivery_Notes__c')).toBe(false);
         // Widths are no longer the user's: the next layoutchange says so.
-        menuButton('Notes__c').click();
+        menuButton('Delivery_Notes__c').click();
         await flush();
         item('Wrap text').click();
         await flush();
@@ -245,10 +281,10 @@ describe('applying a saved layout', () => {
 describe('telling the parent what to keep (layoutchange)', () => {
     it('after a resize from the keyboard: every pinned width, the new one included', async () => {
         await mount();
-        await resizeByKeyboard('Notes__c', 240);
+        await resizeByKeyboard('Delivery_Notes__c', 240);
         expect(layouts).toHaveLength(1);
         expect(layouts[0]).toEqual({
-            widths: { Name: 200, Notes__c: 240, Amount__c: 200, Stage__c: 200 },
+            widths: { Name: 200, Delivery_Notes__c: 240, Freight_Charge__c: 200, Service_Level__c: 200 },
             wrap: {},
             expanded: []
         });
@@ -256,7 +292,7 @@ describe('telling the parent what to keep (layoutchange)', () => {
 
     it('after a pointer drag: once, when the pointer is let go, at the width it was let go at', async () => {
         await mount();
-        const handle = th('Amount__c').querySelector('.slds-resizable__handle');
+        const handle = th('Freight_Charge__c').querySelector('.slds-resizable__handle');
         handle.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true, clientX: 500 }));
         window.dispatchEvent(new MouseEvent('pointermove', { clientX: 400 }));
         window.dispatchEvent(new MouseEvent('pointermove', { clientX: 450 }));
@@ -265,38 +301,38 @@ describe('telling the parent what to keep (layoutchange)', () => {
         window.dispatchEvent(new MouseEvent('pointerup', {}));
         await flush();
         expect(layouts).toHaveLength(1);
-        expect(layouts[0].widths.Amount__c).toBe(150);
-        expect(width('Amount__c')).toBe('150px');
+        expect(layouts[0].widths.Freight_Charge__c).toBe(150);
+        expect(width('Freight_Charge__c')).toBe('150px');
         // The drag is over: the pointer moving again changes nothing.
         window.dispatchEvent(new MouseEvent('pointermove', { clientX: 900 }));
         window.dispatchEvent(new MouseEvent('pointerup', {}));
         await flush();
         expect(layouts).toHaveLength(1);
-        expect(width('Amount__c')).toBe('150px');
+        expect(width('Freight_Charge__c')).toBe('150px');
     });
 
     it('after a double-click that fits a column to its values', async () => {
         await mount();
-        th('Notes__c')
+        th('Delivery_Notes__c')
             .querySelector('.slds-resizable__handle')
             .dispatchEvent(new MouseEvent('dblclick', { bubbles: true, composed: true, cancelable: true }));
         await flush();
         expect(layouts).toHaveLength(1);
-        expect(width('Notes__c')).toBe(layouts[0].widths.Notes__c + 'px');
+        expect(width('Delivery_Notes__c')).toBe(layouts[0].widths.Delivery_Notes__c + 'px');
     });
 
     it('after Wrap text or Clip text from a column menu, chosen from the keyboard', async () => {
         await mount();
-        await key(menuButton('Notes__c'), 'ArrowDown');
+        await key(menuButton('Delivery_Notes__c'), 'ArrowDown');
         await key(items()[0], 'ArrowDown');
         await key(items()[1], 'ArrowDown');
         expect(el.shadowRoot.activeElement).toBe(item('Wrap text'));
         await key(item('Wrap text'), 'Enter');
         // Widths are null: the user has not set one.
-        expect(layouts).toEqual([{ widths: null, wrap: { Notes__c: true }, expanded: [] }]);
+        expect(layouts).toEqual([{ widths: null, wrap: { Delivery_Notes__c: true }, expanded: [] }]);
         await key(menuButton('Name'), 'ArrowUp'); // the last item: Clip text
         await key(item('Clip text'), ' ');
-        expect(layouts[1]).toEqual({ widths: null, wrap: { Notes__c: true, Name: false }, expanded: [] });
+        expect(layouts[1]).toEqual({ widths: null, wrap: { Delivery_Notes__c: true, Name: false }, expanded: [] });
     });
 
     it('does not count widths pinned without the user setting one', async () => {
@@ -304,18 +340,18 @@ describe('telling the parent what to keep (layoutchange)', () => {
         range('Name').dispatchEvent(new CustomEvent('focus')); // pins every column, sets none
         await flush();
         expect($('table').style.width).not.toBe('');
-        menuButton('Notes__c').click();
+        menuButton('Delivery_Notes__c').click();
         await flush();
         item('Wrap text').click();
         await flush();
-        expect(layouts).toEqual([{ widths: null, wrap: { Notes__c: true }, expanded: [] }]);
+        expect(layouts).toEqual([{ widths: null, wrap: { Delivery_Notes__c: true }, expanded: [] }]);
     });
 
     it('does not count widths pinned to freeze columns', async () => {
         await mount({ frozenColumns: 1 });
         await frame();
         await flush();
-        menuButton('Notes__c').click();
+        menuButton('Delivery_Notes__c').click();
         await flush();
         item('Wrap text').click();
         await flush();
@@ -324,11 +360,11 @@ describe('telling the parent what to keep (layoutchange)', () => {
 
     it("reports a saved layout's widths with the next change: they are still the user's", async () => {
         await mount({ userLayout: { key: 'k1', widths: { Name: 300 } } });
-        menuButton('Notes__c').click();
+        menuButton('Delivery_Notes__c').click();
         await flush();
         item('Wrap text').click();
         await flush();
-        expect(layouts).toEqual([{ widths: { Name: 300 }, wrap: { Notes__c: true }, expanded: [] }]);
+        expect(layouts).toEqual([{ widths: { Name: 300 }, wrap: { Delivery_Notes__c: true }, expanded: [] }]);
     });
 });
 
@@ -341,7 +377,11 @@ describe('open rows', () => {
     });
 
     it('opens at most 50 rows', async () => {
-        const rows = Array.from({ length: 55 }, (_, i) => ({ Id: id(i + 1), Name: 'Row ' + (i + 1), Amount__c: i }));
+        const rows = Array.from({ length: 55 }, (_, i) => ({
+            Id: id(i + 1),
+            Name: 'Kennebec Lumber, load ' + (i + 1),
+            Freight_Charge__c: i
+        }));
         await mount({ rows, children: CHILDREN, userLayout: { key: 'k1', expanded: rows.map(r => r.Id) } });
         expect(detailRows()).toHaveLength(50);
         expect(toggle(id(50)).getAttribute('aria-expanded')).toBe('true');
@@ -408,21 +448,21 @@ describe('Freeze up to this column', () => {
 
     it("offers Freeze up to this column on each of the first five columns' menus", async () => {
         await mount();
-        await openMenu('Amount__c');
+        await openMenu('Freight_Charge__c');
         expect(item('Freeze up to this column')).toBeTruthy();
         expect(item('Unfreeze columns')).toBeFalsy();
     });
 
     it('freezes the columns up to that one, says so, and tells the parent to keep it', async () => {
         await mount();
-        await openMenu('Notes__c');
+        await openMenu('Delivery_Notes__c');
         item('Freeze up to this column').click();
         await flush();
         await frame();
         await flush();
-        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name', 'Notes__c']);
+        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name', 'Delivery_Notes__c']);
         expect(frozens[frozens.length - 1]).toBe(2);
-        expect($('.rh-live, [aria-live]').textContent).toContain('Columns frozen up to Notes');
+        expect($('.rh-live, [aria-live]').textContent).toContain('Columns frozen up to Delivery Notes');
     });
 
     it("Unfreeze columns undoes it, and the admin's frozen columns too", async () => {
@@ -430,7 +470,7 @@ describe('Freeze up to this column', () => {
         await frame();
         await flush();
         expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name']);
-        await openMenu('Amount__c');
+        await openMenu('Freight_Charge__c');
         expect(item('Freeze up to this column')).toBeTruthy();
         item('Unfreeze columns').click();
         await flush();
@@ -442,7 +482,7 @@ describe('Freeze up to this column', () => {
         await mount({ frozenColumns: 1, userLayout: { key: 'k1', frozen: 3 } });
         await frame();
         await flush();
-        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name', 'Notes__c', 'Amount__c']);
+        expect(frozenHeaders().map(h => h.dataset.field)).toEqual(['Name', 'Delivery_Notes__c', 'Freight_Charge__c']);
         await handOver({ userLayout: { key: 'k2', widths: null, wrap: {}, expanded: [], frozen: null } });
         await frame();
         await flush();

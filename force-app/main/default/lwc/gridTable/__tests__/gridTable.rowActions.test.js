@@ -13,13 +13,20 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true }
+    {
+        field: 'Service_Level__c',
+        label: 'Service Level',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        groupable: true
+    }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
 const ROWS = [
-    { Id: id(1), Name: 'One', Stage__c: 'Open' },
-    { Id: id(2), Name: 'Two', Stage__c: 'Won' },
-    { Id: id(3), Name: 'Three', Stage__c: 'Open' }
+    { Id: id(1), Name: 'Kennebec Lumber, 12 bundles', Service_Level__c: 'Express' },
+    { Id: id(2), Name: 'Penobscot Paper, full truck', Service_Level__c: 'Standard' },
+    { Id: id(3), Name: 'Reefer load, Machias', Service_Level__c: 'Express' }
 ];
 const ACTIONS = [
     { name: 'Add_Note', label: 'Add a note' },
@@ -98,7 +105,9 @@ describe("a row's menu", () => {
         expect(items(ROWS[1].Id).map(a => a.textContent.trim())).toEqual(['Add a note', 'Mark as seen', 'Log a call']);
         expect(button(ROWS[1].Id).getAttribute('aria-expanded')).toBe('true');
         expect(el.shadowRoot.activeElement).toBe(items(ROWS[1].Id)[0]);
-        expect($(`td[data-row-id="${ROWS[1].Id}"] [role="menu"]`).getAttribute('aria-label')).toBe('Actions for Two');
+        expect($(`td[data-row-id="${ROWS[1].Id}"] [role="menu"]`).getAttribute('aria-label')).toBe(
+            'Actions for Penobscot Paper, full truck'
+        );
     });
 
     it('says which action on which record, then closes and gives focus back to its button', async () => {
@@ -191,7 +200,7 @@ describe("a row's menu", () => {
     });
 
     it("leaves a group's row without a button", async () => {
-        await mount({ grouping: [{ field: 'Stage__c', unit: null }] });
+        await mount({ grouping: [{ field: 'Service_Level__c', unit: null }] });
         const groupRows = $$('tbody tr[data-kind="group"]');
         expect(groupRows.length).toBeGreaterThan(0);
         // Every group's row keeps the column, so the columns line up, but has no button.
@@ -206,7 +215,7 @@ describe('in cards', () => {
         await mount({ layout: 'cards' });
         const menus = $$('lightning-button-menu.rh-card-actions');
         expect(menus).toHaveLength(3);
-        expect(menus[0].alternativeText).toBe('Actions for One');
+        expect(menus[0].alternativeText).toBe('Actions for Kennebec Lumber, 12 bundles');
         const values = [...menus[0].querySelectorAll('lightning-menu-item')].map(m => m.value);
         expect(values).toEqual(['Add_Note', 'Mark_Seen', 'Log_Call']);
         menus[1].dispatchEvent(new CustomEvent('select', { detail: { value: 'Add_Note' } }));

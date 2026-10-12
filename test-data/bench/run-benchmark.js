@@ -4,7 +4,7 @@
  * straight after a hard reload (Cmd+Shift+R). It prints one line of JSON.
  *
  * It reads the User Timing measures the grid records (c/gridTiming), then:
- *   - sorts the Number column SORTS times, alternating direction, waiting
+ *   - sorts the Pieces column SORTS times, alternating direction, waiting
  *     each time until the grid is no longer busy: with rows still on the
  *     server a sort reloads them (sortSettledMedianMs);
  *   - edits the first row's Text cell COMMITS times, then discards the edits
@@ -75,7 +75,7 @@
         return Boolean(grid) && grid.getAttribute('aria-busy') === 'true';
     };
     for (let i = 0; i < SORTS; i++) {
-        const header = deep('th[data-field="Number_Field__c"] a.slds-th__action');
+        const header = deep('th[data-field="Pieces__c"] a.slds-th__action');
         const before = measures('sort').length;
         const clicked = performance.now();
         header.click();
@@ -97,7 +97,7 @@
 
     const commits = [];
     for (let i = 0; i < COMMITS; i++) {
-        const button = deep('tbody tr[data-row-id] td[data-field="Text_Field__c"] button');
+        const button = deep('tbody tr[data-row-id] td[data-field="Consignee__c"] button');
         button.click();
         // eslint-disable-next-line no-await-in-loop
         await until(() => deep('c-cell-text[data-editor] input'), 'the editor to open');

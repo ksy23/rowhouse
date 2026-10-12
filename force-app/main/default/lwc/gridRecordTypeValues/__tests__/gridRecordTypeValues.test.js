@@ -11,7 +11,7 @@ const RT = '012000000000001AAA';
 
 function mount() {
     const el = createElement('c-grid-record-type-values', { is: GridRecordTypeValues });
-    el.objectApiName = 'Rowhouse_Test_Typed__c';
+    el.objectApiName = 'Inspection__c';
     el.recordTypeId = RT;
     const heard = [];
     el.addEventListener('values', e => heard.push(e.detail));
@@ -28,7 +28,7 @@ describe('gridRecordTypeValues', () => {
         const { heard } = mount();
         await Promise.resolve();
         expect(getPicklistValuesByRecordType.getLastConfig()).toEqual({
-            objectApiName: 'Rowhouse_Test_Typed__c',
+            objectApiName: 'Inspection__c',
             recordTypeId: RT
         });
         getPicklistValuesByRecordType.emit({

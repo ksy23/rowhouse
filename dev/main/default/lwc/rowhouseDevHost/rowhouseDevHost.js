@@ -2,10 +2,10 @@
  * rowhouseDevHost — DEVELOPMENT ONLY. Never packaged.
  *
  * Puts gridApp on a development org's "Rowhouse (dev)" tab. The configuration is
- * Test_Records unless the URL names another, which is how the benchmark
+ * Consignments unless the URL names another, which is how the benchmark
  * switches grids without a page per configuration:
  *
- *   /lightning/n/Rowhouse_Dev?c__grid=Bench_20
+ *   /lightning/n/Rowhouse_Dev?c__grid=Freight_Bills_20
  *
  * c__record stands in for the record page's recordId, so a grid with a
  * Record Page Field can be tried without activating a record page:
@@ -17,14 +17,14 @@
  * does not have, so the dev tab keeps this host.
  *
  * The grid is placed only once the page reference is known:
- * before, it opened Test_Records and then, when the URL named another grid,
+ * before, it opened Consignments and then, when the URL named another grid,
  * opened that one too: two loads for one click.
  */
 import { LightningElement, api, wire } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation';
 
 export default class RowhouseDevHost extends LightningElement {
-    @api gridName = 'Test_Records';
+    @api gridName = 'Consignments';
     urlGrid = null;
     recordId = null;
     pageKnown = false;

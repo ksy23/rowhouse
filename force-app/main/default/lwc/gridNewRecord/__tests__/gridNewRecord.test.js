@@ -38,7 +38,7 @@ const TWO_TYPES = {
         [MASTER]: { recordTypeId: MASTER, name: 'Master', available: true, master: true },
         [SUPPORT]: { recordTypeId: SUPPORT, name: 'Support', available: true, defaultRecordTypeMapping: true },
         [SALES]: { recordTypeId: SALES, name: 'Sales', available: true },
-        '012hk0000000003AAA': { recordTypeId: '012hk0000000003AAA', name: 'Hidden', available: false }
+        '012hk0000000003AAA': { recordTypeId: '012hk0000000003AAA', name: 'Field Service', available: false }
     }
 };
 const field = (apiName, label, extra = {}) => ({

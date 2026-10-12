@@ -32,23 +32,28 @@ const STATUS = {
     options: ['New', 'Working', 'Closed', 'Archived'].map(v => ({ value: v, label: v }))
 };
 const DEFINITION = {
-    name: 'Typed_Test',
-    label: 'Typed Test',
-    objectApiName: 'Rowhouse_Test_Typed__c',
+    name: 'Inspections',
+    label: 'Inspections',
+    objectApiName: 'Inspection__c',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
     allowInlineEdit: true,
     byRecordType: true,
     columns: [
-        { field: 'Name', label: 'Typed Record Name', type: 'text', editable: true, creatable: true, isName: true },
+        { field: 'Name', label: 'Inspection Name', type: 'text', editable: true, creatable: true, isName: true },
         STATUS
     ]
 };
 const ROWS = [
-    { Id: 'a05000000000001AAA', Name: 'One', Status__c: 'Working', RecordTypeId: STANDARD },
-    { Id: 'a05000000000002AAA', Name: 'Two', Status__c: 'New', RecordTypeId: RESTRICTED },
-    { Id: 'a05000000000003AAA', Name: 'Three', Status__c: 'Closed', RecordTypeId: STANDARD }
+    {
+        Id: 'a05000000000001AAA',
+        Name: 'Reefer temperature check, Portland',
+        Status__c: 'Working',
+        RecordTypeId: STANDARD
+    },
+    { Id: 'a05000000000002AAA', Name: 'Hazmat placard check, Bangor', Status__c: 'New', RecordTypeId: RESTRICTED },
+    { Id: 'a05000000000003AAA', Name: 'Trailer brake check, Lewiston', Status__c: 'Closed', RecordTypeId: STANDARD }
 ];
 const settle = async () => {
     for (let i = 0; i < 30; i++) {
@@ -66,7 +71,7 @@ const mount = async (definition = DEFINITION, newRow = null) => {
     const base = openGridFrom({ getGridConfig, fetchRows });
     openGrid.mockImplementation(async args => ({ ...(await base(args)), newRow }));
     const el = createElement('c-grid-view', { is: GridView });
-    el.configName = 'Typed_Test';
+    el.configName = 'Inspections';
     document.body.appendChild(el);
     await settle();
     return el;
@@ -98,8 +103,8 @@ describe('picklists that follow the record type', () => {
     it('reads each record type among the rows once, for the grid object', async () => {
         const el = await mount();
         expect(readers(el).map(r => [r.objectApiName, r.recordTypeId])).toEqual([
-            ['Rowhouse_Test_Typed__c', STANDARD],
-            ['Rowhouse_Test_Typed__c', RESTRICTED]
+            ['Inspection__c', STANDARD],
+            ['Inspection__c', RESTRICTED]
         ]);
         expect(tableOf(el).config.recordTypePicklists).toBeNull();
     });
@@ -139,7 +144,7 @@ describe('picklists that follow the record type', () => {
 
     it("gives a new row the user's default record type", async () => {
         const el = await mount(DEFINITION, {
-            objectLabel: 'Rowhouse Test Typed Record',
+            objectLabel: 'Inspection',
             inline: true,
             defaults: {},
             names: {},

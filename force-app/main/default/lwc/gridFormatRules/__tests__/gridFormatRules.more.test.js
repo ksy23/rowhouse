@@ -34,7 +34,7 @@ describe('between', () => {
 
     it('never matches a blank, or a type with no order', () => {
         expect(test({ type: 'number', value: '1', valueTo: '9' }, null)).toBe(false);
-        expect(test({ type: 'text', value: 'a', valueTo: 'z' }, 'm')).toBe(false);
+        expect(test({ type: 'text', value: 'Augusta', valueTo: 'Portland' }, 'Bangor')).toBe(false);
     });
 });
 
@@ -141,8 +141,8 @@ describe('two fields', () => {
                 applyTo: 'cell'
             }
         ]);
-        expect(formatsFor(same, rowOf({ Due: 'A;B', Closed: 'b;a' }), FIELDS)).not.toBeNull();
-        expect(formatsFor(same, rowOf({ Due: 'A;B', Closed: 'A' }), FIELDS)).toBeNull();
+        expect(formatsFor(same, rowOf({ Due: 'Fragile;Liftgate', Closed: 'liftgate;fragile' }), FIELDS)).not.toBeNull();
+        expect(formatsFor(same, rowOf({ Due: 'Fragile;Liftgate', Closed: 'Fragile' }), FIELDS)).toBeNull();
         const differ = compile([
             {
                 name: 'Differ',
@@ -155,7 +155,7 @@ describe('two fields', () => {
                 applyTo: 'cell'
             }
         ]);
-        expect(formatsFor(differ, rowOf({ Due: 'A;B', Closed: 'B;A' }), FIELDS)).toBeNull();
+        expect(formatsFor(differ, rowOf({ Due: 'Fragile;Liftgate', Closed: 'Liftgate;Fragile' }), FIELDS)).toBeNull();
     });
 });
 
@@ -192,8 +192,8 @@ describe('icons and data bars', () => {
             applyTo: 'cell'
         },
         {
-            name: 'Neg2',
-            label: 'Also negative',
+            name: 'Credit_Alert',
+            label: 'Credit alert',
             field: 'Amount',
             type: 'currency',
             operator: 'less_than',
@@ -211,8 +211,8 @@ describe('icons and data bars', () => {
             applyTo: 'cell'
         },
         {
-            name: 'Red',
-            label: 'Red',
+            name: 'Credit',
+            label: 'Credit balance',
             field: 'Amount',
             type: 'currency',
             operator: 'less_than',
@@ -221,7 +221,7 @@ describe('icons and data bars', () => {
             applyTo: 'cell'
         },
         {
-            name: 'Up',
+            name: 'Rising',
             label: 'Rising',
             field: 'Amount',
             type: 'currency',
@@ -237,7 +237,7 @@ describe('icons and data bars', () => {
         expect(f.icons).toEqual({ Amount: { name: 'utility:warning', variant: 'warning', label: 'Negative' } });
         expect(f.bars).toEqual({ Amount: true });
         expect(f.cells).toEqual({ Amount: 'rh-fmt_fill-red' });
-        expect(f.labels).toEqual({ Amount: 'Red' });
+        expect(f.labels).toEqual({ Amount: 'Credit balance' });
     });
 
     it('puts a row rule’s icon on the row’s first column', () => {

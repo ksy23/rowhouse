@@ -105,7 +105,7 @@ const DRAFT = {
         {
             name: 'Deals_Amount',
             field: 'Amount__c',
-            columnLabel: 'Value',
+            columnLabel: 'Deal Value',
             editable: true,
             sortable: true,
             subtotal: 'sum',
@@ -126,8 +126,8 @@ const DRAFT = {
     ],
     rules: [
         {
-            name: 'Deals_Big',
-            label: 'Big',
+            name: 'Deals_Large',
+            label: 'Large deal',
             field: 'Amount__c',
             operator: 'greater_than',
             value: '1000',
@@ -387,15 +387,15 @@ describe('the record page field', () => {
     it('still shows a saved field the object no longer has', async () => {
         readConfig.mockResolvedValue({
             draft: draftWith(d => {
-                d.config.recordPageField = 'Gone__c';
+                d.config.recordPageField = 'Territory__c';
             }),
             warnings: [],
             canSave: true
         });
         const el = await mount();
         const box = $(el, '.rh-config-record-page');
-        expect(box.value).toBe('Gone__c');
-        expect(box.options).toContainEqual({ value: 'Gone__c', label: 'Gone__c (not on this object)' });
+        expect(box.value).toBe('Territory__c');
+        expect(box.options).toContainEqual({ value: 'Territory__c', label: 'Territory__c (not on this object)' });
     });
 });
 
@@ -527,9 +527,9 @@ describe('formula columns', () => {
                 d.columns = [d.columns[0]];
                 for (let i = 1; i <= 10; i++) {
                     d.columns.push({
-                        name: `Deals_F${i}`,
+                        name: `Deals_Tier_${i}`,
                         field: null,
-                        columnLabel: `F${i}`,
+                        columnLabel: `Tier ${i} commission`,
                         sortable: false,
                         inactive: false,
                         formula: `Amount__c * ${i}`,
@@ -625,7 +625,7 @@ describe('display rules', () => {
         expect($(el, '.rh-rule-value-to')).toBeNull();
         expect($(el, '.rh-rule-compare')).toBeNull();
         expect($(el, '.rh-rule-field').options[0]).toEqual({ value: '', label: 'None (a row rule)' });
-        expect(errorsText(el)).toContain('Big: write its formula.');
+        expect(errorsText(el)).toContain('Large deal: write its formula.');
         await afterCheck();
         expect($(el, '.rh-editor-save').disabled).toBe(true);
 
@@ -898,7 +898,7 @@ describe('saving', () => {
         });
         expect(sent.rules).toHaveLength(3);
         expect(sent.rules[0]).toMatchObject({
-            name: 'Deals_Big',
+            name: 'Deals_Large',
             operator: 'between',
             value: '1000',
             valueTo: '5000',

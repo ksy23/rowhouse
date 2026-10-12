@@ -29,8 +29,8 @@ afterEach(() => {
 const manyRows = n =>
     Array.from({ length: n }, (_, i) => ({
         Id: 'a00' + String(i).padStart(15, '0'),
-        Name: 'Row ' + (i + 1),
-        Number_Field__c: String(i)
+        Name: 'Kennebec Lumber, load ' + (i + 1),
+        Pieces__c: String(i)
     }));
 
 describe('choosing the layout', () => {
@@ -142,29 +142,29 @@ describe('editing in a card', () => {
         const handler = jest.fn();
         el.addEventListener('cellchange', handler);
 
-        editButton(target.Id, 'Text_Field__c').click();
+        editButton(target.Id, 'Consignee__c').click();
         await flush();
         const editor = el.shadowRoot.querySelector('c-cell-text[data-editor]');
         expect(editor.mode).toBe('edit');
-        editor.dispatchEvent(new CustomEvent('commit', { detail: { value: 'from a phone' } }));
+        editor.dispatchEvent(new CustomEvent('commit', { detail: { value: 'Merrimack Valley Foods' } }));
         await flush();
 
         expect(handler.mock.calls[0][0].detail).toEqual(
-            expect.objectContaining({ recordId: target.Id, field: 'Text_Field__c', value: 'from a phone' })
+            expect.objectContaining({ recordId: target.Id, field: 'Consignee__c', value: 'Merrimack Valley Foods' })
         );
         expect(el.shadowRoot.querySelector('c-cell-text[data-editor]')).toBeNull();
-        expect(el.shadowRoot.activeElement).toBe(editButton(target.Id, 'Text_Field__c'));
+        expect(el.shadowRoot.activeElement).toBe(editButton(target.Id, 'Consignee__c'));
     });
 
     it('offers no edit button for a read-only field', async () => {
         await mount({ columns, rows: seedRows.slice(0, 1), layout: 'cards' });
-        expect(editButton(seedRows[0].Id, 'Test_Case__c')).toBeNull();
+        expect(editButton(seedRows[0].Id, 'Pro_Number__c')).toBeNull();
         // The name is the card's title; it is edited among all the fields.
         expect(editButton(seedRows[0].Id, 'Name')).toBeNull();
         cards()[0].querySelector('.rh-card-more').click();
         await flush();
         expect(editButton(seedRows[0].Id, 'Name')).not.toBeNull();
-        expect(editButton(seedRows[0].Id, 'Test_Case__c')).toBeNull();
+        expect(editButton(seedRows[0].Id, 'Pro_Number__c')).toBeNull();
     });
 
     it('shows drafts, cell errors (described by the edit button) and row errors', async () => {
@@ -173,14 +173,14 @@ describe('editing in a card', () => {
             columns,
             rows: seedRows.slice(0, 1),
             layout: 'cards',
-            drafts: { [id]: { Text_Field__c: 'draft value' } },
-            errors: { [id]: { row: 'Record is locked.', fields: { Text_Field__c: 'Too long.' } } }
+            drafts: { [id]: { Consignee__c: 'Green Mountain Maple' } },
+            errors: { [id]: { row: 'Record is locked.', fields: { Consignee__c: 'Too long.' } } }
         });
         const card = cards()[0];
-        expect(card.textContent).toContain('draft value');
+        expect(card.textContent).toContain('Green Mountain Maple');
         expect(card.textContent).toContain('Unsaved');
         expect(card.querySelector('.rh-card-row-error').textContent).toBe('Error: Record is locked.');
-        const button = editButton(id, 'Text_Field__c');
+        const button = editButton(id, 'Consignee__c');
         const describedBy = button.getAttribute('aria-describedby');
         const described = el.shadowRoot.querySelectorAll(`[id="${describedBy}"]`);
         expect(described).toHaveLength(1); // the table's hidden copy is not rendered in cards
@@ -188,19 +188,24 @@ describe('editing in a card', () => {
     });
 
     it('announces an empty value instead of leaving a silent gap', async () => {
-        const row = { Id: 'a00000000000000999', Name: 'Sparse', Text_Field__c: null };
+        const row = { Id: 'a00000000000000999', Name: 'Reefer load, Machias', Consignee__c: null };
         await mount({ columns, rows: [row], layout: 'cards' });
         // The value is its edit button: its name says it is empty, then what it does.
-        const button = editButton(row.Id, 'Text_Field__c');
+        const button = editButton(row.Id, 'Consignee__c');
         const said = [...button.querySelectorAll('.slds-assistive-text')].map(n => n.textContent);
-        expect(said).toEqual(['No value', 'Edit Text of Sparse']);
+        expect(said).toEqual(['No value', 'Edit Consignee of Reefer load, Machias']);
     });
 });
 
 describe('the save footer in cards', () => {
     it('sticks to the bottom of the screen instead of sitting after the last card', async () => {
         const id = seedRows[0].Id;
-        await mount({ columns, rows: seedRows.slice(0, 3), layout: 'cards', drafts: { [id]: { Name: 'x' } } });
+        await mount({
+            columns,
+            rows: seedRows.slice(0, 3),
+            layout: 'cards',
+            drafts: { [id]: { Name: 'Unassigned pickup, Bangor' } }
+        });
         const footer = el.shadowRoot.querySelector('.rh-footer');
         expect(footer.classList).toContain('rh-footer_sticky');
         expect(footer.classList).not.toContain('rh-footer_docked');
@@ -210,7 +215,12 @@ describe('the save footer in cards', () => {
 
     it('floats in a band of its own under the table in the table layout', async () => {
         const id = seedRows[0].Id;
-        await mount({ columns, rows: seedRows.slice(0, 3), layout: 'table', drafts: { [id]: { Name: 'x' } } });
+        await mount({
+            columns,
+            rows: seedRows.slice(0, 3),
+            layout: 'table',
+            drafts: { [id]: { Name: 'Unassigned pickup, Bangor' } }
+        });
         expect(el.shadowRoot.querySelector('.rh-footer').classList).toContain('rh-footer_docked');
         expect(el.shadowRoot.querySelector('.rh-grid').classList).toContain('rh-has-footer');
     });
@@ -225,7 +235,7 @@ describe('paging and sorting cards', () => {
         more.click();
         await flush();
         expect(cards()).toHaveLength(100);
-        expect(el.shadowRoot.activeElement.textContent).toBe('Row 51');
+        expect(el.shadowRoot.activeElement.textContent).toBe('Kennebec Lumber, load 51');
         expect(el.shadowRoot.querySelector('.rh-card-count').textContent).toBe('Showing 100 of 120');
         el.shadowRoot.querySelector('.rh-show-more').click();
         await flush();
@@ -239,19 +249,19 @@ describe('paging and sorting cards', () => {
         const handler = jest.fn();
         el.addEventListener('sortchange', handler);
         const select = el.shadowRoot.querySelector('select');
-        select.value = 'Number_Field__c';
+        select.value = 'Pieces__c';
         select.dispatchEvent(new CustomEvent('change'));
         await flush();
-        expect(handler.mock.calls[0][0].detail.sort).toEqual([{ field: 'Number_Field__c', direction: 'asc' }]);
+        expect(handler.mock.calls[0][0].detail.sort).toEqual([{ field: 'Pieces__c', direction: 'asc' }]);
         el.shadowRoot.querySelector('.rh-card-direction').click();
         await flush();
-        expect(handler.mock.calls[1][0].detail.sort).toEqual([{ field: 'Number_Field__c', direction: 'desc' }]);
+        expect(handler.mock.calls[1][0].detail.sort).toEqual([{ field: 'Pieces__c', direction: 'desc' }]);
         expect([...el.shadowRoot.querySelectorAll('li.rh-card h3')].map(h => h.textContent)).toEqual([
-            'Row 5',
-            'Row 4',
-            'Row 3',
-            'Row 2',
-            'Row 1'
+            'Kennebec Lumber, load 5',
+            'Kennebec Lumber, load 4',
+            'Kennebec Lumber, load 3',
+            'Kennebec Lumber, load 2',
+            'Kennebec Lumber, load 1'
         ]);
     });
 

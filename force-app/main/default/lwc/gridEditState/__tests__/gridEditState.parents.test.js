@@ -40,7 +40,7 @@ describe('withSameParent', () => {
     });
 
     it('returns the same changes when none is to a parent field', () => {
-        const changes = [edit('r1', 'Name', 'x')];
+        const changes = [edit('r1', 'Name', 'Hannah Pelletier')];
         expect(withSameParent(changes, ROWS, PATHS)).toBe(changes);
         expect(withSameParent(changes, ROWS, new Set())).toBe(changes);
     });
@@ -53,7 +53,7 @@ describe('rowsSharingParents', () => {
     });
 
     it('finds none when no parent field was saved, or the row did not save', () => {
-        expect(rowsSharingParents(ROWS, { r1: { Name: 'x' } }, ['r1'], PATHS)).toEqual([]);
+        expect(rowsSharingParents(ROWS, { r1: { Name: 'Hannah Pelletier' } }, ['r1'], PATHS)).toEqual([]);
         expect(rowsSharingParents(ROWS, { r1: { 'Account.Industry': 'Energy' } }, [], PATHS)).toEqual([]);
     });
 });

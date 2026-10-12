@@ -17,7 +17,7 @@ const ROW2 = 'a05000000000002AAA';
 const ROW3 = 'a05000000000003AAA';
 
 const COLUMNS = [
-    { field: 'Name', label: 'Typed Record Name', type: 'text', editable: true, sortable: true },
+    { field: 'Name', label: 'Inspection Name', type: 'text', editable: true, sortable: true },
     {
         field: 'Status__c',
         label: 'Status',
@@ -28,9 +28,9 @@ const COLUMNS = [
     }
 ];
 const ROWS = [
-    { Id: ROW1, Name: 'Standard one', Status__c: 'Working', RecordTypeId: STANDARD },
-    { Id: ROW2, Name: 'Restricted one', Status__c: 'New', RecordTypeId: RESTRICTED },
-    { Id: ROW3, Name: 'Restricted two', Status__c: 'Archived', RecordTypeId: RESTRICTED }
+    { Id: ROW1, Name: 'Reefer trailer check, Portland', Status__c: 'Working', RecordTypeId: STANDARD },
+    { Id: ROW2, Name: 'Hazmat placards, Bangor', Status__c: 'New', RecordTypeId: RESTRICTED },
+    { Id: ROW3, Name: 'Hazmat drum seals, Calais', Status__c: 'Archived', RecordTypeId: RESTRICTED }
 ];
 const BY_TYPE = {
     [STANDARD]: { status__c: ['New', 'Working', 'Closed'] },
@@ -41,7 +41,7 @@ let el;
 let changes;
 const mount = async (extra = {}) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
-    el.config = { columns: COLUMNS, rows: ROWS, configName: 'Typed_Test', ...extra };
+    el.config = { columns: COLUMNS, rows: ROWS, configName: 'Inspections', ...extra };
     changes = [];
     el.addEventListener('cellschange', e => changes.push(e.detail));
     document.body.appendChild(el);

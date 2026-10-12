@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Bill_To__c</fullName>
+    <label>Bill To</label>
+    <description>DEVELOPMENT ONLY. a lookup with a lookup filter. Only accounts whose Type is Customer - Direct may be chosen, so the grid must offer only those.</description>
+    <type>Lookup</type>
+    <referenceTo>Account</referenceTo>
+    <relationshipName>Billed_Consignments</relationshipName>
+    <relationshipLabel>Billed Consignments</relationshipLabel>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <required>false</required>
+    <lookupFilter>
+        <active>true</active>
+        <errorMessage>Choose an account whose type is Customer - Direct.</errorMessage>
+        <filterItems>
+            <field>Account.Type</field>
+            <operation>equals</operation>
+            <value>Customer - Direct</value>
+        </filterItems>
+        <isOptional>false</isOptional>
+    </lookupFilter>
+</CustomField>

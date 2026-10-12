@@ -7,10 +7,10 @@
 private class GridConfigTest {
     @IsTest
     static void loadsColumnsInSortOrderWithDescribeDetail() {
-        GridConfig.Definition def = GridConfig.load('Test_Records');
-        System.assertEquals('Rowhouse_Test_Record__c', def.objectApiName);
-        System.assertEquals('Test Records', def.label, 'The label is the grid title.');
-        System.assertEquals(16, def.columns.size(), 'Test_Records has sixteen columns.');
+        GridConfig.Definition def = GridConfig.load('Consignments');
+        System.assertEquals('Consignment__c', def.objectApiName);
+        System.assertEquals('Consignments', def.label, 'The label is the grid title.');
+        System.assertEquals(16, def.columns.size(), 'Consignments has sixteen columns.');
         System.assertEquals('Name', def.columns[0].field, 'Sort_Order__c 1 comes first.');
         for (Integer i = 1; i < def.columns.size(); i++) {
             System.assertNotEquals(def.columns[i - 1].field, def.columns[i].field);
@@ -19,35 +19,35 @@ private class GridConfigTest {
         GridConfig.Column formulaCol;
         GridConfig.Column picklistCol;
         for (GridConfig.Column c : def.columns) {
-            if (c.field == 'Currency_Field__c')
+            if (c.field == 'Freight_Charge__c')
                 currencyCol = c;
-            if (c.field == 'Formula_Number__c')
+            if (c.field == 'Pallet_Positions__c')
                 formulaCol = c;
-            if (c.field == 'Picklist_Field__c')
+            if (c.field == 'Service_Level__c')
                 picklistCol = c;
         }
         System.assertEquals('currency', currencyCol.type);
         System.assertEquals(2, currencyCol.scale);
         System.assertEquals(false, formulaCol.editable, 'A formula is read-only by type, whatever the config says.');
-        System.assertEquals(3, picklistCol.options.size(), 'Active values only: Alpha, Beta, Gamma.');
+        System.assertEquals(3, picklistCol.options.size(), 'Active values only: Economy, Standard, Express.');
         for (GridConfig.Column c : def.columns) {
             if (c.field == 'Name') {
                 // The schema calls a text Name nillable; users and the grid do not.
                 System.assertEquals(true, c.required, 'Name must be required.');
             }
-            // Wrap_Text__c is set on the Test Case column only; unset means clip.
-            System.assertEquals(c.field == 'Test_Case__c', c.wrap, 'Wrap default for ' + c.field);
+            // Wrap_Text__c is set on the PRO Number column only; unset means clip.
+            System.assertEquals(c.field == 'Pro_Number__c', c.wrap, 'Wrap default for ' + c.field);
             // Always_Shown__c is set on the Name column only.
             System.assertEquals(c.field == 'Name', c.alwaysShown, 'Always Shown for ' + c.field);
         }
         System.assertEquals(200, def.pageSize);
-        System.assertEquals(1, def.frozenColumns, 'Test_Records freezes its Name column.');
+        System.assertEquals(1, def.frozenColumns, 'Consignments freezes its Name column.');
         System.assertEquals(null, def.height, 'No Height: the grid fills the window.');
-        System.assertEquals(320, GridConfig.load('Save_Test').height, 'A Height is passed on in pixels.');
+        System.assertEquals(320, GridConfig.load('Consignment_Rates').height, 'A Height is passed on in pixels.');
         System.assertEquals('asc', def.sortDirection);
         System.assertEquals(true, def.showRowNumbers, 'Checked: the rows are numbered.');
         System.assertEquals(true, def.allowNewRecords, 'Checked: the grid has a New button.');
-        System.assertEquals(false, GridConfig.load('Save_Test').allowNewRecords, 'Unchecked: no New button.');
+        System.assertEquals(false, GridConfig.load('Consignment_Rates').allowNewRecords, 'Unchecked: no New button.');
     }
 
     @IsTest
@@ -55,18 +55,18 @@ private class GridConfigTest {
         GridConfig.Definition def;
         GridConfig.Definition off;
         System.runAs(GridTestUsers.limitedUser()) {
-            def = GridConfig.forUser('Security_Test');
-            off = GridConfig.forUser('Save_Test');
+            def = GridConfig.forUser('Consignment_Charges');
+            off = GridConfig.forUser('Consignment_Rates');
         }
-        System.assertEquals(true, def.allowNewRecords, 'The limited user may create test records.');
+        System.assertEquals(true, def.allowNewRecords, 'The limited user may create consignments.');
         Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
         for (GridConfig.Column c : def.columns) {
             byField.put(c.field, c);
         }
-        System.assertEquals(true, byField.get('Text_Field__c').creatable);
+        System.assertEquals(true, byField.get('Consignee__c').creatable);
         System.assertEquals(
             false,
-            byField.get('Read_Only_Text__c').creatable,
+            byField.get('Carrier_Code__c').creatable,
             'An editable column the user may not set on create is not filled in on a new row.'
         );
         System.assertEquals(false, off.allowNewRecords);
@@ -79,13 +79,17 @@ private class GridConfigTest {
     static void showRowNumbersIsPassedOn() {
         GridConfig.Definition def = GridConfig.build(
             new Grid_Configuration__mdt(
-                DeveloperName = 'No_Numbers',
-                MasterLabel = 'No Numbers',
-                Object_API_Name__c = 'Rowhouse_Test_Record__c',
+                DeveloperName = 'Dispatch_Board',
+                MasterLabel = 'Dispatch Board',
+                Object_API_Name__c = 'Consignment__c',
                 Show_Row_Numbers__c = false
             ),
             new List<Grid_Column__mdt>{
-                new Grid_Column__mdt(DeveloperName = 'No_Numbers_Name', Field_API_Name__c = 'Name', Sort_Order__c = 10)
+                new Grid_Column__mdt(
+                    DeveloperName = 'Dispatch_Board_Name',
+                    Field_API_Name__c = 'Name',
+                    Sort_Order__c = 10
+                )
             },
             new List<Grid_Format_Rule__mdt>(),
             new List<Grid_Child__mdt>(),
@@ -97,46 +101,58 @@ private class GridConfigTest {
     @IsTest
     static void lookupsOwnersAndPicklistDependenciesAreDescribed() {
         Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
-        for (GridConfig.Column c : GridConfig.load('Test_Records').columns) {
+        for (GridConfig.Column c : GridConfig.load('Consignments').columns) {
             byField.put(c.field, c);
         }
-        System.assertEquals('reference', byField.get('Lookup_Field__c').type);
-        System.assertEquals(new List<String>{ 'Account' }, byField.get('Lookup_Field__c').referenceTo);
+        System.assertEquals('reference', byField.get('Shipper__c').type);
+        System.assertEquals(new List<String>{ 'Account' }, byField.get('Shipper__c').referenceTo);
         System.assertEquals('owner', byField.get('OwnerId').type, 'OwnerId is an owner, not a plain lookup.');
         System.assert(byField.get('OwnerId').referenceTo.contains('User'));
-        System.assertEquals('multipicklist', byField.get('Multi_Picklist__c').type);
-        System.assertEquals(5, byField.get('Multi_Picklist__c').options.size());
-        for (
-            String f : new List<String>{ 'Lookup_Field__c', 'OwnerId', 'Multi_Picklist__c', 'Dependent_Picklist__c' }
-        ) {
+        System.assertEquals('multipicklist', byField.get('Handling__c').type);
+        System.assertEquals(5, byField.get('Handling__c').options.size());
+        for (String f : new List<String>{ 'Shipper__c', 'OwnerId', 'Handling__c', 'Equipment__c' }) {
             System.assertEquals(true, byField.get(f).editable, f + ' has an editor now.');
         }
 
-        GridConfig.Column dependent = byField.get('Dependent_Picklist__c');
-        System.assertEquals('Controlling_Picklist__c', dependent.dependentOn);
+        GridConfig.Column dependent = byField.get('Equipment__c');
+        System.assertEquals('Mode__c', dependent.dependentOn);
         Map<String, Object> validFor = new Map<String, Object>();
         for (Map<String, Object> o : dependent.options) {
             validFor.put((String) o.get('value'), o.get('validFor'));
         }
-        System.assertEquals(new List<String>{ 'Hardware' }, validFor.get('Keyboard'));
-        System.assertEquals(new List<String>{ 'Hardware' }, validFor.get('Monitor'));
-        System.assertEquals(new List<String>{ 'Software' }, validFor.get('Licence'));
-        System.assertEquals(null, byField.get('Controlling_Picklist__c').dependentOn);
+        System.assertEquals(new List<String>{ 'Truckload' }, validFor.get('Dry Van'));
+        System.assertEquals(new List<String>{ 'Truckload' }, validFor.get('Reefer'));
+        System.assertEquals(new List<String>{ 'LTL' }, validFor.get('Pallet'));
+        System.assertEquals(null, byField.get('Mode__c').dependentOn);
         System.assertEquals(
             null,
-            byField.get('Picklist_Field__c').options[0].get('validFor'),
+            byField.get('Service_Level__c').options[0].get('validFor'),
             'Only dependent values carry validFor.'
         );
     }
 
     @IsTest
     static void validForReadsOneBitPerControllingValueMostSignificantFirst() {
-        List<String> nine = new List<String>{ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' };
-        System.assertEquals(new List<String>{ 'a' }, GridDescribe.validFor('gAAA', nine), '0x80: the first value.');
-        System.assertEquals(new List<String>{ 'b' }, GridDescribe.validFor('QAAA', nine), '0x40: the second.');
-        System.assertEquals(new List<String>{ 'a', 'b' }, GridDescribe.validFor('wAAA', nine), '0xC0: both.');
+        List<String> nine = new List<String>{
+            'Truckload',
+            'LTL',
+            'Parcel',
+            'Intermodal',
+            'Flatbed',
+            'Drayage',
+            'Rail',
+            'Air',
+            'Ocean'
+        };
         System.assertEquals(
-            new List<String>{ 'i' },
+            new List<String>{ 'Truckload' },
+            GridDescribe.validFor('gAAA', nine),
+            '0x80: the first value.'
+        );
+        System.assertEquals(new List<String>{ 'LTL' }, GridDescribe.validFor('QAAA', nine), '0x40: the second.');
+        System.assertEquals(new List<String>{ 'Truckload', 'LTL' }, GridDescribe.validFor('wAAA', nine), '0xC0: both.');
+        System.assertEquals(
+            new List<String>{ 'Ocean' },
             GridDescribe.validFor('AIAA', nine),
             'The ninth is in the second byte.'
         );
@@ -145,10 +161,10 @@ private class GridConfigTest {
 
     @IsTest
     static void theControllingFieldIsReadOnceEvenWhenItIsAColumn() {
-        List<String> names = GridConfig.load('Test_Records').fieldNames();
+        List<String> names = GridConfig.load('Consignments').fieldNames();
         Integer count = 0;
         for (String n : names) {
-            if (n == 'Controlling_Picklist__c')
+            if (n == 'Mode__c')
                 count++;
         }
         System.assertEquals(1, count, String.valueOf(names));
@@ -156,11 +172,11 @@ private class GridConfigTest {
 
     @IsTest
     static void theAllowListIsTheAdminsEditableColumns() {
-        Set<String> allowed = GridConfig.load('Security_Test').editableFields();
-        System.assertEquals(new Set<String>{ 'text_field__c', 'read_only_text__c', 'long_text__c' }, allowed);
+        Set<String> allowed = GridConfig.load('Consignment_Charges').editableFields();
+        System.assertEquals(new Set<String>{ 'consignee__c', 'carrier_code__c', 'delivery_notes__c' }, allowed);
         System.assert(
-            !allowed.contains('currency_field__c'),
-            'Not a column of Security_Test, so never writable through it.'
+            !allowed.contains('freight_charge__c'),
+            'Not a column of Consignment_Charges, so never writable through it.'
         );
     }
 
@@ -170,8 +186,8 @@ private class GridConfigTest {
         // reads the whole value first (GridController.fetchFullText), so the
         // shortened copy is never what is saved, and the column is offered.
         GridConfig.Column longText;
-        for (GridConfig.Column c : GridConfig.load('Security_Test').columns) {
-            if (c.field == 'Long_Text__c')
+        for (GridConfig.Column c : GridConfig.load('Consignment_Charges').columns) {
+            if (c.field == 'Delivery_Notes__c')
                 longText = c;
         }
         System.assertEquals(true, longText.adminEditable);
@@ -187,18 +203,15 @@ private class GridConfigTest {
     static void aLookupIsHeadedByWhatItPointsTo() {
         // Describe labels standard lookups "Account ID", "Owner ID".
         System.assertEquals('Account', GridConfig.defaultLabel(Contact.AccountId.getDescribe()));
-        System.assertEquals('Owner', GridConfig.defaultLabel(Rowhouse_Test_Record__c.OwnerId.getDescribe()));
+        System.assertEquals('Owner', GridConfig.defaultLabel(Consignment__c.OwnerId.getDescribe()));
         System.assertEquals(
-            'Related Account',
-            GridConfig.defaultLabel(Rowhouse_Test_Record__c.Lookup_Field__c.getDescribe()),
+            'Shipper',
+            GridConfig.defaultLabel(Consignment__c.Shipper__c.getDescribe()),
             'A custom lookup has no " ID" to drop.'
         );
-        System.assertEquals(
-            'Number Field',
-            GridConfig.defaultLabel(Rowhouse_Test_Record__c.Number_Field__c.getDescribe())
-        );
+        System.assertEquals('Pieces', GridConfig.defaultLabel(Consignment__c.Pieces__c.getDescribe()));
         Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
-        for (GridConfig.Column c : GridConfig.load('Test_Records').columns) {
+        for (GridConfig.Column c : GridConfig.load('Consignments').columns) {
             byField.put(c.field, c);
         }
         System.assert(!byField.get('OwnerId').label.endsWith(' ID'), byField.get('OwnerId').label);
@@ -213,10 +226,10 @@ private class GridConfigTest {
     @IsTest
     static void anUnknownConfigurationFailsWithItsName() {
         try {
-            GridConfig.load('No_Such_Grid');
+            GridConfig.load('Consignment_Rerate');
             System.assert(false, 'Expected an exception.');
         } catch (GridException e) {
-            System.assert(e.getMessage().contains('No_Such_Grid'), e.getMessage());
+            System.assert(e.getMessage().contains('Consignment_Rerate'), e.getMessage());
         }
     }
 
@@ -225,22 +238,28 @@ private class GridConfigTest {
         User limited = GridTestUsers.limitedUser();
         GridConfig.Definition def;
         System.runAs(limited) {
-            def = GridConfig.forUser('Test_Records');
+            def = GridConfig.forUser('Consignments');
         }
         Set<String> fields = new Set<String>();
         for (GridConfig.Column c : def.columns) {
             fields.add(c.field);
-            if (c.field == 'Read_Only_Text__c') {
+            if (c.field == 'Carrier_Code__c') {
                 System.assertEquals(false, c.editable, 'Readable but not editable for this user.');
             }
-            if (c.field == 'Text_Field__c') {
+            if (c.field == 'Consignee__c') {
                 System.assertEquals(true, c.editable);
             }
         }
-        System.assert(!fields.contains('Formula_Number__c'), 'Invisible to the limited user, so not a column at all.');
-        System.assert(!fields.contains('Auto_Number__c'), 'Invisible to the limited user, so not a column at all.');
-        System.assert(fields.contains('Currency_Field__c'));
-        System.assert(!fields.contains('Lookup_Field__c'), 'Invisible to the limited user.');
-        System.assert(!fields.contains('Dependent_Picklist__c'), 'Invisible to the limited user.');
+        System.assert(
+            !fields.contains('Pallet_Positions__c'),
+            'Invisible to the limited user, so not a column at all.'
+        );
+        System.assert(
+            !fields.contains('Consignment_Number__c'),
+            'Invisible to the limited user, so not a column at all.'
+        );
+        System.assert(fields.contains('Freight_Charge__c'));
+        System.assert(!fields.contains('Shipper__c'), 'Invisible to the limited user.');
+        System.assert(!fields.contains('Equipment__c'), 'Invisible to the limited user.');
     }
 }

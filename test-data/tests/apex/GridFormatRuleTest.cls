@@ -8,7 +8,7 @@
  */
 @IsTest
 private class GridFormatRuleTest {
-    private static final Schema.SObjectType TEST_RECORD = Rowhouse_Test_Record__c.SObjectType;
+    private static final Schema.SObjectType TEST_RECORD = Consignment__c.SObjectType;
 
     /** A row rule, so the field need not be a column; the cell cases pass 'cell'. */
     private static Grid_Format_Rule__mdt rule(String field, String operator, String value, String style) {
@@ -52,75 +52,82 @@ private class GridFormatRuleTest {
         System.runAs(GridTestUsers.fullUser()) {
             System.assertEquals(
                 '1000',
-                check(rule('Currency_Field__c', 'greater_or_equal', ' 1000 ', 'fill_green')).value
+                check(rule('Freight_Charge__c', 'greater_or_equal', ' 1000 ', 'fill_green')).value
             );
-            System.assertEquals('-12.50', check(rule('Percent_Field__c', 'less_than', '-12.50', 'bold')).value);
-            System.assertEquals('TODAY+7', check(rule('Date_Field__c', 'less_than', 'today + 7', 'fill_amber')).value);
-            System.assertEquals('2026-12-31', check(rule('Date_Field__c', 'equals', '2026-12-31', 'bold')).value);
-            System.assertEquals('TODAY-30', check(rule('DateTime_Field__c', 'greater_than', 'Today-30', 'bold')).value);
-            System.assertEquals('false', check(rule('Checkbox_Field__c', 'equals', 'FALSE', 'text_grey')).value);
+            System.assertEquals('-12.50', check(rule('Fuel_Surcharge__c', 'less_than', '-12.50', 'bold')).value);
+            System.assertEquals('TODAY+7', check(rule('Ship_Date__c', 'less_than', 'today + 7', 'fill_amber')).value);
+            System.assertEquals('2026-12-31', check(rule('Ship_Date__c', 'equals', '2026-12-31', 'bold')).value);
+            System.assertEquals('TODAY-30', check(rule('Picked_Up__c', 'greater_than', 'Today-30', 'bold')).value);
+            System.assertEquals('false', check(rule('Delivered__c', 'equals', 'FALSE', 'text_grey')).value);
             System.assertEquals(
-                'Gamma',
-                check(rule('Picklist_Field__c', 'equals', 'gamma', 'fill_purple')).value,
+                'Express',
+                check(rule('Service_Level__c', 'equals', 'express', 'fill_purple')).value,
                 'A picklist value is matched in any case and sent as its API name.'
             );
-            System.assertEquals('Red;Blue', check(rule('Multi_Picklist__c', 'equals', 'red; blue', 'bold')).value);
-            System.assertEquals('Green', check(rule('Multi_Picklist__c', 'contains', 'GREEN', 'bold')).value);
             System.assertEquals(
-                'Gam',
-                check(rule('Picklist_Field__c', 'starts_with', 'Gam', 'bold')).value,
+                'Fragile;Inside Delivery',
+                check(rule('Handling__c', 'equals', 'fragile; inside delivery', 'bold')).value
+            );
+            System.assertEquals('Liftgate', check(rule('Handling__c', 'contains', 'LIFTGATE', 'bold')).value);
+            System.assertEquals(
+                'Exp',
+                check(rule('Service_Level__c', 'starts_with', 'Exp', 'bold')).value,
                 'A prefix is not a value of its own, so it is not matched against the list.'
             );
             System.assertEquals(
-                'Clos',
-                check(rule('Picklist_Field__c', 'not_contains', 'Clos', 'bold')).value,
+                'Stand',
+                check(rule('Service_Level__c', 'not_contains', 'Stand', 'bold')).value,
                 'Nor is part of a value: contains and does not contain match it as text.'
             );
             System.assertEquals('$User', check(rule('OwnerId', 'equals', '$user', 'bold')).value);
-            System.assertEquals(null, check(rule('Text_Field__c', 'is_blank', 'ignored', 'text_grey')).value);
+            System.assertEquals(null, check(rule('Consignee__c', 'is_blank', 'ignored', 'text_grey')).value);
         }
     }
 
     @IsTest
     static void takesLookupIdsOfTheRightObjectOnly() {
         System.runAs(GridTestUsers.fullUser()) {
-            Account a = new Account(Name = 'Format target');
+            Account a = new Account(Name = 'Casco Bay Marine');
             insert a;
             String fifteen = String.valueOf(a.Id).left(15);
             System.assertEquals(
                 String.valueOf(a.Id),
-                check(rule('Lookup_Field__c', 'equals', fifteen, 'bold')).value,
+                check(rule('Shipper__c', 'equals', fifteen, 'bold')).value,
                 'A 15-character Id is sent as 18.'
             );
-            System.assert(
-                refusal(rule('Lookup_Field__c', 'equals', UserInfo.getUserId(), 'bold')).contains('can point to')
-            );
-            System.assert(refusal(rule('Lookup_Field__c', 'equals', 'Acme', 'bold')).contains('not a record Id'));
+            System.assert(refusal(rule('Shipper__c', 'equals', UserInfo.getUserId(), 'bold')).contains('can point to'));
+            System.assert(refusal(rule('Shipper__c', 'equals', 'Wachusett Paper', 'bold')).contains('not a record Id'));
         }
     }
 
     @IsTest
     static void refusesRulesThatMeanNothingWithAMessageForTheAdmin() {
         System.runAs(GridTestUsers.fullUser()) {
-            System.assert(refusal(rule('No_Such_Field__c', 'equals', 'x', 'bold')).contains('Unknown field'));
+            System.assert(refusal(rule('Customs_Broker__c', 'equals', 'Portland', 'bold')).contains('Unknown field'));
             System.assert(
-                refusal(rule('Picklist_Field__c', 'greater_than', 'Beta', 'bold')).contains('does not apply to')
+                refusal(rule('Service_Level__c', 'greater_than', 'Standard', 'bold')).contains('does not apply to')
             );
-            System.assert(refusal(rule('Currency_Field__c', 'contains', '5', 'bold')).contains('does not apply to'));
+            System.assert(refusal(rule('Freight_Charge__c', 'contains', '5', 'bold')).contains('does not apply to'));
             System.assert(
-                refusal(rule('Checkbox_Field__c', 'is_blank', null, 'bold')).contains('does not apply to'),
+                refusal(rule('Delivered__c', 'is_blank', null, 'bold')).contains('does not apply to'),
                 'A checkbox is never blank.'
             );
-            System.assert(refusal(rule('Multi_Picklist__c', 'starts_with', 'R', 'bold')).contains('does not apply to'));
-            System.assert(refusal(rule('Currency_Field__c', 'less_than', '1,000', 'bold')).contains('is not a number'));
-            System.assert(refusal(rule('Date_Field__c', 'less_than', '31/12/2026', 'bold')).contains('is not a date'));
-            System.assert(refusal(rule('Date_Field__c', 'less_than', '2026-02-30', 'bold')).contains('is not a date'));
-            System.assert(refusal(rule('Checkbox_Field__c', 'equals', 'yes', 'bold')).contains('not true or false'));
-            System.assert(refusal(rule('Picklist_Field__c', 'equals', 'Delta', 'bold')).contains('is not a value of'));
-            System.assert(refusal(rule('Text_Field__c', 'equals', '  ', 'bold')).contains('has no Value'));
-            System.assert(refusal(rule('Text_Field__c', 'equals', 'x', null)).contains('no Style'));
-            System.assert(refusal(rule('Text_Field__c', 'equals', 'x', 'purple')).contains('unknown Style'));
-            System.assert(refusal(rule('Text_Field__c', 'like', 'x', 'bold')).contains('unknown Operator'));
+            System.assert(refusal(rule('Handling__c', 'starts_with', 'Frag', 'bold')).contains('does not apply to'));
+            System.assert(refusal(rule('Freight_Charge__c', 'less_than', '1,000', 'bold')).contains('is not a number'));
+            System.assert(refusal(rule('Ship_Date__c', 'less_than', '31/12/2026', 'bold')).contains('is not a date'));
+            System.assert(refusal(rule('Ship_Date__c', 'less_than', '2026-02-30', 'bold')).contains('is not a date'));
+            System.assert(refusal(rule('Delivered__c', 'equals', 'yes', 'bold')).contains('not true or false'));
+            System.assert(
+                refusal(rule('Service_Level__c', 'equals', 'Overnight', 'bold')).contains('is not a value of')
+            );
+            System.assert(refusal(rule('Consignee__c', 'equals', '  ', 'bold')).contains('has no Value'));
+            System.assert(refusal(rule('Consignee__c', 'equals', 'Kennebec Lumber', null)).contains('no Style'));
+            System.assert(
+                refusal(rule('Consignee__c', 'equals', 'Kennebec Lumber', 'purple')).contains('unknown Style')
+            );
+            System.assert(
+                refusal(rule('Consignee__c', 'like', 'Kennebec Lumber', 'bold')).contains('unknown Operator')
+            );
         }
     }
 
@@ -128,12 +135,12 @@ private class GridFormatRuleTest {
     static void usesTheColumnsTypeWhenTheFieldIsAColumn() {
         System.runAs(GridTestUsers.fullUser()) {
             GridConfig.Column col = new GridConfig.Column();
-            col.field = 'Text_Field__c';
+            col.field = 'Consignee__c';
             col.type = 'email';
             GridConfig.FormatRule r = GridConfig.formatRule(
-                rule('Text_Field__c', 'contains', '@', 'bold', 'cell'),
+                rule('Consignee__c', 'contains', '@', 'bold', 'cell'),
                 TEST_RECORD,
-                new Map<String, GridConfig.Column>{ 'text_field__c' => col }
+                new Map<String, GridConfig.Column>{ 'consignee__c' => col }
             );
             System.assertEquals('email', r.type, 'The grid tests the value as the column shows it.');
             System.assertEquals('cell', r.applyTo);
@@ -144,12 +151,12 @@ private class GridFormatRuleTest {
     static void aCellRuleNeedsItsFieldToBeAColumn() {
         System.runAs(GridTestUsers.fullUser()) {
             System.assert(
-                refusal(rule('Percent_Field__c', 'greater_than', '50', 'bold', 'cell'))
+                refusal(rule('Fuel_Surcharge__c', 'greater_than', '50', 'bold', 'cell'))
                     .contains('is not a column of this grid'),
                 'A cell rule on a field the grid does not show would never show.'
             );
             System.assert(
-                refusal(rule('Percent_Field__c', 'greater_than', '50', 'bold', null))
+                refusal(rule('Fuel_Surcharge__c', 'greater_than', '50', 'bold', null))
                     .contains('is not a column of this grid'),
                 'Blank Apply To means Cell.'
             );
@@ -159,29 +166,33 @@ private class GridFormatRuleTest {
     @IsTest
     static void loadsTheActiveFixtureRulesInSortOrder() {
         System.runAs(GridTestUsers.fullUser()) {
-            GridConfig.Definition def = GridConfig.load('Test_Records');
+            GridConfig.Definition def = GridConfig.load('Consignments');
             List<String> names = new List<String>();
             for (GridConfig.FormatRule r : def.formatRules) {
                 names.add(r.name);
             }
             System.assertEquals(
                 new List<String>{
-                    'Test_Records_Negative_Amount',
-                    'Test_Records_Large_Amount',
-                    'Test_Records_Past_Date',
-                    'Test_Records_Gamma_Row',
-                    'Test_Records_Half_Percent'
+                    'Consignments_Negative_Amount',
+                    'Consignments_Large_Amount',
+                    'Consignments_Past_Date',
+                    'Consignments_Express_Row',
+                    'Consignments_Half_Percent'
                 },
                 names,
                 'Active rules only, lowest Sort Order first; Switched_Off is inactive.'
             );
             System.assertEquals('row', def.formatRules[3].applyTo);
-            System.assertEquals('Gamma', def.formatRules[3].value);
+            System.assertEquals('Express', def.formatRules[3].value);
             System.assertEquals('fill_purple', def.formatRules[3].style);
-            System.assertEquals('Gamma stage', def.formatRules[3].label, 'The rule\'s Label: what the legend says.');
+            System.assertEquals(
+                'Express service',
+                def.formatRules[3].label,
+                'The rule\'s Label: what the legend says.'
+            );
             System.assertEquals(new List<String>(), def.warnings);
             System.assert(
-                def.fieldNames().contains('Percent_Field__c'),
+                def.fieldNames().contains('Fuel_Surcharge__c'),
                 'A rule field that is not a column is still read, so the grid can test it.'
             );
         }
@@ -189,16 +200,16 @@ private class GridFormatRuleTest {
 
     @IsTest
     static void thereIsNoBlueFillBecauseABlueRowLooksSelected() {
-        System.assertEquals('fill_purple', check(rule('Picklist_Field__c', 'equals', 'gamma', 'FILL_PURPLE')).style);
+        System.assertEquals('fill_purple', check(rule('Service_Level__c', 'equals', 'express', 'FILL_PURPLE')).style);
         System.assert(
-            refusal(rule('Picklist_Field__c', 'equals', 'gamma', 'fill_blue')).contains('unknown Style'),
+            refusal(rule('Service_Level__c', 'equals', 'express', 'fill_blue')).contains('unknown Style'),
             'Purple is the fill for highlighting a row; blue is what a selected row looks like.'
         );
     }
 
     @IsTest
     static void aRuleWithoutALabelIsNamedByItsDeveloperName() {
-        System.assertEquals('Rule_Picklist_Field', check(rule('Picklist_Field__c', 'equals', 'gamma', 'bold')).label);
+        System.assertEquals('Rule_Service_Level', check(rule('Service_Level__c', 'equals', 'express', 'bold')).label);
     }
 
     @IsTest
@@ -206,30 +217,30 @@ private class GridFormatRuleTest {
         Set<String> full = new Set<String>();
         Set<String> limited = new Set<String>();
         System.runAs(GridTestUsers.fullUser()) {
-            for (GridConfig.FormatRule r : GridConfig.forUser('Test_Records').formatRules) {
+            for (GridConfig.FormatRule r : GridConfig.forUser('Consignments').formatRules) {
                 full.add(r.field);
             }
         }
         System.runAs(GridTestUsers.limitedUser()) {
-            GridConfig.Definition def = GridConfig.forUser('Test_Records');
+            GridConfig.Definition def = GridConfig.forUser('Consignments');
             for (GridConfig.FormatRule r : def.formatRules) {
                 limited.add(r.field);
             }
-            System.assert(!def.fieldNames().contains('Percent_Field__c'));
+            System.assert(!def.fieldNames().contains('Fuel_Surcharge__c'));
         }
-        System.assert(full.contains('Percent_Field__c'));
+        System.assert(full.contains('Fuel_Surcharge__c'));
         System.assert(
-            !limited.contains('Percent_Field__c'),
-            'Rowhouse_Test_Limited cannot read Percent_Field__c, so a bold row would reveal it.'
+            !limited.contains('Fuel_Surcharge__c'),
+            'Freight_Limited_Access cannot read Fuel_Surcharge__c, so a bold row would reveal it.'
         );
-        System.assert(limited.contains('Currency_Field__c'));
+        System.assert(limited.contains('Freight_Charge__c'));
     }
 
     @IsTest
     static void configurationWarningsReachOnlyDiagnosticsUsers() {
         System.runAs(GridTestUsers.fullUser()) {
             GridConfig.Definition def = (GridConfig.Definition) GridController.openGrid(
-                    'Test_Records',
+                    'Consignments',
                     null,
                     null,
                     null,

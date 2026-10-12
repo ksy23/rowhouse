@@ -15,10 +15,10 @@ const key = (target, k, opts = {}) =>
 const big = n =>
     Array.from({ length: n }, (_, i) => ({
         Id: 'a0' + String(i).padStart(16, '0'),
-        Name: 'Row ' + (i + 1),
-        Test_Case__c: 'BENCH',
-        Text_Field__c: 'text ' + (i + 1),
-        Number_Field__c: i + 1
+        Name: 'Merrimack Valley Foods, load ' + (i + 1),
+        Pro_Number__c: 'PRO-' + (5001 + i),
+        Consignee__c: 'Merrimack Valley Foods, store ' + (i + 1),
+        Pieces__c: i + 1
     }));
 
 describe('windowing', () => {
@@ -42,17 +42,27 @@ describe('windowing', () => {
             columns,
             rows: rowsNow,
             errors: {
-                [idOf(5)]: { row: null, fields: { Name: 'Second' } },
-                [idOf(900)]: { row: null, fields: { Name: 'Not rendered' } },
-                [idOf(2)]: { row: null, fields: { Name: 'First', Number_Field__c: 'Also first' } }
+                [idOf(5)]: { row: null, fields: { Name: 'This consignment name is already in use.' } },
+                [idOf(900)]: {
+                    row: null,
+                    fields: { Name: 'This record is locked. If you need to edit it, contact your admin.' }
+                },
+                [idOf(2)]: {
+                    row: null,
+                    fields: { Name: 'Required fields are missing: [Name]', Pieces__c: 'Pieces must be a whole number.' }
+                }
             }
         };
         await flush();
         const texts = [...el.shadowRoot.querySelectorAll('.slds-assistive-text span[id]')].map(s => s.textContent);
-        expect(texts).toEqual(['Error: First', 'Error: Also first', 'Error: Second']);
+        expect(texts).toEqual([
+            'Error: Required fields are missing: [Name]',
+            'Error: Pieces must be a whole number.',
+            'Error: This consignment name is already in use.'
+        ]);
         const td = el.shadowRoot.querySelector(`td[data-row-id="${idOf(2)}"][data-field="Name"]`);
         expect(el.shadowRoot.querySelector(`[id="${td.getAttribute('aria-describedby')}"]`).textContent).toBe(
-            'Error: First'
+            'Error: Required fields are missing: [Name]'
         );
     });
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Needs a custom permission: only users with Rowhouse_Diagnostics see or run it. -->
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Stamp (diagnostics only)</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignments</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">Apex</value></values>
+    <values><field>Action_Name__c</field><value xsi:type="xsd:string">ConsignmentStampAction</value></values>
+    <values><field>Required_Permission__c</field><value xsi:type="xsd:string">Rowhouse_Diagnostics</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">50</value></values>
+</CustomMetadata>

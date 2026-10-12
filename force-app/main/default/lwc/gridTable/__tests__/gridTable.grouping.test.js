@@ -12,27 +12,72 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true },
-    { field: 'Close__c', label: 'Close', type: 'date', editable: true, sortable: true, groupable: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true, sortable: true, subtotal: 'sum' }
+    {
+        field: 'Service_Level__c',
+        label: 'Service Level',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        groupable: true
+    },
+    { field: 'Ship_Date__c', label: 'Ship Date', type: 'date', editable: true, sortable: true, groupable: true },
+    {
+        field: 'Freight_Charge__c',
+        label: 'Freight Charge',
+        type: 'currency',
+        scale: 2,
+        editable: true,
+        sortable: true,
+        subtotal: 'sum'
+    }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
 const ROWS = [
-    { Id: id(1), Name: 'One', Stage__c: 'Open', Close__c: '2026-01-15', Amount__c: 100 },
-    { Id: id(2), Name: 'Two', Stage__c: 'Won', Close__c: '2026-02-10', Amount__c: 200 },
-    { Id: id(3), Name: 'Three', Stage__c: 'Open', Close__c: '2026-04-01', Amount__c: 50 },
-    { Id: id(4), Name: 'Four', Stage__c: 'Lost', Close__c: null, Amount__c: 25 },
-    { Id: id(5), Name: 'Five', Stage__c: 'Won', Close__c: '2026-05-05', Amount__c: 300 },
-    { Id: id(6), Name: 'Six', Stage__c: null, Close__c: null, Amount__c: 10 }
+    {
+        Id: id(1),
+        Name: 'Kennebec Lumber, 12 bundles',
+        Service_Level__c: 'Express',
+        Ship_Date__c: '2026-01-15',
+        Freight_Charge__c: 100
+    },
+    {
+        Id: id(2),
+        Name: 'Penobscot Paper, full truck',
+        Service_Level__c: 'Standard',
+        Ship_Date__c: '2026-02-10',
+        Freight_Charge__c: 200
+    },
+    {
+        Id: id(3),
+        Name: 'Reefer load, Machias',
+        Service_Level__c: 'Express',
+        Ship_Date__c: '2026-04-01',
+        Freight_Charge__c: 50
+    },
+    {
+        Id: id(4),
+        Name: 'Casco Bay Marine, 2 pallets',
+        Service_Level__c: 'Economy',
+        Ship_Date__c: null,
+        Freight_Charge__c: 25
+    },
+    {
+        Id: id(5),
+        Name: 'Green Mountain Maple, 40 cases',
+        Service_Level__c: 'Standard',
+        Ship_Date__c: '2026-05-05',
+        Freight_Charge__c: 300
+    },
+    { Id: id(6), Name: 'Quabbin Supply, 6 cartons', Service_Level__c: null, Ship_Date__c: null, Freight_Charge__c: 10 }
 ];
-const BY_STAGE = [{ field: 'Stage__c', unit: null }];
+const BY_STAGE = [{ field: 'Service_Level__c', unit: null }];
 // The server's answer, as Lightning delivers it: the deepest level's groups,
 // keyed by API value, a blank as ''.
 const SERVER_GROUPS = [
-    { k: ['Lost'], l: [''], n: 1, v: { Amount__c: { s: '25' } } },
-    { k: ['Open'], l: [''], n: 2, v: { Amount__c: { s: '150' } } },
-    { k: ['Won'], l: [''], n: 2, v: { Amount__c: { s: '500' } } },
-    { k: [''], l: [''], n: 1, v: { Amount__c: { s: '10' } } }
+    { k: ['Economy'], l: [''], n: 1, v: { Freight_Charge__c: { s: '25' } } },
+    { k: ['Express'], l: [''], n: 2, v: { Freight_Charge__c: { s: '150' } } },
+    { k: ['Standard'], l: [''], n: 2, v: { Freight_Charge__c: { s: '500' } } },
+    { k: [''], l: [''], n: 1, v: { Freight_Charge__c: { s: '10' } } }
 ];
 const ready = (groups = SERVER_GROUPS, levels = BY_STAGE) => ({
     status: 'ready',
@@ -62,7 +107,7 @@ const groupRows = () => $$('tbody tr[data-kind="group"]');
 const recordRows = () => $$('tbody tr[data-kind="record"]');
 const groupLabels = () => $$('tbody tr[data-kind="group"] .rh-group-label');
 const groupRow = label => {
-    const match = groupLabels().find(span => span.textContent === 'Stage: ' + label);
+    const match = groupLabels().find(span => span.textContent === 'Service Level: ' + label);
     return match ? match.closest('tr') : null;
 };
 const groupCell = label => groupRow(label).querySelector('td[data-field="__group"]');
@@ -93,10 +138,10 @@ describe('a grouped grid', () => {
         await mount();
         expect($('table').getAttribute('role')).toBe('treegrid');
         expect(groupLabels().map(span => span.textContent)).toEqual([
-            'Stage: Lost',
-            'Stage: Open',
-            'Stage: Won',
-            'Stage: (blank)'
+            'Service Level: Economy',
+            'Service Level: Express',
+            'Service Level: Standard',
+            'Service Level: (blank)'
         ]);
         groupRows().forEach(tr => {
             expect(tr.getAttribute('aria-level')).toBe('1');
@@ -109,7 +154,7 @@ describe('a grouped grid', () => {
         // Each group's records follow its header.
         const order = $$('tbody tr[role="row"]').map(tr => (tr.dataset.kind === 'group' ? '#' : tr.dataset.rowId));
         expect(order).toEqual(['#', id(4), '#', id(1), id(3), '#', id(2), id(5), '#', id(6)]);
-        expect($('th[data-field="__group"]').getAttribute('aria-label')).toBe('Grouped by Stage');
+        expect($('th[data-field="__group"]').getAttribute('aria-label')).toBe('Grouped by Service Level');
     });
 
     it('numbers every row, group rows included, and knows the count once every row is loaded (HR-10)', async () => {
@@ -135,18 +180,18 @@ describe('a grouped grid', () => {
 
     it("shows each group's count and subtotal, and says them in full to a screen reader", async () => {
         await mount();
-        const open = groupRow('Open');
+        const open = groupRow('Express');
         expect(open.querySelector('.rh-group-count').textContent).toBe('(2)'); // as a related list's title shows it
         // Read once, from the toggle button: name, count, then the button's state.
         const toggle = open.querySelector('button.rh-group-toggle');
-        expect(toggle.querySelector('.slds-assistive-text').textContent).toBe('Stage: Open, 2 records');
+        expect(toggle.querySelector('.slds-assistive-text').textContent).toBe('Service Level: Express, 2 records');
         expect(toggle.getAttribute('aria-expanded')).toBe('true');
         expect(open.querySelector('.rh-group-label').getAttribute('aria-hidden')).toBe('true');
         expect(open.querySelector('.rh-group-count').getAttribute('aria-hidden')).toBe('true');
-        const amount = open.querySelector('td[data-field="Amount__c"]');
+        const amount = open.querySelector('td[data-field="Freight_Charge__c"]');
         expect(amount.querySelector('.rh-subtotal-kind').textContent).toBe('Sum');
         expect(amount.querySelector('.rh-subtotal').textContent).toBe('Sum$150.00');
-        expect(amount.querySelector('.slds-assistive-text').textContent).toBe('Sum of Amount: $150.00');
+        expect(amount.querySelector('.slds-assistive-text').textContent).toBe('Sum of Freight Charge: $150.00');
         // No subtotal for the other columns, and a group row has no edit button or checkbox.
         expect(open.querySelector('td[data-field="Name"]').textContent).toBe('');
         expect(open.querySelector('button.slds-cell-edit__button')).toBeNull();
@@ -172,14 +217,14 @@ describe('a grouped grid', () => {
         expect(cells).toHaveLength($$('thead th').length); // one per column, Group column included
         expect(cells[0].textContent).toBe('Total6 records'); // in the Group column
         expect(cells[cells.length - 1].querySelector('.slds-assistive-text').textContent).toBe(
-            'Sum of Amount: $685.00'
+            'Sum of Freight Charge: $685.00'
         );
     });
 
     it('has a Total row without grouping when a column has a subtotal, labelled in the first data column', async () => {
         await mount({
             grouping: [],
-            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Freight_Charge__c: { s: '685' } } }], [])
         });
         expect($('table').getAttribute('role')).toBe('grid');
         expect(groupRows()).toHaveLength(0);
@@ -193,36 +238,36 @@ describe('a grouped grid', () => {
 describe('opening and closing a group', () => {
     it('Enter on the Group cell closes it: its records leave, focus stays, and it is announced', async () => {
         await mount();
-        const g = groupCell('Open');
+        const g = groupCell('Express');
         g.focus();
         await flush();
         const event = await key(g, 'Enter');
         expect(event.defaultPrevented).toBe(true);
-        expect(groupRow('Open').getAttribute('aria-expanded')).toBe('false');
+        expect(groupRow('Express').getAttribute('aria-expanded')).toBe('false');
         expect(cell(id(1), 'Name')).toBeNull();
         expect(cell(id(3), 'Name')).toBeNull();
         expect(recordRows()).toHaveLength(4);
-        expect(el.shadowRoot.activeElement).toBe(groupCell('Open'));
-        expect(announcement()).toBe('Stage Open collapsed');
+        expect(el.shadowRoot.activeElement).toBe(groupCell('Express'));
+        expect(announcement()).toBe('Service Level Express collapsed');
         expect($('table').getAttribute('aria-rowcount')).toBe('9');
 
-        await key(groupCell('Open'), ' ');
-        expect(groupRow('Open').getAttribute('aria-expanded')).toBe('true');
+        await key(groupCell('Express'), ' ');
+        expect(groupRow('Express').getAttribute('aria-expanded')).toBe('true');
         expect(cell(id(1), 'Name')).not.toBeNull();
-        expect(announcement()).toBe('Stage Open expanded');
+        expect(announcement()).toBe('Service Level Express expanded');
     });
 
     it('the toggle button does the same, and focus inside a closing group moves to its header', async () => {
         await mount();
         cell(id(3), 'Name').focus();
         await flush();
-        const toggle = groupRow('Open').querySelector('button.rh-group-toggle');
+        const toggle = groupRow('Express').querySelector('button.rh-group-toggle');
         expect(toggle.getAttribute('aria-expanded')).toBe('true');
         expect(toggle.getAttribute('tabindex')).toBe('-1'); // a control: one tab stop in the grid
         toggle.click();
         await flush();
-        expect(groupRow('Open').querySelector('button.rh-group-toggle').getAttribute('aria-expanded')).toBe('false');
-        expect(el.shadowRoot.activeElement).toBe(groupCell('Open'));
+        expect(groupRow('Express').querySelector('button.rh-group-toggle').getAttribute('aria-expanded')).toBe('false');
+        expect(el.shadowRoot.activeElement).toBe(groupCell('Express'));
     });
 
     it('keeps one tab stop in the grid', async () => {
@@ -239,34 +284,34 @@ describe('the Total row with the keyboard', () => {
     it('Down from the last row goes to the Total row, under the same column; Up comes back', async () => {
         await mount({
             grouping: [],
-            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Freight_Charge__c: { s: '685' } } }], [])
         });
-        const last = cell(id(6), 'Amount__c');
+        const last = cell(id(6), 'Freight_Charge__c');
         last.focus();
         await flush();
         await key(last, 'ArrowDown');
-        expect(active()).toBe(totalCell('Amount__c'));
-        expect(totalCell('Amount__c').getAttribute('tabindex')).toBe('0');
+        expect(active()).toBe(totalCell('Freight_Charge__c'));
+        expect(totalCell('Freight_Charge__c').getAttribute('tabindex')).toBe('0');
         expect($$('[tabindex="0"]')).toHaveLength(1);
         await key(active(), 'ArrowUp');
-        expect(active()).toBe(cell(id(6), 'Amount__c'));
+        expect(active()).toBe(cell(id(6), 'Freight_Charge__c'));
     });
 
     it('Left, Right, Home and End move along the Total row; Ctrl+Home goes to the first cell', async () => {
         await mount({
             grouping: [],
-            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Freight_Charge__c: { s: '685' } } }], [])
         });
-        cell(id(6), 'Close__c').focus();
+        cell(id(6), 'Ship_Date__c').focus();
         await flush();
         await key(active(), 'ArrowDown');
-        expect(active()).toBe(totalCell('Close__c'));
+        expect(active()).toBe(totalCell('Ship_Date__c'));
         await key(active(), 'ArrowRight');
-        expect(active()).toBe(totalCell('Amount__c'));
+        expect(active()).toBe(totalCell('Freight_Charge__c'));
         await key(active(), 'Home');
         expect(active().dataset.totalField).toBe($$('.rh-totals td')[0].dataset.totalField);
         await key(active(), 'End');
-        expect(active()).toBe(totalCell('Amount__c'));
+        expect(active()).toBe(totalCell('Freight_Charge__c'));
         await key(active(), 'Home', { ctrlKey: true });
         expect(active().dataset.rowId).toBe(id(1));
     });
@@ -274,9 +319,9 @@ describe('the Total row with the keyboard', () => {
     it('typing on the Total row changes nothing', async () => {
         await mount({
             grouping: [],
-            groupSummary: ready([{ k: [], l: [], n: 6, v: { Amount__c: { s: '685' } } }], [])
+            groupSummary: ready([{ k: [], l: [], n: 6, v: { Freight_Charge__c: { s: '685' } } }], [])
         });
-        cell(id(6), 'Amount__c').focus();
+        cell(id(6), 'Freight_Charge__c').focus();
         await flush();
         await key(active(), 'ArrowDown');
         await key(active(), '5');
@@ -291,12 +336,12 @@ describe('the Total row with the keyboard', () => {
             grouping: [],
             hasMore: true,
             totalRows: 60,
-            groupSummary: ready([{ k: [], l: [], n: 60, v: { Amount__c: { s: '685' } } }], [])
+            groupSummary: ready([{ k: [], l: [], n: 60, v: { Freight_Charge__c: { s: '685' } } }], [])
         });
-        cell(id(6), 'Amount__c').focus();
+        cell(id(6), 'Freight_Charge__c').focus();
         await flush();
         await key(active(), 'ArrowDown');
-        expect(active()).toBe(cell(id(6), 'Amount__c'));
+        expect(active()).toBe(cell(id(6), 'Freight_Charge__c'));
     });
 });
 
@@ -311,7 +356,7 @@ describe('the grouping menus', () => {
             // The groups' order and percentages.
             'Order groups by name',
             'Order groups by record count',
-            'Order groups by sum of Amount',
+            'Order groups by sum of Freight Charge',
             'Show percent of total',
             'Stop grouping'
         ]);
@@ -334,82 +379,82 @@ describe('the grouping menus', () => {
 
     it('a groupable column offers Group by; choosing it asks the parent', async () => {
         await mount({ grouping: [], groupSummary: null });
-        const items = await openMenu('Stage__c');
+        const items = await openMenu('Service_Level__c');
         // Sorting comes first in every column's menu, then text, then grouping.
         expect(items.map(a => a.textContent.trim())).toEqual([
             'Sort ascending',
             'Sort descending',
             'Wrap text',
             'Clip text',
-            'Group by Stage',
+            'Group by Service Level',
             'Freeze up to this column',
             'Hide column'
         ]);
         expect(items[4].getAttribute('role')).toBe('menuitem');
         expect(items[4].closest('li').classList).toContain('slds-has-divider_top-space');
-        await choose(items, 'Group by Stage');
-        expect(events.groupchange).toEqual([{ grouping: [{ field: 'Stage__c', unit: null }] }]);
-        expect(announcement()).toBe('Grouped by Stage');
+        await choose(items, 'Group by Service Level');
+        expect(events.groupchange).toEqual([{ grouping: [{ field: 'Service_Level__c', unit: null }] }]);
+        expect(announcement()).toBe('Grouped by Service Level');
         // A column that cannot be grouped has no grouping items.
-        const amount = await openMenu('Amount__c');
+        const amount = await openMenu('Freight_Charge__c');
         expect(amount.map(a => a.textContent.trim()).filter(t => /group/i.test(t))).toEqual([]);
     });
 
     it('once grouped, another column can be added, or group alone; the grouped column can be taken out', async () => {
         await mount();
-        let items = await openMenu('Close__c');
+        let items = await openMenu('Ship_Date__c');
         expect(items.map(a => a.textContent.trim())).toEqual([
             'Sort ascending',
             'Sort descending',
-            'Add Close to grouping',
-            'Group by Close only',
+            'Add Ship Date to grouping',
+            'Group by Ship Date only',
             'Freeze up to this column',
             'Hide column'
         ]);
-        await choose(items, 'Add Close to grouping');
+        await choose(items, 'Add Ship Date to grouping');
         // A date groups by month until the user picks another unit.
         expect(events.groupchange[0]).toEqual({
             grouping: [
-                { field: 'Stage__c', unit: null },
-                { field: 'Close__c', unit: 'month' }
+                { field: 'Service_Level__c', unit: null },
+                { field: 'Ship_Date__c', unit: 'month' }
             ]
         });
 
-        items = await openMenu('Stage__c');
+        items = await openMenu('Service_Level__c');
         expect(items.map(a => a.textContent.trim())).toEqual([
             'Sort ascending',
             'Sort descending',
             'Wrap text',
             'Clip text',
-            'Stop grouping by Stage',
+            'Stop grouping by Service Level',
             'Freeze up to this column',
             'Hide column'
         ]);
-        await choose(items, 'Stop grouping by Stage');
+        await choose(items, 'Stop grouping by Service Level');
         expect(events.groupchange[1]).toEqual({ grouping: [] });
     });
 
     it('a date level offers its units as radio items in the Group column menu', async () => {
-        const levels = [{ field: 'Close__c', unit: 'month' }];
+        const levels = [{ field: 'Ship_Date__c', unit: 'month' }];
         await mount({ grouping: levels, groupSummary: null });
-        expect($('th[data-field="__group"]').getAttribute('aria-label')).toBe('Grouped by Close (month)');
+        expect($('th[data-field="__group"]').getAttribute('aria-label')).toBe('Grouped by Ship Date (month)');
         const items = await openMenu('__group');
         const radios = items.filter(
-            a => a.getAttribute('role') === 'menuitemradio' && a.textContent.trim().startsWith('Close by')
+            a => a.getAttribute('role') === 'menuitemradio' && a.textContent.trim().startsWith('Ship Date by')
         );
         // Week and the fiscal periods too.
         expect(radios.map(a => [a.textContent.trim(), a.getAttribute('aria-checked')])).toEqual([
-            ['Close by day', 'false'],
-            ['Close by week', 'false'],
-            ['Close by month', 'true'],
-            ['Close by quarter', 'false'],
-            ['Close by year', 'false'],
-            ['Close by fiscal quarter', 'false'],
-            ['Close by fiscal year', 'false']
+            ['Ship Date by day', 'false'],
+            ['Ship Date by week', 'false'],
+            ['Ship Date by month', 'true'],
+            ['Ship Date by quarter', 'false'],
+            ['Ship Date by year', 'false'],
+            ['Ship Date by fiscal quarter', 'false'],
+            ['Ship Date by fiscal year', 'false']
         ]);
-        await choose(items, 'Close by quarter');
-        expect(events.groupchange).toEqual([{ grouping: [{ field: 'Close__c', unit: 'quarter' }] }]);
-        expect(announcement()).toBe('Grouped by Close by quarter');
+        await choose(items, 'Ship Date by quarter');
+        expect(events.groupchange).toEqual([{ grouping: [{ field: 'Ship_Date__c', unit: 'quarter' }] }]);
+        expect(announcement()).toBe('Grouped by Ship Date by quarter');
     });
 
     it('the menus work from the keyboard', async () => {
@@ -433,35 +478,37 @@ describe('the grouping menus', () => {
 describe('records only', () => {
     it('Delete over a range that crosses a group row clears the records and leaves the group row alone', async () => {
         await mount();
-        cell(id(3), 'Amount__c').focus();
+        cell(id(3), 'Freight_Charge__c').focus();
         await flush();
-        await key(cell(id(3), 'Amount__c'), 'ArrowDown', { shiftKey: true }); // onto the Won group row
-        await key(el.shadowRoot.activeElement, 'ArrowDown', { shiftKey: true }); // onto Two
+        await key(cell(id(3), 'Freight_Charge__c'), 'ArrowDown', { shiftKey: true }); // onto the Standard group row
+        await key(el.shadowRoot.activeElement, 'ArrowDown', { shiftKey: true }); // onto Penobscot Paper
         await key(el.shadowRoot.activeElement, 'Delete');
         expect(events.cellschange).toHaveLength(1);
         expect(events.cellschange[0].changes.map(c => [c.recordId, c.field, c.value])).toEqual([
-            [id(3), 'Amount__c', null],
-            [id(2), 'Amount__c', null]
+            [id(3), 'Freight_Charge__c', null],
+            [id(2), 'Freight_Charge__c', null]
         ]);
         expect(announcement()).toBe('Cleared 2 cells.');
     });
 
     it('pasting onto a group row puts nothing there', async () => {
         await mount();
-        const target = groupRow('Won').querySelector('td[data-field="Name"]');
+        const target = groupRow('Standard').querySelector('td[data-field="Name"]');
         target.focus();
         await flush();
         const event = new CustomEvent('paste', { bubbles: true, composed: true, cancelable: true });
-        event.clipboardData = { getData: () => 'a\r\nb\r\n' };
+        event.clipboardData = { getData: () => 'Kennebec Lumber, 14 bundles\r\nPenobscot Paper, half truck\r\n' };
         target.dispatchEvent(event);
         await flush();
-        // Two lines from the Won row: the row itself is skipped, Two takes the second line.
-        expect(events.cellschange[0].changes.map(c => [c.recordId, c.value])).toEqual([[id(2), 'b']]);
+        // Two lines from the Standard row: the row itself is skipped, Penobscot Paper takes the second line.
+        expect(events.cellschange[0].changes.map(c => [c.recordId, c.value])).toEqual([
+            [id(2), 'Penobscot Paper, half truck']
+        ]);
     });
 
     it('fill down will not start from a group row', async () => {
         await mount();
-        cell(id(2), 'Name').focus(); // just below the Won group row
+        cell(id(2), 'Name').focus(); // just below the Standard group row
         await flush();
         await key(cell(id(2), 'Name'), 'd', { ctrlKey: true });
         expect(events.cellschange).toHaveLength(0);
@@ -470,7 +517,7 @@ describe('records only', () => {
 
     it('Select all takes every record, those in closed groups too, and a group row has no checkbox', async () => {
         await mount({ selection: 'multi' });
-        await key((groupCell('Open').focus(), groupCell('Open')), 'Enter');
+        await key((groupCell('Express').focus(), groupCell('Express')), 'Enter');
         expect($$('tbody tr[data-kind="group"] input')).toHaveLength(0);
         const all = $('th[data-field="__select"] input');
         all.checked = true;
@@ -482,7 +529,7 @@ describe('records only', () => {
 
     it('Space on a group row does not select it', async () => {
         await mount({ selection: 'multi' });
-        const g = groupRow('Open').querySelector('td[data-field="Amount__c"]');
+        const g = groupRow('Express').querySelector('td[data-field="Freight_Charge__c"]');
         g.focus();
         await flush();
         await key(g, ' ');
@@ -552,12 +599,12 @@ describe('cards', () => {
         await mount({ layout: 'cards' });
         const toggles = $$('.rh-group-toggle');
         expect(toggles.map(b => b.textContent.trim())).toEqual([
-            'Stage: Lost1 record',
-            'Stage: Open2 records',
-            'Stage: Won2 records',
-            'Stage: (blank)1 record'
+            'Service Level: Economy1 record',
+            'Service Level: Express2 records',
+            'Service Level: Standard2 records',
+            'Service Level: (blank)1 record'
         ]);
-        expect($$('.rh-card-subtotals')[1].textContent).toBe('Sum of Amount: $150.00');
+        expect($$('.rh-card-subtotals')[1].textContent).toBe('Sum of Freight Charge: $150.00');
         toggles[1].click();
         await flush();
         expect($$('.rh-group-toggle')[1].getAttribute('aria-expanded')).toBe('false');
@@ -575,21 +622,24 @@ describe('accessibility', () => {
 describe('grouping details', () => {
     it('says what the grid is grouped by above it, one chip per level, each removable', async () => {
         const levels = [
-            { field: 'Stage__c', unit: null },
-            { field: 'Close__c', unit: 'month' }
+            { field: 'Service_Level__c', unit: null },
+            { field: 'Ship_Date__c', unit: 'month' }
         ];
         await mount({ grouping: levels, groupSummary: null });
         const bar = $('.rh-group-chips');
         expect(bar.getAttribute('role')).toBe('group');
-        expect($$('.rh-group-chip .slds-pill__label').map(s => s.textContent)).toEqual(['Stage', 'Close (by month)']);
+        expect($$('.rh-group-chip .slds-pill__label').map(s => s.textContent)).toEqual([
+            'Service Level',
+            'Ship Date (by month)'
+        ]);
         const remove = $$('.rh-group-chip button');
         expect($$('.rh-group-chip button .slds-assistive-text').map(s => s.textContent)).toEqual([
-            'Stop grouping by Stage',
-            'Stop grouping by Close'
+            'Stop grouping by Service Level',
+            'Stop grouping by Ship Date'
         ]);
         remove[1].click();
         await flush();
-        expect(events.groupchange).toEqual([{ grouping: [{ field: 'Stage__c', unit: null }] }]);
+        expect(events.groupchange).toEqual([{ grouping: [{ field: 'Service_Level__c', unit: null }] }]);
     });
 
     it('stops grouping from the bar', async () => {
@@ -607,17 +657,17 @@ describe('grouping details', () => {
     it('heads the Group column "Group", and says the grouping in full to a screen reader', async () => {
         await mount();
         const th = $('th[data-field="__group"]');
-        expect(th.getAttribute('aria-label')).toBe('Grouped by Stage');
-        expect(th.querySelector('[title="Grouped by Stage"]')).not.toBeNull(); // the tooltip on its label
+        expect(th.getAttribute('aria-label')).toBe('Grouped by Service Level');
+        expect(th.querySelector('[title="Grouped by Service Level"]')).not.toBeNull(); // the tooltip on its label
         expect(th.textContent).toContain('Group');
-        expect(th.textContent).not.toContain('Grouped by Stage');
+        expect(th.textContent).not.toContain('Grouped by Service Level');
     });
 
     it("draws a guide line down a group's records, at their level", async () => {
         await mount({
             grouping: [
-                { field: 'Stage__c', unit: null },
-                { field: 'Close__c', unit: 'month' }
+                { field: 'Service_Level__c', unit: null },
+                { field: 'Ship_Date__c', unit: 'month' }
             ],
             groupSummary: null
         });

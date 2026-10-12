@@ -19,7 +19,7 @@ describe('checkbox cell', () => {
         expect(el.shadowRoot.querySelector('lightning-icon')).not.toBeNull();
     });
     it('null displays as unchecked and commits false, never null', async () => {
-        const el = mount({ value: null, mode: 'edit', label: 'Active' });
+        const el = mount({ value: null, mode: 'edit', label: 'Delivered' });
         await flush();
         expect(el.shadowRoot.querySelector('input').checked).toBe(false);
         const handler = jest.fn();
@@ -28,7 +28,7 @@ describe('checkbox cell', () => {
         expect(handler.mock.calls[0][0].detail.value).toBe(false);
     });
     it('ticking the box is the edit: it commits the new state at once', async () => {
-        const el = mount({ value: false, mode: 'edit', label: 'Active' });
+        const el = mount({ value: false, mode: 'edit', label: 'Delivered' });
         await flush();
         const handler = jest.fn();
         el.addEventListener('commit', handler);
@@ -40,7 +40,7 @@ describe('checkbox cell', () => {
     });
 
     it('clearing the box commits false at once', async () => {
-        const el = mount({ value: true, mode: 'edit', label: 'Active' });
+        const el = mount({ value: true, mode: 'edit', label: 'Delivered' });
         await flush();
         const handler = jest.fn();
         el.addEventListener('commit', handler);
@@ -51,7 +51,7 @@ describe('checkbox cell', () => {
     });
 
     it('a mousedown on the box keeps focus on the input, so the editor does not close before the click', async () => {
-        const el = mount({ value: false, mode: 'edit', label: 'Active' });
+        const el = mount({ value: false, mode: 'edit', label: 'Delivered' });
         await flush();
         const input = el.shadowRoot.querySelector('input');
         const focus = jest.spyOn(input, 'focus');

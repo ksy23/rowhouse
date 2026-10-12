@@ -34,7 +34,7 @@ public with sharing class GridRequest {
     public List<GridFilters.Condition> conditions = new List<GridFilters.Condition>();
     /**
      * Fields the grid's formulas read, as SOQL paths, such as
-     * Lookup_Field__r.Name: read with the rows, never sent as columns. They
+     * Shipper__r.Name: read with the rows, never sent as columns. They
      * come from the configuration (GridConfig.Definition.formulaPaths), and
      * forUser has already dropped any formula with a path the user cannot read.
      */

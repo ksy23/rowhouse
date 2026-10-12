@@ -37,17 +37,24 @@ jest.mock('@salesforce/apex/GridController.resetLayout', () => ({ default: jest.
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, sortable: true, scale: 2 },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true },
-    { field: 'Close__c', label: 'Close', type: 'date', editable: true, sortable: true, groupable: true },
-    { field: 'Notes__c', label: 'Notes', type: 'textarea', editable: true, sortable: false }
+    { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', editable: true, sortable: true, scale: 2 },
+    {
+        field: 'Service_Level__c',
+        label: 'Service Level',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        groupable: true
+    },
+    { field: 'Ship_Date__c', label: 'Ship Date', type: 'date', editable: true, sortable: true, groupable: true },
+    { field: 'Delivery_Notes__c', label: 'Delivery Notes', type: 'textarea', editable: true, sortable: false }
 ];
 // The admin's sort is by Name; the admin sets no grouping.
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -61,15 +68,20 @@ const OPEN_ROW = 'a00000000000000001';
 // same layout is the same text.
 const SAVED = {
     v: 1,
-    sort: [{ field: 'Amount__c', direction: 'desc' }],
-    grouping: [{ field: 'Stage__c', unit: null }],
+    sort: [{ field: 'Freight_Charge__c', direction: 'desc' }],
+    grouping: [{ field: 'Service_Level__c', unit: null }],
     widths: { Name: 180 },
     wrap: { Name: true },
     expanded: [OPEN_ROW]
 };
 const SAVED_JSON = JSON.stringify(SAVED);
 
-const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Amount__c: i, Stage__c: 'Open' });
+const row = i => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Kennebec Lumber, load ' + i,
+    Freight_Charge__c: i,
+    Service_Level__c: 'Standard'
+});
 const page = (rows, { hasMore = false, locator = null, total = rows.length } = {}) => ({
     rows,
     hasMore,
@@ -98,7 +110,7 @@ const filterChange = (el, filters) => table(el).dispatchEvent(new CustomEvent('f
 /** What the last saveLayout call kept, read back. */
 const keptLayout = () => JSON.parse(lastCall(saveLayout).layout);
 
-function mount(configName = 'Test_Records') {
+function mount(configName = 'Consignments') {
     const el = createElement('c-grid-view', { is: GridView });
     el.configName = configName;
     document.body.appendChild(el);
@@ -107,8 +119,8 @@ function mount(configName = 'Test_Records') {
 
 function mountChild() {
     const el = createElement('c-grid-view', { is: GridView });
-    el.configName = 'Test_Children';
-    el.parent = { link: 'Test_Records_Children', id: 'a00000000000000001', name: 'Row 1', level: 2 };
+    el.configName = 'Consignment_Items';
+    el.parent = { link: 'Consignments_Items', id: 'a00000000000000001', name: 'Kennebec Lumber, load 1', level: 2 };
     document.body.appendChild(el);
     return el;
 }
@@ -136,8 +148,8 @@ describe('readLayout', () => {
 
     it('reads every part of a layout that fits the grid', () => {
         expect(readLayout(SAVED_JSON, COLUMNS)).toEqual({
-            sort: [{ field: 'Amount__c', direction: 'desc' }],
-            grouping: [{ field: 'Stage__c', unit: null }],
+            sort: [{ field: 'Freight_Charge__c', direction: 'desc' }],
+            grouping: [{ field: 'Service_Level__c', unit: null }],
             widths: { Name: 180 },
             wrap: { Name: true },
             expanded: [OPEN_ROW],
@@ -168,13 +180,20 @@ describe('readLayout', () => {
         expect(
             read({
                 columns: {
-                    order: ['Stage__c', 'Gone__c', 'Name', 'Amount__c', 'Close__c', 'Notes__c'],
-                    hidden: ['Notes__c', 'Gone__c']
+                    order: [
+                        'Service_Level__c',
+                        'Rate_Class__c',
+                        'Name',
+                        'Freight_Charge__c',
+                        'Ship_Date__c',
+                        'Delivery_Notes__c'
+                    ],
+                    hidden: ['Delivery_Notes__c', 'Rate_Class__c']
                 }
             }).columns
         ).toEqual({
-            order: ['Stage__c', 'Name', 'Amount__c', 'Close__c', 'Notes__c'],
-            hidden: ['Notes__c']
+            order: ['Service_Level__c', 'Name', 'Freight_Charge__c', 'Ship_Date__c', 'Delivery_Notes__c'],
+            hidden: ['Delivery_Notes__c']
         });
         expect(read({ columns: 'nonsense' }).columns).toBeNull();
     });
@@ -195,23 +214,23 @@ describe('readLayout', () => {
         const layout = read({
             v: 1,
             sort: [
-                { field: 'Gone__c', direction: 'asc' },
-                { field: 'Notes__c', direction: 'asc' },
+                { field: 'Rate_Class__c', direction: 'asc' },
+                { field: 'Delivery_Notes__c', direction: 'asc' },
                 null,
-                { field: 'Amount__c', direction: 'desc' },
+                { field: 'Freight_Charge__c', direction: 'desc' },
                 { field: 'Name', direction: 'sideways' }
             ]
         });
         // Anything but desc is ascending.
         expect(layout.sort).toEqual([
-            { field: 'Amount__c', direction: 'desc' },
+            { field: 'Freight_Charge__c', direction: 'desc' },
             { field: 'Name', direction: 'asc' }
         ]);
     });
 
     it("uses no saved sort when no column is left for it, so the admin's applies", () => {
-        expect(read({ v: 1, sort: [{ field: 'Gone__c', direction: 'desc' }] }).sort).toBeNull();
-        expect(read({ v: 1, sort: 'Amount__c' }).sort).toBeNull();
+        expect(read({ v: 1, sort: [{ field: 'Rate_Class__c', direction: 'desc' }] }).sort).toBeNull();
+        expect(read({ v: 1, sort: 'Freight_Charge__c' }).sort).toBeNull();
         expect(read({ v: 1 }).sort).toBeNull();
     });
 
@@ -221,8 +240,8 @@ describe('readLayout', () => {
 
     it('keeps at most five sort keys', () => {
         const many = Array.from({ length: 7 }, (_, i) => ({
-            field: 'F' + i,
-            label: 'F' + i,
+            field: 'Stop_' + (i + 1) + '__c',
+            label: 'Stop ' + (i + 1),
             type: 'text',
             sortable: true
         }));
@@ -230,30 +249,41 @@ describe('readLayout', () => {
             JSON.stringify({ v: 1, sort: many.map(c => ({ field: c.field, direction: 'asc' })) }),
             many
         );
-        expect(layout.sort.map(k => k.field)).toEqual(['F0', 'F1', 'F2', 'F3', 'F4']);
+        expect(layout.sort.map(k => k.field)).toEqual([
+            'Stop_1__c',
+            'Stop_2__c',
+            'Stop_3__c',
+            'Stop_4__c',
+            'Stop_5__c'
+        ]);
     });
 
     it('leaves out grouping on columns the grid no longer has or cannot group by, and gives a date its unit', () => {
         const layout = read({
             v: 1,
             grouping: [
-                { field: 'Gone__c', unit: null },
+                { field: 'Rate_Class__c', unit: null },
                 { field: 'Name', unit: null },
-                { field: 'Close__c' },
-                { field: 'Stage__c', unit: 'year' }
+                { field: 'Ship_Date__c' },
+                { field: 'Service_Level__c', unit: 'year' }
             ]
         });
         expect(layout.grouping).toEqual([
-            { field: 'Close__c', unit: 'month' },
-            { field: 'Stage__c', unit: null }
+            { field: 'Ship_Date__c', unit: 'month' },
+            { field: 'Service_Level__c', unit: null }
         ]);
         expect(read({ v: 1, grouping: [] }).grouping).toEqual([]);
-        expect(read({ v: 1, grouping: 'Stage__c' }).grouping).toBeNull();
+        expect(read({ v: 1, grouping: 'Service_Level__c' }).grouping).toBeNull();
         expect(read({ v: 1 }).grouping).toBeNull();
     });
 
     it('ignores widths, wrap and open rows of the wrong shape', () => {
-        const layout = read({ v: 1, widths: [180], wrap: [true], expanded: [OPEN_ROW, 5, null, { id: 'x' }] });
+        const layout = read({
+            v: 1,
+            widths: [180],
+            wrap: [true],
+            expanded: [OPEN_ROW, 5, null, { id: 'a00000000000000002' }]
+        });
         expect(layout.widths).toBeNull();
         expect(layout.wrap).toEqual({});
         expect(layout.expanded).toEqual([OPEN_ROW]);
@@ -274,7 +304,7 @@ describe('starting from the saved layout', () => {
         mount();
         await settle();
         expect(getLayout).toHaveBeenCalledTimes(1);
-        expect(getLayout).toHaveBeenCalledWith({ configName: 'Test_Records' });
+        expect(getLayout).toHaveBeenCalledWith({ configName: 'Consignments' });
     });
 
     it('starts with the saved sort and grouping, and hands the table the rest', async () => {
@@ -283,14 +313,14 @@ describe('starting from the saved layout', () => {
         await settle();
         // The server is asked for the rows in the saved order, in the saved groups.
         expect(fetchRows.mock.calls[0][0]).toMatchObject({
-            sortField: 'Amount__c',
+            sortField: 'Freight_Charge__c',
             sortDirection: 'desc',
-            groupBy: ['Stage__c']
+            groupBy: ['Service_Level__c']
         });
-        expect(summarizeGroups.mock.calls[0][0]).toMatchObject({ grouping: ['Stage__c'] });
+        expect(summarizeGroups.mock.calls[0][0]).toMatchObject({ grouping: ['Service_Level__c'] });
         const cfg = tableConfig(el);
-        expect(cfg.sort).toEqual([{ field: 'Amount__c', direction: 'desc' }]);
-        expect(cfg.grouping).toEqual([{ field: 'Stage__c', unit: null }]);
+        expect(cfg.sort).toEqual([{ field: 'Freight_Charge__c', direction: 'desc' }]);
+        expect(cfg.grouping).toEqual([{ field: 'Service_Level__c', unit: null }]);
         expect(cfg.userLayout).toEqual({
             key: expect.any(Number),
             widths: { Name: 180 },
@@ -298,9 +328,9 @@ describe('starting from the saved layout', () => {
             expanded: [OPEN_ROW],
             groupView: null,
             frozen: null,
-            sort: [{ field: 'Amount__c', direction: 'desc' }]
+            sort: [{ field: 'Freight_Charge__c', direction: 'desc' }]
         });
-        expect($(el, '.rh-sorted').textContent).toBe('Sorted by Amount');
+        expect($(el, '.rh-sorted').textContent).toBe('Sorted by Freight Charge');
     });
 
     it('opens as the admin set it up when nothing is saved, and offers no reset', async () => {
@@ -325,8 +355,8 @@ describe('starting from the saved layout', () => {
             JSON.stringify({
                 v: 1,
                 sort: [
-                    { field: 'Gone__c', direction: 'desc' },
-                    { field: 'Notes__c', direction: 'desc' }
+                    { field: 'Rate_Class__c', direction: 'desc' },
+                    { field: 'Delivery_Notes__c', direction: 'desc' }
                 ],
                 grouping: [{ field: 'Name', unit: null }]
             })
@@ -363,7 +393,7 @@ describe('starting from the saved layout', () => {
         expect($(el, '.rh-reset-layout')).toBeNull();
         expect(info).not.toHaveBeenCalled();
 
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
         expect(saveLayout).not.toHaveBeenCalled();
         info.mockRestore();
@@ -379,7 +409,7 @@ describe('starting from the saved layout', () => {
         expect(lines).toEqual([
             expect.objectContaining({
                 source: 'rowhouse',
-                grid: 'Test_Records',
+                grid: 'Consignments',
                 error: 'Insufficient access to Grid User Layout.'
             })
         ]);
@@ -388,27 +418,29 @@ describe('starting from the saved layout', () => {
 
     it('a child table reads and keeps its own layout for its tab', async () => {
         getLayout.mockResolvedValue(
-            JSON.stringify({ v: 1, sort: [{ field: 'Amount__c', direction: 'desc' }], frozen: 1 })
+            JSON.stringify({ v: 1, sort: [{ field: 'Freight_Charge__c', direction: 'desc' }], frozen: 1 })
         );
         const el = mountChild();
         await settle();
-        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Test_Children' });
-        expect(getLayout).toHaveBeenCalledWith({ configName: 'Test_Children', parentLink: 'Test_Records_Children' });
+        expect(getGridConfig).toHaveBeenCalledWith({ configName: 'Consignment_Items' });
+        expect(getLayout).toHaveBeenCalledWith({ configName: 'Consignment_Items', parentLink: 'Consignments_Items' });
         expect(tableConfig(el).userLayout).toEqual(
-            expect.objectContaining({ sort: [{ field: 'Amount__c', direction: 'desc' }], frozen: 1 })
+            expect.objectContaining({ sort: [{ field: 'Freight_Charge__c', direction: 'desc' }], frozen: 1 })
         );
         layoutChange(el, { widths: { Name: 220 }, wrap: {}, expanded: [], frozen: 2 });
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         expect(saveLayout).toHaveBeenCalledWith({
-            configName: 'Test_Children',
+            configName: 'Consignment_Items',
             layout: expect.any(String),
-            parentLink: 'Test_Records_Children'
+            parentLink: 'Consignments_Items'
         });
         expect(keptLayout()).toEqual(expect.objectContaining({ widths: { Name: 220 }, frozen: 2 }));
     });
 
     it('Reset layout in a child table forgets the layout of its tab', async () => {
-        getLayout.mockResolvedValue(JSON.stringify({ v: 1, sort: [{ field: 'Amount__c', direction: 'desc' }] }));
+        getLayout.mockResolvedValue(
+            JSON.stringify({ v: 1, sort: [{ field: 'Freight_Charge__c', direction: 'desc' }] })
+        );
         const el = mountChild();
         await settle();
         // A child table's actions are in one menu.
@@ -416,7 +448,7 @@ describe('starting from the saved layout', () => {
         expect(items).toContain('Reset layout');
         $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'reset' } }));
         await settle();
-        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Children', parentLink: 'Test_Records_Children' });
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Consignment_Items', parentLink: 'Consignments_Items' });
     });
 });
 
@@ -460,38 +492,38 @@ describe('keeping changes', () => {
     it(`keeps a new sort ${LAYOUT_DELAY_MS}ms after it, as JSON`, async () => {
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS - 1);
         expect(saveLayout).not.toHaveBeenCalled();
         await jest.advanceTimersByTimeAsync(1);
         expect(saveLayout).toHaveBeenCalledTimes(1);
         expect(saveLayout).toHaveBeenCalledWith({
-            configName: 'Test_Records',
+            configName: 'Consignments',
             layout: expect.any(String),
             parentLink: null
         });
         // Only what the user set: no widths, wrap or open rows yet.
-        expect(keptLayout()).toEqual({ v: 1, sort: [{ field: 'Amount__c', direction: 'desc' }], grouping: [] });
+        expect(keptLayout()).toEqual({ v: 1, sort: [{ field: 'Freight_Charge__c', direction: 'desc' }], grouping: [] });
     });
 
     it('sends one save for several quick changes, with all of them, after the last one', async () => {
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS - 500);
-        groupChange(el, [{ field: 'Close__c', unit: 'quarter' }]);
+        groupChange(el, [{ field: 'Ship_Date__c', unit: 'quarter' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS - 500);
-        layoutChange(el, { widths: { Name: 200 }, wrap: { Notes__c: false }, expanded: [OPEN_ROW] });
+        layoutChange(el, { widths: { Name: 200 }, wrap: { Delivery_Notes__c: false }, expanded: [OPEN_ROW] });
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS - 1);
         expect(saveLayout).not.toHaveBeenCalled();
         await jest.advanceTimersByTimeAsync(1);
         expect(saveLayout).toHaveBeenCalledTimes(1);
         expect(keptLayout()).toEqual({
             v: 1,
-            sort: [{ field: 'Amount__c', direction: 'desc' }],
-            grouping: [{ field: 'Close__c', unit: 'quarter' }],
+            sort: [{ field: 'Freight_Charge__c', direction: 'desc' }],
+            grouping: [{ field: 'Ship_Date__c', unit: 'quarter' }],
             widths: { Name: 200 },
-            wrap: { Notes__c: false },
+            wrap: { Delivery_Notes__c: false },
             expanded: [OPEN_ROW]
         });
     });
@@ -499,9 +531,9 @@ describe('keeping changes', () => {
     it('keeps a grouping change on its own', async () => {
         const el = mount();
         await settle();
-        groupChange(el, [{ field: 'Stage__c', unit: null }]);
+        groupChange(el, [{ field: 'Service_Level__c', unit: null }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
-        expect(keptLayout()).toEqual({ v: 1, sort: ADMIN_SORT, grouping: [{ field: 'Stage__c', unit: null }] });
+        expect(keptLayout()).toEqual({ v: 1, sort: ADMIN_SORT, grouping: [{ field: 'Service_Level__c', unit: null }] });
     });
 
     it("keeps the groups' order and percentages, and leaves them out when they are the default", async () => {
@@ -542,7 +574,7 @@ describe('keeping changes', () => {
         const el = mount();
         await settle();
         // Back to the saved sort: the layout is the one already kept.
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         expect(saveLayout).not.toHaveBeenCalled();
 
@@ -560,7 +592,7 @@ describe('keeping changes', () => {
         const el = mount();
         await settle();
         expect($(el, '.rh-reset-layout')).toBeNull();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         await settle();
         expect($(el, '.rh-reset-layout')).not.toBeNull();
@@ -570,7 +602,7 @@ describe('keeping changes', () => {
         saveLayout.mockResolvedValue(false);
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         await settle();
         expect(saveLayout).toHaveBeenCalledTimes(1);
@@ -578,7 +610,7 @@ describe('keeping changes', () => {
         expect($(el, '.rh-reset-layout')).toBeNull();
 
         sortChange(el, [{ field: 'Name', direction: 'desc' }]);
-        groupChange(el, [{ field: 'Stage__c', unit: null }]);
+        groupChange(el, [{ field: 'Service_Level__c', unit: null }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
         el.remove();
         expect(saveLayout).toHaveBeenCalledTimes(1);
@@ -588,7 +620,7 @@ describe('keeping changes', () => {
         saveLayout.mockRejectedValue({ body: { message: 'Storage limit exceeded' } });
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         await settle();
         expect(saveLayout).toHaveBeenCalledTimes(1);
@@ -602,11 +634,11 @@ describe('keeping changes', () => {
     it('sends a waiting change at once when the grid goes away', async () => {
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         el.remove();
         expect(saveLayout).toHaveBeenCalledTimes(1);
-        expect(lastCall(saveLayout).configName).toBe('Test_Records');
-        expect(keptLayout().sort).toEqual([{ field: 'Amount__c', direction: 'desc' }]);
+        expect(lastCall(saveLayout).configName).toBe('Consignments');
+        expect(keptLayout().sort).toEqual([{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
         expect(saveLayout).toHaveBeenCalledTimes(1);
     });
@@ -622,12 +654,12 @@ describe('keeping changes', () => {
     it('sends a waiting change before the grid loads again for another record', async () => {
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         el.recordId = '001000000000001AAA';
         await settle();
         expect(saveLayout).toHaveBeenCalledTimes(1);
-        expect(lastCall(saveLayout).configName).toBe('Test_Records');
-        expect(keptLayout().sort).toEqual([{ field: 'Amount__c', direction: 'desc' }]);
+        expect(lastCall(saveLayout).configName).toBe('Consignments');
+        expect(keptLayout().sort).toEqual([{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
         expect(saveLayout).toHaveBeenCalledTimes(1);
     });
@@ -635,22 +667,22 @@ describe('keeping changes', () => {
     it("never keeps one grid's layout under another grid's name", async () => {
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
-        el.configName = 'Other_Grid';
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
+        el.configName = 'Freight_Claims';
         await settle();
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
-        expect(saveLayout.mock.calls.filter(([args]) => args.configName === 'Other_Grid')).toHaveLength(0);
+        expect(saveLayout.mock.calls.filter(([args]) => args.configName === 'Freight_Claims')).toHaveLength(0);
     });
 
     it('keeps a waiting change for the grid it was made on when the grid changes', async () => {
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
-        el.configName = 'Other_Grid';
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
+        el.configName = 'Freight_Claims';
         await settle();
         expect(saveLayout).toHaveBeenCalledTimes(1);
-        expect(lastCall(saveLayout).configName).toBe('Test_Records');
-        expect(keptLayout().sort).toEqual([{ field: 'Amount__c', direction: 'desc' }]);
+        expect(lastCall(saveLayout).configName).toBe('Consignments');
+        expect(keptLayout().sort).toEqual([{ field: 'Freight_Charge__c', direction: 'desc' }]);
     });
 
     it("a late failure for the grid before does not stop keeping the next one's", async () => {
@@ -663,32 +695,32 @@ describe('keeping changes', () => {
         );
         const el = mount();
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
-        el.configName = 'Other_Grid';
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
+        el.configName = 'Freight_Claims';
         await settle();
-        failFirst({ body: { message: 'Too late' } });
+        failFirst({ body: { message: 'Read timed out' } });
         await settle();
         sortChange(el, [{ field: 'Name', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         await settle();
         expect(saveLayout).toHaveBeenCalledTimes(2);
-        expect(lastCall(saveLayout).configName).toBe('Other_Grid');
+        expect(lastCall(saveLayout).configName).toBe('Freight_Claims');
     });
 
     it("never keeps the user's filters", async () => {
         const el = mount();
         await settle();
-        filterChange(el, [{ field: 'Stage__c', operator: 'equals', value: 'Won', valueTo: null }]);
+        filterChange(el, [{ field: 'Service_Level__c', operator: 'equals', value: 'Express', valueTo: null }]);
         await settle();
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
         // A filter alone is not a layout change.
         expect(saveLayout).not.toHaveBeenCalled();
 
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         expect(saveLayout).toHaveBeenCalledTimes(1);
         expect(Object.keys(keptLayout())).toEqual(['v', 'sort', 'grouping']);
-        expect(lastCall(saveLayout).layout).not.toContain('Won');
+        expect(lastCall(saveLayout).layout).not.toContain('Express');
     });
 });
 
@@ -711,7 +743,7 @@ describe('Reset layout', () => {
         const before = tableConfig(el).userLayout.key;
         reset(el);
         await settle();
-        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records', parentLink: null });
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Consignments', parentLink: null });
         const cfg = tableConfig(el);
         expect(cfg.grouping).toEqual([]);
         // A new key, so the table applies it: the admin's sort, no widths, wrap or open rows.
@@ -732,19 +764,19 @@ describe('Reset layout', () => {
 
     it("puts back the admin's own grouping", async () => {
         getGridConfig.mockResolvedValue({
-            definition: { ...DEFINITION, grouping: [{ field: 'Close__c', unit: 'year' }] },
+            definition: { ...DEFINITION, grouping: [{ field: 'Ship_Date__c', unit: 'year' }] },
             diagnostics: false
         });
         getLayout.mockResolvedValue(SAVED_JSON);
         const el = mount();
         await settle();
-        expect(tableConfig(el).grouping).toEqual([{ field: 'Stage__c', unit: null }]);
+        expect(tableConfig(el).grouping).toEqual([{ field: 'Service_Level__c', unit: null }]);
         summarizeGroups.mockClear();
         reset(el);
         await settle();
-        expect(tableConfig(el).grouping).toEqual([{ field: 'Close__c', unit: 'year' }]);
+        expect(tableConfig(el).grouping).toEqual([{ field: 'Ship_Date__c', unit: 'year' }]);
         // New groups need new counts.
-        expect(summarizeGroups).toHaveBeenCalledWith(expect.objectContaining({ grouping: ['Close__c:year'] }));
+        expect(summarizeGroups).toHaveBeenCalledWith(expect.objectContaining({ grouping: ['Ship_Date__c:year'] }));
     });
 
     it("asks for the rows again in the admin's order when not every row is loaded", async () => {
@@ -809,8 +841,8 @@ describe('Reset layout', () => {
         await settle();
         expect($(el, '.rh-notice').textContent).toBe('The layout could not be reset. Unable to lock row.');
         expect(tableConfig(el).userLayout).toEqual(before);
-        expect(tableConfig(el).grouping).toEqual([{ field: 'Stage__c', unit: null }]);
-        expect($(el, '.rh-sorted').textContent).toBe('Sorted by Amount');
+        expect(tableConfig(el).grouping).toEqual([{ field: 'Service_Level__c', unit: null }]);
+        expect($(el, '.rh-sorted').textContent).toBe('Sorted by Freight Charge');
         expect($(el, '.rh-reset-layout')).not.toBeNull();
     });
 
@@ -845,7 +877,7 @@ describe('Reset layout', () => {
         expect(resetLayout).not.toHaveBeenCalled();
         finishSave(true);
         await settle();
-        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records', parentLink: null });
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Consignments', parentLink: null });
         await settle();
         expect($(el, '.rh-reset-layout')).toBeNull();
         expect(tableConfig(el).userLayout.sort).toEqual(ADMIN_SORT);
@@ -857,10 +889,10 @@ describe('Reset layout', () => {
         await settle();
         reset(el);
         await settle();
-        sortChange(el, [{ field: 'Amount__c', direction: 'desc' }]);
+        sortChange(el, [{ field: 'Freight_Charge__c', direction: 'desc' }]);
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
         expect(saveLayout).toHaveBeenCalledTimes(1);
-        expect(keptLayout()).toEqual({ v: 1, sort: [{ field: 'Amount__c', direction: 'desc' }], grouping: [] });
+        expect(keptLayout()).toEqual({ v: 1, sort: [{ field: 'Freight_Charge__c', direction: 'desc' }], grouping: [] });
     });
 
     it('is in the actions menu when the toolbar is narrow, once a layout is kept', async () => {
@@ -899,7 +931,7 @@ describe('Reset layout', () => {
         expect(items(el)).toContain('Reset layout');
         $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'reset' } }));
         await settle();
-        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Test_Records', parentLink: null });
+        expect(resetLayout).toHaveBeenCalledWith({ configName: 'Consignments', parentLink: null });
         expect(items(el)).not.toContain('Reset layout');
     });
 });

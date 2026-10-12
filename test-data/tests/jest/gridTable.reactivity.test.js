@@ -83,8 +83,8 @@ describe('reactivity across the @api boundary', () => {
     });
 
     it('gives every row a stable key derived from Id, not content or index (HR-19)', async () => {
-        // TC-047 and TC-048 are byte-identical in every displayed field.
-        const twins = seedRows.filter(r => /TC-04[78]/.test(r.Test_Case__c));
+        // PRO-1047 and PRO-1048 (TC-047 and TC-048) are byte-identical in every displayed field.
+        const twins = seedRows.filter(r => /PRO-104[78]/.test(r.Pro_Number__c));
         expect(twins).toHaveLength(2);
 
         // Rows only. Cells and in-cell controls also carry data-row-id — the
@@ -97,7 +97,7 @@ describe('reactivity across the @api boundary', () => {
 
     it('keeps row keys stable across a sort (HR-19)', async () => {
         const before = [...el.shadowRoot.querySelectorAll('[role="row"][data-row-id]')].map(n => n.dataset.rowId);
-        el.shadowRoot.querySelector('[data-field="Number_Field__c"] .slds-th__action').click();
+        el.shadowRoot.querySelector('[data-field="Pieces__c"] .slds-th__action').click();
         await flushPromises();
         const after = [...el.shadowRoot.querySelectorAll('[role="row"][data-row-id]')].map(n => n.dataset.rowId);
 

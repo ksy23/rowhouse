@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Weight_Thousands__c</fullName>
+    <label>Weight (000 lb)</label>
+    <type>Number</type>
+    <precision>16</precision>
+    <scale>2</scale>
+    <formula>Weight__c / 1000</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <description>DEVELOPMENT ONLY. Benchmark column 16-20 of 20: Decimal Field in thousands. Read-only, like the formula columns of a real org.</description>
+</CustomField>

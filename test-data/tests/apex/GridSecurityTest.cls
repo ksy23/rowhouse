@@ -35,13 +35,13 @@ private class GridSecurityTest {
         // see the test fields.
         GridTestUsers.limitedUser();
         System.runAs(GridTestUsers.fullUser()) {
-            insert new Rowhouse_Test_Record__c(
-                Name = 'FLS probe',
-                Text_Field__c = 'visible and editable',
-                Read_Only_Text__c = 'visible, not editable',
-                Long_Text__c = 'must never reach the client',
-                Decimal_Field__c = 42.00,
-                Currency_Field__c = 500.00 // editable, but NOT in the column set
+            insert new Consignment__c(
+                Name = 'Wachusett Paper, 18 pallets',
+                Consignee__c = 'Wachusett Paper',
+                Carrier_Code__c = 'GCFR',
+                Delivery_Notes__c = 'Call Ruth Sargent before delivery; dock 3 closes at 4 pm.',
+                Weight__c = 42.00,
+                Freight_Charge__c = 500.00 // editable, but NOT in the column set
             );
         }
     }
@@ -50,27 +50,27 @@ private class GridSecurityTest {
         return [
             SELECT Id
             FROM User
-            WHERE LastName = 'Limited' AND Alias = 'rhltd' AND IsActive = TRUE
+            WHERE LastName = 'Thibodeau' AND Alias = 'rhltd' AND IsActive = TRUE
             ORDER BY CreatedDate DESC
             LIMIT 1
         ];
     }
 
     /** Reads the probe row back with full field access. */
-    private static Rowhouse_Test_Record__c probe() {
+    private static Consignment__c probe() {
         User reader = [
             SELECT Id
             FROM User
-            WHERE LastName = 'Full' AND Alias = 'rhfull' AND IsActive = TRUE
+            WHERE LastName = 'Coffin' AND Alias = 'rhfull' AND IsActive = TRUE
             ORDER BY CreatedDate DESC
             LIMIT 1
         ];
-        Rowhouse_Test_Record__c row;
+        Consignment__c row;
         System.runAs(reader) {
             row = [
-                SELECT Id, Text_Field__c, Read_Only_Text__c, Currency_Field__c, Long_Text__c
-                FROM Rowhouse_Test_Record__c
-                WHERE Name = 'FLS probe'
+                SELECT Id, Consignee__c, Carrier_Code__c, Freight_Charge__c, Delivery_Notes__c
+                FROM Consignment__c
+                WHERE Name = 'Wachusett Paper, 18 pallets'
                 LIMIT 1
             ];
         }
@@ -79,13 +79,13 @@ private class GridSecurityTest {
 
     @IsTest
     static void queryOmitsFieldsTheUserCannotRead() {
-        Rowhouse_Test_Record__c row;
+        Consignment__c row;
         System.runAs(limitedUser()) {
             Test.startTest();
-            row = (Rowhouse_Test_Record__c) GridDataService.fetchPage(
+            row = (Consignment__c) GridDataService.fetchPage(
                     new GridRequest(
-                        'Rowhouse_Test_Record__c',
-                        new List<String>{ 'Text_Field__c', 'Long_Text__c' }, // asks for both
+                        'Consignment__c',
+                        new List<String>{ 'Consignee__c', 'Delivery_Notes__c' }, // asks for both
                         null,
                         50
                     )
@@ -93,43 +93,39 @@ private class GridSecurityTest {
                 .rows[0];
             Test.stopTest();
         }
-        System.assertEquals('visible and editable', row.Text_Field__c, 'A readable field must still come through.');
+        System.assertEquals('Wachusett Paper', row.Consignee__c, 'A readable field must still come through.');
         // By the field's token, not its name: in a namespaced org the result's
-        // key is rowhouse__Long_Text__c, so a name check would pass vacuously.
+        // key is rowhouse__Delivery_Notes__c, so a name check would pass vacuously.
         System.assert(
-            !row.isSet(Rowhouse_Test_Record__c.Long_Text__c),
+            !row.isSet(Consignment__c.Delivery_Notes__c),
             'An unreadable field leaked into the query result. Security-review failure.'
         );
     }
 
     @IsTest
     static void saveStripsAFieldTheUserCannotEdit() {
-        Rowhouse_Test_Record__c rec = probe();
+        Consignment__c rec = probe();
         GridSaveResult ticket;
         System.runAs(limitedUser()) {
             Test.startTest();
             ticket = GridSaveService.save(
-                'Security_Test',
+                'Consignment_Charges',
                 new List<Map<String, Object>>{
                     new Map<String, Object>{
                         'Id' => rec.Id,
-                        'Text_Field__c' => 'changed legitimately',
-                        'Read_Only_Text__c' => 'should be stripped'
+                        'Consignee__c' => 'Wachusett Paper Company',
+                        'Carrier_Code__c' => 'NEFT'
                     }
                 }
             );
             Test.stopTest();
         }
-        Rowhouse_Test_Record__c after = probe();
-        System.assertEquals('changed legitimately', after.Text_Field__c);
-        System.assertEquals(
-            'visible, not editable',
-            after.Read_Only_Text__c,
-            'A field the user cannot edit was written anyway.'
-        );
+        Consignment__c after = probe();
+        System.assertEquals('Wachusett Paper Company', after.Consignee__c);
+        System.assertEquals('GCFR', after.Carrier_Code__c, 'A field the user cannot edit was written anyway.');
         System.assert(
-            ticket.strippedFields.contains('Read_Only_Text__c'),
-            'Refused, but not by FLS. Read_Only_Text__c is an editable column of Security_Test, ' +
+            ticket.strippedFields.contains('Carrier_Code__c'),
+            'Refused, but not by FLS. Carrier_Code__c is an editable column of Consignment_Charges, ' +
                 'so the field-level security strip must be what stopped it: ' +
                 ticket
         );
@@ -139,36 +135,36 @@ private class GridSecurityTest {
     static void saveRejectsAnEditableFieldThatIsNotInTheColumnSet() {
         // THE test for HR-6, and the distinction matters. Stripping a field the
         // user cannot READ only proves FLS works. HR-6 is about the allow-list:
-        // Currency_Field__c is readable AND editable for this user, but it is
+        // Freight_Charge__c is readable AND editable for this user, but it is
         // not in the configured column set, so a payload naming it must still be
         // refused. That is the case a reviewer asks about.
-        Rowhouse_Test_Record__c rec = probe();
+        Consignment__c rec = probe();
         GridSaveResult ticket;
         System.runAs(limitedUser()) {
             Test.startTest();
             ticket = GridSaveService.save(
-                'Security_Test',
+                'Consignment_Charges',
                 new List<Map<String, Object>>{
                     new Map<String, Object>{
                         'Id' => rec.Id,
-                        'Text_Field__c' => 'in the column set',
-                        'Currency_Field__c' => 999999 // editable, out of band
+                        'Consignee__c' => 'Wachusett Paper, Fitchburg',
+                        'Freight_Charge__c' => 999999 // editable, out of band
                     }
                 }
             );
             Test.stopTest();
         }
-        Rowhouse_Test_Record__c after = probe();
-        System.assertEquals('in the column set', after.Text_Field__c);
+        Consignment__c after = probe();
+        System.assertEquals('Wachusett Paper, Fitchburg', after.Consignee__c);
         System.assertEquals(
             500.00,
-            after.Currency_Field__c,
+            after.Freight_Charge__c,
             'A field outside the configured column set was written from the client payload. ' +
             'FLS did not catch it because the user CAN edit it — only the allow-list can.'
         );
         System.assert(
-            ticket.rejectedFields.contains('Currency_Field__c'),
-            'Currency_Field__c must be refused by the allow-list, and reported as such: ' + ticket
+            ticket.rejectedFields.contains('Freight_Charge__c'),
+            'Freight_Charge__c must be refused by the allow-list, and reported as such: ' + ticket
         );
     }
 
@@ -177,16 +173,16 @@ private class GridSecurityTest {
         // An update carrying only an Id still runs the org's triggers and flows
         // and stamps Last Modified. A row whose every field was refused, by the
         // allow-list or by field-level security, must queue nothing.
-        Rowhouse_Test_Record__c rec = probe();
+        Consignment__c rec = probe();
         GridSaveResult ticket;
         Integer queued;
         System.runAs(limitedUser()) {
             Test.startTest();
             ticket = GridSaveService.save(
-                'Security_Test',
+                'Consignment_Charges',
                 new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'Id' => rec.Id, 'Currency_Field__c' => 1 }, // not a column
-                    new Map<String, Object>{ 'Id' => rec.Id, 'Long_Text__c' => 'unreadable' } // stripped
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Freight_Charge__c' => 1 }, // not a column
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Delivery_Notes__c' => 'Use the side door.' } // stripped
                 }
             );
             queued = Limits.getQueueableJobs();
@@ -196,27 +192,27 @@ private class GridSecurityTest {
         System.assertEquals(0, ticket.chunkCount, String.valueOf(ticket));
         System.assert(ticket.done, 'With nothing queued the save is done at once.');
         System.assertEquals(0, ticket.successCount, 'Nothing was saved, and the count says so.');
-        System.assert(ticket.rejectedFields.contains('Currency_Field__c'), String.valueOf(ticket));
-        System.assert(ticket.strippedFields.contains('Long_Text__c'), String.valueOf(ticket));
-        Rowhouse_Test_Record__c after = probe();
-        System.assertEquals(500.00, after.Currency_Field__c);
-        System.assertEquals('must never reach the client', after.Long_Text__c);
+        System.assert(ticket.rejectedFields.contains('Freight_Charge__c'), String.valueOf(ticket));
+        System.assert(ticket.strippedFields.contains('Delivery_Notes__c'), String.valueOf(ticket));
+        Consignment__c after = probe();
+        System.assertEquals(500.00, after.Freight_Charge__c);
+        System.assertEquals('Call Ruth Sargent before delivery; dock 3 closes at 4 pm.', after.Delivery_Notes__c);
     }
 
     @IsTest
     static void aGridThatDoesNotEditCellsRefusesEverySave() {
-        // Read_Only_Test marks its columns Editable but has Allow Inline Edit
+        // Consignment_Directory marks its columns Editable but has Allow Inline Edit
         // off: that one setting must refuse the save before anything is queued.
-        Rowhouse_Test_Record__c rec = probe();
+        Consignment__c rec = probe();
         String refusal;
         Integer queued;
         System.runAs(limitedUser()) {
             Test.startTest();
             try {
                 GridSaveService.save(
-                    'Read_Only_Test',
+                    'Consignment_Directory',
                     new List<Map<String, Object>>{
-                        new Map<String, Object>{ 'Id' => rec.Id, 'Text_Field__c' => 'should not be written' }
+                        new Map<String, Object>{ 'Id' => rec.Id, 'Consignee__c' => 'Wachusett Paper Co.' }
                     }
                 );
             } catch (GridException e) {
@@ -227,33 +223,33 @@ private class GridSecurityTest {
         }
         System.assertEquals('This grid does not allow editing records.', refusal);
         System.assertEquals(0, queued, 'Nothing is queued for a grid that does not edit cells.');
-        System.assertEquals('visible and editable', probe().Text_Field__c);
+        System.assertEquals('Wachusett Paper', probe().Consignee__c);
     }
 
     @IsTest
     static void saveAlsoStripsAFieldTheUserCannotRead() {
         // The FLS half, kept separate from the allow-list half above so a failure
         // says which mechanism broke.
-        Rowhouse_Test_Record__c rec = probe();
+        Consignment__c rec = probe();
         GridSaveResult ticket;
         System.runAs(limitedUser()) {
             Test.startTest();
             ticket = GridSaveService.save(
-                'Security_Test',
+                'Consignment_Charges',
                 new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'Id' => rec.Id, 'Long_Text__c' => 'invisible to this user' }
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Delivery_Notes__c' => 'Deliver after 2 pm only.' }
                 }
             );
             Test.stopTest();
         }
         System.assertEquals(
-            'must never reach the client',
-            probe().Long_Text__c,
+            'Call Ruth Sargent before delivery; dock 3 closes at 4 pm.',
+            probe().Delivery_Notes__c,
             'An unreadable field from the client payload was written.'
         );
         System.assert(
-            ticket.strippedFields.contains('Long_Text__c'),
-            'Long_Text__c is an editable column of Security_Test, so FLS — not the allow-list — ' +
+            ticket.strippedFields.contains('Delivery_Notes__c'),
+            'Delivery_Notes__c is an editable column of Consignment_Charges, so FLS — not the allow-list — ' +
                 'must be what refused it: ' +
                 ticket
         );
@@ -263,54 +259,47 @@ private class GridSecurityTest {
     static void importStripsAFieldTheUserCannotWrite() {
         // Import writes through the same two gates as a save: the
         // allow-list, then field-level security, on an update (edit access) and
-        // on a new record (create access). Read_Only_Text__c is an editable
-        // column of Security_Test that this user can read but not write.
-        Rowhouse_Test_Record__c rec = probe();
+        // on a new record (create access). Carrier_Code__c is an editable
+        // column of Consignment_Charges that this user can read but not write.
+        Consignment__c rec = probe();
         GridImportService.Result result;
         System.runAs(limitedUser()) {
             Test.startTest();
             result = GridImportService.importRows(
-                'Security_Test',
+                'Consignment_Charges',
                 new List<Map<String, Object>>{
                     new Map<String, Object>{
                         'Id' => rec.Id,
-                        'Text_Field__c' => 'imported',
-                        'Read_Only_Text__c' => 'should be stripped'
+                        'Consignee__c' => 'Wachusett Paper (Fitchburg mill)',
+                        'Carrier_Code__c' => 'NEFT'
                     },
-                    new Map<String, Object>{
-                        'Text_Field__c' => 'a new row',
-                        'Read_Only_Text__c' => 'should be stripped too'
-                    }
+                    new Map<String, Object>{ 'Consignee__c' => 'Quabbin Supply', 'Carrier_Code__c' => 'CBMX' }
                 }
             );
             Test.stopTest();
         }
         System.assert(result.rows[0].success && result.rows[1].success, String.valueOf(result.rows));
-        Rowhouse_Test_Record__c after = probe();
-        System.assertEquals('imported', after.Text_Field__c);
-        System.assertEquals(
-            'visible, not editable',
-            after.Read_Only_Text__c,
-            'A field the user cannot edit was imported anyway.'
-        );
-        System.assert(result.strippedFields.contains('Read_Only_Text__c'), String.valueOf(result));
+        Consignment__c after = probe();
+        System.assertEquals('Wachusett Paper (Fitchburg mill)', after.Consignee__c);
+        System.assertEquals('GCFR', after.Carrier_Code__c, 'A field the user cannot edit was imported anyway.');
+        System.assert(result.strippedFields.contains('Carrier_Code__c'), String.valueOf(result));
         User reader = [
             SELECT Id
             FROM User
-            WHERE LastName = 'Full' AND Alias = 'rhfull' AND IsActive = TRUE
+            WHERE LastName = 'Coffin' AND Alias = 'rhfull' AND IsActive = TRUE
             ORDER BY CreatedDate DESC
             LIMIT 1
         ];
         System.runAs(reader) {
-            Rowhouse_Test_Record__c made = [
-                SELECT Text_Field__c, Read_Only_Text__c
-                FROM Rowhouse_Test_Record__c
+            Consignment__c made = [
+                SELECT Consignee__c, Carrier_Code__c
+                FROM Consignment__c
                 WHERE Id = :result.rows[1].recordId
             ];
-            System.assertEquals('a new row', made.Text_Field__c);
+            System.assertEquals('Quabbin Supply', made.Consignee__c);
             System.assertEquals(
                 null,
-                made.Read_Only_Text__c,
+                made.Carrier_Code__c,
                 'A field the user cannot set on create was imported anyway.'
             );
         }
@@ -319,14 +308,14 @@ private class GridSecurityTest {
     @IsTest
     static void deleteIsRefusedWhenTheUserLacksTheObjectPermission() {
         // The permission set sets allowDelete=false, so this is a real denial
-        // rather than a hypothetical one. Test_Records allows mass delete,
+        // rather than a hypothetical one. Consignments allows mass delete,
         // so the configuration is not what refuses it.
-        Rowhouse_Test_Record__c rec = probe();
+        Consignment__c rec = probe();
         String message;
         System.runAs(limitedUser()) {
             Test.startTest();
             try {
-                GridDeleteService.deleteRows('Test_Records', new List<Id>{ rec.Id });
+                GridDeleteService.deleteRows('Consignments', new List<Id>{ rec.Id });
             } catch (GridException e) {
                 message = e.getMessage();
             }
@@ -341,38 +330,35 @@ private class GridSecurityTest {
 
     @IsTest
     static void groupingAndSubtotalsNeverReachAFieldTheUserCannotRead() {
-        // Group_Test totals When (DateTime_Field__c) and shows Account
-        // (Lookup_Field__c); this user can read neither.
+        // Consignments_By_Mode totals When (Picked_Up__c) and shows Account
+        // (Shipper__c); this user can read neither.
         probe();
         System.runAs(limitedUser()) {
-            GridConfig.Definition def = GridConfig.forUser('Group_Test');
+            GridConfig.Definition def = GridConfig.forUser('Consignments_By_Mode');
             for (GridConfig.Column c : def.columns) {
                 System.assert(
-                    c.field != 'DateTime_Field__c' && c.field != 'Lookup_Field__c',
+                    c.field != 'Picked_Up__c' && c.field != 'Shipper__c',
                     'Unreadable column sent: ' + c.field
                 );
             }
             String refused;
             try {
-                GridGroupService.summarize('Group_Test', null, new List<String>{ 'Lookup_Field__c' }, null, null);
+                GridGroupService.summarize('Consignments_By_Mode', null, new List<String>{ 'Shipper__c' }, null, null);
             } catch (GridException e) {
                 refused = e.getMessage();
             }
-            System.assertEquals('Cannot group by Lookup_Field__c.', refused);
+            System.assertEquals('Cannot group by Shipper__c.', refused);
             GridGroupService.Result result = GridGroupService.summarize(
-                'Group_Test',
+                'Consignments_By_Mode',
                 null,
-                new List<String>{ 'Picklist_Field__c' },
+                new List<String>{ 'Service_Level__c' },
                 null,
                 null
             );
-            System.assert(!result.groups.isEmpty(), 'The probe row is readable, so there is a group.');
+            System.assert(!result.groups.isEmpty(), 'The consignment is readable, so there is a group.');
             Map<String, Object> values = (Map<String, Object>) result.groups[0].get('v');
-            System.assert(
-                !values.containsKey('DateTime_Field__c'),
-                'A subtotal of an unreadable field was sent: ' + values
-            );
-            System.assert(values.containsKey('Number_Field__c'), String.valueOf(values));
+            System.assert(!values.containsKey('Picked_Up__c'), 'A subtotal of an unreadable field was sent: ' + values);
+            System.assert(values.containsKey('Pieces__c'), String.valueOf(values));
         }
     }
 }

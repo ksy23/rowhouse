@@ -68,7 +68,7 @@ function zip(files, { store = false, declared = {}, deflated = {} } = {}) {
 }
 
 const SHEET = 'xl/worksheets/sheet1.xml';
-const WORKBOOK = '<workbook><sheets><sheet name="Records" sheetId="1" r:id="rId1"/></sheets></workbook>';
+const WORKBOOK = '<workbook><sheets><sheet name="Consignments" sheetId="1" r:id="rId1"/></sheets></workbook>';
 const RELS = '<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>';
 
 /** A one-sheet workbook whose sheetData is `data`; `parts` adds or replaces parts. */

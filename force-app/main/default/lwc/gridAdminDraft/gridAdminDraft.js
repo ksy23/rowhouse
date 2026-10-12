@@ -437,7 +437,7 @@ export function isPathName(name) {
 }
 
 /**
- * Follow a path such as "Lookup_Field__r.Owner.Email" from the grid's
+ * Follow a path such as "Shipper__r.Owner.Email" from the grid's
  * object. `related` holds the describes of the objects on the way
  * (GridAdmin.describeObject), by lower-case API name. Returns the steps, one
  * per object reached ({ fields, objectName, objectLabel, part, last }), the

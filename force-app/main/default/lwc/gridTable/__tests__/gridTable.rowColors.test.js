@@ -35,12 +35,12 @@ const ruleFor = selector => {
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, frozen: true },
-    { field: 'Stage__c', label: 'Stage', type: 'text', editable: true, sortable: true }
+    { field: 'Service_Level__c', label: 'Service Level', type: 'text', editable: true, sortable: true }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
 const ROWS = [
-    { Id: id(1), Name: 'One', Stage__c: 'Open' },
-    { Id: id(2), Name: 'Two', Stage__c: 'Won' }
+    { Id: id(1), Name: 'Kennebec Lumber, 12 bundles', Service_Level__c: 'Express' },
+    { Id: id(2), Name: 'Penobscot Paper, full truck', Service_Level__c: 'Standard' }
 ];
 
 describe("frozen cells take the row's colors", () => {

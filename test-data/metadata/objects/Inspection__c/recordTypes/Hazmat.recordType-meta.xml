@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Hazmat</fullName>
+    <active>true</active>
+    <description>DEVELOPMENT ONLY. Status: New, Archived.</description>
+    <label>Hazmat</label>
+    <picklistValues>
+        <picklist>Status__c</picklist>
+        <values><fullName>New</fullName><default>false</default></values>
+        <values><fullName>Archived</fullName><default>false</default></values>
+    </picklistValues>
+</RecordType>

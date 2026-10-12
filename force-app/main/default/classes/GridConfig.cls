@@ -686,7 +686,7 @@ public with sharing class GridConfig {
      * Every Grid Column of a configuration, turned off or not, in no particular order.
      *
      * By SOQL on the configuration, in user mode as every query is
-     * (GridSecurity): about 25 ms for Test_Records' 16 columns, where getAll()
+     * (GridSecurity): about 25 ms for Consignments' 16 columns, where getAll()
      * read every grid's columns, all 144 in a test org, in 100–140 ms,
      * and more with every grid an org adds. SOQL also
      * returns a long formula whole. A user who may not query the type (no

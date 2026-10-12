@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Items Amount</label>
+    <protected>false</protected>
+    <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignment_Directory</value></values>
+    <values><field>Column_Label__c</field><value xsi:type="xsd:string">Items Amount</value></values>
+    <values><field>Width_Px__c</field><value xsi:type="xsd:double">150</value></values>
+    <values><field>Sort_Order__c</field><value xsi:type="xsd:double">4</value></values>
+    <values><field>Child_Table__c</field><value xsi:type="xsd:string">Consignment_Directory_Items</value></values>
+    <values><field>Child_Total__c</field><value xsi:type="xsd:string">sum</value></values>
+    <values><field>Child_Field__c</field><value xsi:type="xsd:string">Amount__c</value></values>
+</CustomMetadata>

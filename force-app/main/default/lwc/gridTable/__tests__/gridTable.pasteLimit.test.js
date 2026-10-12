@@ -18,13 +18,13 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const ROW_COUNT = 2600;
 const ROWS = Array.from({ length: ROW_COUNT }, (_, i) => ({
     Id: 'a0' + String(i).padStart(16, '0'),
-    Name: 'Row ' + (i + 1),
-    Test_Case__c: 'BENCH',
-    Text_Field__c: 'text ' + (i + 1),
-    Number_Field__c: i + 1
+    Name: 'Kennebec Lumber, load ' + (i + 1),
+    Pro_Number__c: 'PRO-' + (40001 + i),
+    Consignee__c: 'Kennebec Lumber',
+    Pieces__c: i + 1
 }));
 /** Tab-separated text: `lines` lines of `width` values. */
-const tsv = (lines, width) => Array.from({ length: lines }, () => new Array(width).fill('v').join('\t')).join('\n');
+const tsv = (lines, width) => Array.from({ length: lines }, () => new Array(width).fill('Bath').join('\t')).join('\n');
 
 describe('the paste limit', () => {
     let el;
@@ -32,7 +32,7 @@ describe('the paste limit', () => {
     const cell = (i, field) => el.shadowRoot.querySelector(`td[data-row-id="${ROWS[i].Id}"][data-field="${field}"]`);
     const announcement = () => el.shadowRoot.querySelector('[aria-live="polite"][aria-atomic="true"]').textContent;
     const paste = async text => {
-        const target = cell(0, 'Text_Field__c');
+        const target = cell(0, 'Consignee__c');
         target.focus();
         await flush();
         const event = new CustomEvent('paste', { bubbles: true, composed: true, cancelable: true });

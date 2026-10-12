@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Items_Value__c</fullName>
+    <label>Items Value</label>
+    <summarizedField>Consignment_Item__c.Amount__c</summarizedField>
+    <summaryForeignKey>Consignment_Item__c.Consignment__c</summaryForeignKey>
+    <summaryOperation>sum</summaryOperation>
+    <type>Summary</type>
+    <description>DEVELOPMENT ONLY. Read-only by type. Requires the child object's master-detail relationship, which is why the child object exists.</description>
+</CustomField>

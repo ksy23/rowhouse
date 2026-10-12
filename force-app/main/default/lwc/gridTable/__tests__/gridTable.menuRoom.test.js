@@ -15,10 +15,10 @@ const frame = () => new Promise(resolve => requestAnimationFrame(() => setTimeou
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-    { field: 'Text__c', label: 'Text', type: 'text', editable: true, sortable: true }
+    { field: 'Consignee__c', label: 'Consignee', type: 'text', editable: true, sortable: true }
 ];
 const ROW_ID = 'a01000000000001AAA';
-const ROWS = [{ Id: ROW_ID, Name: 'One', Text__c: 'x' }];
+const ROWS = [{ Id: ROW_ID, Name: 'Kennebec Lumber, 12 bundles', Consignee__c: 'Kennebec Lumber' }];
 const ACTIONS = [
     { name: 'Add_Note', label: 'Add a note' },
     { name: 'Mark_Seen', label: 'Mark as seen' },
@@ -44,7 +44,7 @@ const mount = async (config = {}) => {
         rows: ROWS,
         totalRows: ROWS.length,
         rowActions: ACTIONS,
-        configName: 'Test_Records',
+        configName: 'Consignments',
         ...config
     };
     document.body.appendChild(el);
@@ -176,8 +176,8 @@ describe('room for an open filter panel', () => {
         await mount({ height: 600, columns: COLUMNS.map(c => ({ ...c, filterable: true })) });
         // The panel is drawn inside its own component; it ends 290px below the box's top.
         layout({ '[data-scroller]': { top: 100, bottom: 170 }, '.rh-filter-panel': { top: 133, bottom: 390 } }, 70);
-        await openColumnMenu('Text__c');
-        $('a[data-filter="open"][data-field="Text__c"]').click();
+        await openColumnMenu('Consignee__c');
+        $('a[data-filter="open"][data-field="Consignee__c"]').click();
         await flush();
         await frame();
         expect($('c-grid-filter-panel')).not.toBeNull();

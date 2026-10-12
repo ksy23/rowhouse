@@ -20,14 +20,14 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 const TABS = [
     { name: 'Nest_Accounts_Contacts', label: 'Contacts', configName: 'Nest_Contacts' },
-    { name: 'Nest_Accounts_Records', label: 'Test Records', configName: 'Test_Records' }
+    { name: 'Nest_Accounts_Records', label: 'Consignments', configName: 'Consignments' }
 ];
 const PARENT_ID = '001000000000001AAA';
 
 let el;
 const mount = async (props = {}) => {
     el = createElement('c-grid-children', { is: GridChildren });
-    Object.assign(el, { tabs: TABS, parentId: PARENT_ID, parentName: 'Acme', level: 2, ...props });
+    Object.assign(el, { tabs: TABS, parentId: PARENT_ID, parentName: 'Casco Bay Marine', level: 2, ...props });
     document.body.appendChild(el);
     await flush();
 };
@@ -47,10 +47,10 @@ describe('gridChildren', () => {
     it('shows one tab per child table, in order, each with its own grid', async () => {
         await mount();
         const tabs = $$('lightning-tab');
-        expect(tabs.map(t => t.label)).toEqual(['Contacts', 'Test Records']);
+        expect(tabs.map(t => t.label)).toEqual(['Contacts', 'Consignments']);
         expect(tabs.map(t => t.value)).toEqual(['Nest_Accounts_Contacts', 'Nest_Accounts_Records']);
         const views = $$('c-grid-view');
-        expect(views.map(v => v.configName)).toEqual(['Nest_Contacts', 'Test_Records']);
+        expect(views.map(v => v.configName)).toEqual(['Nest_Contacts', 'Consignments']);
     });
 
     it('limits each grid to the open row, through its own link, one level down', async () => {
@@ -59,14 +59,14 @@ describe('gridChildren', () => {
         expect(views[0].parent).toEqual({
             link: 'Nest_Accounts_Contacts',
             id: PARENT_ID,
-            name: 'Acme',
+            name: 'Casco Bay Marine',
             level: 2,
             height: null
         });
         expect(views[1].parent).toEqual({
             link: 'Nest_Accounts_Records',
             id: PARENT_ID,
-            name: 'Acme',
+            name: 'Casco Bay Marine',
             level: 2,
             height: null
         });
@@ -75,7 +75,9 @@ describe('gridChildren', () => {
 
     it('names the panel for the row it belongs to', async () => {
         await mount();
-        expect(el.shadowRoot.querySelector('section').getAttribute('aria-label')).toBe('Related records for Acme');
+        expect(el.shadowRoot.querySelector('section').getAttribute('aria-label')).toBe(
+            'Related records for Casco Bay Marine'
+        );
         el.parentName = '';
         await flush();
         expect(el.shadowRoot.querySelector('section').getAttribute('aria-label')).toBe('Related records');
@@ -120,7 +122,7 @@ describe('gridChildren details', () => {
 
     it("puts each tab's count in its label, as a related list does", async () => {
         await mount({ counts: { Nest_Accounts_Contacts: 3, Nest_Accounts_Records: 0 } });
-        expect($$('lightning-tab').map(t => t.label)).toEqual(['Contacts (3)', 'Test Records (0)']);
+        expect($$('lightning-tab').map(t => t.label)).toEqual(['Contacts (3)', 'Consignments (0)']);
     });
 
     it('opens on the first tab with records, not an empty one', async () => {
@@ -154,7 +156,7 @@ describe('gridChildren details', () => {
 
     it('shows the plain label while the count is not known', async () => {
         await mount({ counts: { Nest_Accounts_Contacts: 3 } });
-        expect($$('lightning-tab').map(t => t.label)).toEqual(['Contacts (3)', 'Test Records']);
+        expect($$('lightning-tab').map(t => t.label)).toEqual(['Contacts (3)', 'Consignments']);
     });
 
     it("follows the tab's own grid once it reports its count, and tells the parent row", async () => {

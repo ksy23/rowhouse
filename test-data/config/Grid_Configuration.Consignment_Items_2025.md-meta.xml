@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Archived: a grid out of use. Not listed with the others, refused when a page opens it, not offered as a child table, left out of the edit log's clean-up list. Shows no row numbers, so the suite can see Archive and Restore keep the setting. -->
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Consignment Items 2025</label>
+    <protected>false</protected>
+    <values><field>Object_API_Name__c</field><value xsi:type="xsd:string">Consignment_Item__c</value></values>
+    <values><field>Default_Sort_Field__c</field><value xsi:type="xsd:string">Name</value></values>
+    <values><field>Default_Sort_Direction__c</field><value xsi:type="xsd:string">asc</value></values>
+    <values><field>Allow_Inline_Edit__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Allow_New_Records__c</field><value xsi:type="xsd:boolean">false</value></values>
+    <values><field>Allow_CSV_Export__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Log_Changes__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Archived__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Show_Row_Numbers__c</field><value xsi:type="xsd:boolean">false</value></values>
+</CustomMetadata>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Pro_Number__c</fullName>
+    <label>PRO Number</label>
+    <type>Text</type>
+    <length>80</length>
+    <externalId>false</externalId>
+    <required>false</required>
+    <description>DEVELOPMENT ONLY. Which edge case this record exists to break. A failure quotes this, so you never have to read the generator to find out what broke.</description>
+</CustomField>

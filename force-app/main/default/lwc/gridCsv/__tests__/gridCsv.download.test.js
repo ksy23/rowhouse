@@ -46,21 +46,29 @@ describe('downloadCsv', () => {
         let blob;
         URL.createObjectURL = jest.fn(b => {
             blob = b;
-            return 'blob:https://example.test/1';
+            return 'blob:https://granitecoastfreight.lightning.force.com/7d0c1f5e-3b8a-4f62-9c1d-2e4a6b8f0a13';
         });
         URL.revokeObjectURL = jest.fn();
 
-        expect(downloadCsv('Id,Name\n1,A\n', 'Test-Records.csv', host)).toBe(true);
+        expect(downloadCsv('Name,Pieces\nKennebec Lumber,12\n', 'Consignments.csv', host)).toBe(true);
 
-        expect(clicked).toEqual([{ href: 'blob:https://example.test/1', download: 'Test-Records.csv', inHost: true }]);
+        expect(clicked).toEqual([
+            {
+                href: 'blob:https://granitecoastfreight.lightning.force.com/7d0c1f5e-3b8a-4f62-9c1d-2e4a6b8f0a13',
+                download: 'Consignments.csv',
+                inHost: true
+            }
+        ]);
         expect(host.childNodes.length).toBe(0);
         expect(blob.type).toBe('application/octet-stream'); // LWS refuses a URL for text/csv
         const bytes = await bytesOf(blob);
         expect(Array.from(bytes.slice(0, 3))).toEqual([0xef, 0xbb, 0xbf]); // the byte order mark, in UTF-8
-        expect(String.fromCharCode(...bytes.slice(3))).toBe('Id,Name\n1,A\n'); // ASCII after the mark
+        expect(String.fromCharCode(...bytes.slice(3))).toBe('Name,Pieces\nKennebec Lumber,12\n'); // ASCII after the mark
         expect(URL.revokeObjectURL).not.toHaveBeenCalled();
         jest.runAllTimers();
-        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:https://example.test/1');
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith(
+            'blob:https://granitecoastfreight.lightning.force.com/7d0c1f5e-3b8a-4f62-9c1d-2e4a6b8f0a13'
+        );
     });
 
     it('falls back to a data: URL when the runtime refuses the Blob URL (Lightning Locker)', () => {
@@ -69,17 +77,17 @@ describe('downloadCsv', () => {
         });
         URL.revokeObjectURL = jest.fn();
 
-        expect(downloadCsv('a,b\n', 'x.csv', host)).toBe(true);
+        expect(downloadCsv('Name,Pieces\n', 'Consignments.csv', host)).toBe(true);
 
         expect(clicked).toHaveLength(1);
-        expect(clicked[0].href).toBe('data:text/csv;charset=utf-8,' + encodeURIComponent(BOM + 'a,b\n'));
+        expect(clicked[0].href).toBe('data:text/csv;charset=utf-8,' + encodeURIComponent(BOM + 'Name,Pieces\n'));
         jest.runAllTimers();
         expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     });
 
     it('falls back to a data: URL when there is no URL.createObjectURL at all', () => {
         URL.createObjectURL = undefined;
-        expect(downloadCsv('a\n', 'x.csv', host)).toBe(true);
+        expect(downloadCsv('Name\n', 'Consignments.csv', host)).toBe(true);
         expect(clicked[0].href.startsWith('data:text/csv;charset=utf-8,')).toBe(true);
     });
 
@@ -90,15 +98,23 @@ describe('downloadCsv', () => {
         jest.spyOn(HTMLAnchorElement.prototype, 'href', 'set').mockImplementation(() => {
             throw new Error('HTMLAnchorElement href does not support data:');
         });
-        expect(downloadCsv('a\n', 'x.csv', host)).toBe(false);
+        expect(downloadCsv('Name\n', 'Consignments.csv', host)).toBe(false);
         expect(clicked).toHaveLength(0);
         expect(host.childNodes.length).toBe(0);
     });
 
     it('names the file export.csv when no name is given, and uses the page when no container is', () => {
-        URL.createObjectURL = jest.fn(() => 'blob:x');
+        URL.createObjectURL = jest.fn(
+            () => 'blob:https://granitecoastfreight.lightning.force.com/2b9e4d71-6c05-4a3f-8e17-5f0d3c9a7b24'
+        );
         URL.revokeObjectURL = jest.fn();
-        downloadCsv('a\n');
-        expect(clicked).toEqual([{ href: 'blob:x', download: 'export.csv', inHost: false }]);
+        downloadCsv('Name\n');
+        expect(clicked).toEqual([
+            {
+                href: 'blob:https://granitecoastfreight.lightning.force.com/2b9e4d71-6c05-4a3f-8e17-5f0d3c9a7b24',
+                download: 'export.csv',
+                inHost: false
+            }
+        ]);
     });
 });

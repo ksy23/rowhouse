@@ -8,7 +8,7 @@
  *     a syntax error or an unknown field throws FormulaValidationException
  *     there, which an admin sees on the Grid Admin tab;
  *   - getReferencedFields() lists the SOQL paths the formula reads
- *     (Number_Field__c, Lookup_Field__r.Name, CreatedBy.FirstName); a path
+ *     (Pieces__c, Shipper__r.Name, CreatedBy.FirstName); a path
  *     through a polymorphic lookup comes back as Owner:User.Name, which SOQL
  *     cannot select without TYPEOF, so such a formula is refused;
  *   - evaluating a row that lacks one of those fields throws, and so does a
@@ -82,7 +82,7 @@ public with sharing class GridFormulas {
 
     /**
      * Can the running user read every step of a path, such as
-     * Lookup_Field__r.Owner.Name: each lookup, the object it points to, and
+     * Shipper__r.Owner.Name: each lookup, the object it points to, and
      * the field at the end? A field on the object itself is one step.
      */
     public static Boolean canRead(Schema.SObjectType objectType, String path) {
@@ -149,7 +149,7 @@ public with sharing class GridFormulas {
         return String.join(out, '.');
     }
 
-    /** The lookup field whose relationship is named so (Account, Lookup_Field__r), or null. */
+    /** The lookup field whose relationship is named so (Account, Shipper__r), or null. */
     private static Schema.SObjectField lookupNamed(Schema.SObjectType objectType, String relationshipName) {
         String wanted = GridDescribe.withoutNamespace(relationshipName);
         for (Schema.SObjectField f : GridDescribe.fieldsFor(GridDescribe.apiName(objectType)).values()) {

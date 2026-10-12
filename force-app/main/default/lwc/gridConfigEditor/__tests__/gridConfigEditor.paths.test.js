@@ -25,7 +25,7 @@ jest.mock('lightning/navigation', () => {
         class extends Base {
             [Navigate]() {}
             [GenerateUrl]() {
-                return Promise.resolve('/x');
+                return Promise.resolve('/lightning/n/Rowhouse_Guide');
             }
         };
     NavigationMixin.Navigate = Navigate;

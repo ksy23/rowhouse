@@ -36,8 +36,8 @@ describe('picklist order', () => {
 
     it('sorts values no longer in the list by their text', () => {
         const ranks = picklistRanks(OPTIONS);
-        expect(compareValues('Zeta', 'Alpha', 'picklist', 'asc', ranks)).toBe(1);
-        expect(compareValues('Alpha', 'Prospecting', 'picklist', 'asc', ranks)).toBe(1);
+        expect(compareValues('Negotiation/Review', 'Closed Lost', 'picklist', 'asc', ranks)).toBe(1);
+        expect(compareValues('Closed Lost', 'Prospecting', 'picklist', 'asc', ranks)).toBe(1);
     });
 
     it('sorts alphabetically when there are no ranks', () => {

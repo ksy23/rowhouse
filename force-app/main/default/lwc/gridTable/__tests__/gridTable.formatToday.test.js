@@ -12,7 +12,7 @@ const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text' },
     { field: 'CloseDate', label: 'Close Date', type: 'date' }
 ];
-const ROWS = [{ Id: 'a01000000000001AAA', Name: 'Due today', CloseDate: '2026-10-07' }];
+const ROWS = [{ Id: 'a01000000000001AAA', Name: 'Casco Bay Marine, winter contract', CloseDate: '2026-10-07' }];
 const OVERDUE = {
     name: 'Overdue',
     field: 'CloseDate',

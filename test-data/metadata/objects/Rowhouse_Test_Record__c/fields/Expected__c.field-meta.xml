@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Expected__c</fullName>
-    <label>Expected Behaviour</label>
-    <type>LongTextArea</type>
-    <length>32768</length>
-    <visibleLines>5</visibleLines>
-    <description>DEVELOPMENT ONLY. What correct looks like for this record. Self-documenting test data.</description>
-</CustomField>

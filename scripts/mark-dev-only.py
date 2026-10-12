@@ -46,9 +46,9 @@ def new_text(path, xml):
     if path.endswith('.field-meta.xml'):
         obj = folder[folder.index('fields') - 1]
         owner = {
-            'Rowhouse_Test_Record__c': 'the Rowhouse test records, used by the Apex tests and the test grids',
-            'Rowhouse_Test_Child__c': 'the Rowhouse test child records, used by the child table and rollup tests',
-            'Rowhouse_Bench__c': 'the Rowhouse benchmark rows (docs/benchmarks.md)',
+            'Consignment__c': 'the Rowhouse test records, used by the Apex tests and the test grids',
+            'Consignment_Item__c': 'the Rowhouse test child records, used by the child table and rollup tests',
+            'Freight_Bill__c': 'the Rowhouse benchmark rows (docs/benchmarks.md)',
         }.get(obj, obj)
         return 'A field of %s.' % owner
     if path.endswith('.tab-meta.xml') or path.endswith('.flexipage-meta.xml'):

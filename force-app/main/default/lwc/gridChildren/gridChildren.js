@@ -89,7 +89,7 @@ export default class GridChildren extends LightningElement {
     /**
      * The tab the panel opens on: the first with records, so a row
      * whose toggle says 2 does not open on an empty tab (otherwise an
-     * account opened on "Test Records (0)" beside "Contacts (2)"). Decided once, when the server's counts are
+     * account opened on "Consignments (0)" beside "Contacts (2)"). Decided once, when the server's counts are
      * known, and kept: a tab emptied later (a delete) must not jump the
      * panel to another tab. Until the counts are known, the first tab.
      */

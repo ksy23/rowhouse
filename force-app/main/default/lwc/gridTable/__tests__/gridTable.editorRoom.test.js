@@ -15,9 +15,9 @@ jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true },
-    { field: 'Lookup_Field__c', label: 'Account', type: 'reference', editable: true, referenceTo: ['Account'] }
+    { field: 'Shipper__c', label: 'Shipper', type: 'reference', editable: true, referenceTo: ['Account'] }
 ];
-const ROWS = [{ Id: 'a01000000000001AAA', Name: 'One', Lookup_Field__c: null }];
+const ROWS = [{ Id: 'a01000000000001AAA', Name: 'Kennebec Lumber, 12 bundles', Shipper__c: null }];
 
 describe('room for an open editor', () => {
     let el;
@@ -31,7 +31,7 @@ describe('room for an open editor', () => {
     };
     const mount = async config => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
-        el.config = { columns: COLUMNS, rows: ROWS, configName: 'Test_Records', ...config };
+        el.config = { columns: COLUMNS, rows: ROWS, configName: 'Consignments', ...config };
         document.body.appendChild(el);
         await flush();
     };
@@ -76,16 +76,16 @@ describe('room for an open editor', () => {
     it('hangs a lookup’s matches leftwards when there is no room to their right', async () => {
         await mount({ height: 600 });
         box(scroller(), { top: 100, bottom: 700, left: 0, right: 1000 }, 600);
-        box(cell('Lookup_Field__c'), { top: 133, bottom: 166, left: 850, right: 1000 });
-        await edit('Lookup_Field__c');
+        box(cell('Shipper__c'), { top: 133, bottom: 166, left: 850, right: 1000 });
+        await edit('Shipper__c');
         expect(popover().querySelector('[data-editor]').dropdownAlign).toBe('right');
     });
 
     it('hangs them rightwards when there is room, and a text editor has nothing to hang', async () => {
         await mount({ height: 600 });
         box(scroller(), { top: 100, bottom: 700, left: 0, right: 1000 }, 600);
-        box(cell('Lookup_Field__c'), { top: 133, bottom: 166, left: 150, right: 300 });
-        await edit('Lookup_Field__c');
+        box(cell('Shipper__c'), { top: 133, bottom: 166, left: 150, right: 300 });
+        await edit('Shipper__c');
         expect(popover().querySelector('[data-editor]').dropdownAlign).toBe('left');
         popover().querySelector('[data-editor]').dispatchEvent(new CustomEvent('cancel'));
         await flush();
@@ -98,24 +98,24 @@ describe('room for an open editor', () => {
     it('the box is the cell’s width for every editor: no wide or right-hand popover any more', async () => {
         await mount({ height: 600 });
         box(scroller(), { top: 100, bottom: 700, left: 0, right: 1000 }, 600);
-        box(cell('Lookup_Field__c'), { top: 133, bottom: 166, left: 850, right: 1000 });
-        await edit('Lookup_Field__c');
+        box(cell('Shipper__c'), { top: 133, bottom: 166, left: 850, right: 1000 });
+        await edit('Shipper__c');
         expect([...popover().classList]).toEqual(['slds-popover', 'slds-popover_edit', 'rh-edit-popover']);
     });
 
     it('makes more room below a date, whose calendar is taller than a list of matches', async () => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = {
-            columns: [...COLUMNS, { field: 'Date__c', label: 'Date', type: 'date', editable: true }],
-            rows: [{ ...ROWS[0], Date__c: '2026-09-30' }],
-            configName: 'Test_Records',
+            columns: [...COLUMNS, { field: 'Ship_Date__c', label: 'Ship Date', type: 'date', editable: true }],
+            rows: [{ ...ROWS[0], Ship_Date__c: '2026-09-30' }],
+            configName: 'Consignments',
             height: 800
         };
         document.body.appendChild(el);
         await flush();
         box(scroller(), { top: 100, bottom: 170, left: 0, right: 1200 }, 70);
-        box(cell('Date__c'), { top: 133, bottom: 166, left: 900, right: 1050 });
-        await edit('Date__c');
+        box(cell('Ship_Date__c'), { top: 133, bottom: 166, left: 900, right: 1050 });
+        await edit('Ship_Date__c');
         expect(scroller().style.minHeight).toBe(`${66 + 400}px`);
         // 900 + 320 runs past 1200, and there is room to the left: the calendar opens leftwards.
         expect(popover().querySelector('c-cell-date').dropdownAlign).toBe('right');
@@ -124,9 +124,9 @@ describe('room for an open editor', () => {
     const mountWithDate = async height => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = {
-            columns: [...COLUMNS, { field: 'Date__c', label: 'Date', type: 'date', editable: true }],
-            rows: [{ ...ROWS[0], Date__c: '2026-09-30' }],
-            configName: 'Test_Records',
+            columns: [...COLUMNS, { field: 'Ship_Date__c', label: 'Ship Date', type: 'date', editable: true }],
+            rows: [{ ...ROWS[0], Ship_Date__c: '2026-09-30' }],
+            configName: 'Consignments',
             height
         };
         document.body.appendChild(el);
@@ -137,22 +137,22 @@ describe('room for an open editor', () => {
         // Found following the pipeline tutorial: only the calendar's first week showed.
         await mountWithDate(600);
         box(scroller(), { top: 100, bottom: 700, left: 0, right: 1200 }, 600);
-        box(cell('Date__c'), { top: 640, bottom: 673, left: 300, right: 450 });
-        await edit('Date__c');
+        box(cell('Ship_Date__c'), { top: 640, bottom: 673, left: 300, right: 450 });
+        await edit('Ship_Date__c');
         expect(popover().querySelector('c-cell-date').dropdownUp).toBe(true);
         expect(scroller().style.minHeight).toBe(''); // nothing to grow: the calendar hangs above
         popover().querySelector('[data-editor]').dispatchEvent(new CustomEvent('cancel'));
         await flush();
-        box(cell('Date__c'), { top: 133, bottom: 166, left: 300, right: 450 });
-        await edit('Date__c');
+        box(cell('Ship_Date__c'), { top: 133, bottom: 166, left: 300, right: 450 });
+        await edit('Ship_Date__c');
         expect(popover().querySelector('c-cell-date').dropdownUp).toBe(false);
     });
 
     it('keeps it below, growing the grid as far as it may, when there is no room above either', async () => {
         await mountWithDate(300);
         box(scroller(), { top: 100, bottom: 170, left: 0, right: 1200 }, 70);
-        box(cell('Date__c'), { top: 133, bottom: 166, left: 300, right: 450 });
-        await edit('Date__c');
+        box(cell('Ship_Date__c'), { top: 133, bottom: 166, left: 300, right: 450 });
+        await edit('Ship_Date__c');
         expect(popover().querySelector('c-cell-date').dropdownUp).toBe(false);
         expect(scroller().style.minHeight).toBe('300px');
     });

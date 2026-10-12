@@ -32,7 +32,7 @@
  * Enter in a text, number or date box applies.
  *
  * AFTER THE UX REVIEW
- * - It names the rows it changes ("Acme, Globex and 8 more"), so the user can
+ * - It names the rows it changes ("Casco Bay Marine, Wachusett Paper and 8 more"), so the user can
  *   see they selected the right ones without closing it.
  * - Once a field is chosen, it says what the rows hold now ("Currently: Open
  *   (5), Won (3), blank (2)"): whether the change is needed, and what it
@@ -188,7 +188,7 @@ export default class GridMassUpdate extends LightningElement {
         return cols.find(c => c.isName) || cols[0] || null;
     }
 
-    /** "Acme, Globex, Initech and 7 more": the rows the change goes to. */
+    /** "Casco Bay Marine, Wachusett Paper, Quabbin Supply and 7 more": the rows the change goes to. */
     get rowNames() {
         const rows = Array.isArray(this.rows) ? this.rows : [];
         const col = this.nameColumn;

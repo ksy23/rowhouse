@@ -13,14 +13,14 @@ const frame = () => new Promise(resolve => setTimeout(resolve, 40));
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, creatable: true, sortable: true, groupable: true },
     { field: 'OwnerId', label: 'Owner', type: 'text', editable: false, creatable: true },
-    { field: 'Total__c', label: 'Total', type: 'number', editable: false, creatable: false }
+    { field: 'Pallet_Positions__c', label: 'Pallet Positions', type: 'number', editable: false, creatable: false }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
 const ROWS = [
-    { Id: id(1), Name: 'Cobb', OwnerId: 'Ann', Total__c: 1 },
-    { Id: id(2), Name: 'Abbott', OwnerId: 'Ben', Total__c: 2 }
+    { Id: id(1), Name: 'Kennebec Lumber, 12 bundles', OwnerId: 'Ada Whitcomb', Pallet_Positions__c: 1 },
+    { Id: id(2), Name: 'Androscoggin Pulp, 3 rolls', OwnerId: 'Silas Coffin', Pallet_Positions__c: 2 }
 ];
-const NEW = { Id: 'rh-new-1', OwnerId: 'Me' };
+const NEW = { Id: 'rh-new-1', OwnerId: 'Hannah Pelletier' };
 const DRAFTS = { 'rh-new-1': { _new: true } };
 
 let el;
@@ -51,7 +51,7 @@ afterEach(() => {
 describe('new rows', () => {
     it('come first, above the sorted rows, saying New where the number goes', async () => {
         await mount();
-        expect(recordIds()).toEqual(['rh-new-1', id(2), id(1)]); // Abbott, Cobb sorted below
+        expect(recordIds()).toEqual(['rh-new-1', id(2), id(1)]); // Androscoggin, Kennebec sorted below
         expect(cell('rh-new-1', '__status').querySelector('.rh-row-number').textContent).toBe('New');
         expect(cell(id(2), '__status').querySelector('.rh-row-number').textContent).toBe('1');
         expect($('tbody tr[data-row-id="rh-new-1"]').className).toContain('rh-row_new');
@@ -63,16 +63,16 @@ describe('new rows', () => {
         const ownerSaved = cell(id(1), 'OwnerId').querySelector('button');
         expect(ownerNew.disabled).toBe(false); // the owner can be set on a new record
         expect(ownerSaved.disabled).toBe(true); // ...and not changed on a saved one
-        expect(cell('rh-new-1', 'Total__c').querySelector('button').disabled).toBe(true);
-        expect(cell('rh-new-1', 'Total__c').getAttribute('aria-readonly')).toBe('true');
+        expect(cell('rh-new-1', 'Pallet_Positions__c').querySelector('button').disabled).toBe(true);
+        expect(cell('rh-new-1', 'Pallet_Positions__c').getAttribute('aria-readonly')).toBe('true');
         expect(ownerNew.getAttribute('title') || ownerNew.textContent).toContain('the new row');
     });
 
     it('are selected for nothing, have no actions and no related records until saved', async () => {
         await mount({
             selection: 'multi',
-            rowActions: [{ name: 'Stamp', label: 'Stamp' }],
-            children: [{ name: 'Kids', label: 'Kids', configName: 'Kids' }],
+            rowActions: [{ name: 'Mark_Delivered', label: 'Mark Delivered' }],
+            children: [{ name: 'Consignment_Items', label: 'Consignment Items', configName: 'Consignment_Items' }],
             childCountsFailed: true
         });
         expect(cell('rh-new-1', '__select').querySelector('input')).toBeNull();
@@ -102,7 +102,12 @@ describe('new rows', () => {
     });
 
     it('count in the Save bar as new records, apart from the values typed', async () => {
-        await mount({ drafts: { 'rh-new-1': { _new: true, Name: 'Baker' }, [id(1)]: { Name: 'Cobb 2' } } });
+        await mount({
+            drafts: {
+                'rh-new-1': { _new: true, Name: 'Casco Bay Marine, 2 pallets' },
+                [id(1)]: { Name: 'Kennebec Lumber, 14 bundles' }
+            }
+        });
         expect($('.rh-footer').textContent).toContain('1 new record, 2 unsaved changes');
         const save = [...el.shadowRoot.querySelectorAll('.rh-footer button')].find(b => b.textContent.includes('Save'));
         expect(save.disabled).toBe(false);
@@ -116,7 +121,7 @@ describe('new rows', () => {
         cell('rh-new-1', 'Name').dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }));
         await flush();
         const paste = new CustomEvent('paste', { bubbles: true, composed: true });
-        paste.clipboardData = { getData: () => 'Baker\tMe too\t9' };
+        paste.clipboardData = { getData: () => 'Casco Bay Marine, 2 pallets\tAda Whitcomb\t9' };
         cell('rh-new-1', 'Name').dispatchEvent(paste);
         await flush();
         await flush();

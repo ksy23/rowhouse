@@ -9,20 +9,24 @@ const bounds = { rowCount: 10, colCount: 4 };
 
 describe('pasteSize', () => {
     it.each([
-        ['one value into a range', [['x']], { top: 2, left: 1, bottom: 4, right: 2 }],
-        ['a block repeated into a whole multiple', [['a', 'b']], { top: 1, left: 1, bottom: 2, right: 4 }],
+        ['one value into a range', [['Portland']], { top: 2, left: 1, bottom: 4, right: 2 }],
+        ['a block repeated into a whole multiple', [['Augusta', 'Bangor']], { top: 1, left: 1, bottom: 2, right: 4 }],
         [
             'a block once from the top-left',
             [
-                ['a', 'b'],
-                ['c', 'd']
+                ['Augusta', 'Bangor'],
+                ['Calais', 'Houlton']
             ],
             { top: 3, left: 2, bottom: 3, right: 2 }
         ],
-        ['a block that runs off the grid', [['a', 'b', 'c']], { top: 10, left: 3, bottom: 10, right: 3 }],
-        ['ragged rows', [['a'], ['b', 'c', 'd'], []], { top: 9, left: 1, bottom: 9, right: 1 }],
+        [
+            'a block that runs off the grid',
+            [['Augusta', 'Bangor', 'Calais']],
+            { top: 10, left: 3, bottom: 10, right: 3 }
+        ],
+        ['ragged rows', [['Augusta'], ['Bangor', 'Calais', 'Houlton'], []], { top: 9, left: 1, bottom: 9, right: 1 }],
         ['nothing', [], { top: 1, left: 1, bottom: 1, right: 1 }],
-        ['a range wholly off the grid', [['a']], { top: 12, left: 1, bottom: 12, right: 1 }]
+        ['a range wholly off the grid', [['Augusta']], { top: 12, left: 1, bottom: 12, right: 1 }]
     ])('counts the cells pastePlan lists: %s', (label, block, target) => {
         const plan = pastePlan(block, target, bounds);
         const size = pasteSize(block, target, bounds);
@@ -31,7 +35,7 @@ describe('pasteSize', () => {
     });
 
     it('measures 300,000 pasted lines without listing them, or overflowing the call stack', () => {
-        const text = Array.from({ length: 300000 }, (_, i) => `${i}\tx`).join('\n');
+        const text = Array.from({ length: 300000 }, (_, i) => `${i}\tPortland`).join('\n');
         const block = parseTsv(text);
         const huge = { rowCount: 50000, colCount: 4 };
         const size = pasteSize(block, { top: 1, left: 1, bottom: 1, right: 1 }, huge);
@@ -42,7 +46,7 @@ describe('pasteSize', () => {
     });
 
     it('lists the cells of 300,000 lines too, when asked: no spread into Math.max', () => {
-        const block = Array.from({ length: 300000 }, () => ['x']);
+        const block = Array.from({ length: 300000 }, () => ['Portland']);
         const plan = pastePlan(block, { top: 1, left: 1, bottom: 1, right: 1 }, { rowCount: 3, colCount: 1 });
         expect(plan.cells).toHaveLength(3);
         expect(plan.dropped).toBe(299997);

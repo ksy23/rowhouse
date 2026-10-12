@@ -11,7 +11,7 @@ jest.mock('@salesforce/apex/GridController.lookupName', () => ({ default: jest.f
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-const ACME = { id: '001000000000001AAA', name: 'Acme Corp', kind: 'Account', object: 'Account' };
+const CASCO = { id: '001000000000001AAA', name: 'Casco Bay Marine', kind: 'Account', object: 'Account' };
 const ROW = 'a00000000000001AAA';
 
 let el;
@@ -21,8 +21,8 @@ const mount = async props => {
     Object.assign(el, {
         mode: 'edit',
         label: 'Account',
-        configName: 'Test_Records',
-        field: 'Lookup_Field__c',
+        configName: 'Consignments',
+        field: 'Shipper__c',
         value: null,
         ...props
     });
@@ -53,26 +53,26 @@ describe('the New item', () => {
     const NEW = [{ object: 'Account', label: 'Account' }];
 
     it('ends the list, after the matches, even when nothing matches', async () => {
-        searchLookup.mockResolvedValue([ACME]);
+        searchLookup.mockResolvedValue([CASCO]);
         await mount({ newTargets: NEW });
-        await type('ac');
-        expect(options().map(o => o.textContent)).toEqual(['Acme CorpAccount', 'New Account']);
+        await type('casco');
+        expect(options().map(o => o.textContent)).toEqual(['Casco Bay MarineAccount', 'New Account']);
         expect(options()[1].classList).toContain('rh-lookup-new');
         searchLookup.mockResolvedValue([]);
-        await type('zz');
+        await type('wachusett');
         expect(options().map(o => o.textContent)).toEqual(['New Account']);
         expect(el.shadowRoot.querySelector('[aria-live="polite"]').textContent).toBe('No matches. Or create a record.');
     });
 
     it('asks the grid for the record form, by click or by Enter, and commits nothing', async () => {
-        searchLookup.mockResolvedValue([ACME]);
+        searchLookup.mockResolvedValue([CASCO]);
         await mount({ newTargets: NEW });
-        await type('Acm');
+        await type('Casco');
         options()[1].click();
         await flush();
-        expect(events).toEqual([{ name: 'newrecord', detail: { object: 'Account', label: 'Account', term: 'Acm' } }]);
+        expect(events).toEqual([{ name: 'newrecord', detail: { object: 'Account', label: 'Account', term: 'Casco' } }]);
         events.length = 0;
-        await type('Acm');
+        await type('Casco');
         key($('input'), 'ArrowDown');
         await flush();
         key($('input'), 'Enter');
@@ -81,31 +81,31 @@ describe('the New item', () => {
     });
 
     it('is not offered without targets the user may create', async () => {
-        searchLookup.mockResolvedValue([ACME]);
+        searchLookup.mockResolvedValue([CASCO]);
         await mount({});
-        await type('ac');
-        expect(options().map(o => o.textContent)).toEqual(['Acme CorpAccount']);
+        await type('casco');
+        expect(options().map(o => o.textContent)).toEqual(['Casco Bay MarineAccount']);
     });
 });
 
 describe('a field with a lookup filter', () => {
     const FILTERED = {
         filtered: true,
-        fieldApiName: 'Filtered_Account__c',
-        objectApiName: 'Rowhouse_Test_Record__c',
+        fieldApiName: 'Bill_To__c',
+        objectApiName: 'Consignment__c',
         recordId: ROW,
-        field: 'Filtered_Account__c'
+        field: 'Bill_To__c'
     };
 
     it("is edited with Salesforce's own lookup, on the row's record, which applies the filter", async () => {
-        await mount({ ...FILTERED, value: ACME.id });
+        await mount({ ...FILTERED, value: CASCO.id });
         expect($('input')).toBeNull();
         const form = $('lightning-record-edit-form');
-        expect(form.objectApiName).toBe('Rowhouse_Test_Record__c');
+        expect(form.objectApiName).toBe('Consignment__c');
         expect(form.recordId).toBe(ROW);
         const field = $('lightning-input-field');
-        expect(field.fieldName).toBe('Filtered_Account__c');
-        expect(field.value).toBe(ACME.id);
+        expect(field.fieldName).toBe('Bill_To__c');
+        expect(field.value).toBe(CASCO.id);
     });
 
     it('has no record for a row not saved yet', async () => {
@@ -114,38 +114,38 @@ describe('a field with a lookup filter', () => {
     });
 
     it('commits the record chosen with its name, read from the server', async () => {
-        lookupName.mockResolvedValue('Acme Corp');
+        lookupName.mockResolvedValue('Casco Bay Marine');
         await mount(FILTERED);
-        $('lightning-input-field').dispatchEvent(new CustomEvent('change', { detail: { value: [ACME.id] } }));
+        $('lightning-input-field').dispatchEvent(new CustomEvent('change', { detail: { value: [CASCO.id] } }));
         await flush();
         expect(lookupName).toHaveBeenCalledWith({
-            configName: 'Test_Records',
-            field: 'Filtered_Account__c',
-            recordId: ACME.id
+            configName: 'Consignments',
+            field: 'Bill_To__c',
+            recordId: CASCO.id
         });
-        expect(events).toEqual([{ name: 'commit', detail: { value: ACME.id, label: 'Acme Corp' } }]);
+        expect(events).toEqual([{ name: 'commit', detail: { value: CASCO.id, label: 'Casco Bay Marine' } }]);
     });
 
     it("waits, on the grid's focus-out, for the record a click on the lookup's list chose", async () => {
-        lookupName.mockResolvedValue('Acme Corp');
+        lookupName.mockResolvedValue('Casco Bay Marine');
         await mount(FILTERED);
         expect(el.commit()).toBe(true); // the grid's focus-out, before the lookup's change
         expect(events).toEqual([]);
-        $('lightning-input-field').dispatchEvent(new CustomEvent('change', { detail: { value: ACME.id } }));
+        $('lightning-input-field').dispatchEvent(new CustomEvent('change', { detail: { value: CASCO.id } }));
         await flush();
         await wait(SETTLE_MS + 20);
-        expect(events).toEqual([{ name: 'commit', detail: { value: ACME.id, label: 'Acme Corp' } }]);
+        expect(events).toEqual([{ name: 'commit', detail: { value: CASCO.id, label: 'Casco Bay Marine' } }]);
     });
 
     it('commits what it had when nothing is chosen after the focus-out', async () => {
-        await mount({ ...FILTERED, value: ACME.id, valueLabel: 'Acme Corp' });
+        await mount({ ...FILTERED, value: CASCO.id, valueLabel: 'Casco Bay Marine' });
         el.commit();
         await wait(SETTLE_MS + 20);
-        expect(events).toEqual([{ name: 'commit', detail: { value: ACME.id, label: 'Acme Corp' } }]);
+        expect(events).toEqual([{ name: 'commit', detail: { value: CASCO.id, label: 'Casco Bay Marine' } }]);
     });
 
     it('commits a cleared lookup, cancels on Escape and commits on Tab', async () => {
-        await mount({ ...FILTERED, value: ACME.id, valueLabel: 'Acme Corp' });
+        await mount({ ...FILTERED, value: CASCO.id, valueLabel: 'Casco Bay Marine' });
         $('lightning-input-field').dispatchEvent(new CustomEvent('change', { detail: { value: null } }));
         await flush();
         expect(events).toEqual([{ name: 'commit', detail: { value: null, label: null } }]);
@@ -154,6 +154,6 @@ describe('a field with a lookup filter', () => {
         expect(events).toEqual([{ name: 'cancel', detail: { listOpen: false } }]);
         events.length = 0;
         key($('lightning-input-field'), 'Tab');
-        expect(events).toEqual([{ name: 'commit', detail: { value: ACME.id, label: 'Acme Corp' } }]);
+        expect(events).toEqual([{ name: 'commit', detail: { value: CASCO.id, label: 'Casco Bay Marine' } }]);
     });
 });

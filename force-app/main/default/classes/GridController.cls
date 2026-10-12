@@ -624,7 +624,7 @@ public with sharing class GridController {
                     Object value = GridFormulas.evaluate(c.formula.instance, row);
                     if (c.type == 'percent' && value instanceof Decimal) {
                         // A formula works out 25% as 0.25, as a Salesforce formula field does
-                        // (Percent_Field__c of 25 reads as 0.25); the grid shows a percent as the number before the % sign.
+                        // (Fuel_Surcharge__c of 25 reads as 0.25); the grid shows a percent as the number before the % sign.
                         value = ((Decimal) value) * 100;
                     }
                     m.put(c.field, value instanceof Decimal ? (Object) ((Decimal) value).toPlainString() : value);

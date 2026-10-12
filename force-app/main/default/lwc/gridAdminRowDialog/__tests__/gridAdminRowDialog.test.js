@@ -59,7 +59,7 @@ afterEach(() => {
 describe('names for a clone', () => {
     it('suggests "Copy of" the title, cut to 40 characters', () => {
         expect(copyTitle('Account People')).toBe('Copy of Account People');
-        expect(copyTitle('A'.repeat(40)).length).toBe(40);
+        expect(copyTitle('Key Account People in Northern New England').length).toBe(40);
     });
 
     it('numbers the API name when another grid has it', () => {
@@ -79,17 +79,17 @@ describe('Clone', () => {
         expect($(el, '.rh-row-dialog-name').value).toBe('Copy_of_Account_People_2');
         await type(el, '.rh-row-dialog-title', 'People by account');
         expect($(el, '.rh-row-dialog-name').value).toBe('People_by_account');
-        await type(el, '.rh-row-dialog-name', 'My_People');
-        await type(el, '.rh-row-dialog-title', 'Something else');
-        expect($(el, '.rh-row-dialog-name').value).toBe('My_People');
+        await type(el, '.rh-row-dialog-name', 'Key_Account_People');
+        await type(el, '.rh-row-dialog-title', 'Contacts at key accounts');
+        expect($(el, '.rh-row-dialog-name').value).toBe('Key_Account_People');
     });
 
     it('will not clone without a title or with an API name that cannot be', async () => {
         const el = await mount('clone');
-        await type(el, '.rh-row-dialog-name', 'Two__Underscores');
+        await type(el, '.rh-row-dialog-name', 'Account__People');
         expect($(el, '.rh-row-dialog-name-error').textContent).toContain('single underscores');
         expect($(el, '.rh-row-dialog-confirm').disabled).toBe(true);
-        await type(el, '.rh-row-dialog-name', 'Good_Name');
+        await type(el, '.rh-row-dialog-name', 'People_Directory');
         await type(el, '.rh-row-dialog-title', '   ');
         expect($(el, '.rh-row-dialog-confirm').disabled).toBe(true);
     });
@@ -136,14 +136,19 @@ describe('Clone', () => {
 
     it('says what the deploy reported when it failed', async () => {
         cloneConfig.mockResolvedValue('0Af000000000002');
-        saveStatus.mockResolvedValue({ status: 'Failed', messages: ['Grid_Column__mdt.X: Something went wrong'] });
+        saveStatus.mockResolvedValue({
+            status: 'Failed',
+            messages: [
+                'Grid_Column__mdt.Copy_of_Account_People_2_Name: Required fields are missing: [Field_API_Name__c]'
+            ]
+        });
         const el = await mount('clone');
         $(el, '.rh-row-dialog-confirm').click();
         await settle();
         jest.advanceTimersByTime(1000);
         await settle();
         expect($(el, '.rh-row-dialog-error').textContent).toBe(
-            'It did not go through. Grid_Column__mdt.X: Something went wrong'
+            'It did not go through. Grid_Column__mdt.Copy_of_Account_People_2_Name: Required fields are missing: [Field_API_Name__c]'
         );
     });
 });

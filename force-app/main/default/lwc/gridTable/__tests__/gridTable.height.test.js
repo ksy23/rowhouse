@@ -10,7 +10,10 @@ import { columns } from '../../../../../../test-data/tests/jest/fixtures/seed';
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const frame = () => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
 
-const ROWS = Array.from({ length: 30 }, (_, i) => ({ Id: 'a0' + String(i).padStart(16, '0'), Name: 'Row ' + (i + 1) }));
+const ROWS = Array.from({ length: 30 }, (_, i) => ({
+    Id: 'a0' + String(i).padStart(16, '0'),
+    Name: 'Kennebec Lumber, load ' + (i + 1)
+}));
 const TOP = 200; // where the scroller sits in the window
 const RESERVE = 56; // utility bar and margin
 const FOOTER = 92; // the Save bar's band (5.75rem)
@@ -83,7 +86,7 @@ describe('height', () => {
 
     it('makes room for the Save bar while there are unsaved changes', async () => {
         window.innerHeight = 900;
-        await mount({ drafts: { [ROWS[0].Id]: { Name: 'Edited' } } });
+        await mount({ drafts: { [ROWS[0].Id]: { Name: 'Kennebec Lumber, 14 bundles' } } });
         expect(maxHeight()).toBe(`${900 - TOP - RESERVE - FOOTER}px`);
     });
 

@@ -41,10 +41,10 @@ private class GridLogRetentionTest {
             out.add(
                 new Grid_Edit_Log__c(
                     Operation__c = 'Update',
-                    Grid_Configuration__c = 'Test_Records',
-                    Object__c = 'Rowhouse_Test_Record__c',
-                    Record_Name__c = 'Entry ' + i,
-                    Field__c = 'Text_Field__c'
+                    Grid_Configuration__c = 'Consignments',
+                    Object__c = 'Consignment__c',
+                    Record_Name__c = 'Kennebec Lumber, ' + (i + 10) + ' bundles',
+                    Field__c = 'Consignee__c'
                 )
             );
         }
@@ -320,8 +320,8 @@ private class GridLogRetentionTest {
             System.assertEquals(true, before.get('canSave'));
             System.assertEquals(true, before.get('canRun'));
             List<String> logging = (List<String>) before.get('loggingGrids');
-            System.assert(logging.contains('Audit Test'), 'The grids that log every change: ' + logging);
-            System.assert(!logging.contains('Test Records'), 'Test Records does not log.');
+            System.assert(logging.contains('Consignment Audit'), 'The grids that log every change: ' + logging);
+            System.assert(!logging.contains('Consignments'), 'Consignments does not log.');
 
             GridLogRetention.schedule(365);
             entries(1, 1, 400);

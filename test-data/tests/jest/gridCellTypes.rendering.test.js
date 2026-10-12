@@ -4,7 +4,7 @@
  * WHY THIS TEST EXISTS
  * These are the values that break grids in real orgs. Each assertion names its
  * TC number so a failure points straight at the seed record and its
- * Expected__c text — no archaeology needed.
+ * Handling_Instructions__c text — no archaeology needed.
  *
  * TC-017, TC-018 and TC-046 are security tests, not cosmetic ones.
  */
@@ -26,8 +26,8 @@ afterEach(() => {
 
 describe('text cell', () => {
     it('TC-004 preserves leading zeros', () => {
-        const el = mount(CellText, { value: '00123' });
-        expect(el.shadowRoot.textContent).toContain('00123');
+        const el = mount(CellText, { value: '00123 Fore Street Receiving' });
+        expect(el.shadowRoot.textContent).toContain('00123 Fore Street Receiving');
     });
 
     it('TC-017 renders script content as text and does not execute it', () => {
@@ -86,19 +86,19 @@ describe('date cell', () => {
 describe('picklist cell', () => {
     it('TC-036 renders a value that is no longer in the active set', () => {
         const el = mount(CellPicklist, {
-            value: 'Obsolete',
+            value: 'White Glove',
             options: [
-                { label: 'Alpha', value: 'Alpha' },
-                { label: 'Beta', value: 'Beta' }
+                { label: 'Economy', value: 'Economy' },
+                { label: 'Standard', value: 'Standard' }
             ]
         });
         // Blanking this is data loss, and it is the most common real-org case.
-        expect(el.shadowRoot.textContent).toContain('Obsolete');
-        expect(el.value).toBe('Obsolete');
+        expect(el.shadowRoot.textContent).toContain('White Glove');
+        expect(el.value).toBe('White Glove');
     });
 
     it('TC-039 renders disabled when the controlling value has no dependents', () => {
-        const el = mount(CellPicklist, { value: null, options: [], dependentOn: 'Services' });
+        const el = mount(CellPicklist, { value: null, options: [], dependentOn: 'Parcel' });
         expect(el.shadowRoot.querySelector('[disabled]')).not.toBeNull();
     });
 });

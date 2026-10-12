@@ -12,17 +12,24 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', sortable: true, groupable: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, sortable: true, subtotal: 'sum' }
+    { field: 'Service_Level__c', label: 'Service Level', type: 'picklist', sortable: true, groupable: true },
+    {
+        field: 'Freight_Charge__c',
+        label: 'Freight Charge',
+        type: 'currency',
+        scale: 2,
+        sortable: true,
+        subtotal: 'sum'
+    }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
 const ROWS = [
-    { Id: id(1), Name: 'Cobb', Stage__c: 'Open', Amount__c: 100 },
-    { Id: id(2), Name: 'Abbott', Stage__c: 'Won', Amount__c: 200 },
-    { Id: id(3), Name: 'Bishop', Stage__c: 'Open', Amount__c: 50 },
-    { Id: id(4), Name: 'Dunbar', Stage__c: 'Lost', Amount__c: 25 }
+    { Id: id(1), Name: 'Casco Bay Marine, Portland', Service_Level__c: 'Express', Freight_Charge__c: 100 },
+    { Id: id(2), Name: 'Androscoggin Pulp, Lewiston', Service_Level__c: 'Standard', Freight_Charge__c: 200 },
+    { Id: id(3), Name: 'Berkshire Mills, Springfield', Service_Level__c: 'Express', Freight_Charge__c: 50 },
+    { Id: id(4), Name: 'Kennebec Lumber, Augusta', Service_Level__c: 'Economy', Freight_Charge__c: 25 }
 ];
-const BY_STAGE = [{ field: 'Stage__c', unit: null }];
+const BY_STAGE = [{ field: 'Service_Level__c', unit: null }];
 
 let el;
 const mount = async (config = {}) => {
@@ -66,7 +73,7 @@ describe('row numbers', () => {
 
     it('numbers by place, not by record: sorting renumbers from the top', async () => {
         await mount({ sort: [{ field: 'Name', direction: 'asc' }] });
-        // Abbott, Bishop, Cobb, Dunbar.
+        // Androscoggin Pulp, Berkshire Mills, Casco Bay Marine, Kennebec Lumber.
         expect(shownIds()).toEqual([id(2), id(3), id(1), id(4)]);
         expect(shownNumbers()).toEqual(['1', '2', '3', '4']);
         expect(numberOf(id(2))).toBe('1');
@@ -74,16 +81,16 @@ describe('row numbers', () => {
     });
 
     it('shows the error button before the number on a row with errors, naming the row by number', async () => {
-        await mount({ errors: { [id(3)]: { row: 'Amount is required.', fields: {} } } });
+        await mount({ errors: { [id(3)]: { row: 'Freight Charge is required.', fields: {} } } });
         expect(numberOf(id(3))).toBe('3');
         // The button sits in its own place before the number, as in a list view.
         expect(statusCell(id(3)).querySelector('.rh-row-status-error button')).not.toBeNull();
         expect(statusCell(id(4)).querySelector('button')).toBeNull();
         const button = statusCell(id(3)).querySelector('button');
         expect(button.className).not.toContain('slds-hidden');
-        expect(button.getAttribute('title')).toBe('Row 3 has errors: Amount is required.');
+        expect(button.getAttribute('title')).toBe('Row 3 has errors: Freight Charge is required.');
         expect(statusCell(id(3)).querySelector('.slds-assistive-text').textContent).toBe(
-            'Row 3 has errors: Amount is required.'
+            'Row 3 has errors: Freight Charge is required.'
         );
         expect(numberOf(id(4))).toBe('4');
     });
@@ -91,7 +98,7 @@ describe('row numbers', () => {
     it("keeps a list view's width up to three digits, and widens for more", async () => {
         await mount();
         expect(statusHeader().getAttribute('style')).toContain('width:52px');
-        const rows = n => Array.from({ length: n }, (_, i) => ({ Id: 'r' + i, Name: 'Row ' + i }));
+        const rows = n => Array.from({ length: n }, (_, i) => ({ Id: 'r' + i, Name: 'Kennebec Lumber, load ' + i }));
         const widthFor = async n => {
             el.config = { ...el.config, rows: rows(n), totalRows: n };
             await flush();

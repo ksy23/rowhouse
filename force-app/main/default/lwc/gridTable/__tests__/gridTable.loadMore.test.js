@@ -17,10 +17,10 @@ const key = (target, k, opts = {}) =>
 const big = n =>
     Array.from({ length: n }, (_, i) => ({
         Id: 'a0' + String(i).padStart(16, '0'),
-        Name: 'Row ' + (i + 1),
-        Test_Case__c: 'MORE',
-        Text_Field__c: 'text ' + (i + 1),
-        Number_Field__c: i + 1
+        Name: 'Kennebec Lumber, load ' + (i + 1),
+        Pro_Number__c: 'PRO-' + (30001 + i),
+        Consignee__c: 'Kennebec Lumber',
+        Pieces__c: i + 1
     }));
 
 describe('loading more as you scroll', () => {

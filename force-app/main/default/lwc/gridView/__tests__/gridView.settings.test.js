@@ -31,10 +31,10 @@ jest.mock(
 );
 
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -42,10 +42,14 @@ const DEFINITION = {
     allowCsvExport: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
-        { field: 'Text_Field__c', label: 'Text', type: 'text', editable: true, sortable: true }
+        { field: 'Consignee__c', label: 'Consignee', type: 'text', editable: true, sortable: true }
     ]
 };
-const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Text_Field__c: 'x' });
+const row = i => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Kennebec Lumber, load ' + i,
+    Consignee__c: 'Kennebec Lumber'
+});
 const page = rows => ({ rows, hasMore: false, cursorLocator: null, cursorToken: null, totalRows: rows.length });
 
 const settle = async () => {
@@ -56,7 +60,7 @@ const settle = async () => {
 };
 const $ = (el, selector) => el.shadowRoot.querySelector(selector);
 
-function mount(configName = 'Test_Records') {
+function mount(configName = 'Consignments') {
     const el = createElement('c-grid-view', { is: GridView });
     el.configName = configName;
     document.body.appendChild(el);
@@ -90,8 +94,8 @@ it("opens this grid's settings from the gear", async () => {
     gear.dispatchEvent(new CustomEvent('click'));
     await settle();
     const dialog = $(el, 'c-grid-settings');
-    expect(dialog.configName).toBe('Test_Records');
-    expect(dialog.gridTitle).toBe('Test Records');
+    expect(dialog.configName).toBe('Consignments');
+    expect(dialog.gridTitle).toBe('Consignments');
     dialog.dispatchEvent(new CustomEvent('close'));
     await settle();
     expect($(el, 'c-grid-settings')).toBeNull();
@@ -102,7 +106,12 @@ it('waits for unsaved changes to be saved or cancelled', async () => {
     await settle();
     $(el, 'c-grid-table').dispatchEvent(
         new CustomEvent('cellchange', {
-            detail: { recordId: row(1).Id, field: 'Text_Field__c', value: 'changed', originalValue: 'x' }
+            detail: {
+                recordId: row(1).Id,
+                field: 'Consignee__c',
+                value: 'Kennebec Lumber Co.',
+                originalValue: 'Kennebec Lumber'
+            }
         })
     );
     await settle();
@@ -118,14 +127,14 @@ it('opens the grid again after a save, with the configuration just saved', async
     $(el, '.rh-settings').dispatchEvent(new CustomEvent('click'));
     await settle();
     getGridConfig.mockResolvedValue({
-        definition: { ...DEFINITION, label: 'Renamed' },
+        definition: { ...DEFINITION, label: 'Open Consignments' },
         diagnostics: false,
         canConfigure: true
     });
-    $(el, 'c-grid-settings').dispatchEvent(new CustomEvent('saved', { detail: { configName: 'Test_Records' } }));
+    $(el, 'c-grid-settings').dispatchEvent(new CustomEvent('saved', { detail: { configName: 'Consignments' } }));
     await settle();
     expect($(el, 'c-grid-settings')).toBeNull();
     expect(openGrid).toHaveBeenCalledTimes(2);
-    expect(openGrid).toHaveBeenLastCalledWith(expect.objectContaining({ configName: 'Test_Records' }));
-    expect($(el, 'h2').textContent).toContain('Renamed');
+    expect(openGrid).toHaveBeenLastCalledWith(expect.objectContaining({ configName: 'Consignments' }));
+    expect($(el, 'h2').textContent).toContain('Open Consignments');
 });

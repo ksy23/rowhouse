@@ -1,35 +1,35 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
  * Each user's layout of a grid: kept, read back, replaced, reset, and
- * each user's own. 'Test_Records' is a fixture configuration (test-data/config).
+ * each user's own. 'Consignments' is a fixture configuration (test-data/config).
  */
 @IsTest
 private class GridLayoutsTest {
-    private static final String LAYOUT = '{"v":1,"widths":{"Name":180},"wrap":{"Text_Field__c":true}}';
+    private static final String LAYOUT = '{"v":1,"widths":{"Name":180},"wrap":{"Consignee__c":true}}';
 
     @IsTest
     static void aLayoutIsKeptReadBackReplacedAndReset() {
         System.runAs(GridTestUsers.fullUser()) {
-            System.assertEquals(null, GridLayouts.read('Test_Records', null), 'Nothing kept yet.');
-            System.assertEquals(true, GridController.saveLayout('Test_Records', LAYOUT, null));
-            System.assertEquals(LAYOUT, GridLayouts.read('test_records', null), 'The grid\'s name in any case.');
+            System.assertEquals(null, GridLayouts.read('Consignments', null), 'Nothing kept yet.');
+            System.assertEquals(true, GridController.saveLayout('Consignments', LAYOUT, null));
+            System.assertEquals(LAYOUT, GridLayouts.read('consignments', null), 'The grid\'s name in any case.');
 
             String changed = '{"v":1,"sort":[{"field":"Name","direction":"desc"}]}';
-            GridController.saveLayout('Test_Records', changed, null);
-            System.assertEquals(changed, GridLayouts.read('Test_Records'));
+            GridController.saveLayout('Consignments', changed, null);
+            System.assertEquals(changed, GridLayouts.read('Consignments'));
             System.assertEquals(
                 1,
                 [SELECT COUNT() FROM Grid_User_Layout__c],
                 'One record per user per grid: the save upserts.'
             );
             Grid_User_Layout__c kept = [SELECT Name, Key__c, OwnerId FROM Grid_User_Layout__c];
-            System.assertEquals('Test_Records', kept.Name);
+            System.assertEquals('Consignments', kept.Name);
             System.assertEquals(UserInfo.getUserId(), kept.OwnerId, 'The user owns it.');
-            System.assertEquals(UserInfo.getUserId() + ':Test_Records', kept.Key__c);
+            System.assertEquals(UserInfo.getUserId() + ':Consignments', kept.Key__c);
 
-            GridController.resetLayout('Test_Records', null);
-            System.assertEquals(null, GridLayouts.read('Test_Records', null), 'Reset layout forgets it.');
-            GridController.resetLayout('Test_Records', null); // nothing to forget: no harm
+            GridController.resetLayout('Consignments', null);
+            System.assertEquals(null, GridLayouts.read('Consignments', null), 'Reset layout forgets it.');
+            GridController.resetLayout('Consignments', null); // nothing to forget: no harm
         }
     }
 
@@ -38,15 +38,15 @@ private class GridLayoutsTest {
         User a = GridTestUsers.fullUser();
         User b = GridTestUsers.limitedUser();
         System.runAs(a) {
-            GridLayouts.save('Test_Records', LAYOUT);
+            GridLayouts.save('Consignments', LAYOUT);
         }
         System.runAs(b) {
-            System.assertEquals(null, GridLayouts.read('Test_Records'), 'Another user\'s layout is not this user\'s.');
-            GridLayouts.save('Test_Records', '{"v":1}');
-            System.assertEquals('{"v":1}', GridLayouts.read('Test_Records'));
+            System.assertEquals(null, GridLayouts.read('Consignments'), 'Another user\'s layout is not this user\'s.');
+            GridLayouts.save('Consignments', '{"v":1}');
+            System.assertEquals('{"v":1}', GridLayouts.read('Consignments'));
         }
         System.runAs(a) {
-            System.assertEquals(LAYOUT, GridLayouts.read('Test_Records'), 'Unchanged by the other user\'s save.');
+            System.assertEquals(LAYOUT, GridLayouts.read('Consignments'), 'Unchanged by the other user\'s save.');
         }
     }
 
@@ -57,8 +57,8 @@ private class GridLayoutsTest {
         System.runAs(b) {
             try {
                 insert new Grid_User_Layout__c(
-                    Name = 'Test_Records',
-                    Key__c = a.Id + ':Test_Records',
+                    Name = 'Consignments',
+                    Key__c = a.Id + ':Consignments',
                     Layout__c = '{"v":1}'
                 );
                 System.assert(false, 'A Key must start with its owner\'s Id.');
@@ -67,8 +67,8 @@ private class GridLayoutsTest {
             }
         }
         System.runAs(a) {
-            System.assertEquals(true, GridLayouts.save('Test_Records', LAYOUT), 'The owner\'s own layout is kept.');
-            System.assertEquals(LAYOUT, GridLayouts.read('Test_Records'));
+            System.assertEquals(true, GridLayouts.save('Consignments', LAYOUT), 'The owner\'s own layout is kept.');
+            System.assertEquals(LAYOUT, GridLayouts.read('Consignments'));
         }
     }
 
@@ -78,11 +78,11 @@ private class GridLayoutsTest {
             List<String> refusals = new List<String>();
             for (
                 List<String> bad : new List<List<String>>{
-                    new List<String>{ 'No_Such_Grid', LAYOUT },
-                    new List<String>{ 'Test_Records', 'not json' },
-                    new List<String>{ 'Test_Records', '[1,2]' },
-                    new List<String>{ 'Test_Records', '' },
-                    new List<String>{ 'Test_Records', '{"x":"' + 'a'.repeat(GridLayouts.MAX_LENGTH) + '"}' }
+                    new List<String>{ 'Consignment_Rerate', LAYOUT },
+                    new List<String>{ 'Consignments', 'not json' },
+                    new List<String>{ 'Consignments', '[1,2]' },
+                    new List<String>{ 'Consignments', '' },
+                    new List<String>{ 'Consignments', '{"search":"' + 'Bangor '.repeat(GridLayouts.MAX_LENGTH) + '"}' }
                 }
             ) {
                 try {
@@ -144,7 +144,7 @@ private class GridLayoutsTest {
                 '',
                 'not json',
                 '[1,2]',
-                '"text"',
+                '"Consignments"',
                 '{"v":1}',
                 '{"sort":"Name","grouping":{}}'
             }
@@ -235,9 +235,9 @@ private class GridLayoutsTest {
     @IsTest
     static void aUserWithoutAccessGetsNoLayoutAndTheGridWorksOn() {
         System.runAs(GridTestUsers.noLogUser()) {
-            System.assertEquals(null, GridLayouts.read('Test_Records'), 'No Rowhouse Grid User: no layout, no error.');
-            System.assertEquals(false, GridLayouts.save('Test_Records', LAYOUT));
-            GridLayouts.reset('Test_Records');
+            System.assertEquals(null, GridLayouts.read('Consignments'), 'No Rowhouse Grid User: no layout, no error.');
+            System.assertEquals(false, GridLayouts.save('Consignments', LAYOUT));
+            GridLayouts.reset('Consignments');
         }
     }
 }

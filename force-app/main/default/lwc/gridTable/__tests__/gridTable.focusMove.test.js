@@ -51,7 +51,7 @@ describe('moving focus without a redraw', () => {
         draws = 0;
         key(from, 'ArrowRight');
         await flush();
-        const to = cell(seedRows[0].Id, 'Test_Case__c');
+        const to = cell(seedRows[0].Id, 'Pro_Number__c');
         expect(draws).toBe(0);
         expect(el.shadowRoot.activeElement).toBe(to);
         expect(to.getAttribute('tabindex')).toBe('0');
@@ -88,7 +88,7 @@ describe('moving focus without a redraw', () => {
         el.config = { ...el.config, rows: seedRows.slice(0, 9) };
         await flush();
         expect(draws).toBeGreaterThan(0);
-        const to = cell(seedRows[1].Id, 'Test_Case__c');
+        const to = cell(seedRows[1].Id, 'Pro_Number__c');
         expect(tabStops()).toEqual([to]);
         expect(to.classList).toContain('slds-has-focus');
         expect(el.shadowRoot.querySelectorAll('.slds-has-focus')).toHaveLength(1);
@@ -106,7 +106,7 @@ describe('moving focus without a redraw', () => {
         await flush();
         key(el.shadowRoot.activeElement, 'ArrowDown', { shiftKey: true });
         await flush();
-        const to = cell(seedRows[1].Id, 'Test_Case__c');
+        const to = cell(seedRows[1].Id, 'Pro_Number__c');
         expect(el.shadowRoot.activeElement).toBe(to);
         expect(tabStops()).toEqual([to]);
         expect(ringed()).toEqual([to]);
@@ -154,12 +154,14 @@ describe('moving focus without a redraw', () => {
 
     it('redraws for a cell with an error, whose message shows only while it has focus', async () => {
         const id = seedRows[0].Id;
-        await mount({ errors: { [id]: { row: null, fields: { Test_Case__c: 'Too long' } } } });
+        await mount({
+            errors: { [id]: { row: null, fields: { Pro_Number__c: 'Data value too large: max length=20' } } }
+        });
         draws = 0;
         key(cell(id, 'Name'), 'ArrowRight');
         await flush();
         expect(draws).toBeGreaterThan(0);
-        expect(cell(id, 'Test_Case__c').querySelector('.rh-error-popover')).not.toBeNull();
+        expect(cell(id, 'Pro_Number__c').querySelector('.rh-error-popover')).not.toBeNull();
     });
 
     it('shades and unshades a range in place, without a redraw', async () => {
@@ -179,7 +181,7 @@ describe('moving focus without a redraw', () => {
         key(el.shadowRoot.activeElement, 'ArrowRight', { shiftKey: true });
         await flush();
         expect(draws).toBe(0);
-        expect(shaded()).toEqual(['0:Name', '0:Test_Case__c', '1:Name', '1:Test_Case__c']);
+        expect(shaded()).toEqual(['0:Name', '0:Pro_Number__c', '1:Name', '1:Pro_Number__c']);
         expect(el.shadowRoot.querySelector('.rh-table-live').textContent).toBe('2 rows by 2 columns selected');
         // A plain move ends the range: its shading goes, still without a redraw.
         key(el.shadowRoot.activeElement, 'ArrowRight');
@@ -203,7 +205,7 @@ describe('moving focus without a redraw', () => {
     it('redraws to bring a row outside the drawn window into view', async () => {
         const many = Array.from({ length: 400 }, (_, i) => ({
             Id: 'a0' + String(i).padStart(16, '0'),
-            Name: 'Row ' + i
+            Name: 'Kennebec Lumber, load ' + (i + 1)
         }));
         el = createElement('rowhouse-grid-table', { is: GridTable });
         el.config = { columns, rows: many };

@@ -22,11 +22,11 @@ jest.mock('@salesforce/apex/GridController.summarizeGroups', () => ({ default: j
     virtual: true
 });
 
-const INDUSTRY = 'Lookup_Field__r.Industry';
+const INDUSTRY = 'Shipper__r.Industry';
 const DEFINITION = {
-    name: 'Path_Test',
-    label: 'Path Test',
-    objectApiName: 'Rowhouse_Test_Record__c',
+    name: 'Consignment_Shippers',
+    label: 'Consignment Shippers',
+    objectApiName: 'Consignment__c',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -39,9 +39,19 @@ const DEFINITION = {
 const HARBOR = '001000000000001AAA';
 const MILL = '001000000000002AAA';
 const ROWS = [
-    { Id: 'a00000000000000001', Name: 'Path A', [INDUSTRY]: 'Banking', _parents: { [INDUSTRY]: HARBOR } },
-    { Id: 'a00000000000000002', Name: 'Path B', [INDUSTRY]: 'Banking', _parents: { [INDUSTRY]: HARBOR } },
-    { Id: 'a00000000000000003', Name: 'Path C', [INDUSTRY]: 'Energy', _parents: { [INDUSTRY]: MILL } }
+    { Id: 'a00000000000000001', Name: 'Ledger paper, Bangor', [INDUSTRY]: 'Banking', _parents: { [INDUSTRY]: HARBOR } },
+    {
+        Id: 'a00000000000000002',
+        Name: 'Ledger paper, Brunswick',
+        [INDUSTRY]: 'Banking',
+        _parents: { [INDUSTRY]: HARBOR }
+    },
+    {
+        Id: 'a00000000000000003',
+        Name: 'Mill River Energy, Augusta',
+        [INDUSTRY]: 'Energy',
+        _parents: { [INDUSTRY]: MILL }
+    }
 ];
 const settle = async () => {
     for (let i = 0; i < 30; i++) {
@@ -55,7 +65,7 @@ const config = el => tableOf(el).config;
 const mount = async () => {
     openGrid.mockImplementation(openGridFrom({ getGridConfig, fetchRows }));
     const el = createElement('c-grid-view', { is: GridView });
-    el.configName = 'Path_Test';
+    el.configName = 'Consignment_Shippers';
     document.body.appendChild(el);
     await settle();
     return el;
@@ -116,7 +126,7 @@ describe('a parent record’s field', () => {
         await settle();
         await settle();
         expect(saveRows).toHaveBeenCalledWith({
-            configName: 'Path_Test',
+            configName: 'Consignment_Shippers',
             rows: [
                 { Id: ROWS[0].Id, [INDUSTRY]: 'Energy' },
                 { Id: ROWS[1].Id, [INDUSTRY]: 'Energy' }

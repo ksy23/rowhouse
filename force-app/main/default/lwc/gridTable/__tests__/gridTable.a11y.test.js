@@ -16,7 +16,7 @@ describe('accessibility smoke', () => {
 
     it('passes axe in its default state', async () => {
         const el = createElement('rowhouse-grid-table', { is: GridTable });
-        el.config = { columns, rows: seedRows.slice(0, 12), ariaLabel: 'Test records' };
+        el.config = { columns, rows: seedRows.slice(0, 12), ariaLabel: 'Consignments' };
         document.body.appendChild(el);
         await flush();
         await expect(el).toBeAccessible();
@@ -28,10 +28,12 @@ describe('accessibility smoke', () => {
         el.config = {
             columns,
             rows: seedRows.slice(0, 12),
-            ariaLabel: 'Test records',
+            ariaLabel: 'Consignments',
             selection: 'multi',
-            drafts: { [id]: { Text_Field__c: 'x' } },
-            errors: { [id]: { row: 'Locked', fields: { Text_Field__c: 'Too long' } } }
+            drafts: { [id]: { Consignee__c: 'Casco Bay Marine' } },
+            errors: {
+                [id]: { row: 'This record is locked.', fields: { Consignee__c: 'Consignee: data value too large' } }
+            }
         };
         document.body.appendChild(el);
         await flush();
@@ -44,10 +46,10 @@ describe('accessibility smoke', () => {
         el.config = {
             columns,
             rows: seedRows.slice(0, 12),
-            ariaLabel: 'Test records',
+            ariaLabel: 'Consignments',
             rowNumbers: true,
             selection: 'multi',
-            errors: { [id]: { row: 'Locked', fields: {} } }
+            errors: { [id]: { row: 'This record is locked.', fields: {} } }
         };
         document.body.appendChild(el);
         await flush();

@@ -16,12 +16,12 @@ private class GridDescribeTest {
     @IsTest
     static void localNameIsIdenticalInBothBuilds() {
         Test.startTest();
-        String local = GridDescribe.localName(Rowhouse_Test_Record__c.SObjectType);
+        String local = GridDescribe.localName(Consignment__c.SObjectType);
         Test.stopTest();
         // Asserted WITHOUT a namespace prefix on purpose. If this assertion needs
         // to change between builds, HR-4 has been violated.
         System.assertEquals(
-            'Rowhouse_Test_Record__c',
+            'Consignment__c',
             local,
             'localName() must strip any namespace prefix so both builds agree.'
         );
@@ -30,11 +30,11 @@ private class GridDescribeTest {
     @IsTest
     static void fieldMapIsKeyedByLocalName() {
         Test.startTest();
-        Map<String, Schema.SObjectField> fields = GridDescribe.fieldsFor('Rowhouse_Test_Record__c');
+        Map<String, Schema.SObjectField> fields = GridDescribe.fieldsFor('Consignment__c');
         Test.stopTest();
-        System.assert(fields.containsKey('Text_Field__c'), 'Field map must be keyed by local name in both builds.');
+        System.assert(fields.containsKey('Consignee__c'), 'Field map must be keyed by local name in both builds.');
         for (String key : fields.keySet()) {
-            // A namespaced key looks like 'rowhouse__Text_Field__c', so the check
+            // A namespaced key looks like 'rowhouse__Consignee__c', so the check
             // is on the PREFIX. Searching for '__rowhouse' would never fire.
             System.assert(!key.startsWithIgnoreCase('rowhouse__'), 'Namespaced key leaked into the field map: ' + key);
         }
@@ -56,11 +56,11 @@ private class GridDescribeTest {
 
     @IsTest
     static void aRollUpSummaryIsReadOnlyByType() {
-        // Rollup_Total__c sums the child object's Amount__c. The platform reports
+        // Items_Value__c sums the child object's Amount__c. The platform reports
         // it as a calculated currency field, which is what GridConfig reads to
         // keep it out of the editable columns whatever the admin sets.
-        Schema.DescribeFieldResult d = Rowhouse_Test_Record__c.Rollup_Total__c.getDescribe();
-        System.assertEquals('currency', GridDescribe.cellType(Rowhouse_Test_Record__c.Rollup_Total__c));
+        Schema.DescribeFieldResult d = Consignment__c.Items_Value__c.getDescribe();
+        System.assertEquals('currency', GridDescribe.cellType(Consignment__c.Items_Value__c));
         System.assertEquals(
             true,
             d.isCalculated(),

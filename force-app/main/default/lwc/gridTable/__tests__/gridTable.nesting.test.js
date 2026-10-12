@@ -31,18 +31,25 @@ const frame = () => new Promise(resolve => requestAnimationFrame(() => resolve()
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true, sortable: true }
+    {
+        field: 'Service_Level__c',
+        label: 'Service Level',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        groupable: true
+    },
+    { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', scale: 2, editable: true, sortable: true }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
 const ROWS = [
-    { Id: id(1), Name: 'One', Stage__c: 'Open', Amount__c: 100 },
-    { Id: id(2), Name: 'Two', Stage__c: 'Won', Amount__c: 200 },
-    { Id: id(3), Name: 'Three', Stage__c: 'Open', Amount__c: 50 }
+    { Id: id(1), Name: 'Kennebec Lumber, 12 bundles', Service_Level__c: 'Standard', Freight_Charge__c: 100 },
+    { Id: id(2), Name: 'Saco River Outfitters, 3 crates', Service_Level__c: 'Express', Freight_Charge__c: 200 },
+    { Id: id(3), Name: 'Penobscot Paper, full truck', Service_Level__c: 'Standard', Freight_Charge__c: 50 }
 ];
 const CHILDREN = [
-    { name: 'Test_Records_Children', label: 'Children', configName: 'Test_Children' },
-    { name: 'Test_Records_Notes', label: 'Notes', configName: 'Test_Notes' }
+    { name: 'Consignments_Items', label: 'Items', configName: 'Consignment_Items' },
+    { name: 'Consignments_Inspections', label: 'Inspections', configName: 'Inspections' }
 ];
 
 let el;
@@ -108,7 +115,7 @@ describe('the toggle column', () => {
         const button = toggle(id(1));
         expect(button.getAttribute('aria-expanded')).toBe('false');
         expect(button.hasAttribute('aria-controls')).toBe(false);
-        expect(button.textContent.trim()).toBe('Show related records for One');
+        expect(button.textContent.trim()).toBe('Show related records for Kennebec Lumber, 12 bundles');
         // Out of the tab order until its cell is in actionable mode.
         expect(button.getAttribute('tabindex')).toBe('-1');
     });
@@ -130,19 +137,19 @@ describe('opening a row', () => {
         const td = detailCell(id(1));
         expect(td.getAttribute('colspan')).toBe('4');
         expect(td.getAttribute('aria-colindex')).toBe('1');
-        expect(td.getAttribute('aria-label')).toBe('Related records for One');
+        expect(td.getAttribute('aria-label')).toBe('Related records for Kennebec Lumber, 12 bundles');
         const children = td.querySelector('c-grid-children');
         expect(children.tabs).toEqual(CHILDREN);
         expect(children.parentId).toBe(id(1));
-        expect(children.parentName).toBe('One');
+        expect(children.parentName).toBe('Kennebec Lumber, 12 bundles');
         expect(children.level).toBe(2);
         // One child grid per tab, each limited to this row's records.
         const views = children.shadowRoot.querySelectorAll('c-grid-view');
-        expect([...views].map(v => v.configName)).toEqual(['Test_Children', 'Test_Notes']);
+        expect([...views].map(v => v.configName)).toEqual(['Consignment_Items', 'Inspections']);
         expect(views[0].parent).toEqual({
-            link: 'Test_Records_Children',
+            link: 'Consignments_Items',
             id: id(1),
-            name: 'One',
+            name: 'Kennebec Lumber, 12 bundles',
             level: 2,
             height: null
         });
@@ -154,8 +161,8 @@ describe('opening a row', () => {
         const button = toggle(id(1));
         expect(button.getAttribute('aria-expanded')).toBe('true');
         expect(button.getAttribute('aria-controls')).toBe(detailCell(id(1)).id);
-        expect(button.textContent.trim()).toBe('Hide related records for One');
-        expect(announcement()).toBe('Showing related records for One');
+        expect(button.textContent.trim()).toBe('Hide related records for Kennebec Lumber, 12 bundles');
+        expect(announcement()).toBe('Showing related records for Kennebec Lumber, 12 bundles');
     });
 
     it('numbers the panel row as a row, and counts it (HR-10)', async () => {
@@ -171,7 +178,7 @@ describe('opening a row', () => {
         await open(id(1));
         expect(rowOrder()).toEqual([id(1), id(2), id(3)]);
         expect(toggle(id(1)).getAttribute('aria-expanded')).toBe('false');
-        expect(announcement()).toBe('Hid related records for One');
+        expect(announcement()).toBe('Hid related records for Kennebec Lumber, 12 bundles');
     });
 
     it('keeps several rows open at once, each panel after its row, through a sort', async () => {
@@ -179,7 +186,7 @@ describe('opening a row', () => {
         await open(id(1));
         await open(id(3));
         expect(rowOrder()).toEqual([id(1), detailId(id(1)), id(2), id(3), detailId(id(3))]);
-        $('th[data-field="Amount__c"] .slds-th__action').click(); // ascending by Amount
+        $('th[data-field="Freight_Charge__c"] .slds-th__action').click(); // ascending by Freight Charge
         await flush();
         expect(rowOrder()).toEqual([id(3), detailId(id(3)), id(1), detailId(id(1)), id(2)]);
     });
@@ -198,7 +205,7 @@ describe('opening a row', () => {
     });
 
     it('gives a group row no toggle, and Enter on its toggle cell opens nothing', async () => {
-        await mount({ grouping: [{ field: 'Stage__c', unit: null }] });
+        await mount({ grouping: [{ field: 'Service_Level__c', unit: null }] });
         const groupTr = $('tbody tr[data-kind="group"]');
         const groupToggleCell = groupTr.querySelector('td[data-field="__expand"]');
         expect(groupToggleCell).not.toBeNull();
@@ -211,8 +218,8 @@ describe('opening a row', () => {
 
 describe('panel details', () => {
     const COUNTS = {
-        [id(1)]: { total: 3, byTab: { Test_Records_Children: 2, Test_Records_Notes: 1 } },
-        [id(2)]: { total: 0, byTab: { Test_Records_Children: 0, Test_Records_Notes: 0 } }
+        [id(1)]: { total: 3, byTab: { Consignments_Items: 2, Consignments_Inspections: 1 } },
+        [id(2)]: { total: 0, byTab: { Consignments_Items: 0, Consignments_Inspections: 0 } }
     };
 
     it('shows how many related records a row has, beside its toggle, and says it', async () => {
@@ -221,7 +228,7 @@ describe('panel details', () => {
         expect(td.querySelector('.rh-expand-count').textContent).toBe('3');
         expect(td.querySelector('.rh-expand-count').getAttribute('aria-hidden')).toBe('true');
         expect(toggle(id(1)).querySelector('.slds-assistive-text').textContent).toBe(
-            'Show related records for One (3)'
+            'Show related records for Kennebec Lumber, 12 bundles (3)'
         );
     });
 
@@ -242,7 +249,9 @@ describe('panel details', () => {
         await mount({ childCounts: COUNTS, childCountsFailed: true });
         expect(toggle(id(3))).not.toBeNull();
         expect(cell(id(3), '__expand').querySelector('.rh-expand-count')).toBeNull();
-        expect(toggle(id(3)).querySelector('.slds-assistive-text').textContent).toBe('Show related records for Three');
+        expect(toggle(id(3)).querySelector('.slds-assistive-text').textContent).toBe(
+            'Show related records for Penobscot Paper, full truck'
+        );
         // A known count still decides its row.
         expect(toggle(id(2))).toBeNull();
     });
@@ -265,8 +274,8 @@ describe('panel details', () => {
         await mount({ childCounts: COUNTS });
         await open(id(1));
         expect(detailCell(id(1)).querySelector('c-grid-children').counts).toEqual({
-            Test_Records_Children: 2,
-            Test_Records_Notes: 1
+            Consignments_Items: 2,
+            Consignments_Inspections: 1
         });
     });
 
@@ -305,8 +314,8 @@ describe('panel details', () => {
         await open(id(1));
         detailCell(id(1))
             .querySelector('c-grid-children')
-            .dispatchEvent(new CustomEvent('childcount', { detail: { tab: 'Test_Records_Notes', count: 4 } }));
-        expect(heard).toEqual([{ parentId: id(1), tab: 'Test_Records_Notes', count: 4 }]);
+            .dispatchEvent(new CustomEvent('childcount', { detail: { tab: 'Consignments_Inspections', count: 4 } }));
+        expect(heard).toEqual([{ parentId: id(1), tab: 'Consignments_Inspections', count: 4 }]);
     });
 
     it('tints the open row, so the panel under it reads as its own', async () => {
@@ -330,13 +339,13 @@ describe('keys', () => {
     it('arrows reach the panel as one cell, and leave it in the column they came from', async () => {
         await mount();
         await open(id(1));
-        await focusOn(cell(id(1), 'Amount__c'));
-        await key(cell(id(1), 'Amount__c'), 'ArrowDown');
+        await focusOn(cell(id(1), 'Freight_Charge__c'));
+        await key(cell(id(1), 'Freight_Charge__c'), 'ArrowDown');
         expect(el.shadowRoot.activeElement).toBe(detailCell(id(1)));
         await key(detailCell(id(1)), 'ArrowRight');
         expect(el.shadowRoot.activeElement).toBe(detailCell(id(1)));
         await key(detailCell(id(1)), 'ArrowDown');
-        expect(el.shadowRoot.activeElement).toBe(cell(id(2), 'Amount__c'));
+        expect(el.shadowRoot.activeElement).toBe(cell(id(2), 'Freight_Charge__c'));
     });
 
     it("Enter on the panel goes into the open tab's grid", async () => {
@@ -401,7 +410,7 @@ describe("a child grid's own events", () => {
         await open(id(1));
         await focusOn(cell(id(2), 'Name'));
         const paste = new CustomEvent('paste', { bubbles: true, composed: true, cancelable: true });
-        paste.clipboardData = { getData: () => 'pasted' };
+        paste.clipboardData = { getData: () => 'Quabbin Supply, 2 pallets' };
         detailCell(id(1)).querySelector('c-grid-children').dispatchEvent(paste);
         await flush();
         expect(paste.defaultPrevented).toBe(false);
@@ -411,21 +420,21 @@ describe("a child grid's own events", () => {
 
 describe('the spreadsheet keys over a range with a panel in it', () => {
     const selectDown = async () => {
-        await focusOn(cell(id(1), 'Amount__c'));
-        await key(cell(id(1), 'Amount__c'), 'ArrowDown', { shiftKey: true });
+        await focusOn(cell(id(1), 'Freight_Charge__c'));
+        await key(cell(id(1), 'Freight_Charge__c'), 'ArrowDown', { shiftKey: true });
         await key(el.shadowRoot.activeElement, 'ArrowDown', { shiftKey: true });
-        expect(el.shadowRoot.activeElement).toBe(cell(id(2), 'Amount__c'));
+        expect(el.shadowRoot.activeElement).toBe(cell(id(2), 'Freight_Charge__c'));
     };
 
     it('Delete clears the records and leaves the panel alone', async () => {
         await mount();
         await open(id(1));
         await selectDown();
-        await key(cell(id(2), 'Amount__c'), 'Delete');
+        await key(cell(id(2), 'Freight_Charge__c'), 'Delete');
         expect(events.cellschange).toHaveLength(1);
         expect(events.cellschange[0].changes.map(c => [c.recordId, c.field])).toEqual([
-            [id(1), 'Amount__c'],
-            [id(2), 'Amount__c']
+            [id(1), 'Freight_Charge__c'],
+            [id(2), 'Freight_Charge__c']
         ]);
     });
 
@@ -433,10 +442,10 @@ describe('the spreadsheet keys over a range with a panel in it', () => {
         await mount();
         await open(id(1));
         await selectDown();
-        await key(cell(id(2), 'Amount__c'), 'd', { ctrlKey: true });
+        await key(cell(id(2), 'Freight_Charge__c'), 'd', { ctrlKey: true });
         expect(events.cellschange).toHaveLength(1);
         expect(events.cellschange[0].changes.map(c => [c.recordId, c.field, c.value])).toEqual([
-            [id(2), 'Amount__c', 100]
+            [id(2), 'Freight_Charge__c', 100]
         ]);
     });
 
@@ -454,9 +463,9 @@ describe('the spreadsheet keys over a range with a panel in it', () => {
 describe('windowing with a panel open', () => {
     const many = Array.from({ length: 200 }, (_, i) => ({
         Id: 'a00' + String(i).padStart(15, '0'),
-        Name: 'Row ' + (i + 1),
-        Stage__c: 'Open',
-        Amount__c: i
+        Name: 'Kennebec Lumber, load ' + (i + 1),
+        Service_Level__c: 'Standard',
+        Freight_Charge__c: i
     }));
     const rowHeight = 33; // the default until measured; JSDOM has no layout
 
@@ -553,13 +562,13 @@ describe('cards', () => {
         await mount({ layout: 'cards' });
         const button = $(`li[data-row-id="${id(1)}"] .rh-card-expand`);
         expect(button.getAttribute('aria-expanded')).toBe('false');
-        expect(button.textContent.trim()).toBe('Show related records for One');
+        expect(button.textContent.trim()).toBe('Show related records for Kennebec Lumber, 12 bundles');
         button.click();
         await flush();
         expect(cardItems().map(li => li.dataset.rowId)).toEqual([id(1), detailId(id(1)), id(2), id(3)]);
         const region = $('.rh-card-panel');
         expect(region.getAttribute('role')).toBe('region');
-        expect(region.getAttribute('aria-label')).toBe('Related records for One');
+        expect(region.getAttribute('aria-label')).toBe('Related records for Kennebec Lumber, 12 bundles');
         expect(button.getAttribute('aria-expanded')).toBe('true');
         expect(button.getAttribute('aria-controls')).toBe(region.id);
         expect(region.querySelector('c-grid-children').parentId).toBe(id(1));
@@ -585,7 +594,7 @@ describe('cards', () => {
         el.config = {
             ...el.config,
             childCounts: {
-                [id(1)]: { total: 2, byTab: { Test_Records_Children: 2 } },
+                [id(1)]: { total: 2, byTab: { Consignments_Items: 2 } },
                 [id(2)]: { total: 0, byTab: {} }
             }
         };
@@ -599,9 +608,9 @@ describe('cards', () => {
 
 describe("every row at once, and the admin's heights", () => {
     const COUNTS = {
-        [id(1)]: { total: 2, byTab: { Test_Records_Children: 2, Test_Records_Notes: 0 } },
-        [id(2)]: { total: 0, byTab: { Test_Records_Children: 0, Test_Records_Notes: 0 } },
-        [id(3)]: { total: 1, byTab: { Test_Records_Children: 1, Test_Records_Notes: 0 } }
+        [id(1)]: { total: 2, byTab: { Consignments_Items: 2, Consignments_Inspections: 0 } },
+        [id(2)]: { total: 0, byTab: { Consignments_Items: 0, Consignments_Inspections: 0 } },
+        [id(3)]: { total: 1, byTab: { Consignments_Items: 1, Consignments_Inspections: 0 } }
     };
     const allButton = () => $('th[data-field="__expand"] .rh-expand-all');
 

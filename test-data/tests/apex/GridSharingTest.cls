@@ -5,14 +5,15 @@
  * records a user reaches; these tests prove it with two users and records
  * that are private to one of them.
  *
- * Rowhouse_Test_Private__c is Private by organization-wide default (its
+ * Freight_Claim__c is Private by organization-wide default (its
  * object metadata sets it, so a fresh build org starts that way) and no test
  * permission set grants View All or Modify All on it. fullUser() owns two
- * records: one kept to themselves ("Owner secret") and one shared with
- * peerUser() to read only ("Owner shared", a manual share). peerUser() owns
- * one ("Peer own"). The Private_Test grid (test-data/config) shows them:
- * Text can be grouped by, Amount is summed, Long Text is read whole, and
- * Related Record is a lookup to the same object.
+ * records: one kept to themselves ("Casco Bay Marine, water damage") and one
+ * shared with peerUser() to read only ("Casco Bay Marine, short shipment", a
+ * manual share). peerUser() owns one ("Kennebec Lumber, broken bundle"). The
+ * Freight_Claims grid (test-data/config) shows them: Consignee can be grouped
+ * by, Amount is summed, Delivery Notes is read whole, and Related Claim is a
+ * lookup to the same object.
  *
  * What is proved: the peer's rows, the count of every match, the group counts
  * and totals, the whole of a long text and the lookup search leave out the
@@ -22,43 +23,39 @@
  */
 @IsTest
 private class GridSharingTest {
-    private static final String SECRET = 'Owner secret';
-    private static final String SHARED = 'Owner shared';
-    private static final String PEER_OWN = 'Peer own';
+    private static final String SECRET = 'Casco Bay Marine, water damage';
+    private static final String SHARED = 'Casco Bay Marine, short shipment';
+    private static final String PEER_OWN = 'Kennebec Lumber, broken bundle';
 
     @TestSetup
     static void setup() {
         User owner = GridTestUsers.fullUser();
         User peer = GridTestUsers.peerUser();
-        Rowhouse_Test_Private__c sharedRecord = new Rowhouse_Test_Private__c(
+        Freight_Claim__c sharedRecord = new Freight_Claim__c(
             Name = SHARED,
-            Text_Field__c = 'Shared read only',
+            Consignee__c = 'Wachusett Paper',
             Amount__c = 10,
-            Long_Text__c = 'The peer may read this'
+            Delivery_Notes__c = 'Consignee signed for 46 of 48 cartons; 2 short.'
         );
         System.runAs(owner) {
-            insert new List<Rowhouse_Test_Private__c>{
-                new Rowhouse_Test_Private__c(
+            insert new List<Freight_Claim__c>{
+                new Freight_Claim__c(
                     Name = SECRET,
-                    Text_Field__c = 'Owner only',
+                    Consignee__c = 'Penobscot Paper',
                     Amount__c = 1000,
-                    Long_Text__c = 'Not for the peer'
+                    Delivery_Notes__c = 'Trailer roof leaked in the Portland yard; 3 rolls rejected.'
                 ),
                 sharedRecord
             };
-            insert new Rowhouse_Test_Record__c(Name = 'Saved by the owner', Number_Field__c = 1);
+            insert new Consignment__c(Name = 'Mill River Energy, 4 drums', Pieces__c = 1);
         }
         System.runAs(peer) {
-            insert new Rowhouse_Test_Private__c(Name = PEER_OWN, Text_Field__c = 'Peer only', Amount__c = 1);
+            insert new Freight_Claim__c(Name = PEER_OWN, Consignee__c = 'Quabbin Supply', Amount__c = 1);
         }
         // Shared with the peer to read only, as an admin shares a record from its
         // Sharing button. Rowhouse itself never writes a share.
         System.runAs(new User(Id = UserInfo.getUserId())) {
-            insert new Rowhouse_Test_Private__Share(
-                ParentId = sharedRecord.Id,
-                UserOrGroupId = peer.Id,
-                AccessLevel = 'Read'
-            );
+            insert new Freight_Claim__Share(ParentId = sharedRecord.Id, UserOrGroupId = peer.Id, AccessLevel = 'Read');
         }
     }
 
@@ -73,13 +70,13 @@ private class GridSharingTest {
     }
 
     /** The owner's records by name, read by the owner. */
-    private static Map<String, Rowhouse_Test_Private__c> ownersRecords() {
-        Map<String, Rowhouse_Test_Private__c> out = new Map<String, Rowhouse_Test_Private__c>();
+    private static Map<String, Freight_Claim__c> ownersRecords() {
+        Map<String, Freight_Claim__c> out = new Map<String, Freight_Claim__c>();
         List<String> names = new List<String>{ SECRET, SHARED };
         System.runAs(owner()) {
-            for (Rowhouse_Test_Private__c r : [
-                SELECT Id, Name, Text_Field__c, Amount__c
-                FROM Rowhouse_Test_Private__c
+            for (Freight_Claim__c r : [
+                SELECT Id, Name, Consignee__c, Amount__c
+                FROM Freight_Claim__c
                 WHERE Name IN :names
             ]) {
                 out.put(r.Name, r);
@@ -93,7 +90,7 @@ private class GridSharingTest {
         // Each page as a request of its own: a cursor opened for one user is never another's.
         GridDataService.forgetOpenCursors();
         return GridController.fetchRows(
-            'Private_Test',
+            'Freight_Claims',
             searchTerm,
             null,
             null,
@@ -143,7 +140,7 @@ private class GridSharingTest {
         Map<String, Object> ownersPage;
         System.runAs(peer()) {
             peersPage = page(null);
-            peersSearch = page('Owner');
+            peersSearch = page('Casco Bay');
         }
         System.runAs(owner()) {
             ownersPage = page(null);
@@ -189,19 +186,19 @@ private class GridSharingTest {
         GridGroupService.Result peers;
         GridGroupService.Result owners;
         System.runAs(peer()) {
-            peers = GridGroupService.summarize('Private_Test', null, new List<String>{ 'Text_Field__c' }, null, null);
+            peers = GridGroupService.summarize('Freight_Claims', null, new List<String>{ 'Consignee__c' }, null, null);
         }
         System.runAs(owner()) {
-            owners = GridGroupService.summarize('Private_Test', null, new List<String>{ 'Text_Field__c' }, null, null);
+            owners = GridGroupService.summarize('Freight_Claims', null, new List<String>{ 'Consignee__c' }, null, null);
         }
         System.assertEquals(
-            new Map<String, Integer>{ 'Peer only' => 1, 'Shared read only' => 1 },
+            new Map<String, Integer>{ 'Quabbin Supply' => 1, 'Wachusett Paper' => 1 },
             groupCounts(peers),
             'No group for the owner\'s private record, and no count of it.'
         );
         System.assertEquals(11, amountTotal(peers).intValue(), 'Its 1,000 is not in the peer\'s totals.');
         System.assertEquals(
-            new Map<String, Integer>{ 'Owner only' => 1, 'Shared read only' => 1 },
+            new Map<String, Integer>{ 'Penobscot Paper' => 1, 'Wachusett Paper' => 1 },
             groupCounts(owners)
         );
         System.assertEquals(1010, amountTotal(owners).intValue(), 'Nor is the peer\'s in the owner\'s.');
@@ -209,37 +206,45 @@ private class GridSharingTest {
 
     @IsTest
     static void anotherUsersPrivateLongTextCannotBeReadWhole() {
-        Map<String, Rowhouse_Test_Private__c> records = ownersRecords();
+        Map<String, Freight_Claim__c> records = ownersRecords();
         String refused;
         String sharedText;
         System.runAs(peer()) {
             try {
-                GridController.fetchFullText('Private_Test', records.get(SECRET).Id, 'Long_Text__c');
+                GridController.fetchFullText('Freight_Claims', records.get(SECRET).Id, 'Delivery_Notes__c');
             } catch (AuraHandledException e) {
                 refused = e.getMessage();
             }
-            sharedText = GridController.fetchFullText('Private_Test', records.get(SHARED).Id, 'Long_Text__c');
+            sharedText = GridController.fetchFullText('Freight_Claims', records.get(SHARED).Id, 'Delivery_Notes__c');
         }
         System.assertEquals(
             'The record could not be found. It may have been deleted.',
             refused,
             'The record is read in user mode, so the peer is told nothing about it.'
         );
-        System.assertEquals('The peer may read this', sharedText, 'A record shared with the peer is read.');
+        System.assertEquals(
+            'Consignee signed for 46 of 48 cartons; 2 short.',
+            sharedText,
+            'A record shared with the peer is read.'
+        );
     }
 
     @IsTest
     static void aLookupFindsOnlyTheRecordsTheUserCanSee() {
-        Map<String, Rowhouse_Test_Private__c> records = ownersRecords();
+        Map<String, Freight_Claim__c> records = ownersRecords();
         List<Map<String, String>> found;
         Map<String, List<Map<String, String>>> named;
         String secretName;
         String sharedName;
         System.runAs(peer()) {
-            found = GridController.searchLookup('Private_Test', 'Related__c', 'Owner');
-            named = GridController.findLookupNames('Private_Test', 'Related__c', new List<String>{ SECRET, SHARED });
-            secretName = GridController.lookupName('Private_Test', 'Related__c', records.get(SECRET).Id);
-            sharedName = GridController.lookupName('Private_Test', 'Related__c', records.get(SHARED).Id);
+            found = GridController.searchLookup('Freight_Claims', 'Related_Claim__c', 'Casco Bay');
+            named = GridController.findLookupNames(
+                'Freight_Claims',
+                'Related_Claim__c',
+                new List<String>{ SECRET, SHARED }
+            );
+            secretName = GridController.lookupName('Freight_Claims', 'Related_Claim__c', records.get(SECRET).Id);
+            sharedName = GridController.lookupName('Freight_Claims', 'Related_Claim__c', records.get(SHARED).Id);
         }
         Set<String> names = new Set<String>();
         for (Map<String, String> r : found) {
@@ -259,17 +264,17 @@ private class GridSharingTest {
 
     @IsTest
     static void aSaveOverRecordsTheUserCanOnlyReadOrCannotSeeFailsOnEachRowAndChangesNothing() {
-        Map<String, Rowhouse_Test_Private__c> records = ownersRecords();
+        Map<String, Freight_Claim__c> records = ownersRecords();
         Id secretId = records.get(SECRET).Id;
         Id sharedId = records.get(SHARED).Id;
         GridSaveResult done;
         System.runAs(peer()) {
             Test.startTest();
             GridSaveResult ticket = GridSaveService.save(
-                'Private_Test',
+                'Freight_Claims',
                 new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'Id' => sharedId, 'Text_Field__c' => 'Changed by the peer' },
-                    new Map<String, Object>{ 'Id' => secretId, 'Text_Field__c' => 'Changed by the peer' }
+                    new Map<String, Object>{ 'Id' => sharedId, 'Consignee__c' => 'Merrimack Valley Foods' },
+                    new Map<String, Object>{ 'Id' => secretId, 'Consignee__c' => 'Merrimack Valley Foods' }
                 }
             );
             Test.stopTest();
@@ -283,24 +288,21 @@ private class GridSharingTest {
             System.assert(String.isNotBlank(e.message), 'Each row says why: ' + done.errors);
         }
         System.assertEquals(new Set<Id>{ sharedId, secretId }, failed, 'Each row fails on its own: ' + done.errors);
-        Map<String, Rowhouse_Test_Private__c> after = ownersRecords();
-        System.assertEquals('Shared read only', after.get(SHARED).Text_Field__c, 'A record shared to read only.');
-        System.assertEquals('Owner only', after.get(SECRET).Text_Field__c, 'A record the peer cannot see.');
+        Map<String, Freight_Claim__c> after = ownersRecords();
+        System.assertEquals('Wachusett Paper', after.get(SHARED).Consignee__c, 'A record shared to read only.');
+        System.assertEquals('Penobscot Paper', after.get(SECRET).Consignee__c, 'A record the peer cannot see.');
     }
 
     @IsTest
     static void anImportOverRecordsTheUserCanOnlyReadOrCannotSeeFailsOnEachRowAndChangesNothing() {
-        Map<String, Rowhouse_Test_Private__c> records = ownersRecords();
+        Map<String, Freight_Claim__c> records = ownersRecords();
         GridImportService.Result result;
         System.runAs(peer()) {
             result = GridImportService.importRows(
-                'Private_Test',
+                'Freight_Claims',
                 new List<Map<String, Object>>{
-                    new Map<String, Object>{
-                        'Id' => records.get(SHARED).Id,
-                        'Text_Field__c' => 'Imported by the peer'
-                    },
-                    new Map<String, Object>{ 'Id' => records.get(SECRET).Id, 'Text_Field__c' => 'Imported by the peer' }
+                    new Map<String, Object>{ 'Id' => records.get(SHARED).Id, 'Consignee__c' => 'Berkshire Mills' },
+                    new Map<String, Object>{ 'Id' => records.get(SECRET).Id, 'Consignee__c' => 'Berkshire Mills' }
                 }
             );
         }
@@ -310,9 +312,9 @@ private class GridSharingTest {
             System.assert(String.isNotBlank(r.message), 'Row ' + r.index + ' says why: ' + result.rows);
             System.assertEquals(null, r.previous, 'Nothing was read back for an Undo: ' + result.rows);
         }
-        Map<String, Rowhouse_Test_Private__c> after = ownersRecords();
-        System.assertEquals('Shared read only', after.get(SHARED).Text_Field__c);
-        System.assertEquals('Owner only', after.get(SECRET).Text_Field__c);
+        Map<String, Freight_Claim__c> after = ownersRecords();
+        System.assertEquals('Wachusett Paper', after.get(SHARED).Consignee__c);
+        System.assertEquals('Penobscot Paper', after.get(SECRET).Consignee__c);
     }
 
     // ---------------------------------------------------------------- save results
@@ -322,11 +324,11 @@ private class GridSharingTest {
         GridSaveResult ticket;
         Id saved;
         System.runAs(owner()) {
-            saved = [SELECT Id FROM Rowhouse_Test_Record__c WHERE Name = 'Saved by the owner' LIMIT 1].Id;
+            saved = [SELECT Id FROM Consignment__c WHERE Name = 'Mill River Energy, 4 drums' LIMIT 1].Id;
             Test.startTest();
             ticket = GridSaveService.save(
-                'Save_Test',
-                new List<Map<String, Object>>{ new Map<String, Object>{ 'Id' => saved, 'Number_Field__c' => '2' } }
+                'Consignment_Rates',
+                new List<Map<String, Object>>{ new Map<String, Object>{ 'Id' => saved, 'Pieces__c' => '2' } }
             );
             Test.stopTest(); // the chunk runs and writes its result, owned by the owner
         }
@@ -352,10 +354,7 @@ private class GridSharingTest {
         GridSaveResult ownerSees;
         System.runAs(owner()) {
             ownerSees = GridSaveService.status(ticket.saveId);
-            System.assertEquals(
-                2,
-                [SELECT Number_Field__c FROM Rowhouse_Test_Record__c WHERE Id = :saved].Number_Field__c
-            );
+            System.assertEquals(2, [SELECT Pieces__c FROM Consignment__c WHERE Id = :saved].Pieces__c);
         }
         System.assert(ownerSees.done, 'The peer\'s poll took nothing away from the owner: ' + ownerSees);
         System.assertEquals(1, ownerSees.successCount, String.valueOf(ownerSees.errors));

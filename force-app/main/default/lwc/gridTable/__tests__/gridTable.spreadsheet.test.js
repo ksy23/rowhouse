@@ -53,61 +53,56 @@ describe('spreadsheet feel', () => {
 
     describe('ranges', () => {
         it('Shift+arrows extend a range; a plain arrow collapses it', async () => {
-            await focusOn(0, 'Text_Field__c');
-            await key(cell(0, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
-            await key(cell(1, 'Text_Field__c'), 'ArrowRight', { shiftKey: true });
-            expect(selectedFields().sort()).toEqual([
-                '0:Number_Field__c',
-                '0:Text_Field__c',
-                '1:Number_Field__c',
-                '1:Text_Field__c'
-            ]);
-            expect(cell(1, 'Number_Field__c').classList).toContain('rh-in-range');
+            await focusOn(0, 'Consignee__c');
+            await key(cell(0, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
+            await key(cell(1, 'Consignee__c'), 'ArrowRight', { shiftKey: true });
+            expect(selectedFields().sort()).toEqual(['0:Consignee__c', '0:Pieces__c', '1:Consignee__c', '1:Pieces__c']);
+            expect(cell(1, 'Pieces__c').classList).toContain('rh-in-range');
             expect(announcement()).toBe('2 rows by 2 columns selected');
             expect(el.shadowRoot.querySelector('table').getAttribute('aria-multiselectable')).toBe('true');
 
-            await key(cell(1, 'Number_Field__c'), 'ArrowDown');
+            await key(cell(1, 'Pieces__c'), 'ArrowDown');
             expect(selectedFields()).toEqual([]);
         });
 
         it('never reaches into the header', async () => {
-            await focusOn(0, 'Text_Field__c');
-            await key(cell(0, 'Text_Field__c'), 'ArrowUp', { shiftKey: true });
-            expect(el.shadowRoot.activeElement).toBe(cell(0, 'Text_Field__c'));
+            await focusOn(0, 'Consignee__c');
+            await key(cell(0, 'Consignee__c'), 'ArrowUp', { shiftKey: true });
+            expect(el.shadowRoot.activeElement).toBe(cell(0, 'Consignee__c'));
         });
 
         it('Shift+click extends the range to the clicked cell', async () => {
             await focusOn(0, 'Name');
-            cell(2, 'Text_Field__c').dispatchEvent(
+            cell(2, 'Consignee__c').dispatchEvent(
                 new MouseEvent('mousedown', { bubbles: true, cancelable: true, shiftKey: true })
             );
             await flush();
-            expect(selectedFields()).toHaveLength(9); // rows 0-2 x Name, Test Case, Text
+            expect(selectedFields()).toHaveLength(9); // rows 0-2 x Name, PRO Number, Consignee
         });
 
         it('ends the range when focus reaches another cell some other way', async () => {
             // Tab back into the grid, a screen reader moving focus, a script:
             // the old anchor no longer means anything.
-            await focusOn(0, 'Text_Field__c');
-            await key(cell(0, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
+            await focusOn(0, 'Consignee__c');
+            await key(cell(0, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
             expect(selectedFields()).toHaveLength(2);
 
-            await focusOn(4, 'Number_Field__c');
+            await focusOn(4, 'Pieces__c');
             expect(selectedFields()).toEqual([]);
 
-            await key(cell(4, 'Number_Field__c'), 'ArrowDown', { shiftKey: true });
-            expect(selectedFields().sort()).toEqual(['4:Number_Field__c', '5:Number_Field__c']);
+            await key(cell(4, 'Pieces__c'), 'ArrowDown', { shiftKey: true });
+            expect(selectedFields().sort()).toEqual(['4:Pieces__c', '5:Pieces__c']);
         });
 
         it('Escape clears the range, and so does a sort', async () => {
-            await focusOn(0, 'Text_Field__c');
-            await key(cell(0, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
-            await key(cell(1, 'Text_Field__c'), 'Escape');
+            await focusOn(0, 'Consignee__c');
+            await key(cell(0, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
+            await key(cell(1, 'Consignee__c'), 'Escape');
             expect(selectedFields()).toEqual([]);
 
-            await key(cell(1, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
+            await key(cell(1, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
             expect(selectedFields()).toHaveLength(2);
-            el.shadowRoot.querySelector('th[data-field="Number_Field__c"] .slds-th__action').click();
+            el.shadowRoot.querySelector('th[data-field="Pieces__c"] .slds-th__action').click();
             await flush();
             expect(selectedFields()).toEqual([]);
         });
@@ -117,10 +112,10 @@ describe('spreadsheet feel', () => {
         it('writes the range as tab-separated text through the copy event', async () => {
             await focusOn(0, 'Name');
             await key(cell(0, 'Name'), 'ArrowRight', { shiftKey: true });
-            await key(cell(0, 'Test_Case__c'), 'ArrowDown', { shiftKey: true });
+            await key(cell(0, 'Pro_Number__c'), 'ArrowDown', { shiftKey: true });
             // The browser fires the copy event straight after the keydown, in the
             // same task, so nothing is awaited in between.
-            cell(1, 'Test_Case__c').dispatchEvent(
+            cell(1, 'Pro_Number__c').dispatchEvent(
                 new KeyboardEvent('keydown', {
                     key: 'c',
                     metaKey: true,
@@ -132,13 +127,14 @@ describe('spreadsheet feel', () => {
             const setData = jest.fn();
             const copy = new CustomEvent('copy', { bubbles: true, composed: true, cancelable: true });
             copy.clipboardData = { setData };
-            cell(1, 'Test_Case__c').dispatchEvent(copy);
+            cell(1, 'Pro_Number__c').dispatchEvent(copy);
             expect(copy.defaultPrevented).toBe(true);
             expect(setData).toHaveBeenCalledWith(
                 'text/plain',
-                [[ROWS[0].Name, ROWS[0].Test_Case__c].join('\t'), [ROWS[1].Name, ROWS[1].Test_Case__c].join('\t')].join(
-                    '\n'
-                )
+                [
+                    [ROWS[0].Name, ROWS[0].Pro_Number__c].join('\t'),
+                    [ROWS[1].Name, ROWS[1].Pro_Number__c].join('\t')
+                ].join('\n')
             );
             await flush();
             expect(announcement()).toBe('Copied 4 cells');
@@ -165,44 +161,48 @@ describe('spreadsheet feel', () => {
         };
 
         it('pastes a block from the focused cell as one cellschange, read by column type', async () => {
-            const target = await focusOn(0, 'Text_Field__c');
-            const event = await paste(target, 'first\t1,234\r\nsecond\t5\r\n');
+            const target = await focusOn(0, 'Consignee__c');
+            const event = await paste(target, 'Kennebec Lumber\t1,234\r\nQuabbin Supply\t5\r\n');
             expect(event.defaultPrevented).toBe(true);
             expect(changes).toHaveLength(1);
             expect(changes[0].label).toBe('paste');
             expect(changes[0].changes.map(c => [c.recordId, c.field, c.value])).toEqual([
-                [ROWS[0].Id, 'Text_Field__c', 'first'],
-                [ROWS[0].Id, 'Number_Field__c', 1234],
-                [ROWS[1].Id, 'Text_Field__c', 'second'],
-                [ROWS[1].Id, 'Number_Field__c', 5]
+                [ROWS[0].Id, 'Consignee__c', 'Kennebec Lumber'],
+                [ROWS[0].Id, 'Pieces__c', 1234],
+                [ROWS[1].Id, 'Consignee__c', 'Quabbin Supply'],
+                [ROWS[1].Id, 'Pieces__c', 5]
             ]);
             expect(selectedFields()).toHaveLength(4); // what was pasted becomes the range
         });
 
         it('skips read-only cells and reports values it cannot read', async () => {
             const target = await focusOn(0, 'Name');
-            await paste(target, 'n\tread only\ttext\tnot a number');
+            await paste(target, 'Wachusett Paper, 8 pallets\tPRO-2208\tWachusett Paper\ttwelve');
             const detail = changes[0];
-            expect(detail.changes.map(c => c.field)).toEqual(['Name', 'Text_Field__c']);
+            expect(detail.changes.map(c => c.field)).toEqual(['Name', 'Consignee__c']);
             expect(detail.errors).toEqual([
-                { recordId: ROWS[0].Id, field: 'Number_Field__c', message: 'Not a number: not a number' }
+                { recordId: ROWS[0].Id, field: 'Pieces__c', message: 'Not a number: twelve' }
             ]);
             expect(announcement()).toBe('Pasted 2 cells. 1 read-only cell skipped. 1 value could not be used.');
         });
 
         it('fills a whole range with one value', async () => {
-            await focusOn(0, 'Text_Field__c');
-            await key(cell(0, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
-            await key(cell(1, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
-            await paste(cell(2, 'Text_Field__c'), 'same');
-            expect(changes[0].changes.map(c => c.value)).toEqual(['same', 'same', 'same']);
+            await focusOn(0, 'Consignee__c');
+            await key(cell(0, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
+            await key(cell(1, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
+            await paste(cell(2, 'Consignee__c'), 'Merrimack Valley Foods');
+            expect(changes[0].changes.map(c => c.value)).toEqual([
+                'Merrimack Valley Foods',
+                'Merrimack Valley Foods',
+                'Merrimack Valley Foods'
+            ]);
         });
 
         it('leaves paste to the editor while a cell is being edited', async () => {
-            await focusOn(0, 'Text_Field__c');
-            cell(0, 'Text_Field__c').querySelector('button').click();
+            await focusOn(0, 'Consignee__c');
+            cell(0, 'Consignee__c').querySelector('button').click();
             await flush();
-            const event = await paste(el.shadowRoot.querySelector('c-cell-text[data-editor]'), 'typed');
+            const event = await paste(el.shadowRoot.querySelector('c-cell-text[data-editor]'), 'Casco Bay Marine');
             expect(event.defaultPrevented).toBe(false);
             expect(changes).toHaveLength(0);
         });
@@ -210,24 +210,24 @@ describe('spreadsheet feel', () => {
 
     describe('fill down and clear', () => {
         it('Cmd+D copies the top row of the range into the rows below', async () => {
-            await focusOn(0, 'Text_Field__c');
-            await key(cell(0, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
-            await key(cell(1, 'Text_Field__c'), 'ArrowDown', { shiftKey: true });
-            const event = await key(cell(2, 'Text_Field__c'), 'd', { metaKey: true });
+            await focusOn(0, 'Consignee__c');
+            await key(cell(0, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
+            await key(cell(1, 'Consignee__c'), 'ArrowDown', { shiftKey: true });
+            const event = await key(cell(2, 'Consignee__c'), 'd', { metaKey: true });
             expect(event.defaultPrevented).toBe(true);
             expect(changes[0].label).toBe('fill down');
             expect(changes[0].changes).toEqual([
                 {
                     recordId: ROWS[1].Id,
-                    field: 'Text_Field__c',
-                    value: ROWS[0].Text_Field__c,
-                    originalValue: ROWS[1].Text_Field__c
+                    field: 'Consignee__c',
+                    value: ROWS[0].Consignee__c,
+                    originalValue: ROWS[1].Consignee__c
                 },
                 {
                     recordId: ROWS[2].Id,
-                    field: 'Text_Field__c',
-                    value: ROWS[0].Text_Field__c,
-                    originalValue: ROWS[2].Text_Field__c
+                    field: 'Consignee__c',
+                    value: ROWS[0].Consignee__c,
+                    originalValue: ROWS[2].Consignee__c
                 }
             ]);
         });
@@ -243,7 +243,7 @@ describe('spreadsheet feel', () => {
         it('Delete clears the editable cells of the range and skips the rest', async () => {
             await focusOn(0, 'Name');
             await key(cell(0, 'Name'), 'ArrowRight', { shiftKey: true });
-            await key(cell(0, 'Test_Case__c'), 'Delete');
+            await key(cell(0, 'Pro_Number__c'), 'Delete');
             expect(changes[0].label).toBe('clear');
             expect(changes[0].changes).toEqual([
                 { recordId: ROWS[0].Id, field: 'Name', value: null, originalValue: ROWS[0].Name }
@@ -290,12 +290,12 @@ describe('frozen columns', () => {
         // The selection column (32px) is frozen with them, first.
         expect(th('__select').classList).toContain('rh-frozen');
         expect(th('Name').style.left).toBe('32px');
-        expect(th('Test_Case__c').style.left).toBe('182px');
-        expect(th('Test_Case__c').classList).toContain('rh-frozen_last');
-        expect(Number(th('Name').style.zIndex)).toBeGreaterThan(Number(th('Test_Case__c').style.zIndex));
+        expect(th('Pro_Number__c').style.left).toBe('182px');
+        expect(th('Pro_Number__c').classList).toContain('rh-frozen_last');
+        expect(Number(th('Name').style.zIndex)).toBeGreaterThan(Number(th('Pro_Number__c').style.zIndex));
         expect(td('Name').style.left).toBe('32px');
         expect(td('Name').classList).toContain('rh-frozen');
-        expect(th('Text_Field__c').classList).not.toContain('rh-frozen');
-        expect(td('Text_Field__c').style.left).toBe('');
+        expect(th('Consignee__c').classList).not.toContain('rh-frozen');
+        expect(td('Consignee__c').style.left).toBe('');
     });
 });

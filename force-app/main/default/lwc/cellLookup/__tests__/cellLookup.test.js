@@ -10,8 +10,8 @@ jest.mock('@salesforce/apex/GridController.searchLookup', () => ({ default: jest
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-const ACME = { id: '001000000000001AAA', name: 'Acme Corp', kind: 'Account' };
-const ACORN = { id: '001000000000002AAA', name: 'Acorn Ltd', kind: 'Account' };
+const ACME = { id: '001000000000001AAA', name: 'Casco Bay Marine', kind: 'Account' };
+const ACORN = { id: '001000000000002AAA', name: 'Cape Ann Seafood', kind: 'Account' };
 
 describe('cellLookup', () => {
     let el;
@@ -35,10 +35,10 @@ describe('cellLookup', () => {
         Object.assign(el, {
             mode: 'edit',
             label: 'Account',
-            configName: 'Test_Records',
-            field: 'Lookup_Field__c',
+            configName: 'Consignments',
+            field: 'Shipper__c',
             value: '001000000000009AAA',
-            valueLabel: 'Current Co'
+            valueLabel: 'Kennebec Lumber'
         });
         commits = [];
         el.addEventListener('commit', e => commits.push(e.detail));
@@ -51,17 +51,17 @@ describe('cellLookup', () => {
     });
 
     it('starts with the current record name, and no list', () => {
-        expect(input().value).toBe('Current Co');
+        expect(input().value).toBe('Kennebec Lumber');
         expect(input().getAttribute('role')).toBe('combobox');
         expect(input().getAttribute('aria-expanded')).toBe('false');
         expect(options()).toHaveLength(0);
     });
 
     it('searches the grid column after the user pauses, and lists the matches', async () => {
-        await type('ac');
+        await type('ca');
         expect(searchLookup).toHaveBeenCalledTimes(1);
-        expect(searchLookup).toHaveBeenCalledWith({ configName: 'Test_Records', field: 'Lookup_Field__c', term: 'ac' });
-        expect(options().map(o => o.textContent)).toEqual(['Acme CorpAccount', 'Acorn LtdAccount']);
+        expect(searchLookup).toHaveBeenCalledWith({ configName: 'Consignments', field: 'Shipper__c', term: 'ca' });
+        expect(options().map(o => o.textContent)).toEqual(['Casco Bay MarineAccount', 'Cape Ann SeafoodAccount']);
         expect(input().getAttribute('aria-expanded')).toBe('true');
         expect(options()[0].getAttribute('aria-selected')).toBe('true');
         expect(input().getAttribute('aria-activedescendant')).toBe(options()[0].id);
@@ -88,10 +88,10 @@ describe('cellLookup', () => {
     it("shows each match with its object's icon, the record icon when it has none", async () => {
         searchLookup.mockResolvedValue([
             { ...ACME, object: 'Account' },
-            { ...ACORN, object: 'Other__c' }
+            { ...ACORN, object: 'Inspection__c' }
         ]);
         el.icons = { Account: 'standard:account' };
-        await type('ac');
+        await type('ca');
         const icons = [...el.shadowRoot.querySelectorAll('[role="option"] lightning-icon')].map(i => i.iconName);
         expect(icons).toEqual(['standard:account', 'standard:record']);
     });
@@ -101,7 +101,7 @@ describe('cellLookup', () => {
         const scroll = jest.fn();
         Element.prototype.scrollIntoView = scroll;
         try {
-            await type('ac');
+            await type('ca');
             expect(scroll).toHaveBeenCalledTimes(1);
             expect(scroll.mock.contexts[0].getAttribute('role')).toBe('listbox');
             expect(scroll).toHaveBeenCalledWith({ block: 'nearest' });
@@ -109,7 +109,7 @@ describe('cellLookup', () => {
             await flush();
             expect(scroll).toHaveBeenCalledTimes(1);
             searchLookup.mockResolvedValue([]);
-            await type('zzz');
+            await type('Monadnock');
             expect(scroll).toHaveBeenCalledTimes(1);
         } finally {
             delete Element.prototype.scrollIntoView;
@@ -117,7 +117,7 @@ describe('cellLookup', () => {
     });
 
     it('moves through the matches with the arrows and commits the chosen one with its name', async () => {
-        await type('ac');
+        await type('ca');
         key('ArrowDown');
         await flush();
         expect(options()[1].getAttribute('aria-selected')).toBe('true');
@@ -126,7 +126,7 @@ describe('cellLookup', () => {
     });
 
     it('commits a match that is clicked', async () => {
-        await type('ac');
+        await type('ca');
         options()[0].click();
         expect(commits).toEqual([{ value: ACME.id, label: ACME.name }]);
     });
@@ -139,15 +139,15 @@ describe('cellLookup', () => {
     });
 
     it('keeps the value it had when the user leaves without choosing', async () => {
-        await type('zzz');
+        await type('Monadnock');
         key('Tab');
-        expect(commits).toEqual([{ value: '001000000000009AAA', label: 'Current Co' }]);
+        expect(commits).toEqual([{ value: '001000000000009AAA', label: 'Kennebec Lumber' }]);
     });
 
     it('cancels on Escape, saying whether a list was open', async () => {
         const cancels = [];
         el.addEventListener('cancel', e => cancels.push(e.detail));
-        await type('ac');
+        await type('ca');
         key('Escape');
         key('Escape');
         expect(cancels).toEqual([{ listOpen: true }, { listOpen: false }]);
@@ -155,12 +155,12 @@ describe('cellLookup', () => {
     });
 
     it('keeps Tab for the grid, and in a form lets it move on, showing the name chosen', async () => {
-        await type('ac');
+        await type('ca');
         let tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, composed: true, cancelable: true });
         input().dispatchEvent(tab);
         expect(tab.defaultPrevented).toBe(true); // the grid moves focus itself
         el.tabLeaves = true;
-        await type('ac');
+        await type('ca');
         key('ArrowDown');
         key('Enter');
         // A form keeps the choice as the lookup's value, as the dialog does.
@@ -181,22 +181,22 @@ describe('cellLookup', () => {
                     resolveFirst = resolve;
                 })
         );
-        await type('a');
+        await type('c');
         searchLookup.mockResolvedValueOnce([ACORN]);
-        await type('aco');
+        await type('cap');
         resolveFirst([ACME]);
         await flush();
         expect(options().map(o => o.dataset.index)).toEqual(['0']);
-        expect(options()[0].textContent).toContain('Acorn Ltd');
+        expect(options()[0].textContent).toContain('Cape Ann Seafood');
     });
 
     it('says so when nothing matches, and when the search fails', async () => {
         const status = () => el.shadowRoot.querySelector('[aria-live="polite"]').textContent;
         searchLookup.mockResolvedValueOnce([]);
-        await type('none');
+        await type('Wachusett');
         expect(status()).toBe('No matches.');
         searchLookup.mockRejectedValueOnce({ body: { message: 'No access' } });
-        await type('boom');
+        await type('Berkshire');
         expect(status()).toBe('Search failed: No access');
     });
 });

@@ -10,16 +10,16 @@ Run this whenever generate-seed.py changes.
 import csv, json, os
 
 HERE = os.path.dirname(__file__)
-SRC  = os.path.join(HERE, "..", "data", "Rowhouse_Test_Record__c.csv")
+SRC  = os.path.join(HERE, "..", "data", "Consignment__c.csv")
 OUT  = os.path.join(HERE, "..", "tests", "jest", "fixtures", "seed.js")
 
-NUM  = {"Number_Field__c", "Decimal_Field__c", "Currency_Field__c", "Percent_Field__c"}
-BOOL = {"Checkbox_Field__c"}
+NUM  = {"Pieces__c", "Weight__c", "Freight_Charge__c", "Fuel_Surcharge__c"}
+BOOL = {"Delivered__c"}
 
 rows = []
 with open(SRC, encoding="utf-8") as f:
     for i, r in enumerate(csv.DictReader(f), start=1):
-        rec = {"Id": f"a00000000000{i:03d}AAA"}          # deterministic fake Ids
+        rec = {"Id": f"a00000000000{i:03d}AAA"}          # deterministic record Ids
         for k, v in r.items():
             if v == "":
                 rec[k] = None
@@ -33,17 +33,17 @@ with open(SRC, encoding="utf-8") as f:
 
 COLUMNS = [
     {"field": "Name",              "label": "Name",      "type": "text",     "editable": True,  "sortable": True},
-    {"field": "Test_Case__c",      "label": "Test Case", "type": "text",     "editable": False, "sortable": True},
-    {"field": "Text_Field__c",     "label": "Text",      "type": "text",     "editable": True,  "sortable": True},
-    {"field": "Number_Field__c",   "label": "Number",    "type": "number",   "editable": True,  "sortable": True},
-    {"field": "Currency_Field__c", "label": "Amount",    "type": "currency", "editable": True,  "sortable": True},
-    {"field": "Date_Field__c",     "label": "Date",      "type": "date",     "editable": True,  "sortable": True},
-    {"field": "Checkbox_Field__c", "label": "Active",    "type": "checkbox", "editable": True,  "sortable": True},
-    {"field": "Picklist_Field__c", "label": "Stage",     "type": "picklist", "editable": True,  "sortable": True},
+    {"field": "Pro_Number__c",      "label": "PRO Number", "type": "text",     "editable": False, "sortable": True},
+    {"field": "Consignee__c",     "label": "Consignee", "type": "text",     "editable": True,  "sortable": True},
+    {"field": "Pieces__c",   "label": "Pieces",    "type": "number",   "editable": True,  "sortable": True},
+    {"field": "Freight_Charge__c", "label": "Freight Charge", "type": "currency", "editable": True,  "sortable": True},
+    {"field": "Ship_Date__c",     "label": "Ship Date", "type": "date",     "editable": True,  "sortable": True},
+    {"field": "Delivered__c", "label": "Delivered", "type": "checkbox", "editable": True,  "sortable": True},
+    {"field": "Service_Level__c", "label": "Service Level", "type": "picklist", "editable": True,  "sortable": True},
 ]
 
 banner = ("// GENERATED FILE — do not edit.\n"
-          "// Source: data/Rowhouse_Test_Record__c.csv\n"
+          "// Source: data/Consignment__c.csv\n"
           "// Regenerate: python3 scripts/build-jest-fixture.py\n"
           "// Keeping this generated is what stops the Jest fixtures and the org\n"
           "// data from drifting apart.\n\n")

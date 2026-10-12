@@ -31,36 +31,36 @@ describe('inline edit', () => {
         const handler = jest.fn();
         el.addEventListener('cellchange', handler);
 
-        cell(target.Id, 'Text_Field__c').querySelector('button').click();
+        cell(target.Id, 'Consignee__c').querySelector('button').click();
         await flush();
         const editor = el.shadowRoot.querySelector('c-cell-text[data-editor]');
         expect(editor).not.toBeNull();
         expect(editor.mode).toBe('edit');
 
-        editor.dispatchEvent(new CustomEvent('commit', { detail: { value: 'changed' } }));
+        editor.dispatchEvent(new CustomEvent('commit', { detail: { value: 'Merrimack Valley Foods' } }));
         await flush();
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler.mock.calls[0][0].detail).toEqual(
-            expect.objectContaining({ recordId: target.Id, field: 'Text_Field__c', value: 'changed' })
+            expect.objectContaining({ recordId: target.Id, field: 'Consignee__c', value: 'Merrimack Valley Foods' })
         );
         // The editor closes and focus returns to the same cell (HR-13).
         expect(el.shadowRoot.querySelector('c-cell-text[data-editor]')).toBeNull();
         expect(el.shadowRoot.activeElement.dataset.rowId).toBe(target.Id);
-        expect(el.shadowRoot.activeElement.dataset.field).toBe('Text_Field__c');
+        expect(el.shadowRoot.activeElement.dataset.field).toBe('Consignee__c');
     });
 
     it('does not offer an editor for a read-only column', async () => {
         await mount({ columns, rows: seedRows });
-        const button = cell(seedRows[0].Id, 'Test_Case__c').querySelector('button');
+        const button = cell(seedRows[0].Id, 'Pro_Number__c').querySelector('button');
         expect(button.disabled).toBe(true); // the lock affordance, per the SLDS blueprint
-        expect(cell(seedRows[0].Id, 'Test_Case__c').getAttribute('aria-readonly')).toBe('true');
+        expect(cell(seedRows[0].Id, 'Pro_Number__c').getAttribute('aria-readonly')).toBe('true');
     });
 
     it('marks a drafted cell slds-is-edited and shows the docked footer', async () => {
         const id = seedRows[2].Id;
-        await mount({ columns, rows: seedRows, drafts: { [id]: { Text_Field__c: 'draft' } } });
-        expect(cell(id, 'Text_Field__c').classList).toContain('slds-is-edited');
-        expect(cell(id, 'Text_Field__c').textContent).toContain('draft');
+        await mount({ columns, rows: seedRows, drafts: { [id]: { Consignee__c: 'Kennebec Lumber' } } });
+        expect(cell(id, 'Consignee__c').classList).toContain('slds-is-edited');
+        expect(cell(id, 'Consignee__c').textContent).toContain('Kennebec Lumber');
         const footer = el.shadowRoot.querySelector('.rh-footer');
         expect(footer).not.toBeNull();
         expect(footer.textContent).toContain('1 unsaved change');
@@ -73,7 +73,7 @@ describe('inline edit', () => {
 
     it('fires save and cancel from the footer', async () => {
         const id = seedRows[2].Id;
-        await mount({ columns, rows: seedRows, drafts: { [id]: { Text_Field__c: 'draft' } } });
+        await mount({ columns, rows: seedRows, drafts: { [id]: { Consignee__c: 'Kennebec Lumber' } } });
         const save = jest.fn();
         const cancel = jest.fn();
         el.addEventListener('save', save);
@@ -90,9 +90,9 @@ describe('inline edit', () => {
         await mount({
             columns,
             rows: seedRows,
-            errors: { [id]: { row: null, fields: { Number_Field__c: 'Value out of range' } } }
+            errors: { [id]: { row: null, fields: { Pieces__c: 'Value out of range' } } }
         });
-        const td = cell(id, 'Number_Field__c');
+        const td = cell(id, 'Pieces__c');
         expect(td.classList).toContain('slds-has-error');
         const describedBy = td.getAttribute('aria-describedby');
         expect(describedBy).toBeTruthy();
@@ -115,7 +115,7 @@ describe('inline edit', () => {
         await mount({ columns, rows: seedRows });
         const handler = jest.fn();
         el.addEventListener('cellchange', handler);
-        cell(seedRows[1].Id, 'Text_Field__c').querySelector('button').click();
+        cell(seedRows[1].Id, 'Consignee__c').querySelector('button').click();
         await flush();
         const editor = el.shadowRoot.querySelector('c-cell-text[data-editor]');
         editor.dispatchEvent(new CustomEvent('cancel'));
@@ -160,7 +160,7 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('Enter on an editable cell opens its editor', async () => {
         await mount({ columns, rows: seedRows });
-        const td = await focusCell(seedRows[0].Id, 'Text_Field__c');
+        const td = await focusCell(seedRows[0].Id, 'Consignee__c');
         key(td, 'Enter');
         await flush();
         const editor = el.shadowRoot.querySelector('c-cell-text[data-editor]');
@@ -170,7 +170,7 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('F2 opens the editor too', async () => {
         await mount({ columns, rows: seedRows });
-        const td = await focusCell(seedRows[0].Id, 'Number_Field__c');
+        const td = await focusCell(seedRows[0].Id, 'Pieces__c');
         key(td, 'F2');
         await flush();
         expect(el.shadowRoot.querySelector('c-cell-number[data-editor]')).not.toBeNull();
@@ -178,7 +178,7 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('typing a character starts editing with what was typed', async () => {
         await mount({ columns, rows: seedRows });
-        const td = await focusCell(seedRows[0].Id, 'Text_Field__c');
+        const td = await focusCell(seedRows[0].Id, 'Consignee__c');
         key(td, 'q');
         await flush();
         expect(el.shadowRoot.querySelector('c-cell-text[data-editor]').seed).toBe('q');
@@ -186,7 +186,7 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('typing on a picklist or a date opens its editor without a seed', async () => {
         await mount({ columns, rows: seedRows });
-        const td = await focusCell(seedRows[0].Id, 'Date_Field__c');
+        const td = await focusCell(seedRows[0].Id, 'Ship_Date__c');
         key(td, '2');
         await flush();
         const editor = el.shadowRoot.querySelector('c-cell-date[data-editor]');
@@ -196,7 +196,7 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('typing on a read-only cell does nothing', async () => {
         await mount({ columns, rows: seedRows });
-        const td = await focusCell(seedRows[0].Id, 'Test_Case__c');
+        const td = await focusCell(seedRows[0].Id, 'Pro_Number__c');
         key(td, 'q');
         await flush();
         expect(el.shadowRoot.querySelector('[data-editor]')).toBeNull();
@@ -204,7 +204,7 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('a shortcut with Ctrl or Cmd is not typing', async () => {
         await mount({ columns, rows: seedRows });
-        const td = await focusCell(seedRows[0].Id, 'Text_Field__c');
+        const td = await focusCell(seedRows[0].Id, 'Consignee__c');
         key(td, 'q', { metaKey: true });
         key(td, 'q', { ctrlKey: true });
         await flush();
@@ -213,7 +213,7 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('a double-click on an editable cell opens its editor', async () => {
         await mount({ columns, rows: seedRows });
-        const td = cell(seedRows[1].Id, 'Text_Field__c');
+        const td = cell(seedRows[1].Id, 'Consignee__c');
         td.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, composed: true, cancelable: true }));
         await flush();
         expect(el.shadowRoot.querySelector('c-cell-text[data-editor]')).not.toBeNull();
@@ -221,19 +221,19 @@ describe('starting an edit, as a spreadsheet does', () => {
 
     it('a double-click on a read-only cell does nothing', async () => {
         await mount({ columns, rows: seedRows });
-        const td = cell(seedRows[1].Id, 'Test_Case__c');
+        const td = cell(seedRows[1].Id, 'Pro_Number__c');
         td.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, composed: true, cancelable: true }));
         await flush();
         expect(el.shadowRoot.querySelector('[data-editor]')).toBeNull();
     });
 
     it('keeps the editor open, with its message, when a required value is left blank', async () => {
-        const required = columns.map(c => (c.field === 'Text_Field__c' ? { ...c, required: true } : c));
-        const row = { Id: 'a00000000000000999', Name: 'Sparse', Text_Field__c: null };
+        const required = columns.map(c => (c.field === 'Consignee__c' ? { ...c, required: true } : c));
+        const row = { Id: 'a00000000000000999', Name: 'Reefer load, Machias', Consignee__c: null };
         await mount({ columns: required, rows: [row] });
         const handler = jest.fn();
         el.addEventListener('cellchange', handler);
-        cell(row.Id, 'Text_Field__c').querySelector('button').click();
+        cell(row.Id, 'Consignee__c').querySelector('button').click();
         await flush();
         const editor = el.shadowRoot.querySelector('c-cell-text[data-editor]');
         expect(editor.required).toBe(true);

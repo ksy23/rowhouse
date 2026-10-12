@@ -40,27 +40,27 @@ afterEach(() => {
 describe('clip and wrap in the table', () => {
     it('clips to one line by default', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        const text = cellText(id, 'Test_Case__c');
+        const text = cellText(id, 'Pro_Number__c');
         expect(text.classList).toContain('slds-truncate');
         expect(text.classList).not.toContain('slds-line-clamp');
         expect($('table').classList).not.toContain('rh-table_wrap');
     });
 
     it('wraps to three lines when the admin default says so, and only that column', async () => {
-        await mount({ columns: withWrap('Test_Case__c'), rows: seedRows.slice(0, 3) });
-        const text = cellText(id, 'Test_Case__c');
+        await mount({ columns: withWrap('Pro_Number__c'), rows: seedRows.slice(0, 3) });
+        const text = cellText(id, 'Pro_Number__c');
         expect(text.classList).toContain('slds-line-clamp'); // SLDS: three lines, pre-line
         expect(text.classList).toContain('rh-wrap-text'); // every wrapped cell three lines tall
-        expect(text.getAttribute('title')).toBe(seedRows[0].Test_Case__c);
-        expect(text.textContent).toBe(seedRows[0].Test_Case__c); // clamping is visual only
-        expect($(`td[data-row-id="${id}"][data-field="Test_Case__c"]`).classList).toContain('slds-cell-wrap');
+        expect(text.getAttribute('title')).toBe(seedRows[0].Pro_Number__c);
+        expect(text.textContent).toBe(seedRows[0].Pro_Number__c); // clamping is visual only
+        expect($(`td[data-row-id="${id}"][data-field="Pro_Number__c"]`).classList).toContain('slds-cell-wrap');
         expect(cellText(id, 'Name').classList).toContain('slds-truncate');
         expect($('table').classList).toContain('rh-table_wrap');
     });
 
     it('never wraps a number, date or checkbox, whatever the config says', async () => {
-        await mount({ columns: withWrap('Number_Field__c'), rows: seedRows.slice(0, 3) });
-        expect($('td[data-field="Number_Field__c"] .slds-line-clamp')).toBeNull();
+        await mount({ columns: withWrap('Pieces__c'), rows: seedRows.slice(0, 3) });
+        expect($('td[data-field="Pieces__c"] .slds-line-clamp')).toBeNull();
         // Their menus sort; they offer no wrapping.
         const labels = async field => {
             menuButton(field).click();
@@ -70,36 +70,36 @@ describe('clip and wrap in the table', () => {
             await flush();
             return out;
         };
-        for (const field of ['Number_Field__c', 'Date_Field__c', 'Checkbox_Field__c']) {
+        for (const field of ['Pieces__c', 'Ship_Date__c', 'Delivered__c']) {
             // eslint-disable-next-line no-await-in-loop -- one menu open at a time
             expect(await labels(field)).toEqual(['Sort ascending', 'Sort descending']);
         }
-        expect(await labels('Text_Field__c')).toContain('Wrap text');
-        expect(await labels('Picklist_Field__c')).toContain('Wrap text');
+        expect(await labels('Consignee__c')).toContain('Wrap text');
+        expect(await labels('Service_Level__c')).toContain('Wrap text');
     });
 });
 
 describe('the column header menu', () => {
     it('follows the SLDS header-menu markup and keeps a single tab stop', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        const th = $('th[data-field="Text_Field__c"]');
+        const th = $('th[data-field="Consignee__c"]');
         expect(th.classList).toContain('slds-has-button-menu');
-        const button = menuButton('Text_Field__c');
+        const button = menuButton('Consignee__c');
         expect(button.classList).toContain('slds-th__action-button');
         expect(button.getAttribute('aria-haspopup')).toBe('true');
         expect(button.getAttribute('aria-expanded')).toBe('false');
-        expect(button.textContent).toBe('Show Text column actions');
+        expect(button.textContent).toBe('Show Consignee column actions');
         expect(button.getAttribute('tabindex')).toBe('-1'); // a control: actionable mode only
         expect($$('[tabindex="0"]')).toHaveLength(1);
     });
 
     it('opens on click, shows the current choice, and focuses the first item', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        menuButton('Test_Case__c').click();
+        menuButton('Pro_Number__c').click();
         await flush();
-        expect(menuButton('Test_Case__c').getAttribute('aria-expanded')).toBe('true');
+        expect(menuButton('Pro_Number__c').getAttribute('aria-expanded')).toBe('true');
         const menu = $('[role="menu"]');
-        expect(menu.getAttribute('aria-label')).toBe('Test Case column actions');
+        expect(menu.getAttribute('aria-label')).toBe('PRO Number column actions');
         // Sorting first, as in a list view's column menu, then the text choice.
         expect(items().map(i => i.textContent.trim())).toEqual([
             'Sort ascending',
@@ -115,19 +115,19 @@ describe('the column header menu', () => {
 
     it('choosing Wrap text wraps the column, closes the menu, returns focus and announces it', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        menuButton('Test_Case__c').click();
+        menuButton('Pro_Number__c').click();
         await flush();
         items()[2].click();
         await flush();
         expect($('[role="menu"]')).toBeNull();
-        expect(cellText(id, 'Test_Case__c').classList).toContain('slds-line-clamp');
-        expect(el.shadowRoot.activeElement).toBe(menuButton('Test_Case__c'));
-        expect($('[data-grid-root] > [aria-live="polite"]').textContent).toBe('Test Case: text wrapped');
+        expect(cellText(id, 'Pro_Number__c').classList).toContain('slds-line-clamp');
+        expect(el.shadowRoot.activeElement).toBe(menuButton('Pro_Number__c'));
+        expect($('[data-grid-root] > [aria-live="polite"]').textContent).toBe('PRO Number: text wrapped');
     });
 
     it('works from the keyboard: arrows move, Enter chooses, Up Arrow opens on the last item', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        key(menuButton('Text_Field__c'), 'ArrowDown');
+        key(menuButton('Consignee__c'), 'ArrowDown');
         await flush();
         expect(el.shadowRoot.activeElement).toBe(items()[0]);
         key(items()[0], 'ArrowDown');
@@ -144,9 +144,9 @@ describe('the column header menu', () => {
         expect(el.shadowRoot.activeElement).toBe(items()[2]); // Wrap text
         key(items()[2], 'Enter');
         await flush();
-        expect(cellText(id, 'Text_Field__c').classList).toContain('slds-line-clamp');
+        expect(cellText(id, 'Consignee__c').classList).toContain('slds-line-clamp');
 
-        key(menuButton('Text_Field__c'), 'ArrowUp');
+        key(menuButton('Consignee__c'), 'ArrowUp');
         await flush();
         expect(el.shadowRoot.activeElement).toBe($('[data-hide]')); // Hide column, the last
         key($('[data-hide]'), 'ArrowUp');
@@ -155,26 +155,26 @@ describe('the column header menu', () => {
         expect(el.shadowRoot.activeElement).toBe(items()[3]); // Clip text
         key(items()[3], ' ');
         await flush();
-        expect(cellText(id, 'Text_Field__c').classList).toContain('slds-truncate');
+        expect(cellText(id, 'Consignee__c').classList).toContain('slds-truncate');
     });
 
     it('Escape closes without changing anything, and does not leave actionable mode', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        menuButton('Text_Field__c').focus(); // a control has focus: actionable mode
-        menuButton('Text_Field__c').click();
+        menuButton('Consignee__c').focus(); // a control has focus: actionable mode
+        menuButton('Consignee__c').click();
         await flush();
         const event = key(items()[0], 'Escape');
         await flush();
         expect(event.defaultPrevented).toBe(true);
         expect($('[role="menu"]')).toBeNull();
-        expect(el.shadowRoot.activeElement).toBe(menuButton('Text_Field__c'));
-        expect(menuButton('Text_Field__c').getAttribute('tabindex')).toBe('0'); // still actionable
-        expect(cellText(id, 'Text_Field__c').classList).toContain('slds-truncate');
+        expect(el.shadowRoot.activeElement).toBe(menuButton('Consignee__c'));
+        expect(menuButton('Consignee__c').getAttribute('tabindex')).toBe('0'); // still actionable
+        expect(cellText(id, 'Consignee__c').classList).toContain('slds-truncate');
     });
 
     it('closes when focus moves elsewhere', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        menuButton('Text_Field__c').click();
+        menuButton('Consignee__c').click();
         await flush();
         items()[0].dispatchEvent(
             new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: $('th[data-field="Name"]') })
@@ -184,21 +184,21 @@ describe('the column header menu', () => {
     });
 
     it('overrides the admin default for the session, and keeps the choice when the data changes', async () => {
-        const cols = withWrap('Test_Case__c');
+        const cols = withWrap('Pro_Number__c');
         await mount({ columns: cols, rows: seedRows.slice(0, 3) });
-        menuButton('Test_Case__c').click();
+        menuButton('Pro_Number__c').click();
         await flush();
         items()[3].click(); // Clip text
         await flush();
-        expect(cellText(id, 'Test_Case__c').classList).toContain('slds-truncate');
+        expect(cellText(id, 'Pro_Number__c').classList).toContain('slds-truncate');
         el.config = { columns: cols, rows: seedRows.slice(0, 4) }; // a new object from the parent
         await flush();
-        expect(cellText(id, 'Test_Case__c').classList).toContain('slds-truncate');
+        expect(cellText(id, 'Pro_Number__c').classList).toContain('slds-truncate');
     });
 
     it('has no axe violations with the menu open', async () => {
         await mount({ columns, rows: seedRows.slice(0, 3) });
-        menuButton('Text_Field__c').click();
+        menuButton('Consignee__c').click();
         await flush();
         await frame();
         await expect(el).toBeAccessible();
@@ -207,11 +207,15 @@ describe('the column header menu', () => {
 
 describe('cards', () => {
     it('always wrap, keeping line breaks, whatever the column setting', async () => {
-        const row = { Id: 'a00000000000000999', Name: 'Multi-line', Text_Field__c: 'first line\nsecond line' };
+        const row = {
+            Id: 'a00000000000000999',
+            Name: 'Rockland Marine Supply, rear dock',
+            Consignee__c: 'Rockland Marine Supply\nAttn: Receiving'
+        };
         await mount({ columns, rows: [row], layout: 'cards' });
         const dd = [...$$('li.rh-card dd')][1]; // the name is the card's title
         const text = dd.querySelector('.rh-card-text');
-        expect(text.textContent).toBe('first line\nsecond line');
+        expect(text.textContent).toBe('Rockland Marine Supply\nAttn: Receiving');
         expect(dd.querySelector('.slds-truncate')).toBeNull();
         expect($('[data-menu-button]')).toBeNull();
     });

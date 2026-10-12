@@ -17,7 +17,7 @@ import {
     subtotalFor
 } from 'c/gridGroups';
 
-const DATE = { field: 'Close__c', label: 'Close', type: 'date' };
+const DATE = { field: 'Close__c', label: 'Close Date', type: 'date' };
 const STAGE = {
     field: 'Stage__c',
     label: 'Stage',
@@ -29,7 +29,7 @@ const STAGE = {
     ]
 };
 const AMOUNT = { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, subtotal: 'sum' };
-const LOW = { field: 'Low__c', label: 'Low', type: 'number', scale: 0, subtotal: 'min' };
+const LOW = { field: 'Quantity__c', label: 'Quantity', type: 'number', scale: 0, subtotal: 'min' };
 const COLUMNS = [STAGE, DATE, AMOUNT, LOW];
 
 describe('weeks', () => {
@@ -46,7 +46,7 @@ describe('weeks', () => {
     });
 
     it("key a date/time by the week of its day in the user's time zone", () => {
-        expect(keyFor('2026-10-07T12:00:00.000Z', { field: 'When__c', type: 'datetime' }, 'week', 'UTC')).toBe(
+        expect(keyFor('2026-10-07T12:00:00.000Z', { field: 'Signed_At__c', type: 'datetime' }, 'week', 'UTC')).toBe(
             '2026-10-04'
         );
     });
@@ -88,16 +88,16 @@ describe('fiscal periods', () => {
 });
 
 const ROWS = [
-    { Id: 'r1', Stage__c: 'Open', Amount__c: '100', Low__c: '5' },
-    { Id: 'r2', Stage__c: 'Open', Amount__c: '50', Low__c: '9' },
-    { Id: 'r3', Stage__c: 'Won', Amount__c: '500', Low__c: '1' },
-    { Id: 'r4', Stage__c: 'Lost', Amount__c: '25', Low__c: '7' }
+    { Id: 'r1', Stage__c: 'Open', Amount__c: '100', Quantity__c: '5' },
+    { Id: 'r2', Stage__c: 'Open', Amount__c: '50', Quantity__c: '9' },
+    { Id: 'r3', Stage__c: 'Won', Amount__c: '500', Quantity__c: '1' },
+    { Id: 'r4', Stage__c: 'Lost', Amount__c: '25', Quantity__c: '7' }
 ];
 const LEVELS = [{ field: 'Stage__c', unit: null }];
 const SERVER = [
-    { k: ['Open'], n: 2, v: { Amount__c: { s: '150' }, Low__c: { mn: '5' } } },
-    { k: ['Won'], n: 1, v: { Amount__c: { s: '500' }, Low__c: { mn: '1' } } },
-    { k: ['Lost'], n: 1, v: { Amount__c: { s: '25' }, Low__c: { mn: '7' } } }
+    { k: ['Open'], n: 2, v: { Amount__c: { s: '150' }, Quantity__c: { mn: '5' } } },
+    { k: ['Won'], n: 1, v: { Amount__c: { s: '500' }, Quantity__c: { mn: '1' } } },
+    { k: ['Lost'], n: 1, v: { Amount__c: { s: '25' }, Quantity__c: { mn: '7' } } }
 ];
 const totals = () => rollUp(SERVER, LEVELS, COLUMNS);
 const groupNames = view => view.items.filter(r => r.__group).map(r => r.__group.label);
@@ -105,7 +105,7 @@ const groupNames = view => view.items.filter(r => r.__group).map(r => r.__group.
 describe("the groups' order", () => {
     it('is by name until the user asks otherwise; anything unknown is by name', () => {
         expect(normalizeOrder(null, COLUMNS)).toEqual({ by: 'name', direction: 'asc' });
-        expect(normalizeOrder({ by: 'Nope__c' }, COLUMNS)).toEqual({ by: 'name', direction: 'asc' });
+        expect(normalizeOrder({ by: 'Territory__c' }, COLUMNS)).toEqual({ by: 'name', direction: 'asc' });
         expect(normalizeOrder({ by: 'count' }, COLUMNS)).toEqual({ by: 'count', direction: 'desc' });
         expect(normalizeOrder({ by: 'Amount__c', direction: 'asc' }, COLUMNS)).toEqual({
             by: 'Amount__c',
@@ -183,16 +183,16 @@ describe('subtotals with unsaved edits', () => {
     });
 
     it('follow an edit past the lowest value', () => {
-        const shown = withDrafts(t, ROWS, { r2: { Low__c: '2' } }, LEVELS, COLUMNS);
+        const shown = withDrafts(t, ROWS, { r2: { Quantity__c: '2' } }, LEVELS, COLUMNS);
         expect(subtotalFor(shown.byPath.get('open'), LOW).value).toBe('2');
         expect(shown.byPath.get('open').unknown).toEqual({});
     });
 
     it('work the lowest out again from the rows when every row is loaded, or leave it as saved until the save', () => {
-        const drafts = { r1: { Low__c: '8' } }; // the Open group's lowest, 5, goes up to 8
+        const drafts = { r1: { Quantity__c: '8' } }; // the Open group's lowest, 5, goes up to 8
         const partial = withDrafts(t, ROWS, drafts, LEVELS, COLUMNS);
         expect(subtotalFor(partial.byPath.get('open'), LOW).value).toBe('5');
-        expect(partial.byPath.get('open').unknown).toEqual({ Low__c: true });
+        expect(partial.byPath.get('open').unknown).toEqual({ Quantity__c: true });
         const complete = withDrafts(t, ROWS, drafts, LEVELS, COLUMNS, { complete: true });
         expect(subtotalFor(complete.byPath.get('open'), LOW).value).toBe('8');
         expect(complete.byPath.get('open').unknown).toEqual({});

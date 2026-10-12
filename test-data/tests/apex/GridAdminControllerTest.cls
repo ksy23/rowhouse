@@ -22,23 +22,23 @@ private class GridAdminControllerTest {
         System.runAs(GridTestUsers.adminUser()) {
             Boolean listed = false;
             for (Map<String, Object> c : GridAdminController.listConfigs()) {
-                if (c.get('name') == 'Test_Records')
+                if (c.get('name') == 'Consignments')
                     listed = true;
             }
-            System.assert(listed, 'Test_Records is listed.');
+            System.assert(listed, 'Consignments is listed.');
 
-            Map<String, Object> read = GridAdminController.readConfig('Test_Records');
-            System.assertEquals('Test_Records', ((GridAdmin.Draft) read.get('draft')).config.name);
+            Map<String, Object> read = GridAdminController.readConfig('Consignments');
+            System.assertEquals('Consignments', ((GridAdmin.Draft) read.get('draft')).config.name);
             System.assertEquals(true, GridAdminController.canSave(), 'A System Administrator may save.');
 
             Boolean offered = false;
             for (Map<String, String> o : GridAdminController.listObjects()) {
-                if (o.get('name') == 'Rowhouse_Test_Record__c')
+                if (o.get('name') == 'Consignment__c')
                     offered = true;
             }
             System.assert(offered, 'The test object is offered.');
             System.assert(
-                GridAdminController.describeObject('Rowhouse_Test_Record__c').containsKey('fields'),
+                GridAdminController.describeObject('Consignment__c').containsKey('fields'),
                 'An object is described with its fields.'
             );
 
@@ -47,7 +47,7 @@ private class GridAdminControllerTest {
 
             System.assertEquals('pending', GridAdminController.saveStatus('0Afhk0000000003').get('status'));
             System.assert(GridAdminController.logRetention() != null, 'The log retention status is returned.');
-            System.assert(!GridAdminController.setupRecords('Test_Children').isEmpty(), 'Setup lists its records.');
+            System.assert(!GridAdminController.setupRecords('Consignment_Items').isEmpty(), 'Setup lists its records.');
         }
     }
 
@@ -56,10 +56,10 @@ private class GridAdminControllerTest {
         System.runAs(GridTestUsers.adminUser()) {
             Kept spy = new Kept();
             GridAdmin.deployWith = spy;
-            String draftJson = JSON.serialize(GridAdminController.readConfig('Test_Records').get('draft'));
+            String draftJson = JSON.serialize(GridAdminController.readConfig('Consignments').get('draft'));
 
             System.assertEquals(String.valueOf(UserInfo.getUserId()), GridAdminController.saveDraft(draftJson));
-            System.assertNotEquals(null, GridAdminController.archiveConfig('Test_Records', true));
+            System.assertNotEquals(null, GridAdminController.archiveConfig('Consignments', true));
             System.assertNotEquals(
                 null,
                 GridAdminController.cloneConfig('Nest_Accounts', 'Copy of Nest Accounts', 'Copy_of_Nest_Accounts')
@@ -91,7 +91,7 @@ private class GridAdminControllerTest {
                 try {
                     switch on i {
                         when 0 {
-                            GridAdminController.readConfig('Test_Records');
+                            GridAdminController.readConfig('Consignments');
                         }
                         when 1 {
                             GridAdminController.canSave();
@@ -100,7 +100,7 @@ private class GridAdminControllerTest {
                             GridAdminController.listObjects();
                         }
                         when 3 {
-                            GridAdminController.describeObject('Rowhouse_Test_Record__c');
+                            GridAdminController.describeObject('Consignment__c');
                         }
                         when 4 {
                             GridAdminController.checkDraft('{}');
@@ -115,13 +115,17 @@ private class GridAdminControllerTest {
                             GridAdminController.saveLogRetention(null);
                         }
                         when 8 {
-                            GridAdminController.archiveConfig('Test_Records', true);
+                            GridAdminController.archiveConfig('Consignments', true);
                         }
                         when 9 {
-                            GridAdminController.cloneConfig('Nest_Accounts', 'Copy', 'Copy_of_Nest_Accounts');
+                            GridAdminController.cloneConfig(
+                                'Nest_Accounts',
+                                'Copy of Nest Accounts',
+                                'Copy_of_Nest_Accounts'
+                            );
                         }
                         when 10 {
-                            GridAdminController.setupRecords('Test_Records');
+                            GridAdminController.setupRecords('Consignments');
                         }
                         when 11 {
                             GridAdminController.logRetention();

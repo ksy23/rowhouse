@@ -3,16 +3,16 @@
  * Mass delete: what the server refuses, what it deletes, and how a row
  * that could not be deleted comes back. Undo after a delete, and the Ids of
  * every matching record for "delete every matching record". The fixture configurations decide
- * whether a grid allows it: Test_Records does, Save_Test does not. The refusal
+ * whether a grid allows it: Consignments does, Consignment_Rates does not. The refusal
  * for a user without delete permission is in GridSecurityTest, with the other
  * access tests.
  */
 @IsTest
 private class GridDeleteServiceTest {
-    private static List<Rowhouse_Test_Record__c> newRecords(String name, Integer count) {
-        List<Rowhouse_Test_Record__c> out = new List<Rowhouse_Test_Record__c>();
+    private static List<Consignment__c> newRecords(String name, Integer count) {
+        List<Consignment__c> out = new List<Consignment__c>();
         for (Integer i = 0; i < count; i++) {
-            out.add(new Rowhouse_Test_Record__c(Name = name + ' ' + i));
+            out.add(new Consignment__c(Name = name + ' ' + i));
         }
         return out;
     }
@@ -29,11 +29,11 @@ private class GridDeleteServiceTest {
     @IsTest
     static void deletesTheSelectedRowsIntoTheRecycleBin() {
         System.runAs(GridTestUsers.fullUser()) {
-            List<Rowhouse_Test_Record__c> recs = newRecords('Delete me', 3);
+            List<Consignment__c> recs = newRecords('Kennebec Lumber, bundle', 3);
             insert recs;
             Test.startTest();
             GridDeleteService.Result result = GridDeleteService.deleteRows(
-                'Test_Records',
+                'Consignments',
                 new List<Id>{ recs[0].Id, recs[1].Id, recs[0].Id }
             ); // a repeated Id is deleted once
             Test.stopTest();
@@ -41,12 +41,12 @@ private class GridDeleteServiceTest {
             System.assert(result.errors.isEmpty(), String.valueOf(result.errors));
             System.assertEquals(
                 1,
-                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs],
+                [SELECT COUNT() FROM Consignment__c WHERE Id IN :recs],
                 'Only the selected rows are deleted.'
             );
             System.assertEquals(
                 2,
-                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs AND IsDeleted = TRUE ALL ROWS],
+                [SELECT COUNT() FROM Consignment__c WHERE Id IN :recs AND IsDeleted = TRUE ALL ROWS],
                 'Deleted rows go to the Recycle Bin, where they can be restored.'
             );
         }
@@ -59,16 +59,16 @@ private class GridDeleteServiceTest {
         // delete. So one row fails for sharing, the other is deleted.
         User owner = GridTestUsers.fullUser();
         User other = GridTestUsers.fullUser();
-        Rowhouse_Test_Record__c theirs = new Rowhouse_Test_Record__c(Name = 'Not mine');
+        Consignment__c theirs = new Consignment__c(Name = 'Casco Bay Marine, 4 crates');
         System.runAs(owner) {
             insert theirs;
         }
-        Rowhouse_Test_Record__c mine = new Rowhouse_Test_Record__c(Name = 'Mine');
+        Consignment__c mine = new Consignment__c(Name = 'Wachusett Paper, 9 pallets');
         GridDeleteService.Result result;
         System.runAs(other) {
             insert mine;
             Test.startTest();
-            result = GridDeleteService.deleteRows('Test_Records', new List<Id>{ theirs.Id, mine.Id });
+            result = GridDeleteService.deleteRows('Consignments', new List<Id>{ theirs.Id, mine.Id });
             Test.stopTest();
         }
         System.assertEquals(new List<Id>{ mine.Id }, result.deletedIds);
@@ -79,7 +79,7 @@ private class GridDeleteServiceTest {
         System.runAs(owner) {
             System.assertEquals(
                 1,
-                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :theirs.Id],
+                [SELECT COUNT() FROM Consignment__c WHERE Id = :theirs.Id],
                 'The row the user may not delete is still there.'
             );
         }
@@ -88,15 +88,15 @@ private class GridDeleteServiceTest {
     @IsTest
     static void refusesWhenTheConfigurationDoesNotAllowIt() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = new Rowhouse_Test_Record__c(Name = 'Keep me');
+            Consignment__c rec = new Consignment__c(Name = 'Penobscot Paper, full truck');
             insert rec;
             Test.startTest();
-            String message = refusal('Save_Test', new List<Id>{ rec.Id });
-            Boolean offered = GridConfig.forUser('Save_Test').allowMassDelete;
+            String message = refusal('Consignment_Rates', new List<Id>{ rec.Id });
+            Boolean offered = GridConfig.forUser('Consignment_Rates').allowMassDelete;
             Test.stopTest();
             System.assertEquals('This grid does not allow deleting records.', message);
             System.assertEquals(false, offered, 'The grid must not offer what the server refuses.');
-            System.assertEquals(1, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :rec.Id]);
+            System.assertEquals(1, [SELECT COUNT() FROM Consignment__c WHERE Id = :rec.Id]);
         }
     }
 
@@ -108,28 +108,28 @@ private class GridDeleteServiceTest {
         Boolean fullOffered;
         Test.startTest();
         System.runAs(limited) {
-            limitedOffered = GridConfig.forUser('Test_Records').allowMassDelete;
+            limitedOffered = GridConfig.forUser('Consignments').allowMassDelete;
         }
         System.runAs(full) {
-            fullOffered = GridConfig.forUser('Test_Records').allowMassDelete;
+            fullOffered = GridConfig.forUser('Consignments').allowMassDelete;
         }
         Test.stopTest();
-        System.assertEquals(false, limitedOffered, 'Rowhouse_Test_Limited has no delete permission.');
+        System.assertEquals(false, limitedOffered, 'Freight_Limited_Access has no delete permission.');
         System.assertEquals(true, fullOffered);
     }
 
     @IsTest
     static void refusesAnIdOfAnotherObjectAndDeletesNothing() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = new Rowhouse_Test_Record__c(Name = 'Keep me');
+            Consignment__c rec = new Consignment__c(Name = 'Bangor Brick & Tile, Belfast');
             insert rec;
             Test.startTest();
-            String message = refusal('Test_Records', new List<Id>{ rec.Id, UserInfo.getUserId() });
+            String message = refusal('Consignments', new List<Id>{ rec.Id, UserInfo.getUserId() });
             Test.stopTest();
-            System.assert(message != null && message.contains('is not a Rowhouse_Test_Record__c'), message);
+            System.assert(message != null && message.contains('is not a Consignment__c'), message);
             System.assertEquals(
                 1,
-                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :rec.Id],
+                [SELECT COUNT() FROM Consignment__c WHERE Id = :rec.Id],
                 'A request with a foreign Id is refused whole.'
             );
         }
@@ -138,79 +138,75 @@ private class GridDeleteServiceTest {
     @IsTest
     static void refusesMoreThanTwoHundredIds() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = new Rowhouse_Test_Record__c(Name = 'Keep me');
+            Consignment__c rec = new Consignment__c(Name = 'Mill River Energy, Springfield');
             insert rec;
             List<Id> ids = new List<Id>();
             for (Integer i = 0; i <= GridDeleteService.MAX_IDS; i++) {
                 ids.add(rec.Id);
             }
             Test.startTest();
-            String message = refusal('Test_Records', ids);
+            String message = refusal('Consignments', ids);
             Test.stopTest();
             System.assertEquals('Delete at most 200 records at a time; this request has 201.', message);
-            System.assertEquals(1, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :rec.Id]);
+            System.assertEquals(1, [SELECT COUNT() FROM Consignment__c WHERE Id = :rec.Id]);
         }
     }
 
     @IsTest
     static void undoPutsDeletedRecordsBackAndSaysWhyNotForOneNotInTheBin() {
         System.runAs(GridTestUsers.fullUser()) {
-            List<Rowhouse_Test_Record__c> recs = newRecords('Undo me', 3);
+            List<Consignment__c> recs = newRecords('Saco River Outfitters, carton', 3);
             insert recs;
-            GridDeleteService.deleteRows('Test_Records', new List<Id>{ recs[0].Id, recs[1].Id });
+            GridDeleteService.deleteRows('Consignments', new List<Id>{ recs[0].Id, recs[1].Id });
             Test.startTest();
             GridDeleteService.RestoreResult result = GridController.restoreRows(
-                'Test_Records',
+                'Consignments',
                 new List<Id>{ recs[0].Id, recs[1].Id, recs[2].Id }
             );
             Test.stopTest();
             System.assertEquals(new List<Id>{ recs[0].Id, recs[1].Id }, result.restoredIds);
             System.assertEquals(1, result.errors.size(), 'A record that was never deleted cannot be put back.');
             System.assertEquals(recs[2].Id, result.errors[0].recordId);
-            System.assertEquals(
-                3,
-                [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :recs],
-                'All three are back.'
-            );
+            System.assertEquals(3, [SELECT COUNT() FROM Consignment__c WHERE Id IN :recs], 'All three are back.');
         }
     }
 
     @IsTest
     static void undoIsRefusedWhereDeletingIs() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = new Rowhouse_Test_Record__c(Name = 'Gone');
+            Consignment__c rec = new Consignment__c(Name = 'Monadnock Granite, 2 slabs');
             insert rec;
             delete rec;
             String message;
             Test.startTest();
             try {
-                GridDeleteService.restoreRows('Save_Test', new List<Id>{ rec.Id });
+                GridDeleteService.restoreRows('Consignment_Rates', new List<Id>{ rec.Id });
             } catch (GridException e) {
                 message = e.getMessage();
             }
             String foreign;
             try {
-                GridDeleteService.restoreRows('Test_Records', new List<Id>{ UserInfo.getUserId() });
+                GridDeleteService.restoreRows('Consignments', new List<Id>{ UserInfo.getUserId() });
             } catch (GridException e) {
                 foreign = e.getMessage();
             }
             Test.stopTest();
             System.assertEquals('This grid does not allow deleting records.', message);
-            System.assert(foreign != null && foreign.contains('is not a Rowhouse_Test_Record__c'), foreign);
-            System.assertEquals(0, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id = :rec.Id]);
+            System.assert(foreign != null && foreign.contains('is not a Consignment__c'), foreign);
+            System.assertEquals(0, [SELECT COUNT() FROM Consignment__c WHERE Id = :rec.Id]);
         }
     }
 
     @IsTest
     static void listsEveryMatchingRecordInIdOrderASliceAtATime() {
         System.runAs(GridTestUsers.fullUser()) {
-            List<Rowhouse_Test_Record__c> recs = newRecords('Match every', 3);
-            recs.add(new Rowhouse_Test_Record__c(Name = 'Not this one'));
+            List<Consignment__c> recs = newRecords('Quabbin Supply, drum', 3);
+            recs.add(new Consignment__c(Name = 'Green Mountain Maple, 6 barrels'));
             insert recs;
             Test.startTest();
             List<Object> first = (List<Object>) GridController.matchingIds(
-                    'Test_Records',
-                    'Match every',
+                    'Consignments',
+                    'Quabbin Supply',
                     null,
                     null,
                     null,
@@ -219,8 +215,8 @@ private class GridDeleteServiceTest {
                 )
                 .get('ids');
             List<Object> rest = (List<Object>) GridController.matchingIds(
-                    'Test_Records',
-                    'Match every',
+                    'Consignments',
+                    'Quabbin Supply',
                     null,
                     null,
                     null,
@@ -247,31 +243,31 @@ private class GridDeleteServiceTest {
             String foreign;
             Test.startTest();
             try {
-                GridController.matchingIds('Save_Test', null, null, null, null, null, null);
+                GridController.matchingIds('Consignment_Rates', null, null, null, null, null, null);
             } catch (AuraHandledException e) {
                 notAllowed = e.getMessage();
             }
             try {
-                GridController.matchingIds('Test_Records', null, null, null, null, null, UserInfo.getUserId());
+                GridController.matchingIds('Consignments', null, null, null, null, null, UserInfo.getUserId());
             } catch (AuraHandledException e) {
                 foreign = e.getMessage();
             }
             Test.stopTest();
             System.assertEquals('This grid does not allow deleting records.', notAllowed);
-            System.assert(foreign != null && foreign.contains('is not a Rowhouse_Test_Record__c'), foreign);
+            System.assert(foreign != null && foreign.contains('is not a Consignment__c'), foreign);
         }
     }
 
     @IsTest
     static void theControllerPassesOnARefusalAndAnEmptyRequest() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = new Rowhouse_Test_Record__c(Name = 'Keep me');
+            Consignment__c rec = new Consignment__c(Name = 'Narragansett Shellfish, Providence');
             insert rec;
             String message;
             Test.startTest();
-            GridDeleteService.Result empty = GridController.deleteRows('Save_Test', new List<Id>());
+            GridDeleteService.Result empty = GridController.deleteRows('Consignment_Rates', new List<Id>());
             try {
-                GridController.deleteRows('Save_Test', new List<Id>{ rec.Id });
+                GridController.deleteRows('Consignment_Rates', new List<Id>{ rec.Id });
             } catch (AuraHandledException e) {
                 message = e.getMessage();
             }

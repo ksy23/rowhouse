@@ -55,24 +55,24 @@ describe('fitting a column to its values', () => {
     });
 
     it('keeps room for the header label and its controls', () => {
-        expect(fitWidth(['1'], { type: 'number', label: 'A long header label here' })).toBeGreaterThan(100);
+        expect(fitWidth(['1'], { type: 'number', label: 'Pallet Positions' })).toBeGreaterThan(100);
     });
 });
 
 describe('lines a wrapped row needs', () => {
     it('is one line when every value fits', () => {
-        expect(linesNeeded(['short', '', null], 200)).toBe(1);
+        expect(linesNeeded(['Dock 4', '', null], 200)).toBe(1);
         expect(linesNeeded([], 200)).toBe(1);
     });
 
     it('grows with long values and line breaks, up to three', () => {
-        expect(linesNeeded(['a fairly long value that will not fit on one line'], 200)).toBe(2);
-        expect(linesNeeded(['one\ntwo'], 200)).toBe(2);
-        expect(linesNeeded(['word '.repeat(200)], 200)).toBe(MAX_LINES);
+        expect(linesNeeded(['Deliver to the rear dock, call ahead first'], 200)).toBe(2);
+        expect(linesNeeded(['Liftgate\nCall ahead'], 200)).toBe(2);
+        expect(linesNeeded(['Deliver to the rear loading dock. '.repeat(30)], 200)).toBe(MAX_LINES);
     });
 
     it('leaves room for the edit button in an editable column', () => {
-        const text = 'x'.repeat(24); // about 163px
+        const text = 'Kennebec Lumber, Augusta'; // about 160px
         expect(linesNeeded([text], 200)).toBe(1);
         expect(linesNeeded([text], 200, { editable: true })).toBe(2);
     });

@@ -38,7 +38,7 @@ const YEAR = {
     nextRun: '2026-10-07T09:00:00.000Z',
     runsAs: 'Hannah Lowell',
     mine: true,
-    loggingGrids: ['Audit Test', 'Contact Cleanup'],
+    loggingGrids: ['Consignment Audit', 'Contact Cleanup'],
     lastCleanup: { when: '2026-10-06T09:00:05.000Z', summary: '12 entries removed' }
 };
 
@@ -109,7 +109,7 @@ it('says when the clean-up next runs, as whom, and what it last removed', async 
     expect(status).toMatch(/^The nightly clean-up, next on .+, runs as Hannah Lowell\.$/);
     expect($(el, '.rh-retention-logging .rh-stat-n').textContent).toBe('2');
     expect($(el, '.rh-retention-logging .rh-stat-l').textContent).toBe(
-        'grids log every change: Audit Test, Contact Cleanup.'
+        'grids log every change: Consignment Audit, Contact Cleanup.'
     );
     expect($(el, '.rh-retention-last').textContent).toMatch(/^Last clean-up, .+: 12 entries removed\.$/);
     expect(status).not.toContain('Save to run it as you instead.');
@@ -117,10 +117,10 @@ it('says when the clean-up next runs, as whom, and what it last removed', async 
 });
 
 it('offers to run the clean-up as you when it runs as another admin', async () => {
-    logRetention.mockResolvedValue({ ...YEAR, runsAs: 'Jane Doe', mine: false });
+    logRetention.mockResolvedValue({ ...YEAR, runsAs: 'Silas Coffin', mine: false });
     saveLogRetention.mockResolvedValue('0Af000000000004');
     const el = await mount();
-    expect($(el, '.rh-retention-status').textContent).toContain('as Jane Doe.');
+    expect($(el, '.rh-retention-status').textContent).toContain('as Silas Coffin.');
     expect($(el, '.rh-retention-status').textContent).toContain('Save to run it as you instead.');
     expect($(el, '.rh-retention-save').disabled).toBe(false);
     $(el, '.rh-retention-save').click();
@@ -200,13 +200,16 @@ it('shows why a save was refused or failed', async () => {
     expect($(el, '.rh-retention-save-error').textContent).toContain('cannot delete Grid Edit Log entries');
 
     saveLogRetention.mockResolvedValueOnce('0Af000000000003');
-    saveStatus.mockResolvedValue({ status: 'Failed', messages: ['Rowhouse_Setting__mdt.Default: bad value'] });
+    saveStatus.mockResolvedValue({
+        status: 'Failed',
+        messages: ['Rowhouse_Setting__mdt.Default: Log Retention Days: value not of required type']
+    });
     $(el, '.rh-retention-save').click();
     await settle();
     jest.advanceTimersByTime(1000);
     await settle();
     expect($(el, '.rh-retention-save-error').textContent).toBe(
-        'The save did not go through. Rowhouse_Setting__mdt.Default: bad value'
+        'The save did not go through. Rowhouse_Setting__mdt.Default: Log Retention Days: value not of required type'
     );
 });
 

@@ -26,10 +26,17 @@ const COLUMNS = [
 ];
 const id = n => 'a01' + String(n).padStart(15, '0');
 const ROWS = [
-    { Id: id(1), Name: 'One', Amount__c: -20, Score__c: 10, Stage__c: 'Open', _rules: ['At_Risk'] },
-    { Id: id(2), Name: 'Two', Amount__c: 1500, Score__c: 50, Stage__c: 'Won', _rules: [] },
-    { Id: id(3), Name: 'Three', Amount__c: 300, Score__c: 100, Stage__c: 'Open', _rules: ['Hot', 'Flagged'] },
-    { Id: id(4), Name: 'Four', Amount__c: null, Score__c: null, Stage__c: null }
+    { Id: id(1), Name: 'Kennebec Lumber renewal', Amount__c: -20, Score__c: 10, Stage__c: 'Open', _rules: ['At_Risk'] },
+    { Id: id(2), Name: 'Penobscot Paper contract', Amount__c: 1500, Score__c: 50, Stage__c: 'Won', _rules: [] },
+    {
+        Id: id(3),
+        Name: 'Casco Bay Marine lanes',
+        Amount__c: 300,
+        Score__c: 100,
+        Stage__c: 'Open',
+        _rules: ['Hot', 'Flagged']
+    },
+    { Id: id(4), Name: 'Quabbin Supply pilot', Amount__c: null, Score__c: null, Stage__c: null }
 ];
 const rule = (name, extra) => ({ name, label: name.replace(/_/g, ' '), applyTo: 'cell', ...extra });
 const OVERDUE = rule('Overdue', {
@@ -80,13 +87,13 @@ describe('icons', () => {
         ['icon_down', 'utility:arrowdown', null]
     ])("%s shows %s before the value, titled with the rule's label", async (style, name, variant) => {
         await mount([
-            rule('Check_me', { field: 'Stage__c', type: 'picklist', operator: 'equals', value: 'Won', style })
+            rule('Deal_won', { field: 'Stage__c', type: 'picklist', operator: 'equals', value: 'Won', style })
         ]);
         const shown = icon(2, 'Stage__c');
         expect(shown).not.toBeNull();
         expect(shown.iconName).toBe(name);
         expect(shown.variant || null).toBe(variant); // info and the arrows take the icon's own color
-        expect(shown.title).toBe('Check me');
+        expect(shown.title).toBe('Deal won');
         expect(shown.size).toBe('xx-small');
         // Before the value, inside it, so it stays beside a right-aligned number.
         const value = cell(2, 'Stage__c').querySelector('.rh-cell-content').firstElementChild;
@@ -154,7 +161,7 @@ describe('icons', () => {
     it('shows no icon on a cell with an unsaved edit or an error', async () => {
         await mount([OVERDUE], {
             drafts: { [id(1)]: { Amount__c: '-50' } },
-            errors: { [id(2)]: { row: null, fields: { Amount__c: 'Too large.' } } }
+            errors: { [id(2)]: { row: null, fields: { Amount__c: 'Amount is over the approval limit.' } } }
         });
         expect(cell(1, 'Amount__c').classList).toContain('slds-is-edited');
         expect(icon(1, 'Amount__c')).toBeNull();
@@ -256,14 +263,14 @@ describe('data bars', () => {
     });
 
     it('sits with a fill and an icon in one cell: each kind of rule is separate', async () => {
-        const green = rule('Good', {
+        const green = rule('Strong_score', {
             field: 'Score__c',
             type: 'number',
             operator: 'greater_or_equal',
             value: '100',
             style: 'fill_green'
         });
-        const star = rule('Top', {
+        const star = rule('Top_score', {
             field: 'Score__c',
             type: 'number',
             operator: 'greater_or_equal',

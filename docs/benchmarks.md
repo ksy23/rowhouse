@@ -36,34 +36,39 @@ Performance panel.
 
 ## The data
 
-`Rowhouse_Bench__c`, a test-only object holding nothing but benchmark rows:
-Name, 14 generated fields and 5 formula fields. `Bench_5` shows Name, Text,
-Number, Date and Stage; `Bench_20` shows all twenty. Row N is the same row
+`Freight_Bill__c`, a development-only object holding nothing but benchmark rows:
+Name, 14 generated fields and 5 formula fields. `Freight_Bills_5` shows Name,
+Consignee, Pieces, Ship Date and Service Level; `Freight_Bills_20` shows all twenty. Row N is the same row
 whether it came from `test-data/scripts/generate-benchmark.py` (CSV) or
-`RowhouseBenchData.insertRows` (Anonymous Apex). See `test-data/README.md`.
+`FreightBillData.insertRows` (Anonymous Apex). See `test-data/README.md`.
+
+The runs published below were made when the object was `Rowhouse_Bench__c` and
+the grids were `Bench_5` and `Bench_20`, with stand-in values. The object, its
+fields and its values have realistic names now; the rows' shape, sizes and
+column types are the same, so the results stand.
 
 ## Running it
 
 1. Give the user running the benchmark the `Rowhouse_User`,
-   `Rowhouse_Test_Full` and `Rowhouse_Diagnostics` permission sets.
+   `Freight_Full_Access` and `Rowhouse_Diagnostics` permission sets.
 2. Load rows 1–1,000:
-   `RowhouseBenchData.insertRows(1, 1000);` in Anonymous Apex, or
+   `FreightBillData.insertRows(1, 1000);` in Anonymous Apex, or
    `benchmark-to-1k.csv` through the Bulk API.
 3. Open a page with the grid (with the `dev/` metadata deployed:
-   `/lightning/n/Rowhouse_Dev?c__grid=Bench_5`), reload it once to warm the
+   `/lightning/n/Rowhouse_Dev?c__grid=Freight_Bills_5`), reload it once to warm the
    cache, then hard-reload it (Cmd+Shift+R).
 4. Paste `test-data/bench/run-benchmark.js` into the console. It waits for the
-   load, sorts the Number column ten times (waiting after each sort until the
+   load, sorts the Pieces column ten times (waiting after each sort until the
    grid is no longer busy), edits a cell five times and cancels the edits,
    and prints one line of JSON.
 5. Repeat steps 3–4 five times and take the median of each number.
-6. Do the same with `c__grid=Bench_20`.
+6. Do the same with `c__grid=Freight_Bills_20`.
 7. Grow the object to 5,000 rows (`insertRows(1001, 3000)` then
    `insertRows(3001, 5000)`, or `benchmark-to-5k.csv`), and repeat from 3.
    Then to 10,000, then to 50,000 (`benchmark-to-50k.csv`, or `insertRows`
    2,000 rows at a time, its limit). Or go down instead: delete the rows
-   above a size; row N is always named `BM-` and N in six digits, so for
-   10,000: `delete [SELECT Id FROM Rowhouse_Bench__c WHERE Name > 'BM-010000' LIMIT 10000];`
+   above a size; row N is always named `FB-` and N in six digits, so for
+   10,000: `delete [SELECT Id FROM Freight_Bill__c WHERE Name > 'FB-010000' LIMIT 10000];`
    (repeat until nothing is left above it). The published runs went down
    from 50,000, then grew the object back. The 110,000-row runs added rows
    50,001 to 110,000 in one Bulk API load
@@ -109,7 +114,7 @@ Reading the table:
   2,000 at a time, and each page of 20 columns took about 0.9–1s of server
   time (the grid's own page telemetry, `"event":"page"`).
 - **Heap** is Chrome's figure for the whole tab after the run. It includes
-  memory from earlier page loads not yet collected: the five runs of Bench_20
+  memory from earlier page loads not yet collected: the five runs of Freight_Bills_20
   at 5,000 rows read from 320 MB to 1,179 MB. Read it as a rough size, not a
   measurement.
 - The first row takes about 0.9s with 5 columns and 1.4–1.7s with 20 at every
@@ -119,7 +124,7 @@ Reading the table:
 
 **50,000 rows only** (10,000 loaded); the 1,000, 5,000 and 10,000 lines were
 not run. Median
-of 5 runs for Bench_5 and of 3 for Bench_20; the runs are in
+of 5 runs for Freight_Bills_5 and of 3 for Freight_Bills_20; the runs are in
 `test-data/bench/results-locker-2026-09-30.jsonl`. Every run reported
 `runtime: "locker"` and none saw the tab hidden.
 

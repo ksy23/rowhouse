@@ -72,11 +72,15 @@ describe('readGuideState', () => {
     it('opens Welcome for no page, or a page the guide does not have', () => {
         expect(readGuideState({}, 'c').page).toBe(HOME_PAGE);
         expect(readGuideState(undefined, 'c').page).toBe(HOME_PAGE);
-        expect(readGuideState({ c__page: 'nonsense' }, 'c')).toEqual({ page: HOME_PAGE, section: '', unknown: true });
+        expect(readGuideState({ c__page: 'tutorial-dispatch' }, 'c')).toEqual({
+            page: HOME_PAGE,
+            section: '',
+            unknown: true
+        });
     });
 
     it("ignores another namespace's keys and a section that is not a plain name", () => {
-        expect(readGuideState({ x__page: 'start' }, 'c').page).toBe(HOME_PAGE);
+        expect(readGuideState({ gcf__page: 'start' }, 'c').page).toBe(HOME_PAGE);
         expect(readGuideState({ c__page: 'start', c__section: '<b>' }, 'c').section).toBe('');
     });
 });
@@ -85,7 +89,7 @@ describe('who reads what', () => {
     it('keeps Get started, Configure and Features for grid admins', () => {
         expect(PAGES.filter(p => isAdminPage(p.id)).map(p => p.id)).toEqual(['start', 'configure', 'features']);
         expect(isAdminPage('using')).toBe(false);
-        expect(isAdminPage('nonsense')).toBe(false);
+        expect(isAdminPage('tutorial-dispatch')).toBe(false);
     });
 
     it('lists every page for an admin, and the rest for everyone else, in order', () => {

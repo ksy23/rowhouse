@@ -4,26 +4,26 @@
  * edit and create test records, so the grid, not the user's access, is what
  * refuses.
  *
- * A grid that does not edit cells: Read_Only_Test (test-data/config) has
+ * A grid that does not edit cells: Consignment_Directory (test-data/config) has
  * Allow Inline Edit off, although its columns are marked Editable and it sets
  * Allow Import and Allow New Records, so that one setting is what must refuse
  * a save, an import and new rows, and nothing may be written.
  *
  * An Id of another object: the grid sends only its own records' Ids, so a
- * save or an import that carries a Rowhouse_Bench__c record's Id, whose
+ * save or an import that carries a Freight_Bill__c record's Id, whose
  * fields have the same names, must be refused, or fail on that row, and
  * write nothing to that record.
  */
 @IsTest
 private class GridReadOnlyGridTest {
-    private static final String PROBE = 'Read only grid probe';
-    private static final String BENCH = 'Another object';
+    private static final String PROBE = 'Kennebec Lumber, 7 bundles';
+    private static final String BENCH = 'FB-000417';
 
     @TestSetup
     static void setup() {
         System.runAs(GridTestUsers.fullUser()) {
-            insert new Rowhouse_Test_Record__c(Name = PROBE, Text_Field__c = 'as it was', Number_Field__c = 7);
-            insert new Rowhouse_Bench__c(Name = BENCH, Text_Field__c = 'bench as it was');
+            insert new Consignment__c(Name = PROBE, Consignee__c = 'Kennebec Lumber', Pieces__c = 7);
+            insert new Freight_Bill__c(Name = BENCH, Consignee__c = 'Penobscot Paper');
         }
     }
 
@@ -33,12 +33,12 @@ private class GridReadOnlyGridTest {
         return GridTestUsers.built(GridTestUsers.FULL);
     }
 
-    private static Rowhouse_Test_Record__c probe() {
-        Rowhouse_Test_Record__c found;
+    private static Consignment__c probe() {
+        Consignment__c found;
         System.runAs(full()) {
             found = [
-                SELECT Id, Text_Field__c, Number_Field__c
-                FROM Rowhouse_Test_Record__c
+                SELECT Id, Consignee__c, Pieces__c
+                FROM Consignment__c
                 WHERE Name = :PROBE
                 LIMIT 1
             ];
@@ -46,10 +46,10 @@ private class GridReadOnlyGridTest {
         return found;
     }
 
-    private static Rowhouse_Bench__c bench() {
-        Rowhouse_Bench__c found;
+    private static Freight_Bill__c bench() {
+        Freight_Bill__c found;
         System.runAs(full()) {
-            found = [SELECT Id, Text_Field__c FROM Rowhouse_Bench__c WHERE Name = :BENCH LIMIT 1];
+            found = [SELECT Id, Consignee__c FROM Freight_Bill__c WHERE Name = :BENCH LIMIT 1];
         }
         return found;
     }
@@ -57,7 +57,7 @@ private class GridReadOnlyGridTest {
     private static Integer recordCount() {
         Integer n;
         System.runAs(full()) {
-            n = [SELECT COUNT() FROM Rowhouse_Test_Record__c];
+            n = [SELECT COUNT() FROM Consignment__c];
         }
         return n;
     }
@@ -67,7 +67,7 @@ private class GridReadOnlyGridTest {
     @IsTest
     static void aGridThatDoesNotEditCellsOffersNothingToEdit() {
         System.runAs(full()) {
-            GridConfig.Definition def = GridConfig.forUser('Read_Only_Test');
+            GridConfig.Definition def = GridConfig.forUser('Consignment_Directory');
             System.assertEquals(false, def.allowInlineEdit);
             System.assertEquals(false, def.allowImport, 'Allow Import is set, but the grid does not edit cells.');
             System.assert(!def.columns.isEmpty());
@@ -76,7 +76,7 @@ private class GridReadOnlyGridTest {
                 System.assertEquals(false, c.creatable, c.field + ' is offered on a new row.');
             }
             System.assert(
-                GridConfig.load('Read_Only_Test').editableFields().isEmpty(),
+                GridConfig.load('Consignment_Directory').editableFields().isEmpty(),
                 'The server\'s allow-list for a save is empty.'
             );
         }
@@ -84,7 +84,7 @@ private class GridReadOnlyGridTest {
 
     @IsTest
     static void aSaveToAGridThatDoesNotEditCellsWritesNothing() {
-        Rowhouse_Test_Record__c before = probe();
+        Consignment__c before = probe();
         GridSaveResult ticket;
         String refused;
         Integer queued;
@@ -94,12 +94,12 @@ private class GridReadOnlyGridTest {
             Integer dml = Limits.getDmlStatements();
             try {
                 ticket = GridSaveService.save(
-                    'Read_Only_Test',
+                    'Consignment_Directory',
                     new List<Map<String, Object>>{
                         new Map<String, Object>{
                             'Id' => before.Id,
-                            'Text_Field__c' => 'changed',
-                            'Number_Field__c' => '8'
+                            'Consignee__c' => 'Berkshire Mills',
+                            'Pieces__c' => '8'
                         }
                     }
                 );
@@ -112,7 +112,7 @@ private class GridReadOnlyGridTest {
         }
         if (ticket != null) {
             System.assert(
-                ticket.rejectedFields.contains('Text_Field__c') && ticket.rejectedFields.contains('Number_Field__c'),
+                ticket.rejectedFields.contains('Consignee__c') && ticket.rejectedFields.contains('Pieces__c'),
                 'Every field is refused by the allow-list: ' + ticket
             );
         }
@@ -124,26 +124,26 @@ private class GridReadOnlyGridTest {
                 ' save chunk(s). An update that carries no field still runs the org\'s triggers and flows on the ' +
                 'record and stamps it Last Modified, so the save must be refused, or queue nothing.'
         );
-        Rowhouse_Test_Record__c after = probe();
-        System.assertEquals('as it was', after.Text_Field__c);
-        System.assertEquals(7, after.Number_Field__c);
+        Consignment__c after = probe();
+        System.assertEquals('Kennebec Lumber', after.Consignee__c);
+        System.assertEquals(7, after.Pieces__c);
     }
 
     @IsTest
     static void anImportIntoAGridThatDoesNotEditCellsIsRefused() {
-        Rowhouse_Test_Record__c before = probe();
+        Consignment__c before = probe();
         Integer count = recordCount();
         List<String> refusals = new List<String>();
         System.runAs(full()) {
             Integer dml = Limits.getDmlStatements();
             for (
                 Map<String, Object> row : new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'Id' => before.Id, 'Text_Field__c' => 'imported' },
-                    new Map<String, Object>{ 'Name' => 'Imported into a read-only grid', 'Text_Field__c' => 'new' }
+                    new Map<String, Object>{ 'Id' => before.Id, 'Consignee__c' => 'Quabbin Supply' },
+                    new Map<String, Object>{ 'Name' => 'Fuel oil drums, Bath', 'Consignee__c' => 'Mill River Energy' }
                 }
             ) {
                 try {
-                    GridImportService.importRows('Read_Only_Test', new List<Map<String, Object>>{ row });
+                    GridImportService.importRows('Consignment_Directory', new List<Map<String, Object>>{ row });
                     refusals.add(null);
                 } catch (GridException e) {
                     refusals.add(e.getMessage());
@@ -159,7 +159,7 @@ private class GridReadOnlyGridTest {
             refusals,
             'An import of updates, then of new records.'
         );
-        System.assertEquals('as it was', probe().Text_Field__c);
+        System.assertEquals('Kennebec Lumber', probe().Consignee__c);
         System.assertEquals(count, recordCount(), 'No record was created.');
     }
 
@@ -170,15 +170,15 @@ private class GridReadOnlyGridTest {
         String refusedByTheController;
         System.runAs(full()) {
             List<Map<String, Object>> rows = new List<Map<String, Object>>{
-                new Map<String, Object>{ 'key' => 'rh-new-1', 'Name' => 'New in a read-only grid' }
+                new Map<String, Object>{ 'key' => 'rh-new-1', 'Name' => 'Saco River Outfitters, 9 cartons' }
             };
             try {
-                GridCreateService.create('Read_Only_Test', rows, null, null, null);
+                GridCreateService.create('Consignment_Directory', rows, null, null, null);
             } catch (GridException e) {
                 refused = e.getMessage();
             }
             try {
-                GridController.createRows('Read_Only_Test', rows, null, null, null);
+                GridController.createRows('Consignment_Directory', rows, null, null, null);
             } catch (AuraHandledException e) {
                 refusedByTheController = e.getMessage();
             }
@@ -192,18 +192,18 @@ private class GridReadOnlyGridTest {
 
     @IsTest
     static void aSaveCarryingAnotherObjectsIdWritesNothingToThatRecord() {
-        Rowhouse_Test_Record__c before = probe();
-        Rowhouse_Bench__c other = bench();
+        Consignment__c before = probe();
+        Freight_Bill__c other = bench();
         GridSaveResult ticket;
         String refused;
         System.runAs(full()) {
             Test.startTest();
             try {
                 ticket = GridSaveService.save(
-                    'Test_Records',
+                    'Consignments',
                     new List<Map<String, Object>>{
-                        new Map<String, Object>{ 'Id' => other.Id, 'Text_Field__c' => 'written through the grid' },
-                        new Map<String, Object>{ 'Id' => before.Id, 'Text_Field__c' => 'changed' }
+                        new Map<String, Object>{ 'Id' => other.Id, 'Consignee__c' => 'Cape Ann Seafood' },
+                        new Map<String, Object>{ 'Id' => before.Id, 'Consignee__c' => 'Berkshire Mills' }
                     }
                 );
             } catch (GridException e) {
@@ -211,45 +211,45 @@ private class GridReadOnlyGridTest {
             }
             Test.stopTest();
         }
-        System.assertEquals('bench as it was', bench().Text_Field__c, 'Nothing was written to the other object.');
+        System.assertEquals('Penobscot Paper', bench().Consignee__c, 'Nothing was written to the other object.');
         if (refused != null) {
             System.assert(refused.contains(String.valueOf(other.Id)), 'The refusal names the Id: ' + refused);
-            System.assertEquals('as it was', probe().Text_Field__c, 'A refused request writes nothing at all.');
+            System.assertEquals('Kennebec Lumber', probe().Consignee__c, 'A refused request writes nothing at all.');
             return;
         }
         System.assertEquals(1, ticket.errors.size(), String.valueOf(ticket.errors));
         System.assertEquals(other.Id, ticket.errors[0].recordId);
         System.assertEquals(
-            'Record ' + other.Id + ' is not a Rowhouse_Test_Record__c.',
+            'Record ' + other.Id + ' is not a Consignment__c.',
             ticket.errors[0].message,
             'A row error that names the Id.'
         );
-        System.assertEquals('changed', probe().Text_Field__c, 'The grid\'s own row is saved.');
+        System.assertEquals('Berkshire Mills', probe().Consignee__c, 'The grid\'s own row is saved.');
     }
 
     @IsTest
     static void anImportCarryingAnotherObjectsIdWritesNothingToThatRecord() {
-        Rowhouse_Bench__c other = bench();
+        Freight_Bill__c other = bench();
         GridImportService.Result result;
         String refused;
         System.runAs(full()) {
             try {
                 result = GridImportService.importRows(
-                    'Test_Records',
+                    'Consignments',
                     new List<Map<String, Object>>{
-                        new Map<String, Object>{ 'Id' => other.Id, 'Text_Field__c' => 'imported through the grid' }
+                        new Map<String, Object>{ 'Id' => other.Id, 'Consignee__c' => 'Narragansett Shellfish' }
                     }
                 );
             } catch (GridException e) {
                 refused = e.getMessage();
             }
         }
-        System.assertEquals('bench as it was', bench().Text_Field__c, 'Nothing was written to the other object.');
+        System.assertEquals('Penobscot Paper', bench().Consignee__c, 'Nothing was written to the other object.');
         if (refused != null) {
             System.assert(refused.contains(String.valueOf(other.Id)), 'The refusal names the Id: ' + refused);
             return;
         }
         System.assertEquals(false, result.rows[0].success, String.valueOf(result.rows));
-        System.assertEquals('Record ' + other.Id + ' is not a Rowhouse_Test_Record__c.', result.rows[0].message);
+        System.assertEquals('Record ' + other.Id + ' is not a Consignment__c.', result.rows[0].message);
     }
 }

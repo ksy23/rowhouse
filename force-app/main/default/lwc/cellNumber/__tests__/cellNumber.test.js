@@ -24,7 +24,7 @@ describe('number cell', () => {
         const edit = mount({
             value: 1000,
             mode: 'edit',
-            label: 'Amount',
+            label: 'Freight Charge',
             type: 'currency',
             scale: 2,
             currencyCode: 'CAD'
@@ -32,12 +32,12 @@ describe('number cell', () => {
         await flush();
         // The input's currency format would show the user's currency instead.
         expect(edit.shadowRoot.querySelector('lightning-input').formatter).toBe('decimal');
-        const plain = mount({ value: 1000, mode: 'edit', label: 'Amount', type: 'currency', scale: 2 });
+        const plain = mount({ value: 1000, mode: 'edit', label: 'Freight Charge', type: 'currency', scale: 2 });
         await flush();
         expect(plain.shadowRoot.querySelector('lightning-input').formatter).toBe('currency');
     });
     it('TC-026 accepts a grouped entry on commit', async () => {
-        const el = mount({ value: 1, mode: 'edit', label: 'Amount', type: 'currency', scale: 2 });
+        const el = mount({ value: 1, mode: 'edit', label: 'Freight Charge', type: 'currency', scale: 2 });
         await flush();
         const input = el.shadowRoot.querySelector('lightning-input');
         input.dispatchEvent(new CustomEvent('change', { detail: { value: '1,234,567.89' } }));
@@ -47,7 +47,7 @@ describe('number cell', () => {
         expect(handler.mock.calls[0][0].detail.value).toBe(1234567.89);
     });
     it('TC-023 a typed value with extra decimals commits rounded to the field scale', async () => {
-        const el = mount({ value: 1, mode: 'edit', label: 'Decimal', type: 'number', scale: 2 });
+        const el = mount({ value: 1, mode: 'edit', label: 'Weight', type: 'number', scale: 2 });
         await flush();
         el.shadowRoot
             .querySelector('lightning-input')
@@ -58,7 +58,7 @@ describe('number cell', () => {
         expect(handler.mock.calls[0][0].detail.value).toBe(1234.57);
     });
     it('TC-023 an untouched stored value is committed unchanged, extra decimals and all', async () => {
-        const el = mount({ value: '1234.567', mode: 'edit', label: 'Decimal', type: 'number', scale: 2 });
+        const el = mount({ value: '1234.567', mode: 'edit', label: 'Weight', type: 'number', scale: 2 });
         await flush();
         const handler = jest.fn();
         el.addEventListener('commit', handler);
@@ -66,12 +66,12 @@ describe('number cell', () => {
         expect(handler.mock.calls[0][0].detail.value).toBe(1234.567);
     });
     it('TC-023 accepts extra decimals instead of flagging them, as the record form does', async () => {
-        const el = mount({ value: 1, mode: 'edit', label: 'Decimal', type: 'number', scale: 2 });
+        const el = mount({ value: 1, mode: 'edit', label: 'Weight', type: 'number', scale: 2 });
         await flush();
         expect(el.shadowRoot.querySelector('lightning-input').step).toBe('any');
     });
     it('TC-024 an 18-digit entry commits as an exact string', async () => {
-        const el = mount({ value: null, mode: 'edit', label: 'Number' });
+        const el = mount({ value: null, mode: 'edit', label: 'Pieces' });
         await flush();
         el.shadowRoot
             .querySelector('lightning-input')
@@ -82,7 +82,7 @@ describe('number cell', () => {
         expect(handler.mock.calls[0][0].detail.value).toBe('999999999999999999');
     });
     it('an emptied input commits null, never an empty string', async () => {
-        const el = mount({ value: 5, mode: 'edit', label: 'Number' });
+        const el = mount({ value: 5, mode: 'edit', label: 'Pieces' });
         await flush();
         el.shadowRoot
             .querySelector('lightning-input')

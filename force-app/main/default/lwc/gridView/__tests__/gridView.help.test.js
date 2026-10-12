@@ -47,10 +47,10 @@ jest.mock('lightning/navigation', () => {
 });
 
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -58,10 +58,14 @@ const DEFINITION = {
     allowCsvExport: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
-        { field: 'Text_Field__c', label: 'Text', type: 'text', editable: true, sortable: true }
+        { field: 'Consignee__c', label: 'Consignee', type: 'text', editable: true, sortable: true }
     ]
 };
-const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Text_Field__c: 'x' });
+const row = i => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Kennebec Lumber, load ' + i,
+    Consignee__c: 'Kennebec Lumber'
+});
 const page = rows => ({ rows, hasMore: false, cursorLocator: null, cursorToken: null, totalRows: rows.length });
 
 const settle = async () => {
@@ -72,7 +76,7 @@ const settle = async () => {
 };
 const $ = (el, selector) => el.shadowRoot.querySelector(selector);
 
-function mount(configName = 'Test_Records') {
+function mount(configName = 'Consignments') {
     const el = createElement('c-grid-view', { is: GridView });
     el.configName = configName;
     document.body.appendChild(el);
@@ -117,7 +121,7 @@ it('is there for someone who is not a grid admin too', async () => {
 });
 
 it('says where else to find the guide if it cannot open', async () => {
-    mockGenerateUrl.mockReturnValueOnce(Promise.reject(new Error('no')));
+    mockGenerateUrl.mockReturnValueOnce(Promise.reject(new Error('Page not available')));
     const el = mount();
     await settle();
     const toasts = [];

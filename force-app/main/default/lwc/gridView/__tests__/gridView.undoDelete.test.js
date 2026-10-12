@@ -25,10 +25,10 @@ jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jes
 });
 
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -36,10 +36,14 @@ const DEFINITION = {
     allowMassDelete: true,
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
-        { field: 'Number_Field__c', label: 'Number', type: 'number', editable: true, sortable: true, scale: 2 }
+        { field: 'Pieces__c', label: 'Pieces', type: 'number', editable: true, sortable: true, scale: 2 }
     ]
 };
-const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Number_Field__c: String(i) });
+const row = i => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Kennebec Lumber, load ' + i,
+    Pieces__c: String(i)
+});
 const page = (rows, total = rows.length) => ({
     rows,
     hasMore: false,
@@ -62,7 +66,7 @@ const select = (el, ids) =>
 let toasts;
 function mount() {
     const el = createElement('c-grid-view', { is: GridView });
-    el.configName = 'Test_Records';
+    el.configName = 'Consignments';
     toasts = [];
     el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
     document.body.appendChild(el);
@@ -115,7 +119,7 @@ describe('undo after a delete', () => {
         const loads = fetchRows.mock.calls.length + openGrid.mock.calls.length;
         $(el, '.rh-undo-delete-button').click();
         await settle();
-        expect(restoreRows).toHaveBeenCalledWith({ configName: 'Test_Records', recordIds: [row(1).Id, row(2).Id] });
+        expect(restoreRows).toHaveBeenCalledWith({ configName: 'Consignments', recordIds: [row(1).Id, row(2).Id] });
         expect(toasts).toEqual([{ title: 'Undone', message: 'Put back 2 records.', variant: 'success' }]);
         expect($(el, '.rh-undo-delete')).toBeNull();
         expect(fetchRows.mock.calls.length + openGrid.mock.calls.length).toBeGreaterThan(loads);
@@ -225,13 +229,13 @@ describe('every matching record', () => {
         const ask = $(el, 'c-grid-delete-dialog');
         expect(ask.count).toBe(2100);
         expect(ask.matching).toBe(true);
-        expect(ask.names).toEqual(['Row 1', 'Row 2', 'Row 3']);
+        expect(ask.names).toEqual(['Kennebec Lumber, load 1', 'Kennebec Lumber, load 2', 'Kennebec Lumber, load 3']);
         const loads = fetchRows.mock.calls.length + openGrid.mock.calls.length;
         ask.dispatchEvent(new CustomEvent('confirm'));
         await settle();
         await settle();
         expect(matchingIds.mock.calls.map(([args]) => args.afterId)).toEqual([null, ids[MATCH_SLICE - 1]]);
-        expect(matchingIds.mock.calls[0][0]).toMatchObject({ configName: 'Test_Records', searchTerm: null });
+        expect(matchingIds.mock.calls[0][0]).toMatchObject({ configName: 'Consignments', searchTerm: null });
         expect(deleteRows).toHaveBeenCalledTimes(Math.ceil(MATCH_SLICE / DELETE_BATCH) + 1);
         expect($(el, '.rh-undo-delete-text').textContent).toBe('Deleted 2,100 records. They are in the Recycle Bin.');
         expect(fetchRows.mock.calls.length + openGrid.mock.calls.length).toBeGreaterThan(loads);

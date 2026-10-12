@@ -42,17 +42,24 @@ jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.f
 
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', editable: true, sortable: true, scale: 2 },
-    { field: 'Stage__c', label: 'Stage', type: 'picklist', editable: true, sortable: true, groupable: true },
-    { field: 'Close__c', label: 'Close', type: 'date', editable: true, sortable: true, groupable: true },
-    { field: 'Notes__c', label: 'Notes', type: 'textarea', editable: true, sortable: false }
+    { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', editable: true, sortable: true, scale: 2 },
+    {
+        field: 'Service_Level__c',
+        label: 'Service Level',
+        type: 'picklist',
+        editable: true,
+        sortable: true,
+        groupable: true
+    },
+    { field: 'Ship_Date__c', label: 'Ship Date', type: 'date', editable: true, sortable: true, groupable: true },
+    { field: 'Delivery_Notes__c', label: 'Delivery Notes', type: 'textarea', editable: true, sortable: false }
 ];
 // The admin's sort is by Name; the admin sets no grouping.
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -62,7 +69,12 @@ const DEFINITION = {
 };
 const ADMIN_SORT = [{ field: 'Name', direction: 'asc' }];
 
-const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Amount__c: i, Stage__c: 'Open' });
+const row = i => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Kennebec Lumber, load ' + i,
+    Freight_Charge__c: i,
+    Service_Level__c: 'Standard'
+});
 const page = (rows, { hasMore = false, locator = null, total = rows.length } = {}) => ({
     rows,
     hasMore,
@@ -87,7 +99,7 @@ const live = el => $(el, '.rh-live').textContent;
 /** What the last saveLayout call kept, read back. */
 const keptLayout = () => JSON.parse(lastCall(saveLayout).layout);
 
-function mount(configName = 'Test_Records') {
+function mount(configName = 'Consignments') {
     const el = createElement('c-grid-view', { is: GridView });
     el.configName = configName;
     document.body.appendChild(el);
@@ -96,8 +108,8 @@ function mount(configName = 'Test_Records') {
 
 function mountChild() {
     const el = createElement('c-grid-view', { is: GridView });
-    el.configName = 'Test_Children';
-    el.parent = { link: 'Test_Records_Children', id: 'a00000000000000001', name: 'Row 1', level: 2 };
+    el.configName = 'Consignment_Items';
+    el.parent = { link: 'Consignments_Items', id: 'a00000000000000001', name: 'Kennebec Lumber, load 1', level: 2 };
     document.body.appendChild(el);
     return el;
 }
@@ -124,7 +136,10 @@ describe("the user's own columns", () => {
     const columnsChange = (el, choice) =>
         table(el).dispatchEvent(new CustomEvent('columnschange', { detail: { choice } }));
     const dialog = el => $(el, 'c-grid-columns-dialog');
-    const HIDE_NOTES = { order: ['Name', 'Amount__c', 'Stage__c', 'Close__c', 'Notes__c'], hidden: ['Notes__c'] };
+    const HIDE_NOTES = {
+        order: ['Name', 'Freight_Charge__c', 'Service_Level__c', 'Ship_Date__c', 'Delivery_Notes__c'],
+        hidden: ['Delivery_Notes__c']
+    };
 
     it('starts with the saved columns, and hands them to the table', async () => {
         getLayout.mockResolvedValue(JSON.stringify({ v: 1, sort: ADMIN_SORT, grouping: [], columns: HIDE_NOTES }));
@@ -163,16 +178,18 @@ describe("the user's own columns", () => {
         await settle();
         expect(dialog(el).columns).toEqual(COLUMNS); // every column, to choose from
         expect(dialog(el).choice).toBeNull();
-        dialog(el).dispatchEvent(new CustomEvent('save', { detail: { visible: ['Stage__c', 'Name', 'Amount__c'] } }));
+        dialog(el).dispatchEvent(
+            new CustomEvent('save', { detail: { visible: ['Service_Level__c', 'Name', 'Freight_Charge__c'] } })
+        );
         await settle();
         expect(dialog(el)).toBeNull();
         expect(tableConfig(el).columnChoice).toEqual({
-            order: ['Stage__c', 'Name', 'Amount__c', 'Close__c', 'Notes__c'],
-            hidden: ['Close__c', 'Notes__c']
+            order: ['Service_Level__c', 'Name', 'Freight_Charge__c', 'Ship_Date__c', 'Delivery_Notes__c'],
+            hidden: ['Ship_Date__c', 'Delivery_Notes__c']
         });
         expect(live(el)).toBe('Columns changed: 3 of 5 shown.');
         await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
-        expect(keptLayout().columns.hidden).toEqual(['Close__c', 'Notes__c']);
+        expect(keptLayout().columns.hidden).toEqual(['Ship_Date__c', 'Delivery_Notes__c']);
     });
 
     it('Cancel changes nothing', async () => {
@@ -192,14 +209,14 @@ describe("the user's own columns", () => {
         const el = mount();
         await settle();
         columnsChange(el, {
-            order: ['Amount__c', 'Name', 'Stage__c', 'Close__c', 'Notes__c'],
-            hidden: ['Stage__c', 'Close__c', 'Notes__c']
+            order: ['Freight_Charge__c', 'Name', 'Service_Level__c', 'Ship_Date__c', 'Delivery_Notes__c'],
+            hidden: ['Service_Level__c', 'Ship_Date__c', 'Delivery_Notes__c']
         });
         await settle();
         $(el, '.rh-export').click();
         await settle();
         const [, columns] = toCsv.mock.calls[0];
-        expect(columns.map(c => c.field)).toEqual(['Id', 'Amount__c', 'Name']);
+        expect(columns.map(c => c.field)).toEqual(['Id', 'Freight_Charge__c', 'Name']);
     });
 
     it("Reset layout puts back the admin's columns", async () => {

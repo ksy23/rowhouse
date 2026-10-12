@@ -10,15 +10,15 @@ private class GridControllerTest {
         // At API 67 plain DML runs in user mode, so the seed rows are written by
         // a user with field access, not by whoever runs the suite.
         System.runAs(GridTestUsers.fullUser()) {
-            insert new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(
-                    Name = 'TC-024 large number',
-                    Number_Field__c = Decimal.valueOf('999999999999999999')
+            insert new List<Consignment__c>{
+                new Consignment__c(
+                    Name = 'Bath Iron fasteners, bulk',
+                    Pieces__c = Decimal.valueOf('999999999999999999')
                 ),
-                new Rowhouse_Test_Record__c(
-                    Name = 'TC-055 long text',
-                    Text_Field__c = 'x',
-                    Long_Text__c = 'Paragraph of filler text for the long text area boundary test. '
+                new Consignment__c(
+                    Name = 'Driver log, Fort Kent',
+                    Consignee__c = 'Kennebec Lumber',
+                    Delivery_Notes__c = 'Driver reports the dock door was blocked until the next shift. '
                         .repeat(600)
                         .left(32000)
                 )
@@ -29,9 +29,9 @@ private class GridControllerTest {
     @IsTest
     static void configCarriesTheDefinitionAndTheDiagnosticsFlag() {
         System.runAs(GridTestUsers.fullUser()) {
-            Map<String, Object> result = GridController.openGrid('Test_Records', null, null, null, null);
+            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
-            System.assertEquals('Rowhouse_Test_Record__c', def.objectApiName);
+            System.assertEquals('Consignment__c', def.objectApiName);
             System.assertEquals(false, result.get('diagnostics'), 'Diagnostics are off without the custom permission.');
         }
     }
@@ -40,7 +40,7 @@ private class GridControllerTest {
     static void configCarriesIconsAndTheNameColumn() {
         System.runAs(GridTestUsers.fullUser()) {
             GridConfig.Definition def = (GridConfig.Definition) GridController.openGrid(
-                    'Test_Records',
+                    'Consignments',
                     null,
                     null,
                     null,
@@ -54,8 +54,8 @@ private class GridControllerTest {
                 byField.put(c.field, c);
             }
             System.assert(byField.get('Name').isName, 'Name cells link to the record.');
-            System.assert(!byField.get('Text_Field__c').isName);
-            GridConfig.Column lookup = byField.get('Lookup_Field__c');
+            System.assert(!byField.get('Consignee__c').isName);
+            GridConfig.Column lookup = byField.get('Shipper__c');
             System.assert(lookup.referenceIcons.containsKey('Account'), String.valueOf(lookup.referenceIcons));
             GridConfig.Column owner = byField.get('OwnerId');
             if (owner != null) {
@@ -65,7 +65,7 @@ private class GridControllerTest {
                     'An owner\'s queues show the queue icon.'
                 );
             }
-            System.assertEquals(null, byField.get('Text_Field__c').referenceIcons, 'Only lookups have target icons.');
+            System.assertEquals(null, byField.get('Consignee__c').referenceIcons, 'Only lookups have target icons.');
         }
     }
 
@@ -73,43 +73,43 @@ private class GridControllerTest {
     static void iconsAreNotWorkedOutOnTheRowCalls() {
         System.runAs(GridTestUsers.fullUser()) {
             // forUser is what every other call uses: no icons, so no describeTabs per call.
-            System.assertEquals(null, GridConfig.forUser('Test_Records').objectIcon);
+            System.assertEquals(null, GridConfig.forUser('Consignments').objectIcon);
         }
     }
 
     @IsTest
     static void countsRelatedRecordsPerRowAndPerTab() {
         System.runAs(GridTestUsers.fullUser()) {
-            List<Rowhouse_Test_Record__c> parents = [SELECT Id FROM Rowhouse_Test_Record__c ORDER BY Name LIMIT 2];
-            insert new List<Rowhouse_Test_Child__c>{
-                new Rowhouse_Test_Child__c(Name = 'c1', Parent__c = parents[0].Id),
-                new Rowhouse_Test_Child__c(Name = 'c2', Parent__c = parents[0].Id)
+            List<Consignment__c> parents = [SELECT Id FROM Consignment__c ORDER BY Name LIMIT 2];
+            insert new List<Consignment_Item__c>{
+                new Consignment_Item__c(Name = 'Hex bolts, 4 kegs', Consignment__c = parents[0].Id),
+                new Consignment_Item__c(Name = 'Lag screws, 2 kegs', Consignment__c = parents[0].Id)
             };
             Map<String, Object> counts = GridController.countChildren(
-                'Test_Records',
+                'Consignments',
                 new List<String>{ parents[0].Id, parents[1].Id, UserInfo.getUserId(), 'not an id', null }
             );
             System.assertEquals(2, counts.size(), 'Only records of the grid\'s object are counted: ' + counts);
             Map<String, Object> first = (Map<String, Object>) counts.get(String.valueOf(parents[0].Id));
             System.assertEquals(2, first.get('total'));
-            System.assertEquals(2, ((Map<String, Integer>) first.get('byTab')).get('Test_Records_Children'));
+            System.assertEquals(2, ((Map<String, Integer>) first.get('byTab')).get('Consignments_Items'));
             Map<String, Object> second = (Map<String, Object>) counts.get(String.valueOf(parents[1].Id));
             System.assertEquals(0, second.get('total'), 'A row with nothing related says 0, so it offers no toggle.');
-            System.assertEquals(0, ((Map<String, Integer>) second.get('byTab')).get('Test_Records_Children'));
+            System.assertEquals(0, ((Map<String, Integer>) second.get('byTab')).get('Consignments_Items'));
         }
     }
 
     @IsTest
     static void countsAreRefusedForTooManyRowsAtOnce() {
         System.runAs(GridTestUsers.fullUser()) {
-            Id first = [SELECT Id FROM Rowhouse_Test_Record__c LIMIT 1].Id;
+            Id first = [SELECT Id FROM Consignment__c LIMIT 1].Id;
             String prefix = String.valueOf(first).left(3);
             List<String> ids = new List<String>();
             for (Integer i = 0; i <= GridNesting.MAX_COUNT_PARENTS; i++) {
                 ids.add(prefix + '0'.repeat(12 - String.valueOf(i).length()) + String.valueOf(i)); // 15 characters
             }
             try {
-                GridController.countChildren('Test_Records', ids);
+                GridController.countChildren('Consignments', ids);
                 System.assert(false, 'More than the limit must be refused.');
             } catch (AuraHandledException e) {
                 System.assert(e.getMessage().contains('at most ' + GridNesting.MAX_COUNT_PARENTS), e.getMessage());
@@ -123,8 +123,8 @@ private class GridControllerTest {
             // TC-024: through REST this value comes back as 1.0E18. It must reach the
             // browser as the exact digits.
             Map<String, Object> result = GridController.fetchRows(
-                'Test_Records',
-                'TC-024',
+                'Consignments',
+                'Bath Iron',
                 null,
                 null,
                 null,
@@ -138,7 +138,7 @@ private class GridControllerTest {
             );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) result.get('rows');
             System.assertEquals(1, rows.size());
-            System.assertEquals('999999999999999999', rows[0].get('Number_Field__c'));
+            System.assertEquals('999999999999999999', rows[0].get('Pieces__c'));
             System.assert(rows[0].containsKey('Name'), 'Rows are keyed by local field name (HR-4).');
         }
     }
@@ -147,7 +147,7 @@ private class GridControllerTest {
     static void longTextIsTruncatedForTheGrid() {
         System.runAs(GridTestUsers.fullUser()) {
             Map<String, Object> result = GridController.fetchRows(
-                'Security_Test',
+                'Consignment_Charges',
                 null,
                 null,
                 null,
@@ -162,7 +162,7 @@ private class GridControllerTest {
             );
             Integer marked = 0;
             for (Map<String, Object> row : (List<Map<String, Object>>) result.get('rows')) {
-                String text = (String) row.get('Long_Text__c');
+                String text = (String) row.get('Delivery_Notes__c');
                 if (text != null) {
                     System.assert(
                         text.length() <= 1001,
@@ -171,7 +171,7 @@ private class GridControllerTest {
                 }
                 if (row.containsKey('_cut')) {
                     // A shortened value says so, for its editor.
-                    System.assertEquals(new List<String>{ 'Long_Text__c' }, row.get('_cut'));
+                    System.assertEquals(new List<String>{ 'Delivery_Notes__c' }, row.get('_cut'));
                     marked++;
                 }
             }
@@ -182,19 +182,19 @@ private class GridControllerTest {
     @IsTest
     static void theEditorReadsTheWholeLongText() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = [
-                SELECT Id, Long_Text__c
-                FROM Rowhouse_Test_Record__c
-                WHERE Name = 'TC-055 long text'
+            Consignment__c rec = [
+                SELECT Id, Delivery_Notes__c
+                FROM Consignment__c
+                WHERE Name = 'Driver log, Fort Kent'
             ];
-            String whole = GridController.fetchFullText('Security_Test', rec.Id, 'long_text__c');
-            System.assertEquals(rec.Long_Text__c, whole, 'The whole text, not the shortened copy.');
+            String whole = GridController.fetchFullText('Consignment_Charges', rec.Id, 'delivery_notes__c');
+            System.assertEquals(rec.Delivery_Notes__c, whole, 'The whole text, not the shortened copy.');
             List<String> refusals = new List<String>();
             for (
                 List<String> bad : new List<List<String>>{
-                    new List<String>{ 'Security_Test', rec.Id, 'Text_Field__c' },
-                    new List<String>{ 'Security_Test', rec.Id, 'Currency_Field__c' },
-                    new List<String>{ 'Security_Test', UserInfo.getUserId(), 'Long_Text__c' }
+                    new List<String>{ 'Consignment_Charges', rec.Id, 'Consignee__c' },
+                    new List<String>{ 'Consignment_Charges', rec.Id, 'Freight_Charge__c' },
+                    new List<String>{ 'Consignment_Charges', UserInfo.getUserId(), 'Delivery_Notes__c' }
                 }
             ) {
                 try {
@@ -216,22 +216,22 @@ private class GridControllerTest {
     @IsTest
     static void aTimeReachesTheBrowserAsSalesforceWritesIt() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = [SELECT Id FROM Rowhouse_Test_Record__c WHERE Name = 'TC-055 long text'];
-            rec.Time_Field__c = Time.newInstance(17, 30, 5, 7);
+            Consignment__c rec = [SELECT Id FROM Consignment__c WHERE Name = 'Driver log, Fort Kent'];
+            rec.Pickup_Time__c = Time.newInstance(17, 30, 5, 7);
             update rec;
             GridRequest request = new GridRequest(
-                'Rowhouse_Test_Record__c',
-                new List<String>{ 'Name', 'Time_Field__c' },
+                'Consignment__c',
+                new List<String>{ 'Name', 'Pickup_Time__c' },
                 null,
                 10
             );
             request.onlyIds(new List<Id>{ rec.Id });
             List<Map<String, Object>> rows = GridController.toClientRows(
                 GridDataService.fetchPage(request),
-                'Rowhouse_Test_Record__c'
+                'Consignment__c'
             );
             // Not milliseconds after midnight, which is how Apex hands a Time to the browser.
-            System.assertEquals('17:30:05.007Z', rows[0].get('Time_Field__c'));
+            System.assertEquals('17:30:05.007Z', rows[0].get('Pickup_Time__c'));
             System.assertEquals('00:00:00.000Z', GridController.timeText(Time.newInstance(0, 0, 0, 0)));
         }
     }
@@ -239,19 +239,24 @@ private class GridControllerTest {
     @IsTest
     static void saveAndPollRoundTrip() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c rec = [SELECT Id FROM Rowhouse_Test_Record__c WHERE Name = 'TC-055 long text'];
+            Consignment__c rec = [SELECT Id FROM Consignment__c WHERE Name = 'Driver log, Fort Kent'];
             Test.startTest();
             GridSaveResult ticket = GridController.save(
-                'Security_Test',
-                new List<Map<String, Object>>{ new Map<String, Object>{ 'Id' => rec.Id, 'Text_Field__c' => 'saved' } }
+                'Consignment_Charges',
+                new List<Map<String, Object>>{
+                    new Map<String, Object>{ 'Id' => rec.Id, 'Consignee__c' => 'Penobscot Paper' }
+                }
             );
             System.assertEquals(false, ticket.done, 'A queued save is not done yet.');
             Test.stopTest();
             GridSaveResult done = GridController.saveStatus(ticket.saveId);
             System.assert(done.done);
             System.assertEquals(1, done.successCount);
-            List<Map<String, Object>> reread = GridController.fetchRowsById('Security_Test', new List<Id>{ rec.Id });
-            System.assertEquals('saved', reread[0].get('Text_Field__c'));
+            List<Map<String, Object>> reread = GridController.fetchRowsById(
+                'Consignment_Charges',
+                new List<Id>{ rec.Id }
+            );
+            System.assertEquals('Penobscot Paper', reread[0].get('Consignee__c'));
         }
     }
 
@@ -259,9 +264,9 @@ private class GridControllerTest {
     static void groupSubtotalsComeThroughAndTheirErrorsReadPlainly() {
         System.runAs(GridTestUsers.fullUser()) {
             GridGroupService.Result result = GridController.summarizeGroups(
-                'Group_Test',
+                'Consignments_By_Mode',
                 null,
-                new List<String>{ 'Picklist_Field__c' },
+                new List<String>{ 'Service_Level__c' },
                 null,
                 null,
                 null,
@@ -276,9 +281,9 @@ private class GridControllerTest {
             System.assertEquals(2, records, 'Both seed rows, in the blank Stage group.');
             try {
                 GridController.summarizeGroups(
-                    'Group_Test',
+                    'Consignments_By_Mode',
                     null,
-                    new List<String>{ 'Number_Field__c' },
+                    new List<String>{ 'Pieces__c' },
                     null,
                     null,
                     null,
@@ -288,7 +293,7 @@ private class GridControllerTest {
                 );
                 System.assert(false, 'Expected a refusal.');
             } catch (AuraHandledException e) {
-                System.assertEquals('Cannot group by Number_Field__c.', e.getMessage());
+                System.assertEquals('Cannot group by Pieces__c.', e.getMessage());
             }
         }
     }
@@ -298,9 +303,9 @@ private class GridControllerTest {
     @IsTest
     static void openGridAnswersTheConfigurationTheLayoutAndTheFirstPage() {
         System.runAs(GridTestUsers.fullUser()) {
-            Map<String, Object> result = GridController.openGrid('Test_Records', null, null, null, null);
+            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
-            System.assertEquals('Rowhouse_Test_Record__c', def.objectApiName);
+            System.assertEquals('Consignment__c', def.objectApiName);
             System.assert(
                 Pattern.matches('(standard|custom):[a-z0-9_]+', def.objectIcon),
                 'Icons, once per grid opened.'
@@ -316,15 +321,15 @@ private class GridControllerTest {
             Map<String, Object> page = (Map<String, Object>) result.get('page');
             List<Map<String, Object>> rows = (List<Map<String, Object>>) page.get('rows');
             System.assertEquals(2, rows.size());
-            System.assertEquals('TC-024 large number', rows[0].get('Name'));
-            System.assertEquals('999999999999999999', rows[0].get('Number_Field__c'), 'Rows as fetchRows sends them.');
+            System.assertEquals('Bath Iron fasteners, bulk', rows[0].get('Name'));
+            System.assertEquals('999999999999999999', rows[0].get('Pieces__c'), 'Rows as fetchRows sends them.');
             System.assertEquals(2, page.get('totalRows'));
             System.assertEquals(false, page.get('hasMore'));
             Map<String, Object> newRow = (Map<String, Object>) result.get('newRow');
             System.assertEquals(true, newRow.get('inline'), 'The New button adds a row in place here.');
             System.assertEquals(
                 null,
-                GridController.openGrid('Save_Test', null, null, null, null).get('newRow'),
+                GridController.openGrid('Consignment_Rates', null, null, null, null).get('newRow'),
                 'No New button, no new row.'
             );
         }
@@ -332,22 +337,22 @@ private class GridControllerTest {
 
     @IsTest
     static void aPicklistThatFollowsRecordTypesBringsEachRowsRecordType() {
-        Map<String, Schema.RecordTypeInfo> types = Schema.SObjectType.Rowhouse_Test_Typed__c.getRecordTypeInfosByDeveloperName();
-        Id standard = types.get('Standard').getRecordTypeId();
-        Id restricted = types.get('Restricted').getRecordTypeId();
+        Map<String, Schema.RecordTypeInfo> types = Schema.SObjectType.Inspection__c.getRecordTypeInfosByDeveloperName();
+        Id standard = types.get('Routine').getRecordTypeId();
+        Id restricted = types.get('Hazmat').getRecordTypeId();
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Typed__c a = new Rowhouse_Test_Typed__c(
-                Name = 'A',
+            Inspection__c a = new Inspection__c(
+                Name = 'Brake inspection, Augusta yard',
                 RecordTypeId = standard,
                 Status__c = 'Working'
             );
-            Rowhouse_Test_Typed__c b = new Rowhouse_Test_Typed__c(
-                Name = 'B',
+            Inspection__c b = new Inspection__c(
+                Name = 'Hazmat placard check, Bangor',
                 RecordTypeId = restricted,
                 Status__c = 'Archived'
             );
-            insert new List<Rowhouse_Test_Typed__c>{ a, b };
-            Map<String, Object> result = GridController.openGrid('Typed_Test', null, null, null, null);
+            insert new List<Inspection__c>{ a, b };
+            Map<String, Object> result = GridController.openGrid('Inspections', null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
             System.assertEquals(true, def.byRecordType, 'An editable picklist on an object with record types.');
             List<Map<String, Object>> rows = (List<Map<String, Object>>) ((Map<String, Object>) result.get('page'))
@@ -355,10 +360,10 @@ private class GridControllerTest {
             System.assertEquals(2, rows.size());
             System.assertEquals(standard, rows[0].get('RecordTypeId'), 'Each row says its record type.');
             System.assertEquals(restricted, rows[1].get('RecordTypeId'));
-            List<Map<String, Object>> reread = GridController.fetchRowsById('Typed_Test', new List<Id>{ b.Id });
+            List<Map<String, Object>> reread = GridController.fetchRowsById('Inspections', new List<Id>{ b.Id });
             System.assertEquals(restricted, reread[0].get('RecordTypeId'), 'A row read again after a save keeps it.');
             GridConfig.Definition plain = (GridConfig.Definition) GridController.openGrid(
-                    'Test_Records',
+                    'Consignments',
                     null,
                     null,
                     null,
@@ -377,9 +382,9 @@ private class GridControllerTest {
     static void createRowsCreatesTheNewRowsRecordsAndSaysWhyNot() {
         System.runAs(GridTestUsers.fullUser()) {
             GridCreateService.Result result = GridController.createRows(
-                'Test_Records',
+                'Consignments',
                 new List<Map<String, Object>>{
-                    new Map<String, Object>{ 'key' => 'rh-new-1', 'Name' => 'From the grid' }
+                    new Map<String, Object>{ 'key' => 'rh-new-1', 'Name' => 'Casco Bay Marine, 4 pallets' }
                 },
                 null,
                 null,
@@ -389,8 +394,10 @@ private class GridControllerTest {
             System.assert(result.rows[0].success, String.valueOf(result.rows[0].errors));
             try {
                 GridController.createRows(
-                    'Save_Test',
-                    new List<Map<String, Object>>{ new Map<String, Object>{ 'key' => 'k', 'Name' => 'x' } },
+                    'Consignment_Rates',
+                    new List<Map<String, Object>>{
+                        new Map<String, Object>{ 'key' => 'k', 'Name' => 'Wachusett Paper, 6 rolls' }
+                    },
                     null,
                     null,
                     null
@@ -406,33 +413,33 @@ private class GridControllerTest {
     static void openGridSearchesAsFetchRowsDoes() {
         System.runAs(GridTestUsers.fullUser()) {
             Map<String, Object> page = (Map<String, Object>) GridController.openGrid(
-                    'Test_Records',
-                    'TC-055',
+                    'Consignments',
+                    'Fort Kent',
                     null,
                     null,
                     null
                 )
                 .get('page');
             System.assertEquals(1, page.get('totalRows'));
-            System.assertEquals('TC-055 long text', ((List<Map<String, Object>>) page.get('rows'))[0].get('Name'));
+            System.assertEquals('Driver log, Fort Kent', ((List<Map<String, Object>>) page.get('rows'))[0].get('Name'));
         }
     }
 
     @IsTest
     static void openGridSortsAndGroupsTheFirstPageAsTheLayoutSays() {
         System.runAs(GridTestUsers.fullUser()) {
-            String layout = '{"v":1,"sort":[{"field":"Name","direction":"desc"}],"grouping":[{"field":"Picklist_Field__c","unit":null}]}';
-            GridLayouts.save('Test_Records', layout);
-            Map<String, Object> result = GridController.openGrid('Test_Records', null, null, null, null);
+            String layout = '{"v":1,"sort":[{"field":"Name","direction":"desc"}],"grouping":[{"field":"Service_Level__c","unit":null}]}';
+            GridLayouts.save('Consignments', layout);
+            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null);
             System.assertEquals(layout, result.get('layout'), 'The layout comes with it, for the browser to read.');
             Map<String, Object> start = (Map<String, Object>) result.get('start');
             System.assertEquals('Name', start.get('sortField'));
             System.assertEquals('desc', start.get('sortDirection'));
-            System.assertEquals(new List<String>{ 'Picklist_Field__c' }, start.get('groupBy'));
+            System.assertEquals(new List<String>{ 'Service_Level__c' }, start.get('groupBy'));
             List<Map<String, Object>> rows = (List<Map<String, Object>>) ((Map<String, Object>) result.get('page'))
                 .get('rows');
             System.assertEquals(
-                'TC-055 long text',
+                'Driver log, Fort Kent',
                 rows[0].get('Name'),
                 'One group (no picklist value), Name descending.'
             );
@@ -445,19 +452,19 @@ private class GridControllerTest {
             // A column the grid no longer has is passed over; a grouping with no
             // level left is the admin's (none here).
             GridLayouts.save(
-                'Test_Records',
+                'Consignments',
                 '{"v":1,"sort":[{"field":"Gone__c","direction":"desc"},' +
-                '{"field":"Text_Field__c","direction":"desc"}],"grouping":[{"field":"Text_Field__c"}]}'
+                '{"field":"Consignee__c","direction":"desc"}],"grouping":[{"field":"Consignee__c"}]}'
             );
             Map<String, Object> start = (Map<String, Object>) GridController.openGrid(
-                    'Test_Records',
+                    'Consignments',
                     null,
                     null,
                     null,
                     null
                 )
                 .get('start');
-            System.assertEquals('Text_Field__c', start.get('sortField'), 'The first sort key left.');
+            System.assertEquals('Consignee__c', start.get('sortField'), 'The first sort key left.');
             System.assertEquals('desc', start.get('sortDirection'));
             System.assertEquals(
                 new List<String>(),
@@ -470,19 +477,19 @@ private class GridControllerTest {
     @IsTest
     static void aChildTableKeepsItsOwnLayoutForItsTab() {
         System.runAs(GridTestUsers.fullUser()) {
-            Rowhouse_Test_Record__c parent = [
+            Consignment__c parent = [
                 SELECT Id
-                FROM Rowhouse_Test_Record__c
-                WHERE Name = 'TC-024 large number'
+                FROM Consignment__c
+                WHERE Name = 'Bath Iron fasteners, bulk'
             ];
             String own = '{"v":1,"sort":[{"field":"Name","direction":"desc"}]}';
             String inTab = '{"v":1,"sort":[{"field":"Name","direction":"desc"}],"widths":{"Name":180}}';
-            GridLayouts.save('Test_Children', own);
-            System.assertEquals(true, GridController.saveLayout('Test_Children', inTab, 'Test_Records_Children'));
+            GridLayouts.save('Consignment_Items', own);
+            System.assertEquals(true, GridController.saveLayout('Consignment_Items', inTab, 'Consignments_Items'));
             Map<String, Object> result = GridController.openGrid(
-                'Test_Children',
+                'Consignment_Items',
                 null,
-                'Test_Records_Children',
+                'Consignments_Items',
                 parent.Id,
                 null
             );
@@ -493,16 +500,16 @@ private class GridControllerTest {
                 ((Map<String, Object>) result.get('page')).get('totalRows'),
                 'Only the parent\'s records: none.'
             );
-            System.assertEquals(own, GridLayouts.read('Test_Children', null), 'The grid on its own keeps its own.');
-            GridController.resetLayout('Test_Children', 'Test_Records_Children');
-            System.assertEquals(null, GridLayouts.read('Test_Children', 'Test_Records_Children'), 'Reset in the tab.');
+            System.assertEquals(own, GridLayouts.read('Consignment_Items', null), 'The grid on its own keeps its own.');
+            GridController.resetLayout('Consignment_Items', 'Consignments_Items');
+            System.assertEquals(null, GridLayouts.read('Consignment_Items', 'Consignments_Items'), 'Reset in the tab.');
             System.assertEquals(
                 own,
-                GridLayouts.read('Test_Children', null),
+                GridLayouts.read('Consignment_Items', null),
                 '... leaves the grid on its own as it was.'
             );
             try {
-                GridController.saveLayout('Test_Records', inTab, 'Test_Records_Children');
+                GridController.saveLayout('Consignments', inTab, 'Consignments_Items');
                 System.assert(false, 'A tab that does not show the grid is no key.');
             } catch (AuraHandledException e) {
                 System.assert(
@@ -519,9 +526,9 @@ private class GridControllerTest {
             // A child tab the grid does not have: the configuration still comes,
             // and the grid asks for the rows itself, which shows why.
             Map<String, Object> result = GridController.openGrid(
-                'Test_Children',
+                'Consignment_Items',
                 null,
-                'Nope',
+                'Consignment_Items_Claims',
                 UserInfo.getUserId(),
                 null
             );
@@ -553,7 +560,7 @@ private class GridControllerTest {
         // Anything else reads plainly; only Rowhouse Grid Diagnostics users see the platform's text.
         System.runAs(GridTestUsers.fullUser()) {
             try {
-                GridController.lookupName('Test_Records', 'Lookup_Field__c', 'not an id');
+                GridController.lookupName('Consignments', 'Shipper__c', 'not an id');
                 System.assert(false, 'Expected an exception.');
             } catch (AuraHandledException e) {
                 System.assertEquals(GridException.UNEXPECTED, e.getMessage(), 'No type or detail without Diagnostics.');
@@ -561,7 +568,7 @@ private class GridControllerTest {
         }
         System.runAs(GridTestUsers.diagnosticsUser()) {
             try {
-                GridController.lookupName('Test_Records', 'Lookup_Field__c', 'not an id');
+                GridController.lookupName('Consignments', 'Shipper__c', 'not an id');
                 System.assert(false, 'Expected an exception.');
             } catch (AuraHandledException e) {
                 System.assert(e.getMessage().startsWith(GridException.UNEXPECTED), e.getMessage());
@@ -575,7 +582,7 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             // A column of the grid, in any case: sorted.
             Map<String, Object> page = GridController.fetchRows(
-                'Test_Records',
+                'Consignments',
                 null,
                 'name',
                 'desc',
@@ -589,11 +596,11 @@ private class GridControllerTest {
                 null
             );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) page.get('rows');
-            System.assertEquals('TC-055 long text', rows[0].get('Name'), 'Name descending.');
+            System.assertEquals('Driver log, Fort Kent', rows[0].get('Name'), 'Name descending.');
             // A field the user can read, but no column of this grid: refused (HR-6).
             try {
                 GridController.fetchRows(
-                    'Test_Records',
+                    'Consignments',
                     null,
                     'CreatedDate',
                     'asc',

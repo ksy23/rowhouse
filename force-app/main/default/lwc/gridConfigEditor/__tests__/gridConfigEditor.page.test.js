@@ -108,7 +108,7 @@ const DRAFT = {
             subtotal: 'sum',
             inactive: false
         },
-        { name: 'Deals_Old', field: 'Score__c', columnLabel: null, editable: false, sortable: true, inactive: true }
+        { name: 'Deals_Score', field: 'Score__c', columnLabel: null, editable: false, sortable: true, inactive: true }
     ],
     rules: [
         {
@@ -164,7 +164,11 @@ async function mount(configName = 'Deals', layout = 'page') {
 
 beforeEach(() => {
     jest.useFakeTimers();
-    readConfig.mockResolvedValue({ draft: DRAFT, warnings: ['Grid Column Deals_Old: something'], canSave: true });
+    readConfig.mockResolvedValue({
+        draft: DRAFT,
+        warnings: ['Grid Column Deals_Score has an unknown Cell Type "Gauge".'],
+        canSave: true
+    });
     describeObject.mockResolvedValue(DESCRIBED);
     listObjects.mockResolvedValue([
         { name: 'Account', label: 'Account' },
@@ -192,7 +196,9 @@ describe('the page layout on the Grid Admin tab', () => {
         expect($(el, '.rh-ed-place').textContent).toBe('Not on a record page · fills the window');
         expect($(el, '.rh-ed-actions .rh-editor-cancel').label).toBe('Close');
         expect($(el, '.rh-ed-actions .rh-editor-save').disabled).toBe(true);
-        expect($(el, '.rh-ed-head .rh-editor-warnings').textContent).toContain('Grid Column Deals_Old: something');
+        expect($(el, '.rh-ed-head .rh-editor-warnings').textContent).toContain(
+            'Grid Column Deals_Score has an unknown Cell Type "Gauge".'
+        );
         expect($(el, '.rh-editor-footer')).toBeNull();
     });
 

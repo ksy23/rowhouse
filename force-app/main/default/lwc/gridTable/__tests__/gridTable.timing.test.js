@@ -34,7 +34,7 @@ describe('benchmark timings', () => {
 
     it('records nothing without diagnostics', async () => {
         const el = await mount(false);
-        el.shadowRoot.querySelector('th[data-field="Number_Field__c"] .slds-th__action').click();
+        el.shadowRoot.querySelector('th[data-field="Pieces__c"] .slds-th__action').click();
         await flush();
         await painted();
         expect(markSpy).not.toHaveBeenCalled();
@@ -107,7 +107,7 @@ describe('benchmark timings', () => {
     it('measures a sort from its activation to the repaint', async () => {
         const el = await mount(true);
         measureSpy.mockClear();
-        el.shadowRoot.querySelector('th[data-field="Number_Field__c"] .slds-th__action').click();
+        el.shadowRoot.querySelector('th[data-field="Pieces__c"] .slds-th__action').click();
         expect(markSpy).toHaveBeenCalledWith('rowhouse:sort-start');
         await flush();
         await painted();
@@ -119,11 +119,11 @@ describe('benchmark timings', () => {
         const el = await mount(true);
         measureSpy.mockClear();
         const id = seedRows[0].Id;
-        el.shadowRoot.querySelector(`td[data-row-id="${id}"][data-field="Text_Field__c"] button`).click();
+        el.shadowRoot.querySelector(`td[data-row-id="${id}"][data-field="Consignee__c"] button`).click();
         await flush();
         el.shadowRoot
             .querySelector('c-cell-text[data-editor]')
-            .dispatchEvent(new CustomEvent('commit', { detail: { value: 'changed' } }));
+            .dispatchEvent(new CustomEvent('commit', { detail: { value: 'Wachusett Paper' } }));
         expect(markSpy).toHaveBeenCalledWith('rowhouse:commit-start');
         await flush();
         await painted();

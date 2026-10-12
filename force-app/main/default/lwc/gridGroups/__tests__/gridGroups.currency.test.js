@@ -25,19 +25,19 @@ const MIXED = {
     totalCurrency: 'USD'
 };
 const SUM = { ...MIXED, subtotal: 'sum' };
-const LOW = { ...MIXED, field: 'Low__c', label: 'Low', subtotal: 'min' };
-const COUNT = { ...MIXED, field: 'Count__c', label: 'Count', subtotal: 'count' };
+const LOW = { ...MIXED, field: 'Discount__c', label: 'Discount', subtotal: 'min' };
+const COUNT = { ...MIXED, field: 'Deposit__c', label: 'Deposit', subtotal: 'count' };
 const COLUMNS = [STAGE, SUM, LOW, COUNT];
 const LEVELS = [{ field: 'StageName', unit: null }];
 const ROWS = [
-    { Id: 'r1', StageName: 'Open', Amount: '100', Low__c: '5', Count__c: '1', CurrencyIsoCode: 'USD' },
-    { Id: 'r2', StageName: 'Open', Amount: '1000', Low__c: '9', Count__c: '1', CurrencyIsoCode: 'CAD' },
-    { Id: 'r3', StageName: 'Won', Amount: '500', Low__c: '1', Count__c: null, CurrencyIsoCode: 'EUR' }
+    { Id: 'r1', StageName: 'Open', Amount: '100', Discount__c: '5', Deposit__c: '1', CurrencyIsoCode: 'USD' },
+    { Id: 'r2', StageName: 'Open', Amount: '1000', Discount__c: '9', Deposit__c: '1', CurrencyIsoCode: 'CAD' },
+    { Id: 'r3', StageName: 'Won', Amount: '500', Discount__c: '1', Deposit__c: null, CurrencyIsoCode: 'EUR' }
 ];
 // The server's figures: CAD 1,000 converted at 0.5092 is USD 1,963.86.
 const SERVER = [
-    { k: ['Open'], n: 2, v: { Amount: { s: '2063.86' }, Low__c: { mn: '5' }, Count__c: { c: 2 } } },
-    { k: ['Won'], n: 1, v: { Amount: { s: '500.00' }, Low__c: { mn: '1' }, Count__c: { c: 0 } } }
+    { k: ['Open'], n: 2, v: { Amount: { s: '2063.86' }, Discount__c: { mn: '5' }, Deposit__c: { c: 2 } } },
+    { k: ['Won'], n: 1, v: { Amount: { s: '500.00' }, Discount__c: { mn: '1' }, Deposit__c: { c: 0 } } }
 ];
 const totals = () => rollUp(SERVER, LEVELS, COLUMNS);
 
@@ -65,13 +65,13 @@ describe('subtotals in more than one currency', () => {
     });
 
     it('never work a lowest value out from rows in different currencies', () => {
-        const shown = withDrafts(totals(), ROWS, { r1: { Low__c: '20' } }, LEVELS, COLUMNS, { complete: true });
+        const shown = withDrafts(totals(), ROWS, { r1: { Discount__c: '20' } }, LEVELS, COLUMNS, { complete: true });
         expect(subtotalFor(shown.byPath.get('open'), LOW).value).toBe('5');
-        expect(shown.byPath.get('open').unknown).toEqual({ Low__c: true });
+        expect(shown.byPath.get('open').unknown).toEqual({ Discount__c: true });
     });
 
     it('still count an edit in any currency', () => {
-        const shown = withDrafts(totals(), ROWS, { r3: { Count__c: '4' } }, LEVELS, COLUMNS);
+        const shown = withDrafts(totals(), ROWS, { r3: { Deposit__c: '4' } }, LEVELS, COLUMNS);
         expect(subtotalFor(shown.byPath.get('won'), COUNT).value).toBe(1);
         expect(shown.byPath.get('won').unknown).toEqual({});
     });

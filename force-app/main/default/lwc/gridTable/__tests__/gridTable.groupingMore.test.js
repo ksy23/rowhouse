@@ -12,33 +12,65 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const COLUMNS = [
     { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true },
     {
-        field: 'Stage__c',
-        label: 'Stage',
+        field: 'Service_Level__c',
+        label: 'Service Level',
         type: 'picklist',
         editable: true,
         sortable: true,
         groupable: true,
         options: [
-            { value: 'Open', label: 'Open' },
-            { value: 'Won', label: 'Won' },
-            { value: 'Lost', label: 'Lost' }
+            { value: 'Economy', label: 'Economy' },
+            { value: 'Standard', label: 'Standard' },
+            { value: 'Express', label: 'Express' }
         ]
     },
     { field: 'Region__c', label: 'Region', type: 'text', editable: true, sortable: true, groupable: true },
-    { field: 'Amount__c', label: 'Amount', type: 'currency', scale: 2, editable: true, sortable: true, subtotal: 'sum' }
+    {
+        field: 'Freight_Charge__c',
+        label: 'Freight Charge',
+        type: 'currency',
+        scale: 2,
+        editable: true,
+        sortable: true,
+        subtotal: 'sum'
+    }
 ];
 const id = n => `a01000000000000${n}AA`.slice(0, 18);
 const ROWS = [
-    { Id: id(1), Name: 'One', Stage__c: 'Open', Region__c: 'East', Amount__c: '100' },
-    { Id: id(2), Name: 'Two', Stage__c: 'Won', Region__c: 'West', Amount__c: '500' },
-    { Id: id(3), Name: 'Three', Stage__c: 'Open', Region__c: 'East', Amount__c: '50' },
-    { Id: id(4), Name: 'Four', Stage__c: 'Lost', Region__c: 'West', Amount__c: '25' }
+    {
+        Id: id(1),
+        Name: 'Kennebec Lumber, 12 bundles',
+        Service_Level__c: 'Economy',
+        Region__c: 'East',
+        Freight_Charge__c: '100'
+    },
+    {
+        Id: id(2),
+        Name: 'Penobscot Paper, full truck',
+        Service_Level__c: 'Standard',
+        Region__c: 'West',
+        Freight_Charge__c: '500'
+    },
+    {
+        Id: id(3),
+        Name: 'Reefer load, Machias',
+        Service_Level__c: 'Economy',
+        Region__c: 'East',
+        Freight_Charge__c: '50'
+    },
+    {
+        Id: id(4),
+        Name: 'Casco Bay Marine, 2 pallets',
+        Service_Level__c: 'Express',
+        Region__c: 'West',
+        Freight_Charge__c: '25'
+    }
 ];
-const BY_STAGE = [{ field: 'Stage__c', unit: null }];
+const BY_STAGE = [{ field: 'Service_Level__c', unit: null }];
 const SERVER_GROUPS = [
-    { k: ['Open'], l: [''], n: 2, v: { Amount__c: { s: '150' } } },
-    { k: ['Won'], l: [''], n: 1, v: { Amount__c: { s: '500' } } },
-    { k: ['Lost'], l: [''], n: 1, v: { Amount__c: { s: '25' } } }
+    { k: ['Economy'], l: [''], n: 2, v: { Freight_Charge__c: { s: '150' } } },
+    { k: ['Standard'], l: [''], n: 1, v: { Freight_Charge__c: { s: '500' } } },
+    { k: ['Express'], l: [''], n: 1, v: { Freight_Charge__c: { s: '25' } } }
 ];
 const ready = () => ({ status: 'ready', totals: rollUp(SERVER_GROUPS, BY_STAGE, COLUMNS) });
 
@@ -62,9 +94,11 @@ const mount = async (config = {}) => {
 const $ = selector => el.shadowRoot.querySelector(selector);
 const $$ = selector => [...el.shadowRoot.querySelectorAll(selector)];
 const groupNames = () =>
-    $$('tbody tr[data-kind="group"] .rh-group-label').map(s => s.textContent.replace('Stage: ', ''));
+    $$('tbody tr[data-kind="group"] .rh-group-label').map(s => s.textContent.replace('Service Level: ', ''));
 const groupRow = name => {
-    const match = $$('tbody tr[data-kind="group"] .rh-group-label').find(span => span.textContent === 'Stage: ' + name);
+    const match = $$('tbody tr[data-kind="group"] .rh-group-label').find(
+        span => span.textContent === 'Service Level: ' + name
+    );
     return match ? match.closest('tr') : null;
 };
 const announcement = () => $('[data-grid-root] > [aria-live="polite"]').textContent;
@@ -86,16 +120,16 @@ afterEach(() => {
 describe("the groups' order", () => {
     it('is by name, then by a subtotal, largest or smallest first, from the Group column menu', async () => {
         await mount();
-        expect(groupNames()).toEqual(['Open', 'Won', 'Lost']);
-        await choose('__group', 'Order groups by sum of Amount');
-        expect(groupNames()).toEqual(['Won', 'Open', 'Lost']);
-        expect(announcement()).toBe('Groups ordered by sum of Amount, largest first');
+        expect(groupNames()).toEqual(['Economy', 'Standard', 'Express']);
+        await choose('__group', 'Order groups by sum of Freight Charge');
+        expect(groupNames()).toEqual(['Standard', 'Economy', 'Express']);
+        expect(announcement()).toBe('Groups ordered by sum of Freight Charge, largest first');
         const items = await openMenu('__group');
         const checked = items.filter(a => a.getAttribute('aria-checked') === 'true').map(a => a.textContent.trim());
-        expect(checked).toEqual(['Order groups by sum of Amount', 'Largest first']);
+        expect(checked).toEqual(['Order groups by sum of Freight Charge', 'Largest first']);
         items.find(a => a.textContent.trim() === 'Smallest first').click();
         await flush();
-        expect(groupNames()).toEqual(['Lost', 'Open', 'Won']);
+        expect(groupNames()).toEqual(['Express', 'Economy', 'Standard']);
     });
 
     it('is told to the parent with the layout, and comes back with it', async () => {
@@ -107,10 +141,10 @@ describe("the groups' order", () => {
         });
         el.remove();
         await mount({
-            userLayout: { key: 7, groupView: { order: { by: 'Amount__c', direction: 'asc' }, percent: true } }
+            userLayout: { key: 7, groupView: { order: { by: 'Freight_Charge__c', direction: 'asc' }, percent: true } }
         });
-        expect(groupNames()).toEqual(['Lost', 'Open', 'Won']);
-        expect(groupRow('Open').querySelector('.rh-group-share').textContent).toBe('50%');
+        expect(groupNames()).toEqual(['Express', 'Economy', 'Standard']);
+        expect(groupRow('Economy').querySelector('.rh-group-share').textContent).toBe('50%');
     });
 });
 
@@ -119,13 +153,13 @@ describe('percent of total', () => {
         await mount();
         expect($('.rh-group-share')).toBeNull();
         await choose('__group', 'Show percent of total');
-        const open = groupRow('Open');
+        const open = groupRow('Economy');
         expect(open.querySelector('.rh-group-share').textContent).toBe('50%');
-        expect(open.querySelector('td[data-field="Amount__c"] .rh-subtotal-share').textContent).toBe('22%');
+        expect(open.querySelector('td[data-field="Freight_Charge__c"] .rh-subtotal-share').textContent).toBe('22%');
         expect(open.querySelector('.rh-group-toggle .slds-assistive-text').textContent).toBe(
-            'Stage: Open, 2 records, 50% of all records'
+            'Service Level: Economy, 2 records, 50% of all records'
         );
-        expect(open.querySelector('td[data-field="Amount__c"] .slds-assistive-text').textContent).toContain(
+        expect(open.querySelector('td[data-field="Freight_Charge__c"] .slds-assistive-text').textContent).toContain(
             '22% of the total'
         );
         const item = (await openMenu('__group')).find(a => a.textContent.trim() === 'Show percent of total');
@@ -136,12 +170,12 @@ describe('percent of total', () => {
 
 describe('subtotals with unsaved edits', () => {
     it('follow the edit, marked as unsaved, in the group and the Total row', async () => {
-        await mount({ drafts: { [id(1)]: { Amount__c: '130' } } });
-        const cell = groupRow('Open').querySelector('td[data-field="Amount__c"]');
+        await mount({ drafts: { [id(1)]: { Freight_Charge__c: '130' } } });
+        const cell = groupRow('Economy').querySelector('td[data-field="Freight_Charge__c"]');
         expect(cell.querySelector('.rh-subtotal').textContent).toContain('180.00');
         expect(cell.classList).toContain('rh-subtotal_edited');
         expect(cell.querySelector('.slds-assistive-text').textContent).toContain('with your unsaved changes');
-        expect(groupRow('Won').querySelector('td[data-field="Amount__c"]').classList).not.toContain(
+        expect(groupRow('Standard').querySelector('td[data-field="Freight_Charge__c"]').classList).not.toContain(
             'rh-subtotal_edited'
         );
         const total = $('.rh-totals .rh-subtotal').closest('td');
@@ -174,7 +208,7 @@ describe('dragging a header to group by it', () => {
         expect(events.groupchange).toEqual([
             {
                 grouping: [
-                    { field: 'Stage__c', unit: null },
+                    { field: 'Service_Level__c', unit: null },
                     { field: 'Region__c', unit: null }
                 ]
             }
@@ -200,9 +234,9 @@ describe('dragging a header to group by it', () => {
 
     it('shows no drop zone for a column the grid cannot group by', async () => {
         await mount({ grouping: [], groupSummary: null });
-        drag(handle('Amount__c'), 'dragstart');
+        drag(handle('Freight_Charge__c'), 'dragstart');
         await flush();
         expect($('.rh-group-zone')).toBeNull();
-        drag(handle('Amount__c'), 'dragend');
+        drag(handle('Freight_Charge__c'), 'dragend');
     });
 });

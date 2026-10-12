@@ -28,9 +28,9 @@ jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jes
 
 const USER_ID = '005000000000001AAA';
 const DEFINITION = {
-    name: 'Test_Records',
-    label: 'Test Records',
-    objectApiName: 'Rowhouse_Test_Record__c',
+    name: 'Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -43,13 +43,19 @@ const DEFINITION = {
     ]
 };
 const INLINE = {
-    objectLabel: 'Test Record',
+    objectLabel: 'Consignment',
     inline: true,
     defaults: { Status__c: 'Open', OwnerId: USER_ID },
-    names: { [USER_ID]: 'Rowhouse Full' },
+    names: { [USER_ID]: 'Hannah Pelletier' },
     presets: {}
 };
-const ROW = { Id: 'a00000000000000001', Name: 'Abbott', Status__c: 'Open', OwnerId: USER_ID, Total__c: '5' };
+const ROW = {
+    Id: 'a00000000000000001',
+    Name: 'Kennebec Lumber, 12 bundles',
+    Status__c: 'Open',
+    OwnerId: USER_ID,
+    Total__c: '5'
+};
 const NEW_ID = 'a00000000000000009';
 const settle = async () => {
     for (let i = 0; i < 30; i++) {
@@ -65,7 +71,7 @@ const mount = async (newRow = INLINE, extra = {}) => {
     const base = openGridFrom({ getGridConfig, fetchRows });
     openGrid.mockImplementation(async args => ({ ...(await base(args)), newRow }));
     const el = createElement('c-grid-view', { is: GridView });
-    Object.assign(el, { configName: 'Test_Records', ...extra });
+    Object.assign(el, { configName: 'Consignments', ...extra });
     document.body.appendChild(el);
     await settle();
     return el;
@@ -117,7 +123,7 @@ describe('the New button', () => {
         expect(row.Id).toBe('rh-new-1');
         expect(row.Status__c).toBe('Open');
         expect(row.OwnerId).toBe(USER_ID);
-        expect(c.refNames[USER_ID]).toBe('Rowhouse Full'); // the owner's name shows in the cell
+        expect(c.refNames[USER_ID]).toBe('Hannah Pelletier'); // the owner's name shows in the cell
         expect(c.drafts['rh-new-1']).toEqual({ _new: true });
         expect(c.focusRow).toEqual({ id: 'rh-new-1', seq: 1 });
         expect(c.history.undoLabel).toBe('Undo new row');
@@ -144,8 +150,8 @@ describe('the New button', () => {
     it('creates the new rows first, then saves the changes, and reads the new records back into the grid', async () => {
         const el = await mount();
         await clickNew(el);
-        await typeIn(el, 'rh-new-1', 'Name', 'Baker');
-        await typeIn(el, ROW.Id, 'Name', 'Abbott 2');
+        await typeIn(el, 'rh-new-1', 'Name', 'Penobscot Paper, full truck');
+        await typeIn(el, ROW.Id, 'Name', 'Kennebec Lumber, 14 bundles');
         createRows.mockResolvedValue({
             rows: [{ key: 'rh-new-1', success: true, recordId: NEW_ID, errors: [] }],
             rejectedFields: [],
@@ -163,8 +169,14 @@ describe('the New button', () => {
             Promise.resolve(
                 recordIds.map(id =>
                     id === NEW_ID
-                        ? { Id: NEW_ID, Name: 'Baker', Status__c: 'Open', OwnerId: USER_ID, Total__c: '0' }
-                        : { ...ROW, Name: 'Abbott 2' }
+                        ? {
+                              Id: NEW_ID,
+                              Name: 'Penobscot Paper, full truck',
+                              Status__c: 'Open',
+                              OwnerId: USER_ID,
+                              Total__c: '0'
+                          }
+                        : { ...ROW, Name: 'Kennebec Lumber, 14 bundles' }
                 )
             )
         );
@@ -174,13 +186,16 @@ describe('the New button', () => {
         await settle();
         await settle();
         expect(createRows).toHaveBeenCalledWith({
-            configName: 'Test_Records',
-            rows: [{ key: 'rh-new-1', Name: 'Baker', Status__c: 'Open', OwnerId: USER_ID }],
+            configName: 'Consignments',
+            rows: [{ key: 'rh-new-1', Name: 'Penobscot Paper, full truck', Status__c: 'Open', OwnerId: USER_ID }],
             parentLink: null,
             parentId: null,
             recordId: null
         });
-        expect(saveRows).toHaveBeenCalledWith({ configName: 'Test_Records', rows: [{ Id: ROW.Id, Name: 'Abbott 2' }] });
+        expect(saveRows).toHaveBeenCalledWith({
+            configName: 'Consignments',
+            rows: [{ Id: ROW.Id, Name: 'Kennebec Lumber, 14 bundles' }]
+        });
         expect(createRows.mock.invocationCallOrder[0]).toBeLessThan(saveRows.mock.invocationCallOrder[0]);
         const c = config(el);
         expect(c.newRows).toHaveLength(0);
@@ -198,7 +213,7 @@ describe('the New button', () => {
         expect(createRows).not.toHaveBeenCalled();
         expect(config(el).errors['rh-new-1'].fields.Name).toBe('Complete this field.');
 
-        await typeIn(el, 'rh-new-1', 'Name', 'Duplicate');
+        await typeIn(el, 'rh-new-1', 'Name', 'Casco Bay Marine, 3 pallets');
         createRows.mockResolvedValue({
             rows: [
                 {
@@ -215,7 +230,7 @@ describe('the New button', () => {
         await settle();
         const c = config(el);
         expect(c.newRows).toHaveLength(1);
-        expect(c.drafts['rh-new-1']).toEqual({ _new: true, Name: 'Duplicate' });
+        expect(c.drafts['rh-new-1']).toEqual({ _new: true, Name: 'Casco Bay Marine, 3 pallets' });
         expect(c.errors['rh-new-1'].row).toBe('Use one of these records?');
         expect(fetchRowsById).not.toHaveBeenCalled();
     });
@@ -233,7 +248,7 @@ describe('the New button', () => {
         expect($(el, 'lightning-button.rh-new').title).toBe("New: open Salesforce's New Contact form");
         await clickNew(el);
         const dialog = $(el, 'c-grid-new-record');
-        expect(dialog.objectApiName).toBe('Rowhouse_Test_Record__c');
+        expect(dialog.objectApiName).toBe('Consignment__c');
         expect(dialog.objectLabel).toBe('Contact');
         expect(dialog.fieldLabel).toBe('');
         expect(dialog.presets).toEqual({ AccountId: '001000000000001AAA' });
@@ -254,7 +269,7 @@ describe('the New button', () => {
         again.dispatchEvent(new CustomEvent('created', { detail: { id: NEW_ID } }));
         await settle();
         expect($(el, 'c-grid-new-record')).toBeNull();
-        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Test_Records', recordIds: [NEW_ID] });
+        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Consignments', recordIds: [NEW_ID] });
         expect(config(el).rows.map(r => r.Id)).toEqual([NEW_ID, ROW.Id]);
         expect(config(el).focusRow.id).toBe(NEW_ID);
         expect(toasts[0].title).toBe('Contact "Whitcomb" was created.');
@@ -262,7 +277,7 @@ describe('the New button', () => {
 
     it('is the first item of the compact menu in a child table, and sends the parent with the new rows', async () => {
         const el = await mount(INLINE, {
-            parent: { link: 'Nest_Accounts_Records', id: '001000000000001AAA', name: 'Parent', level: 2 }
+            parent: { link: 'Nest_Accounts_Records', id: '001000000000001AAA', name: 'Casco Bay Marine', level: 2 }
         });
         const items = [...el.shadowRoot.querySelectorAll('lightning-menu-item')];
         expect(items[0].label).toBe('New');
@@ -270,7 +285,7 @@ describe('the New button', () => {
             new CustomEvent('select', { detail: { value: 'new' } })
         );
         await settle();
-        await typeIn(el, 'rh-new-1', 'Name', 'Child row');
+        await typeIn(el, 'rh-new-1', 'Name', 'Casco Bay Marine, 6 crates');
         createRows.mockResolvedValue({ rows: [], rejectedFields: [], strippedFields: [] });
         tableOf(el).dispatchEvent(new CustomEvent('save'));
         await settle();

@@ -37,16 +37,24 @@ afterEach(() => {
 
 describe('a required field left blank', () => {
     const cases = [
-        ['text', CellText, { value: null }],
-        ['number', CellNumber, { value: null, type: 'number' }],
-        ['date', CellDate, { value: null }],
-        ['picklist', CellPicklist, { value: null, options: [{ value: 'A', label: 'A' }] }],
-        ['multi-select picklist', CellMultiPicklist, { value: null, options: [{ value: 'A', label: 'A' }] }],
-        ['lookup', CellLookup, { value: null, configName: 'Test_Records', field: 'Lookup_Field__c' }]
+        ['text', CellText, { label: 'Consignee', value: null }],
+        ['number', CellNumber, { label: 'Pieces', value: null, type: 'number' }],
+        ['date', CellDate, { label: 'Ship Date', value: null }],
+        [
+            'picklist',
+            CellPicklist,
+            { label: 'Service Level', value: null, options: [{ value: 'Economy', label: 'Economy' }] }
+        ],
+        [
+            'multi-select picklist',
+            CellMultiPicklist,
+            { label: 'Handling', value: null, options: [{ value: 'Fragile', label: 'Fragile' }] }
+        ],
+        ['lookup', CellLookup, { label: 'Shipper', value: null, configName: 'Consignments', field: 'Shipper__c' }]
     ];
 
     it.each(cases)('the %s editor refuses it, says why, and reports nothing', async (name, Ctor, props) => {
-        const el = mount(Ctor, { mode: 'edit', label: 'Field', required: true, ...props });
+        const el = mount(Ctor, { mode: 'edit', required: true, ...props });
         await flush();
         const heard = jest.fn();
         el.addEventListener('commit', heard);
@@ -57,7 +65,7 @@ describe('a required field left blank', () => {
     });
 
     it.each(cases)('the %s editor commits a blank when the field is not required', async (name, Ctor, props) => {
-        const el = mount(Ctor, { mode: 'edit', label: 'Field', required: false, ...props });
+        const el = mount(Ctor, { mode: 'edit', required: false, ...props });
         await flush();
         const heard = jest.fn();
         el.addEventListener('commit', heard);
@@ -72,29 +80,29 @@ describe('a required field left blank', () => {
     });
 
     it('clears the message once something is typed, and then commits it', async () => {
-        const el = mount(CellText, { mode: 'edit', label: 'Field', required: true, value: null });
+        const el = mount(CellText, { mode: 'edit', label: 'Consignee', required: true, value: null });
         await flush();
         el.commit();
         await flush();
         expect(alertOf(el)).not.toBeNull();
         el.shadowRoot
             .querySelector('lightning-input')
-            .dispatchEvent(new CustomEvent('change', { detail: { value: 'x' } }));
+            .dispatchEvent(new CustomEvent('change', { detail: { value: 'Casco Bay Marine' } }));
         await flush();
         expect(alertOf(el)).toBeNull();
         const heard = jest.fn();
         el.addEventListener('commit', heard);
         expect(el.commit()).toBe(true);
-        expect(heard.mock.calls[0][0].detail.value).toBe('x');
+        expect(heard.mock.calls[0][0].detail.value).toBe('Casco Bay Marine');
     });
 
     it('marks the picklist invalid for a screen reader while it refuses', async () => {
         const el = mount(CellPicklist, {
             mode: 'edit',
-            label: 'Field',
+            label: 'Service Level',
             required: true,
             value: null,
-            options: [{ value: 'A', label: 'A' }]
+            options: [{ value: 'Economy', label: 'Economy' }]
         });
         await flush();
         el.commit();
@@ -107,36 +115,36 @@ describe('a required field left blank', () => {
 
 describe('typing on a cell starts the edit with what was typed', () => {
     it('the text editor starts from the typed character, not the old value', async () => {
-        const el = mount(CellText, { mode: 'edit', label: 'Field', value: 'old', seed: 'n' });
+        const el = mount(CellText, { mode: 'edit', label: 'Consignee', value: 'Kennebec Lumber', seed: 'P' });
         await flush();
-        expect(el.shadowRoot.querySelector('lightning-input').value).toBe('n');
+        expect(el.shadowRoot.querySelector('lightning-input').value).toBe('P');
         const heard = jest.fn();
         el.addEventListener('commit', heard);
         el.commit();
-        expect(heard.mock.calls[0][0].detail.value).toBe('n');
+        expect(heard.mock.calls[0][0].detail.value).toBe('P');
     });
 
     it('the number editor starts from the typed digit', async () => {
-        const el = mount(CellNumber, { mode: 'edit', label: 'Field', value: 12, type: 'number', seed: '7' });
+        const el = mount(CellNumber, { mode: 'edit', label: 'Pieces', value: 12, type: 'number', seed: '7' });
         await flush();
         expect(el.shadowRoot.querySelector('lightning-input').value).toBe('7');
     });
 
     it('without a seed, the editor starts from the value', async () => {
-        const el = mount(CellText, { mode: 'edit', label: 'Field', value: 'old' });
+        const el = mount(CellText, { mode: 'edit', label: 'Consignee', value: 'Kennebec Lumber' });
         await flush();
-        expect(el.shadowRoot.querySelector('lightning-input').value).toBe('old');
+        expect(el.shadowRoot.querySelector('lightning-input').value).toBe('Kennebec Lumber');
     });
 
     it('the lookup editor keeps the typed character: the caret goes after it, not a selection over it', async () => {
         const el = mount(CellLookup, {
             mode: 'edit',
-            label: 'Account',
+            label: 'Shipper',
             value: null,
-            valueLabel: 'Old Co',
-            configName: 'Test_Records',
-            field: 'Lookup_Field__c',
-            seed: 'a'
+            valueLabel: 'Kennebec Lumber',
+            configName: 'Consignments',
+            field: 'Shipper__c',
+            seed: 'C'
         });
         await flush();
         el.focus();
@@ -146,31 +154,31 @@ describe('typing on a cell starts the edit with what was typed', () => {
         // Without a seed the name is selected, so typing replaces it.
         const plain = mount(CellLookup, {
             mode: 'edit',
-            label: 'Account',
+            label: 'Shipper',
             value: '001000000000001AAA',
-            valueLabel: 'Old Co',
-            configName: 'Test_Records',
-            field: 'Lookup_Field__c'
+            valueLabel: 'Kennebec Lumber',
+            configName: 'Consignments',
+            field: 'Shipper__c'
         });
         await flush();
         plain.focus();
         const box = plain.shadowRoot.querySelector('input');
-        expect([box.selectionStart, box.selectionEnd]).toEqual([0, 'Old Co'.length]);
+        expect([box.selectionStart, box.selectionEnd]).toEqual([0, 'Kennebec Lumber'.length]);
     });
 
     it('the lookup editor searches for the typed character', async () => {
         jest.useFakeTimers();
         const el = mount(CellLookup, {
             mode: 'edit',
-            label: 'Account',
+            label: 'Shipper',
             value: null,
-            configName: 'Test_Records',
-            field: 'Lookup_Field__c',
-            seed: 'a'
+            configName: 'Consignments',
+            field: 'Shipper__c',
+            seed: 'C'
         });
         await Promise.resolve();
-        expect(el.shadowRoot.querySelector('input').value).toBe('a');
+        expect(el.shadowRoot.querySelector('input').value).toBe('C');
         jest.runOnlyPendingTimers();
-        expect(searchLookup).toHaveBeenCalledWith(expect.objectContaining({ term: 'a' }));
+        expect(searchLookup).toHaveBeenCalledWith(expect.objectContaining({ term: 'C' }));
     });
 });

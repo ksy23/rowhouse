@@ -32,12 +32,12 @@ jest.mock('@salesforce/apex/GridController.getLayout', () => ({ default: jest.fn
 jest.mock('@salesforce/apex/GridController.saveLayout', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.resetLayout', () => ({ default: jest.fn() }), { virtual: true });
 
-// Amount has a subtotal, so every load also asks for counts and subtotals.
+// Freight Charge has a subtotal, so every load also asks for counts and subtotals.
 const DEFINITION = {
-    name: 'Account_Deals',
-    label: 'Deals',
-    objectApiName: 'Rowhouse_Test_Record__c',
-    objectLabel: 'Rowhouse Test Records',
+    name: 'Shipper_Consignments',
+    label: 'Consignments',
+    objectApiName: 'Consignment__c',
+    objectLabel: 'Consignments',
     pageSize: 200,
     sortField: 'Name',
     sortDirection: 'asc',
@@ -46,8 +46,8 @@ const DEFINITION = {
     columns: [
         { field: 'Name', label: 'Name', type: 'text', editable: true, sortable: true, isName: true },
         {
-            field: 'Amount__c',
-            label: 'Amount',
+            field: 'Freight_Charge__c',
+            label: 'Freight Charge',
             type: 'currency',
             editable: true,
             sortable: true,
@@ -58,9 +58,13 @@ const DEFINITION = {
 };
 const RECORD = '001000000000001AAA';
 const OTHER_RECORD = '001000000000002AAA';
-const PARENT = { link: 'Deals_Children', id: 'a00000000000000001', name: 'Row 1', level: 2 };
+const PARENT = { link: 'Consignments_Items', id: 'a00000000000000001', name: 'Kennebec Lumber, 12 bundles', level: 2 };
 
-const row = i => ({ Id: 'a00' + String(i).padStart(15, '0'), Name: 'Row ' + i, Amount__c: i });
+const row = i => ({
+    Id: 'a00' + String(i).padStart(15, '0'),
+    Name: 'Casco Bay Marine, load ' + i,
+    Freight_Charge__c: i
+});
 const page = rows => ({ rows, hasMore: false, cursorLocator: null, cursorToken: null, totalRows: rows.length });
 
 // Resolve every pending promise.
@@ -74,7 +78,7 @@ const $ = (el, selector) => el.shadowRoot.querySelector(selector);
 const lastCall = mock => mock.mock.calls[mock.mock.calls.length - 1][0];
 
 /** A grid as gridApp shows it: the record is set before it is on the page. */
-function mount({ configName = 'Account_Deals', recordId, parent } = {}) {
+function mount({ configName = 'Shipper_Consignments', recordId, parent } = {}) {
     const el = createElement('c-grid-view', { is: GridView });
     el.configName = configName;
     if (recordId !== undefined) el.recordId = recordId;
@@ -108,7 +112,7 @@ describe("the page's record", () => {
         await settle();
         expect(getGridConfig).toHaveBeenCalledTimes(1);
         expect(fetchRows).toHaveBeenCalledWith({
-            configName: 'Account_Deals',
+            configName: 'Shipper_Consignments',
             searchTerm: null,
             sortField: 'Name',
             sortDirection: 'asc',
@@ -119,7 +123,7 @@ describe("the page's record", () => {
             recordId: RECORD
         });
         expect(summarizeGroups).toHaveBeenCalledWith({
-            configName: 'Account_Deals',
+            configName: 'Shipper_Consignments',
             searchTerm: null,
             grouping: [],
             fromId: null,
@@ -132,7 +136,7 @@ describe("the page's record", () => {
     it("goes with the user's filters too", async () => {
         const el = mount({ recordId: RECORD });
         await settle();
-        const filter = { field: 'Amount__c', operator: 'greater_than', value: '5', valueTo: null };
+        const filter = { field: 'Freight_Charge__c', operator: 'greater_than', value: '5', valueTo: null };
         $(el, 'c-grid-table').dispatchEvent(new CustomEvent('filterchange', { detail: { filters: [filter] } }));
         await settle();
         expect(lastCall(fetchRows)).toMatchObject({ filters: [filter], recordId: RECORD });
@@ -187,7 +191,7 @@ describe("the page's record", () => {
 
     it('does not load for the record until the grid is on the page', async () => {
         const el = createElement('c-grid-view', { is: GridView });
-        el.configName = 'Account_Deals';
+        el.configName = 'Shipper_Consignments';
         el.recordId = RECORD;
         await settle();
         expect(getGridConfig).not.toHaveBeenCalled();
@@ -198,7 +202,7 @@ describe("the page's record", () => {
     });
 
     it('is not sent by a child table, which is filtered by its parent row instead', async () => {
-        mount({ configName: 'Deal_Lines', recordId: RECORD, parent: PARENT });
+        mount({ configName: 'Consignment_Items', recordId: RECORD, parent: PARENT });
         await settle();
         expect(lastCall(fetchRows)).toMatchObject({ parentLink: PARENT.link, parentId: PARENT.id, recordId: null });
         expect(lastCall(summarizeGroups)).toMatchObject({
@@ -211,7 +215,7 @@ describe("the page's record", () => {
 
 describe('"Filtered" in the header', () => {
     it("is not shown for the page's record alone: a related list does not say so either", async () => {
-        withDefinition({ recordPageField: 'Account__c' });
+        withDefinition({ recordPageField: 'Shipper__c' });
         const el = mount({ recordId: RECORD });
         await settle();
         expect($(el, '.rh-filtered')).toBeNull();
@@ -224,7 +228,7 @@ describe('"Filtered" in the header', () => {
     });
 
     it('is not shown off a record page, even with a Record Page Field', async () => {
-        withDefinition({ recordPageField: 'Account__c' });
+        withDefinition({ recordPageField: 'Shipper__c' });
         const el = mount();
         await settle();
         expect($(el, '.rh-filtered')).toBeNull();
@@ -233,9 +237,9 @@ describe('"Filtered" in the header', () => {
 
 describe('on a page the grid does not fit', () => {
     it('says why, with no empty table and no count under it', async () => {
-        withDefinition({ recordPageField: 'Account__c' });
+        withDefinition({ recordPageField: 'Shipper__c' });
         fetchRows.mockRejectedValue({
-            body: { message: 'This grid shows Deals related to Account records, and this page shows Contact.' }
+            body: { message: 'This grid shows Consignments related to Account records, and this page shows Contact.' }
         });
         const el = mount({ recordId: '003000000000001AAA' });
         await settle();
@@ -247,7 +251,7 @@ describe('on a page the grid does not fit', () => {
 });
 
 describe('importing on a record page', () => {
-    const withImport = () => withDefinition({ allowImport: true, canCreate: true, recordPageField: 'Account__c' });
+    const withImport = () => withDefinition({ allowImport: true, canCreate: true, recordPageField: 'Shipper__c' });
     const dialog = el => $(el, 'c-grid-import-dialog');
 
     it("hands the import dialog the page's record", async () => {
@@ -271,7 +275,7 @@ describe('importing on a record page', () => {
 
     it("hands a child table's dialog its parent, and no page record", async () => {
         withImport();
-        const el = mount({ configName: 'Deal_Lines', recordId: RECORD, parent: PARENT });
+        const el = mount({ configName: 'Consignment_Items', recordId: RECORD, parent: PARENT });
         await settle();
         // A child table's actions are in one menu.
         $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'import' } }));

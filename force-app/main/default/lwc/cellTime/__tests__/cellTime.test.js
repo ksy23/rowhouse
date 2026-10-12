@@ -9,7 +9,7 @@ import CellTime, { REQUIRED_MESSAGE, INVALID_MESSAGE, STEP } from 'c/cellTime';
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 const mount = props => {
     const el = createElement('rowhouse-cell-time', { is: CellTime });
-    Object.assign(el, { mode: 'edit', label: 'Start Time', ...props });
+    Object.assign(el, { mode: 'edit', label: 'Pickup Time', ...props });
     document.body.appendChild(el);
     return el;
 };
@@ -82,8 +82,8 @@ describe('time cell', () => {
             expect(input.getAttribute('role')).toBe('combobox');
             expect(input.getAttribute('aria-expanded')).toBe('true');
             expect(input.getAttribute('aria-controls')).toBe(list.getAttribute('id'));
-            expect(list.getAttribute('aria-label')).toBe('Times for Start Time');
-            expect($(el, 'label').textContent).toBe('Start Time');
+            expect(list.getAttribute('aria-label')).toBe('Times for Pickup Time');
+            expect($(el, 'label').textContent).toBe('Pickup Time');
         });
 
         it('opens with the list on the current time: that option is selected and has focus', async () => {
@@ -262,7 +262,7 @@ describe('time cell', () => {
             const el = mount({ value: '17:30:00.000Z' });
             await flush();
             const handler = commits(el);
-            type(el, 'not a time');
+            type(el, 'ASAP');
             option(el, '13:00').click();
             expect(committed(handler)).toEqual(['13:00:00.000Z']);
         });

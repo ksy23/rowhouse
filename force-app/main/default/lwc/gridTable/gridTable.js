@@ -1269,7 +1269,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     /**
      * Set the range's two corners; focus goes to `corner`. The corners are
      * kept outside LWC's reactivity, as focus is: a Shift+arrow used
-     * to redraw the whole table, about 140ms on Test Records' 1,000 cells
+     * to redraw the whole table, about 140ms on Consignments' 1,000 cells
      * (measured in Lightning). Once the handler that set them is
      * done, and focus has moved with it, the cells whose shading changed are
      * changed in place (patchRange), or the table is redrawn where that cannot

@@ -59,7 +59,7 @@ function zip(files, { store = false } = {}) {
 
 const WORKBOOK = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<workbookPr/><sheets><sheet name="Records" sheetId="1" r:id="rId1"/><sheet name="Other" sheetId="2" r:id="rId2"/></sheets></workbook>`;
+<workbookPr/><sheets><sheet name="Consignments" sheetId="1" r:id="rId1"/><sheet name="Rates" sheetId="2" r:id="rId2"/></sheets></workbook>`;
 const RELS = `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
@@ -71,14 +71,14 @@ const STYLES = `<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheet
 <cellXfs count="5"><xf numFmtId="0"/><xf numFmtId="14"/><xf numFmtId="164"/><xf numFmtId="165"/><xf numFmtId="22"/></cellXfs>
 </styleSheet>`;
 const SHARED = `<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="5" uniqueCount="5">
-<si><t>Name</t></si><si><t>Amount</t></si>
-<si><r><rPr><b/></rPr><t>Smith, </t></r><r><t xml:space="preserve">John &amp; Sons</t></r></si>
+<si><t>Name</t></si><si><t>Freight Charge</t></si>
+<si><r><rPr><b/></rPr><t>Pratt, </t></r><r><t xml:space="preserve">Fogg &amp; Sons</t></r></si>
 <si><t>東京</t><rPh sb="0" eb="2"><t>トウキョウ</t></rPh></si>
-<si><t>line one_x000D_
-line two</t></si>
+<si><t>Leave at side door_x000D_
+Call on arrival</t></si>
 </sst>`;
 const SHEET = `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
-<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1" t="inlineStr"><is><t>Due</t></is></c></row>
+<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1" t="inlineStr"><is><t>Ship Date</t></is></c></row>
 <row r="2"><c r="A2" t="s"><v>2</v></c><c r="B2"><v>1234.5</v></c><c r="C2" s="1"><v>45000</v></c><c r="D2" t="b"><v>1</v></c></row>
 <row r="3"><c r="A3" t="s"><v>3</v></c><c r="B3"><v>1.5E-3</v></c><c r="C3" s="2"><v>45001</v></c><c r="E3" s="3"><v>7</v></c></row>
 <row r="5"><c r="A5" t="s"><v>4</v></c><c r="C5" s="4"><v>45000.5</v></c><c r="D5" t="str"><f>A1&amp;"!"</f><v>Name!</v></c><c r="F5" t="e"><v>#N/A</v></c></row>
@@ -94,7 +94,7 @@ function workbook(overrides = {}, options) {
             'xl/sharedStrings.xml': SHARED,
             'xl/worksheets/sheet1.xml': SHEET,
             'xl/worksheets/sheet2.xml':
-                '<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>wrong sheet</t></is></c></row></sheetData></worksheet>',
+                '<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Lane</t></is></c></row></sheetData></worksheet>',
             ...overrides
         },
         options
@@ -111,8 +111,8 @@ describe('inflateRaw', () => {
     });
 
     it('reads fixed-Huffman blocks, as short text compresses to', () => {
-        expect(roundTrip(Buffer.from('abc'))).toBe(true);
-        expect(roundTrip(Buffer.from('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'))).toBe(true);
+        expect(roundTrip(Buffer.from('Bath'))).toBe(true);
+        expect(roundTrip(Buffer.from('------------------------------'))).toBe(true);
     });
 
     it('reads stored blocks, more than one of them', () => {
@@ -132,7 +132,7 @@ describe('inflateRaw', () => {
     });
 
     it('says the file is damaged rather than looping or returning rubbish', () => {
-        const good = zlib.deflateRawSync(Buffer.from('hello world, hello world'));
+        const good = zlib.deflateRawSync(Buffer.from('Kennebec Lumber, Kennebec Lumber'));
         expect(() => inflateRaw(new Uint8Array(good.subarray(0, 3)))).toThrow('damaged');
         expect(() => inflateRaw(new Uint8Array([0xff, 0xff, 0xff]))).toThrow('damaged');
     });
@@ -140,14 +140,14 @@ describe('inflateRaw', () => {
 
 describe('the pieces', () => {
     it('decodes UTF-8, emoji and a byte order mark included', () => {
-        expect(utf8(new Uint8Array(Buffer.from(String.fromCharCode(0xfeff) + 'Grid 🎉 東京 é', 'utf8')))).toBe(
-            'Grid 🎉 東京 é'
+        expect(utf8(new Uint8Array(Buffer.from(String.fromCharCode(0xfeff) + 'Delivered 🎉 東京 é', 'utf8')))).toBe(
+            'Delivered 🎉 東京 é'
         );
     });
 
     it('decodes XML entities and Excel’s own escapes', () => {
-        expect(xmlText('a &lt;b&gt; &amp; &quot;c&quot; &#65;&#x42; _x000D_ _x005F_x0041_')).toBe(
-            'a <b> & "c" AB \r _x0041_'
+        expect(xmlText('Pratt &amp; Fogg &lt;dock 4&gt; &quot;Fragile&quot; &#80;&#x52;O _x000D_ _x005F_x0041_')).toBe(
+            'Pratt & Fogg <dock 4> "Fragile" PRO \r _x0041_'
         );
     });
 
@@ -176,28 +176,32 @@ describe('the pieces', () => {
     });
 
     it('finds the files in a ZIP, compressed or stored', () => {
-        const files = readZip(zip({ 'a.txt': 'hello', 'dir/b.xml': '<b/>' }, { store: true }));
-        expect(Object.keys(files).sort()).toEqual(['a.txt', 'dir/b.xml']);
-        expect(utf8(files['a.txt']())).toBe('hello');
-        expect(utf8(readZip(zip({ 'c.txt': 'deflated' }))['c.txt']())).toBe('deflated');
+        const files = readZip(
+            zip({ 'notes.txt': 'Leave at side door', 'docProps/app.xml': '<Properties/>' }, { store: true })
+        );
+        expect(Object.keys(files).sort()).toEqual(['docProps/app.xml', 'notes.txt']);
+        expect(utf8(files['notes.txt']())).toBe('Leave at side door');
+        expect(utf8(readZip(zip({ 'manifest.txt': 'Bangor to Portland' }))['manifest.txt']())).toBe(
+            'Bangor to Portland'
+        );
     });
 });
 
 describe('readXlsx', () => {
     it('reads the first sheet by the workbook’s order, not the file name', () => {
         const { sheet, rows } = readXlsx(workbook());
-        expect(sheet).toBe('Records');
+        expect(sheet).toBe('Consignments');
         expect(rows[0]).toEqual([
             { t: 's', v: 'Name' },
-            { t: 's', v: 'Amount' },
-            { t: 's', v: 'Due' }
+            { t: 's', v: 'Freight Charge' },
+            { t: 's', v: 'Ship Date' }
         ]);
     });
 
     it('reads strings, numbers, booleans and dates as typed cells', () => {
         const { rows } = readXlsx(workbook());
         expect(rows[1]).toEqual([
-            { t: 's', v: 'Smith, John & Sons' }, // rich text runs joined
+            { t: 's', v: 'Pratt, Fogg & Sons' }, // rich text runs joined
             { t: 'n', v: '1234.5' },
             { t: 'd', v: '2023-03-15' }, // built-in date format 14
             { t: 'b', v: 'true' }
@@ -215,7 +219,7 @@ describe('readXlsx', () => {
         const { rows } = readXlsx(workbook());
         expect(rows[3]).toEqual([]);
         expect(rows[4]).toEqual([
-            { t: 's', v: 'line one\r\nline two' },
+            { t: 's', v: 'Leave at side door\r\nCall on arrival' },
             null,
             { t: 'd', v: '2023-03-15T12:00:00' },
             { t: 's', v: 'Name!' },
@@ -235,7 +239,7 @@ describe('readXlsx', () => {
             'xl/worksheets/prefixed.xml': prefixed
         });
         const { rows } = readXlsx(bytes);
-        expect(rows[1][0]).toEqual({ t: 's', v: 'Smith, John & Sons' });
+        expect(rows[1][0]).toEqual({ t: 's', v: 'Pratt, Fogg & Sons' });
         expect(rows[1][2]).toEqual({ t: 'd', v: serialToIso(45000, true) });
         expect(serialToIso(45000, true)).toBe('2027-03-16');
     });
@@ -245,18 +249,18 @@ describe('readXlsx', () => {
             'xl/workbook.xml': WORKBOOK,
             'xl/_rels/workbook.xml.rels': RELS,
             'xl/worksheets/sheet1.xml':
-                '<worksheet><sheetData><row><c t="inlineStr"><is><t>a</t></is></c><c><v>2</v></c></row></sheetData></worksheet>'
+                '<worksheet><sheetData><row><c t="inlineStr"><is><t>Bath</t></is></c><c><v>2</v></c></row></sheetData></worksheet>'
         });
         expect(readXlsx(bytes).rows).toEqual([
             [
-                { t: 's', v: 'a' },
+                { t: 's', v: 'Bath' },
                 { t: 'n', v: '2' }
             ]
         ]);
     });
 
     it('says what to do with a file that is not an .xlsx workbook', () => {
-        expect(() => readXlsx(new Uint8Array(Buffer.from('Name,Amount\nA,1')))).toThrow(
+        expect(() => readXlsx(new Uint8Array(Buffer.from('Name,Pieces\nKennebec Lumber,12')))).toThrow(
             'Save it from Excel as "Excel Workbook (.xlsx)" or as CSV'
         );
         expect(() => readXlsx(new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]))).toThrow(
@@ -270,14 +274,14 @@ describe('readXlsx', () => {
 describe('readXlsx with more than one sheet', () => {
     it('names every sheet, reads the first by default and another when asked', () => {
         const first = readXlsx(workbook());
-        expect(first.sheets).toEqual(['Records', 'Other']);
-        expect(first.sheet).toBe('Records');
-        const other = readXlsx(workbook(), 'Other');
-        expect(other.sheet).toBe('Other');
-        expect(other.rows).toEqual([[{ t: 's', v: 'wrong sheet' }]]);
+        expect(first.sheets).toEqual(['Consignments', 'Rates']);
+        expect(first.sheet).toBe('Consignments');
+        const other = readXlsx(workbook(), 'Rates');
+        expect(other.sheet).toBe('Rates');
+        expect(other.rows).toEqual([[{ t: 's', v: 'Lane' }]]);
     });
 
     it('reads the first sheet when the one asked for is not there', () => {
-        expect(readXlsx(workbook(), 'Gone').sheet).toBe('Records');
+        expect(readXlsx(workbook(), 'Claims').sheet).toBe('Consignments');
     });
 });

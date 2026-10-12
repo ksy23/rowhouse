@@ -40,7 +40,11 @@ const DEFINITION = {
     ],
     grouping: []
 };
-const row = i => ({ Id: '006' + String(i).padStart(15, '0'), Name: 'Deal ' + i, StageName: 'Open' });
+const row = i => ({
+    Id: '006' + String(i).padStart(15, '0'),
+    Name: 'Kennebec Lumber, order ' + i,
+    StageName: 'Prospecting'
+});
 const page = (rows, more = null) => ({
     rows,
     hasMore: Boolean(more),
@@ -100,7 +104,7 @@ describe('opening with one call', () => {
             recordId: null
         });
         expect(fetchRows).not.toHaveBeenCalled();
-        expect(names(el)).toEqual(['Deal 1', 'Deal 2']);
+        expect(names(el)).toEqual(['Kennebec Lumber, order 1', 'Kennebec Lumber, order 2']);
         expect(el.shadowRoot.querySelector('h2').textContent).toBe('Deals');
         expect(el.shadowRoot.querySelector('.rh-count').textContent).toBe('2 items');
     });
@@ -111,7 +115,9 @@ describe('opening with one call', () => {
         expect(openGrid).toHaveBeenLastCalledWith(
             expect.objectContaining({ recordId: '001000000000001AAA', parentLink: null })
         );
-        mount({ parent: { link: 'Deals_Lines', id: '006000000000001AAA', name: 'Deal 1', level: 2 } });
+        mount({
+            parent: { link: 'Deals_Lines', id: '006000000000001AAA', name: 'Kennebec Lumber, order 1', level: 2 }
+        });
         await settle();
         expect(openGrid).toHaveBeenLastCalledWith({
             configName: 'Deals',
@@ -138,7 +144,7 @@ describe('opening with one call', () => {
             })
         );
         expect(fetchRows.mock.calls[0][0].pageSize).toBeGreaterThan(0);
-        expect(names(el)).toEqual(['Deal 1', 'Deal 2', 'Deal 3']);
+        expect(names(el)).toEqual(['Kennebec Lumber, order 1', 'Kennebec Lumber, order 2', 'Kennebec Lumber, order 3']);
     });
 
     it('reads the layout that came with it: its sort, and its widths for the table', async () => {
@@ -167,7 +173,7 @@ describe('opening with one call', () => {
         expect(fetchRows).toHaveBeenCalledWith(
             expect.objectContaining({ sortField: 'CloseDate', sortDirection: 'desc', cursorLocator: null })
         );
-        expect(names(el)).toEqual(['Deal 9']);
+        expect(names(el)).toEqual(['Kennebec Lumber, order 9']);
     });
 
     it('asks for the rows again when the server read the grouping differently', async () => {
@@ -186,7 +192,7 @@ describe('opening with one call', () => {
         const el = mount();
         await settle();
         expect(fetchRows).not.toHaveBeenCalled();
-        expect(names(el)).toEqual(['Deal 1', 'Deal 2']);
+        expect(names(el)).toEqual(['Kennebec Lumber, order 1', 'Kennebec Lumber, order 2']);
     });
 
     it('uses the page for a grid with no sort at all', async () => {
@@ -206,7 +212,7 @@ describe('opening with one call', () => {
         const el = mount();
         await settle();
         expect(fetchRows).toHaveBeenCalledTimes(1);
-        expect(names(el)).toEqual(['Deal 9']);
+        expect(names(el)).toEqual(['Kennebec Lumber, order 9']);
     });
 
     it('says why when the rows it came for could not be read, without asking again', async () => {
@@ -222,7 +228,7 @@ describe('opening with one call', () => {
         openGrid.mockResolvedValue(opened({ layoutError: 'Insufficient access to Grid User Layout.' }));
         const el = mount();
         await settle();
-        expect(names(el)).toEqual(['Deal 1', 'Deal 2']);
+        expect(names(el)).toEqual(['Kennebec Lumber, order 1', 'Kennebec Lumber, order 2']);
         el.shadowRoot
             .querySelector('c-grid-table')
             .dispatchEvent(new CustomEvent('layoutchange', { detail: { widths: { Name: 300 } } }));
@@ -248,13 +254,15 @@ describe('opening with one call', () => {
                 first = resolve;
             })
         );
-        openGrid.mockResolvedValueOnce(opened({ definition: { ...DEFINITION, name: 'Other', label: 'Other' } }));
+        openGrid.mockResolvedValueOnce(
+            opened({ definition: { ...DEFINITION, name: 'Closed_Deals', label: 'Closed Deals' } })
+        );
         const el = mount();
         await settle();
-        el.configName = 'Other';
+        el.configName = 'Closed_Deals';
         await settle();
         first(opened());
         await settle();
-        expect(el.shadowRoot.querySelector('h2').textContent).toBe('Other');
+        expect(el.shadowRoot.querySelector('h2').textContent).toBe('Closed Deals');
     });
 });

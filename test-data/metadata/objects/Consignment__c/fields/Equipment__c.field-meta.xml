@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Equipment__c</fullName>
+    <description>DEVELOPMENT ONLY. A field of the consignments, used by the Apex suite and the development grids.</description>
+    <label>Equipment</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <controllingField>Mode__c</controllingField>
+        <restricted>false</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Dry Van</fullName>
+                <default>false</default>
+                <label>Dry Van</label>
+            </value>
+            <value>
+                <fullName>Reefer</fullName>
+                <default>false</default>
+                <label>Reefer</label>
+            </value>
+            <value>
+                <fullName>Pallet</fullName>
+                <default>false</default>
+                <label>Pallet</label>
+            </value>
+            <value>
+                <fullName>Crate</fullName>
+                <default>false</default>
+                <label>Crate</label>
+            </value>
+        </valueSetDefinition>
+        <valueSettings>
+            <controllingFieldValue>Truckload</controllingFieldValue>
+            <valueName>Dry Van</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Truckload</controllingFieldValue>
+            <valueName>Reefer</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>LTL</controllingFieldValue>
+            <valueName>Pallet</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>LTL</controllingFieldValue>
+            <valueName>Crate</valueName>
+        </valueSettings>
+    </valueSet>
+</CustomField>

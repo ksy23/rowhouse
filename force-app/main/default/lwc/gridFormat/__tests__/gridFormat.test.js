@@ -68,7 +68,8 @@ describe('dates', () => {
 
 describe('links (TC-045 / TC-046)', () => {
     it('keeps the full URL, query string and fragment', () => {
-        const url = 'https://example.com/a/very/long/path?query=1&other=2#fragment-name';
+        const url =
+            'https://track.granitecoastfreight.com/shipments/consignments/PRO-1045/delivery-history?view=full&stop=2#proof-of-delivery';
         expect(safeHref(url)).toBe(url);
     });
     /* eslint-disable no-script-url -- these strings ARE the attack being tested */
@@ -81,27 +82,29 @@ describe('links (TC-045 / TC-046)', () => {
     });
     /* eslint-enable no-script-url */
     it('allows mailto and tel, and treats a bare host as https', () => {
-        expect(safeHref('mailto:a@b.example')).toBe('mailto:a@b.example');
-        expect(safeHref('rowhouse.example/x')).toBe('https://rowhouse.example/x');
+        expect(safeHref('mailto:dispatch@granitecoastfreight.com')).toBe('mailto:dispatch@granitecoastfreight.com');
+        expect(safeHref('www.granitecoastfreight.com/tracking')).toBe('https://www.granitecoastfreight.com/tracking');
     });
 });
 
 describe('display', () => {
     it('TC-036 an inactive picklist value is shown as stored', () => {
-        expect(formatValue('Obsolete', { type: 'picklist', options: [{ value: 'Alpha', label: 'Alpha' }] })).toBe(
-            'Obsolete'
-        );
+        expect(
+            formatValue('White Glove', { type: 'picklist', options: [{ value: 'Economy', label: 'Economy' }] })
+        ).toBe('White Glove');
     });
     it('TC-040 multi-select renders as a list without a trailing separator (TC-041)', () => {
-        expect(formatValue('Red;Green;Blue', { type: 'multipicklist' })).toBe('Red, Green, Blue');
-        expect(formatValue('Green', { type: 'multipicklist' })).toBe('Green');
+        expect(formatValue('Fragile;Liftgate;Inside Delivery', { type: 'multipicklist' })).toBe(
+            'Fragile, Liftgate, Inside Delivery'
+        );
+        expect(formatValue('Liftgate', { type: 'multipicklist' })).toBe('Liftgate');
     });
     it('TC-042 checkbox text is explicit', () => {
         expect(formatValue(true, { type: 'checkbox' })).toBe('Checked');
         expect(formatValue(false, { type: 'checkbox' })).toBe('Not checked');
     });
     it('TC-012 code points, not UTF-16 units', () => {
-        expect(codePointLength('🧱a')).toBe(2);
+        expect(codePointLength('🧱 Bangor Brick & Tile')).toBe(21);
     });
 });
 
@@ -145,7 +148,7 @@ describe('TC-023: rounding to the field scale', () => {
     it('leaves a value that already fits, and anything that is not a plain decimal, unchanged', () => {
         expect(roundDecimal(1.5, 2)).toBe(1.5);
         expect(roundDecimal('12.30', 2)).toBe('12.30');
-        expect(roundDecimal('abc', 2)).toBe('abc');
+        expect(roundDecimal('12 pallets', 2)).toBe('12 pallets');
         expect(roundDecimal(null, 2)).toBeNull();
         expect(roundDecimal('1.2345', undefined)).toBe('1.2345');
     });

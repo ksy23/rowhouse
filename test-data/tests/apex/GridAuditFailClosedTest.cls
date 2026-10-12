@@ -1,6 +1,6 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
- * The edit log fails closed: in a grid that logs its changes (Audit_Test), a
+ * The edit log fails closed: in a grid that logs its changes (Consignment_Audit), a
  * change that cannot be logged is not made.
  *
  * Two ways a log can fail, each tested for the kinds of change not already
@@ -28,15 +28,15 @@
 private class GridAuditFailClosedTest {
     private static final String NO_LOG = 'you do not have permission to write to it, so nothing was changed';
     private static final String LOG_FAILED = 'The change was not made because its log entry could not be written';
-    private static final String NEVER = 'Never created';
+    private static final String NEVER = 'Housatonic Hardware, 5 crates';
 
     @TestSetup
     static void setup() {
         GridTestUsers.noLogUser();
         System.runAs(GridTestUsers.fullUser()) {
-            insert new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Name = 'Logged 1', Text_Field__c = 'old', Number_Field__c = 1),
-                new Rowhouse_Test_Record__c(Name = 'Logged 2', Text_Field__c = 'old', Number_Field__c = 2)
+            insert new List<Consignment__c>{
+                new Consignment__c(Name = 'Casco Bay Marine, 4 crates', Consignee__c = 'Quabbin Supply', Pieces__c = 1),
+                new Consignment__c(Name = 'Casco Bay Marine, 6 crates', Consignee__c = 'Quabbin Supply', Pieces__c = 2)
             };
         }
     }
@@ -55,10 +55,10 @@ private class GridAuditFailClosedTest {
     private static List<Id> loggedIds() {
         List<Id> out = new List<Id>();
         System.runAs(full()) {
-            for (Rowhouse_Test_Record__c r : [
+            for (Consignment__c r : [
                 SELECT Id
-                FROM Rowhouse_Test_Record__c
-                WHERE Name IN ('Logged 1', 'Logged 2')
+                FROM Consignment__c
+                WHERE Name IN ('Casco Bay Marine, 4 crates', 'Casco Bay Marine, 6 crates')
                 ORDER BY Name
             ]) {
                 out.add(r.Id);
@@ -67,12 +67,12 @@ private class GridAuditFailClosedTest {
         return out;
     }
 
-    /** Text_Field__c of each record still there (not in the Recycle Bin), by Id. */
+    /** Consignee__c of each record still there (not in the Recycle Bin), by Id. */
     private static Map<Id, String> textsOf(List<Id> ids) {
         Map<Id, String> out = new Map<Id, String>();
         System.runAs(full()) {
-            for (Rowhouse_Test_Record__c r : [SELECT Id, Text_Field__c FROM Rowhouse_Test_Record__c WHERE Id IN :ids]) {
-                out.put(r.Id, r.Text_Field__c);
+            for (Consignment__c r : [SELECT Id, Consignee__c FROM Consignment__c WHERE Id IN :ids]) {
+                out.put(r.Id, r.Consignee__c);
             }
         }
         return out;
@@ -94,21 +94,21 @@ private class GridAuditFailClosedTest {
     private static Integer neverCreated() {
         Integer n;
         System.runAs(full()) {
-            n = [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Name = :NEVER];
+            n = [SELECT COUNT() FROM Consignment__c WHERE Name = :NEVER];
         }
         return n;
     }
 
     private static List<Map<String, Object>> newRow() {
         return new List<Map<String, Object>>{
-            new Map<String, Object>{ 'key' => 'rh-new-1', 'Name' => NEVER, 'Text_Field__c' => 'new' }
+            new Map<String, Object>{ 'key' => 'rh-new-1', 'Name' => NEVER, 'Consignee__c' => 'Housatonic Hardware' }
         };
     }
 
     private static List<Map<String, Object>> rowsSetting(List<Id> ids, String text) {
         List<Map<String, Object>> rows = new List<Map<String, Object>>();
         for (Id i : ids) {
-            rows.add(new Map<String, Object>{ 'Id' => i, 'Text_Field__c' => text });
+            rows.add(new Map<String, Object>{ 'Id' => i, 'Consignee__c' => text });
         }
         return rows;
     }
@@ -143,7 +143,7 @@ private class GridAuditFailClosedTest {
         return refused;
     }
 
-    /** One change the grid could ask for in Audit_Test, so each can be tried in turn. */
+    /** One change the grid could ask for in Consignment_Audit, so each can be tried in turn. */
     private class Change implements System.Callable {
         private final String kind;
         private final List<Id> ids;
@@ -154,22 +154,22 @@ private class GridAuditFailClosedTest {
         public Object call(String action, Map<String, Object> args) {
             switch on kind {
                 when 'create' {
-                    return GridCreateService.create('Audit_Test', newRow(), null, null, null);
+                    return GridCreateService.create('Consignment_Audit', newRow(), null, null, null);
                 }
                 when 'delete' {
-                    return GridDeleteService.deleteRows('Audit_Test', ids);
+                    return GridDeleteService.deleteRows('Consignment_Audit', ids);
                 }
                 when 'restore' {
-                    return GridDeleteService.restoreRows('Audit_Test', ids);
+                    return GridDeleteService.restoreRows('Consignment_Audit', ids);
                 }
                 when 'import' {
-                    return GridImportService.importRows('Audit_Test', rowsSetting(ids, 'imported'));
+                    return GridImportService.importRows('Consignment_Audit', rowsSetting(ids, 'Berkshire Mills'));
                 }
                 when 'undoImport' {
-                    return GridImportService.undoCreates('Audit_Test', ids);
+                    return GridImportService.undoCreates('Consignment_Audit', ids);
                 }
                 when else {
-                    return GridActionService.run('Audit_Test', 'Audit_Test_Mark_Seen', ids);
+                    return GridActionService.run('Consignment_Audit', 'Consignment_Audit_Mark_Seen', ids);
                 }
             }
         }
@@ -192,22 +192,22 @@ private class GridAuditFailClosedTest {
     static void anUndoOfADeleteIsRefusedToAUserWhoCannotWriteTheLog() {
         List<Id> ids = new List<Id>();
         System.runAs(noLog()) {
-            List<Rowhouse_Test_Record__c> recs = new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Name = 'Deleted 1', Text_Field__c = 'old'),
-                new Rowhouse_Test_Record__c(Name = 'Deleted 2', Text_Field__c = 'old')
+            List<Consignment__c> recs = new List<Consignment__c>{
+                new Consignment__c(Name = 'Green Mountain Maple, 20 cases', Consignee__c = 'Green Mountain Maple'),
+                new Consignment__c(Name = 'Green Mountain Maple, 30 cases', Consignee__c = 'Green Mountain Maple')
             };
             insert recs;
-            ids.addAll(new Map<Id, Rowhouse_Test_Record__c>(recs).keySet());
+            ids.addAll(new Map<Id, Consignment__c>(recs).keySet());
             // Deleted through a grid that does not log, so the user could put them back.
-            System.assertEquals(2, GridDeleteService.deleteRows('Test_Records', ids).deletedIds.size());
+            System.assertEquals(2, GridDeleteService.deleteRows('Consignments', ids).deletedIds.size());
             Integer dml = Limits.getDmlStatements();
             String message = refusal(new Change('restore', ids));
             System.assert(message != null && message.contains(NO_LOG), 'Undo of a delete: ' + message);
             System.assertEquals(dml, Limits.getDmlStatements(), 'Refused before anything was restored.');
-            System.assertEquals(0, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :ids], 'Still deleted.');
+            System.assertEquals(0, [SELECT COUNT() FROM Consignment__c WHERE Id IN :ids], 'Still deleted.');
             System.assertEquals(
                 2,
-                GridDeleteService.restoreRows('Test_Records', ids).restoredIds.size(),
+                GridDeleteService.restoreRows('Consignments', ids).restoredIds.size(),
                 'In a grid that does not log, the same user puts them back: the log is what refused it.'
             );
         }
@@ -217,20 +217,20 @@ private class GridAuditFailClosedTest {
     static void anUndoOfAnImportIsRefusedToAUserWhoCannotWriteTheLog() {
         List<Id> ids = new List<Id>();
         System.runAs(noLog()) {
-            List<Rowhouse_Test_Record__c> recs = new List<Rowhouse_Test_Record__c>{
-                new Rowhouse_Test_Record__c(Name = 'Imported 1', Text_Field__c = 'new'),
-                new Rowhouse_Test_Record__c(Name = 'Imported 2', Text_Field__c = 'new')
+            List<Consignment__c> recs = new List<Consignment__c>{
+                new Consignment__c(Name = 'Cape Ann Seafood, 10 totes', Consignee__c = 'Cape Ann Seafood'),
+                new Consignment__c(Name = 'Cape Ann Seafood, 12 totes', Consignee__c = 'Cape Ann Seafood')
             };
             insert recs; // created by this user just now, as an import's new records are
-            ids.addAll(new Map<Id, Rowhouse_Test_Record__c>(recs).keySet());
+            ids.addAll(new Map<Id, Consignment__c>(recs).keySet());
             Integer dml = Limits.getDmlStatements();
             String message = refusal(new Change('undoImport', ids));
             System.assert(message != null && message.contains(NO_LOG), 'Undo of an import: ' + message);
             System.assertEquals(dml, Limits.getDmlStatements(), 'Refused before anything was deleted.');
-            System.assertEquals(2, [SELECT COUNT() FROM Rowhouse_Test_Record__c WHERE Id IN :ids], 'Still there.');
+            System.assertEquals(2, [SELECT COUNT() FROM Consignment__c WHERE Id IN :ids], 'Still there.');
             System.assertEquals(
                 2,
-                GridImportService.undoCreates('Test_Records', ids).deletedIds.size(),
+                GridImportService.undoCreates('Consignments', ids).deletedIds.size(),
                 'In a grid that does not log, the same user undoes them: the log is what refused it.'
             );
         }
@@ -245,7 +245,7 @@ private class GridAuditFailClosedTest {
         System.runAs(full()) {
             Test.startTest();
             GridAudit.failWriteForTest = true; // read by the chunk, which runs at stopTest()
-            ticket = GridSaveService.save('Audit_Test', rowsSetting(ids, 'new'));
+            ticket = GridSaveService.save('Consignment_Audit', rowsSetting(ids, 'Wachusett Paper'));
             System.assertEquals(1, ticket.chunkCount, 'One chunk, which writes and then logs.');
             try {
                 Test.stopTest();
@@ -256,7 +256,7 @@ private class GridAuditFailClosedTest {
             GridAudit.failWriteForTest = false;
         }
         System.assertEquals(
-            new Map<Id, String>{ ids[0] => 'old', ids[1] => 'old' },
+            new Map<Id, String>{ ids[0] => 'Quabbin Supply', ids[1] => 'Quabbin Supply' },
             textsOf(ids),
             'The chunk\'s update must be undone with its failed log write.'
         );
@@ -299,7 +299,7 @@ private class GridAuditFailClosedTest {
         }
         System.assert(refused != null && refused.startsWith(LOG_FAILED), 'Ended by the log write: ' + refused);
         System.assertEquals(
-            new Map<Id, String>{ ids[0] => 'old', ids[1] => 'old' },
+            new Map<Id, String>{ ids[0] => 'Quabbin Supply', ids[1] => 'Quabbin Supply' },
             textsOf(ids),
             'The import\'s update is undone with the call.'
         );
@@ -315,9 +315,9 @@ private class GridAuditFailClosedTest {
         }
         System.assert(refused != null && refused.startsWith(LOG_FAILED), 'Ended by the log write: ' + refused);
         System.assertEquals(
-            new Map<Id, String>{ ids[0] => 'old', ids[1] => 'old' },
+            new Map<Id, String>{ ids[0] => 'Quabbin Supply', ids[1] => 'Quabbin Supply' },
             textsOf(ids),
-            'What the flow wrote ("Seen by flow") is undone with the call.'
+            'What the flow wrote ("Reviewed by dispatch") is undone with the call.'
         );
         System.assertEquals(0, entriesFor(ids), 'No entry was written.');
     }

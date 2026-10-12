@@ -71,13 +71,13 @@ describe('edit pencil on hover, light grey lock', () => {
         document.body.appendChild(el);
         await flush();
         const th = field => el.shadowRoot.querySelector(`th[data-field="${field}"]`);
-        expect(th('Test_Case__c').getAttribute('aria-label')).toBe('Test Case, read only');
-        expect(th('Text_Field__c').getAttribute('aria-label')).toBe('Text'); // editable: no "read only"
+        expect(th('Pro_Number__c').getAttribute('aria-label')).toBe('PRO Number, read only');
+        expect(th('Consignee__c').getAttribute('aria-label')).toBe('Consignee'); // editable: no "read only"
         // The lock is drawn only in a cell, on hover or focus.
         expect(el.shadowRoot.querySelector('thead lightning-icon[icon-name="utility:lock"]')).toBeNull();
         const locks = [...el.shadowRoot.querySelectorAll('td .rh-cell-content > button:disabled')];
-        expect(locks.length).toBe(2); // one per row, in Test Case's cells
-        locks.forEach(b => expect(b.dataset.field).toBe('Test_Case__c'));
+        expect(locks.length).toBe(2); // one per row, in PRO Number's cells
+        locks.forEach(b => expect(b.dataset.field).toBe('Pro_Number__c'));
         el.remove();
     });
 
@@ -114,14 +114,14 @@ describe('edit pencil on hover, light grey lock', () => {
 
     it('the only button directly inside a cell is its edit button, pencil or lock', async () => {
         const el = createElement('rowhouse-grid-table', { is: GridTable });
-        const cols = columns.map(c => (c.field === 'Text_Field__c' ? { ...c, editable: false } : c));
+        const cols = columns.map(c => (c.field === 'Consignee__c' ? { ...c, editable: false } : c));
         el.config = { columns: cols, rows: seedRows.slice(0, 5) };
         document.body.appendChild(el);
         await flush();
         const buttons = [...el.shadowRoot.querySelectorAll('td .rh-cell-content > button')];
         expect(buttons.length).toBe(5 * cols.length);
         buttons.forEach(b => expect(b.classList).toContain('slds-cell-edit__button'));
-        // Locks: exactly the read-only columns (Test Case in the fixture, and Text here).
+        // Locks: exactly the read-only columns (PRO Number in the fixture, and Consignee here).
         const readOnly = cols.filter(c => !c.editable).map(c => c.field);
         const locks = buttons.filter(b => b.disabled);
         expect(locks.length).toBe(5 * readOnly.length);
