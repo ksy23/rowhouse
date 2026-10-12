@@ -84,11 +84,14 @@
                             </template>Display Key
                         </button>
                     </template>
+                    <!-- Each icon button: Salesforce's tooltip at once, and the same words as the
+                         browser's hover text after a moment, as a list view's toolbar has them. -->
                     <lightning-button-icon
                         class="slds-m-left_x-small rh-refresh"
                         icon-name="utility:refresh"
                         alternative-text={refreshLabel}
                         title={refreshLabel}
+                        tooltip={refreshLabel}
                         disabled={refreshDisabled}
                         onclick={handleRefresh}
                     ></lightning-button-icon>
@@ -98,7 +101,8 @@
                             class="slds-m-left_x-small rh-choose-columns"
                             icon-name="utility:columns"
                             alternative-text="Choose columns"
-                            title="Choose columns: show, hide and reorder this grid's columns, for you"
+                            title="Choose columns"
+                            tooltip="Choose columns"
                             onclick={handleColumnsOpen}
                         ></lightning-button-icon>
                     </template>
@@ -108,7 +112,8 @@
                             class="slds-m-left_x-small rh-reset-layout"
                             icon-name="utility:undo"
                             alternative-text="Reset layout"
-                            title="Reset layout: your columns, their widths and wrapping, your sort, grouping and open rows go back to how your admin set up this grid"
+                            title="Reset layout"
+                            tooltip="Reset layout"
                             onclick={handleResetLayout}
                         ></lightning-button-icon>
                     </template>
@@ -119,6 +124,7 @@
                             icon-name="utility:settings"
                             alternative-text={settingsLabel}
                             title={settingsLabel}
+                            tooltip={settingsLabel}
                             disabled={settingsDisabled}
                             onclick={handleSettingsOpen}
                         ></lightning-button-icon>
@@ -128,7 +134,8 @@
                         class="slds-m-left_x-small rh-help"
                         icon-name="utility:help"
                         alternative-text="Help"
-                        title="Help: how to work in this grid (opens the Grid Guide in a new tab)"
+                        title="Help"
+                        tooltip="Help"
                         onclick={handleHelp}
                     ></lightning-button-icon>
                     <template lwc:if={hasListButtons}>
@@ -171,6 +178,8 @@
                     <lightning-button-menu
                         class="slds-m-left_x-small rh-actions-menu"
                         alternative-text="List actions"
+                        title="List actions"
+                        tooltip="List actions"
                         icon-name="utility:down"
                         menu-alignment="right"
                         onselect={handleMenuSelect}

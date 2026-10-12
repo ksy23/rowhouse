@@ -112,6 +112,17 @@ it('opens the User guide in a new browser tab', async () => {
     open.mockRestore();
 });
 
+it("names each toolbar icon as a list view does: Salesforce's tooltip, and the same words as hover text", async () => {
+    const el = mount();
+    await settle();
+    const icons = ['.rh-refresh', '.rh-choose-columns', '.rh-settings', '.rh-help'].map(s => $(el, s));
+    expect(icons.map(i => i.tooltip)).toEqual(['Refresh', 'Choose columns', 'Grid settings', 'Help']);
+    icons.forEach(i => {
+        expect(i.title).toBe(i.tooltip);
+        expect(i.alternativeText).toBe(i.tooltip);
+    });
+});
+
 it('is there for someone who is not a grid admin too', async () => {
     getGridConfig.mockResolvedValue({ definition: DEFINITION, diagnostics: false, canConfigure: false });
     const el = mount();
