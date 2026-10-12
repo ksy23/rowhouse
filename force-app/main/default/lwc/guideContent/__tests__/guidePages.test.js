@@ -159,11 +159,11 @@ describe('copy buttons', () => {
     });
 });
 
-describe('the sample file', () => {
+describe('the tutorial attendees file', () => {
     it('downloads from its static resource', async () => {
         await show('tutorial-cleanup');
         const link = pageRoot().querySelector('a[download="event-attendees.csv"]');
         expect(link).not.toBeNull();
-        expect(link.getAttribute('href')).toContain('RowhouseSampleAttendees');
+        expect(link.getAttribute('href')).toContain('RowhouseTutorialAttendees');
     });
 });

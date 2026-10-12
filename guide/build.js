@@ -66,9 +66,9 @@ const ORDER = [
 /** Files a page may link to, and the static resource each one ships as. */
 const FILES = {
     'files/event-attendees.csv': {
-        resource: 'RowhouseSampleAttendees',
-        constant: 'SAMPLE_ATTENDEES',
-        prop: 'sampleAttendeesUrl',
+        resource: 'RowhouseTutorialAttendees',
+        constant: 'TUTORIAL_ATTENDEES',
+        prop: 'tutorialAttendeesUrl',
         download: 'event-attendees.csv'
     }
 };

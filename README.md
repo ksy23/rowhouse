@@ -163,7 +163,7 @@ force-app/main/default/
   layouts/            their record pages in Setup, every field shown
   permissionsets/     Rowhouse Grid User, Diagnostics and Admin
   customPermissions/  Rowhouse_Diagnostics, Rowhouse_Admin
-  staticresources/    the Rowhouse by Kugamon logo and mark; a tutorial's sample file
+  staticresources/    the Rowhouse by Kugamon logo and mark; a tutorial's attendees file
   contentassets/      the Rowhouse app's logo
   applications/       the Rowhouse app: Grid Guide, Grid Admin, Grid Edit Logs
   tabs/               the Grid Admin, Grid Edit Logs and Grid Guide tabs

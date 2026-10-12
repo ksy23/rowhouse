@@ -2,5 +2,5 @@
 <StaticResource xmlns="http://soap.sforce.com/2006/04/metadata">
     <cacheControl>Public</cacheControl>
     <contentType>text/csv</contentType>
-    <description>A sample file of three fictional trade-show attendees, which the Grid Guide's contact clean-up tutorial imports. Copied from guide/files/event-attendees.csv.</description>
+    <description>A file of three fictional trade-show attendees, which the Grid Guide's contact clean-up tutorial imports. Copied from guide/files/event-attendees.csv.</description>
 </StaticResource>
