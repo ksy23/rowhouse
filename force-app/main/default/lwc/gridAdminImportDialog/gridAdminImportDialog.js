@@ -14,6 +14,9 @@
  * has succeeded or failed), child grids first. If one fails, the ones before
  * it stay imported and the dialog says which.
  *
+ * While they are saved, the brand spinner takes the list's place, with which
+ * grid it is on ("Importing … (2 of 30)"); the buttons are off until it ends.
+ *
  * Nothing in a file is trusted: saveDraft checks each grid again in full and
  * needs Customize Application, as every save does.
  *
@@ -137,18 +140,30 @@ export default class GridAdminImportDialog extends LightningElement {
 
     // Non-reactive (HR-20).
     _runtime = { token: 0, grids: [] };
-    _layout = { focused: false };
+    _layout = { focused: false, focusBusy: false, focusCancel: false };
 
     disconnectedCallback() {
         this._runtime.token++;
     }
 
     renderedCallback() {
+        // While the grids are saved, the buttons are off: focus waits on the spinner's
+        // panel, and comes back to Cancel (Close) if the import stops short.
+        if (this._layout.focusBusy) this.focusOn('.rh-import-grids-busy', 'focusBusy');
+        if (this._layout.focusCancel) this.focusOn('.rh-import-grids-cancel', 'focusCancel');
         if (this._layout.focused) return;
         const first = this.template.querySelector('.rh-import-grids-file');
         if (first) {
             this._layout.focused = true;
             first.focus();
+        }
+    }
+
+    focusOn(selector, flag) {
+        const el = this.template.querySelector(selector);
+        if (el) {
+            this._layout[flag] = false;
+            el.focus();
         }
     }
 
@@ -347,6 +362,7 @@ export default class GridAdminImportDialog extends LightningElement {
         const done = [];
         this.working = true;
         this.error = '';
+        this._layout.focusBusy = true;
         try {
             for (let i = 0; i < steps.length; i++) {
                 const step = steps[i];
@@ -375,6 +391,7 @@ export default class GridAdminImportDialog extends LightningElement {
             if (token === this._runtime.token) {
                 this.working = false;
                 this.progress = '';
+                this._layout.focusCancel = Boolean(this.error);
             }
         }
     }
@@ -426,6 +443,10 @@ export default class GridAdminImportDialog extends LightningElement {
 
     /** Shift+Tab from the first control: round to the last. */
     handleGuardStart() {
+        if (this.working) {
+            this.focusOn('.rh-import-grids-busy', 'focusBusy');
+            return;
+        }
         const buttons = [...this.template.querySelectorAll('.slds-modal__footer button')];
         const last = buttons.reverse().find(b => !b.disabled);
         if (last) last.focus();
@@ -433,6 +454,10 @@ export default class GridAdminImportDialog extends LightningElement {
 
     /** Tab from the last control: round to the close button, the first. */
     handleGuardEnd() {
+        if (this.working) {
+            this.focusOn('.rh-import-grids-busy', 'focusBusy');
+            return;
+        }
         const first = this.template.querySelector('.rh-import-grids-close');
         if (first && !first.disabled) first.focus();
     }

@@ -263,8 +263,22 @@ describe('importing', () => {
             'Importing Harbor Items (1 of 2). This takes a few seconds.'
         );
         expect($(el, '.rh-import-grids-cancel').disabled).toBe(true);
-        expect($(el, '.rh-import-grids-existing').disabled).toBe(true);
-        await succeed(2);
+        expect($(el, '.rh-import-grids-confirm').disabled).toBe(true);
+        // The brand spinner takes the list's place, and focus waits on it.
+        const spinner = $(el, '.rh-import-grids-busy lightning-spinner');
+        expect(spinner.alternativeText).toBe('Importing the grids');
+        expect(spinner.variant).toBe('brand');
+        expect(spinner.size).toBe('medium');
+        expect($(el, '.rh-import-grids-items')).toBeNull();
+        expect(el.shadowRoot.activeElement).toBe($(el, '.rh-import-grids-busy'));
+        expect($(el, '.rh-import-grids-busy-note').textContent).toBe('Keep this window open until it is done.');
+        jest.advanceTimersByTime(1000);
+        await settle();
+        expect($(el, '.rh-import-grids-progress').textContent).toBe(
+            'Importing Harbor Consignments (2 of 2). This takes a few seconds.'
+        );
+        jest.advanceTimersByTime(1000);
+        await settle();
         expect(saveDraft.mock.calls.map(c => JSON.parse(c[0].draftJson).config.name)).toEqual([
             'Harbor_Items',
             'Harbor_Consignments'
@@ -292,7 +306,11 @@ describe('importing', () => {
             'Harbor Consignments was not imported. Harbor_Items is not a grid here yet. Harbor Items was imported and stays.'
         );
         expect(events).toEqual([]);
+        // The spinner goes, the list is back, and focus is on Close.
+        expect($(el, '.rh-import-grids-busy')).toBeNull();
+        expect($(el, '.rh-import-grids-items')).not.toBeNull();
         expect($(el, '.rh-import-grids-cancel').textContent).toBe('Close');
+        expect(el.shadowRoot.activeElement).toBe($(el, '.rh-import-grids-cancel'));
         $(el, '.rh-import-grids-cancel').click();
         expect(events).toEqual([{ type: 'cancel', detail: { imported: ['Harbor Items'] } }]);
     });
@@ -340,10 +358,15 @@ describe('the list', () => {
     });
 });
 
-it('is accessible, on the chooser and with the list', async () => {
+it('is accessible, on the chooser, with the list and while importing', async () => {
     jest.useRealTimers();
+    saveDraft.mockReturnValue(new Promise(() => {}));
     const el = await mount();
     await expect(el).toBeAccessible();
     await choose(el, FILE);
+    await expect(el).toBeAccessible();
+    $(el, '.rh-import-grids-confirm').click();
+    await settle();
+    expect($(el, '.rh-import-grids-busy')).not.toBeNull();
     await expect(el).toBeAccessible();
 });

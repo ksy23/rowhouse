@@ -52,6 +52,16 @@
                         <lightning-spinner alternative-text="Checking the grids in the file" size="small" variant="brand"></lightning-spinner>
                     </div>
                 </template>
+                <template lwc:elseif={working}>
+                    <!-- While the grids are saved: the brand spinner, and which grid it is on. -->
+                    <div class="rh-import-grids-busy" tabindex="-1">
+                        <div class="rh-import-grids-spinner">
+                            <lightning-spinner alternative-text="Importing the grids" size="medium" variant="brand"></lightning-spinner>
+                        </div>
+                        <p class="rh-import-grids-progress" role="status">{progress}</p>
+                        <p class="rh-import-grids-busy-note">Keep this window open until it is done.</p>
+                    </div>
+                </template>
                 <template lwc:else>
                     <div class="rh-import-grids-body">
                         <!-- The file, with how many grids it holds and what happens to them. -->
@@ -114,9 +124,6 @@
                         </ul>
                         <p class="rh-import-grids-after">{afterText}</p>
                     </div>
-                </template>
-                <template lwc:if={progress}>
-                    <p class="slds-m-top_small rh-import-grids-progress" role="status">{progress}</p>
                 </template>
                 <template lwc:if={error}>
                     <p class="slds-m-top_small slds-text-color_error rh-import-grids-error" role="alert">{error}</p>

@@ -111,7 +111,7 @@
 
 /* A grid left as it is reads quieter than one that will be saved. */
 .rh-import-grids-item_skip .rh-import-grids-label {
-    font-weight: var(--slds-g-font-weight-regular, 400);
+    font-weight: var(--slds-g-font-weight-4, 400);
     color: var(--slds-g-color-neutral-base-30, #444444);
 }
 
@@ -160,4 +160,37 @@
         text-align: left;
         font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
     }
+}
+
+/* While the grids are saved: the spinner in the list's place, then which grid it is on. */
+.rh-import-grids-busy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    min-height: 14rem;
+    padding: var(--slds-g-spacing-5, 1.5rem) var(--slds-g-spacing-4, 1rem);
+    text-align: center;
+}
+
+.rh-import-grids-busy:focus {
+    outline: none;
+}
+
+.rh-import-grids-spinner {
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+}
+
+.rh-import-grids-progress {
+    margin: 0;
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-import-grids-busy-note {
+    margin: 0;
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-neutral-base-50, #747474);
 }
