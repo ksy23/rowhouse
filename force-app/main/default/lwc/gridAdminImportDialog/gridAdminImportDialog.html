@@ -1,0 +1,110 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        class="slds-modal slds-fade-in-open slds-modal_medium rh-import-grids"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <button
+                class="slds-button slds-button_icon slds-modal__close rh-import-grids-close"
+                title="Cancel and close"
+                disabled={working}
+                onclick={handleCancel}
+            >
+                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                <span class="slds-assistive-text">Cancel and close</span>
+            </button>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate rh-import-grids-heading">Import grids</h1>
+            </div>
+            <div class="slds-modal__content slds-p-around_medium">
+                <template lwc:if={isChoose}>
+                    <p class="slds-m-bottom_small rh-import-grids-lede">Choose a file exported from the Grid Admin tab, in this org or another. You see what it holds, and what it does here, before anything is saved. A grid this org already has is never changed.</p>
+                    <div class="slds-form-element">
+                        <span class="slds-form-element__label" id="grid-file-label">Grid file (.json)</span>
+                        <div class="slds-form-element__control">
+                            <div class="slds-file-selector slds-file-selector_files">
+                                <div class={dropzoneClass} ondragover={handleDragOver} ondragleave={handleDragLeave} ondrop={handleDrop}>
+                                    <input
+                                        type="file"
+                                        class="slds-file-selector__input slds-assistive-text rh-import-grids-file"
+                                        accept=".json,application/json"
+                                        id="grid-file-input"
+                                        aria-labelledby="grid-file-label grid-file-body"
+                                        onchange={handleFile}
+                                    />
+                                    <label class="slds-file-selector__body" for="grid-file-input" id="grid-file-body">
+                                        <lightning-icon icon-name="utility:upload" size="small" class="slds-file-selector__body-icon slds-m-right_small"></lightning-icon>
+                                        <span class="slds-file-selector__button slds-button slds-button_neutral">Choose file</span>
+                                        <span class="slds-file-selector__text slds-medium-show">or drop a file here</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template lwc:elseif={isChecking}>
+                    <div class="rh-import-grids-loading">
+                        <lightning-spinner alternative-text="Checking the grids in the file" size="small" variant="brand"></lightning-spinner>
+                    </div>
+                </template>
+                <template lwc:else>
+                    <p class="rh-import-grids-count"><b>{countText}</b> · <button class="slds-button rh-import-grids-another" disabled={working} onclick={handleAnother}>Choose another file</button></p>
+                    <p class="slds-m-top_x-small rh-import-grids-lede">{ledeText}</p>
+                    <template lwc:if={showExisting}>
+                        <lightning-radio-group
+                            class="slds-m-top_small rh-import-grids-existing"
+                            label="Grids this org already has"
+                            options={existingOptions}
+                            value={existing}
+                            disabled={choiceDisabled}
+                            onchange={handleExisting}
+                        ></lightning-radio-group>
+                    </template>
+                    <ul class="slds-m-top_small rh-import-grids-items">
+                        <template for:each={rows} for:item="row">
+                            <li key={row.key} class={row.className}>
+                                <b class="rh-import-grids-title">{row.title}</b>
+                                <span class="rh-import-grids-text">{row.text}</span>
+                                <template lwc:if={row.hasProblems}>
+                                    <ul class="slds-list_dotted rh-import-grids-problems">
+                                        <template for:each={row.problems} for:item="p">
+                                            <li key={p.key}>{p.text}</li>
+                                        </template>
+                                    </ul>
+                                </template>
+                                <template lwc:if={row.hasWarnings}>
+                                    <span class="rh-import-grids-warnings-lede">Imported with these warnings:</span>
+                                    <ul class="slds-list_dotted rh-import-grids-warnings">
+                                        <template for:each={row.warnings} for:item="w">
+                                            <li key={w.key}>{w.text}</li>
+                                        </template>
+                                    </ul>
+                                </template>
+                            </li>
+                        </template>
+                    </ul>
+                    <p class="slds-m-top_small slds-text-color_weak rh-import-grids-after">{afterText}</p>
+                </template>
+                <template lwc:if={progress}>
+                    <p class="slds-m-top_small rh-import-grids-progress" role="status">{progress}</p>
+                </template>
+                <template lwc:if={error}>
+                    <p class="slds-m-top_small slds-text-color_error rh-import-grids-error" role="alert">{error}</p>
+                </template>
+            </div>
+            <div class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral rh-import-grids-cancel" disabled={working} onclick={handleCancel}>{cancelLabel}</button>
+                <template lwc:if={isPreview}>
+                    <button class="slds-button slds-button_brand rh-import-grids-confirm" disabled={importDisabled} onclick={handleImport}>{importLabel}</button>
+                </template>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

@@ -4256,6 +4256,15 @@ td.rh-db {
     margin: 0;
 }
 
+/* Export and the search, side by side over the list; one under the other when narrow. */
+.rh-adm-tools {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+}
+
 .rh-adm-count {
     font-size: var(--slds-g-font-scale-1, 0.875rem);
     font-weight: var(--slds-g-font-weight-bold, 700);

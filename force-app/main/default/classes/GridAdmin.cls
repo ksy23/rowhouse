@@ -394,6 +394,14 @@ public with sharing class GridAdmin {
         return new Map<String, Object>{ 'draft' => d, 'warnings' => warnings, 'canSave' => canSave() };
     }
 
+    /**
+     * One configuration as a draft, turned-off records included, for export
+     * (GridAdminTransfer). Checks nothing: callers check who may read it.
+     */
+    public static Draft draftNamed(String configName) {
+        return draftOf(configNamed(configName));
+    }
+
     /** The configuration of that API name. Throws when there is none. */
     private static Grid_Configuration__mdt configNamed(String configName) {
         Grid_Configuration__mdt cfg = String.isBlank(configName)
@@ -1173,8 +1181,7 @@ public with sharing class GridAdmin {
     }
 
     /** Why a record's API name will not do, or null. */
-    @TestVisible
-    private static String nameProblem(String name) {
+    public static String nameProblem(String name) {
         if (String.isBlank(name)) {
             return 'it is blank.';
         }
@@ -1837,8 +1844,7 @@ public with sharing class GridAdmin {
      * grid's name and a hint (the field, the label), cleaned up, 40 characters
      * at most, and numbered if taken, by the org's records or the draft.
      */
-    @TestVisible
-    private static List<String> names(String configName, List<String> wanted, List<String> hints, Set<String> taken) {
+    public static List<String> names(String configName, List<String> wanted, List<String> hints, Set<String> taken) {
         Set<String> used = new Set<String>();
         for (String t : taken) {
             used.add(t.toLowerCase());
@@ -1870,8 +1876,7 @@ public with sharing class GridAdmin {
     }
 
     /** Letters, numbers and single underscores, starting with a letter. */
-    @TestVisible
-    private static String clean(String s) {
+    public static String clean(String s) {
         String out = (s == null ? '' : s).replaceAll('[^A-Za-z0-9]+', '_').replaceAll('_+', '_');
         out = out.removeStart('_').removeEnd('_');
         if (String.isBlank(out)) {

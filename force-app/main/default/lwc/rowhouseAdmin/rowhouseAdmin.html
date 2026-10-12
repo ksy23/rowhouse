@@ -78,6 +78,14 @@
                                     disabled={newDisabled}
                                     onclick={handleNew}
                                 ></lightning-button>
+                                <lightning-button
+                                    class="rh-admin-import"
+                                    label="Import"
+                                    icon-name="utility:upload"
+                                    title={importTitle}
+                                    disabled={newDisabled}
+                                    onclick={handleImportOpen}
+                                ></lightning-button>
                                 <a class="rh-link-button rh-admin-guide-link" href={startUrl} onclick={handleGuideLink}>Get started →</a>
                             </div>
                             <div class="rh-stats rh-admin-stats">
@@ -113,6 +121,16 @@
                                     <h2 class="rh-h2 rh-admin-count" id="rh-admin-list-heading">{countText}</h2>
                                 </div>
                                 <div class="rh-admin-filters">
+                                    <template lwc:if={showExportList}>
+                                        <lightning-button
+                                            class="rh-admin-export"
+                                            label={exportListLabel}
+                                            icon-name="utility:download"
+                                            title={exportListTitle}
+                                            disabled={exporting}
+                                            onclick={handleExportList}
+                                        ></lightning-button>
+                                    </template>
                                     <lightning-input
                                         class="rh-admin-search"
                                         type="search"
@@ -161,7 +179,7 @@
                                                     <td class="rh-admin-name">{r.name}</td>
                                                     <td>{r.objectLabel}</td>
                                                     <td class="rh-admin-num">{r.columns}</td>
-                                                    <!-- Edit, Clone and Archive; Restore and Delete in Setup when archived. -->
+                                                    <!-- Edit, Clone, Export and Archive; Restore and Delete in Setup when archived. -->
                                                     <td class="rh-admin-actions">
                                                         <lightning-button-menu
                                                             class="rh-admin-row-menu"
@@ -178,6 +196,7 @@
                                                             <template lwc:else>
                                                                 <lightning-menu-item value="edit" label="Edit" prefix-icon-name="utility:edit"></lightning-menu-item>
                                                                 <lightning-menu-item value="clone" label="Clone" prefix-icon-name="utility:copy" disabled={deployDisabled}></lightning-menu-item>
+                                                                <lightning-menu-item value="export" label="Export" prefix-icon-name="utility:download" disabled={exporting}></lightning-menu-item>
                                                                 <lightning-menu-item value="archive" label="Archive" prefix-icon-name="utility:archive" disabled={deployDisabled}></lightning-menu-item>
                                                             </template>
                                                         </lightning-button-menu>
@@ -237,5 +256,13 @@
                 oncancel={handleDialogCancel}
             ></c-grid-admin-row-dialog>
         </template>
+
+        <!-- Import grids from a file. -->
+        <template lwc:if={importOpen}>
+            <c-grid-admin-import-dialog ondone={handleImportDone} oncancel={handleImportCancel}></c-grid-admin-import-dialog>
+        </template>
+
+        <!-- Where Export's temporary download link goes, so it never touches the page outside. -->
+        <div class="rh-admin-download" lwc:dom="manual"></div>
     </article>
 </template>

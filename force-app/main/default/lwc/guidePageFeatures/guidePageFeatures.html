@@ -367,7 +367,7 @@
                 <div class="rh-le" style="--rh-d:.5s"><span class="rh-op rh-u">Update</span><b>Amount</b> 180000 → 250000<small>LOG-0000413 · same Save Id</small></div>
                 <div class="rh-le" style="--rh-d:1s"><span class="rh-op rh-c">Create</span><b>Contact</b> Margaret Doucette<small>LOG-0000414 · import</small></div>
                 <div class="rh-le" style="--rh-d:1.5s"><span class="rh-op rh-a">Action</span><b>Log a call</b> on 00001042<small>LOG-0000415</small></div>
-                <div class="rh-le" style="--rh-d:2s"><span class="rh-op rh-d">Delete</span><b>Contact</b> Test Duplicate<small>LOG-0000416</small></div>
+                <div class="rh-le" style="--rh-d:2s"><span class="rh-op rh-d">Delete</span><b>Contact</b> Margret Doucette, a duplicate<small>LOG-0000416</small></div>
               </div>
               <figcaption>Entries written together share a Save Id, so one save's changes can be read as one.</figcaption>
             </figure>
@@ -425,7 +425,7 @@
                   <span class="rh-adm-eyebrow">Grid Admin</span>
                   <div class="rh-adm-h">Your grids</div>
                   <p class="rh-adm-lede">Open a grid to change it, or build a new one. To show a grid, add the Rowhouse Grid component to a Lightning page and enter the grid's API name.</p>
-                  <div class="rh-adm-cta"><span class="rh-m-btn rh-p">+ New grid</span><span class="rh-m-btn">Get started →</span></div>
+                  <div class="rh-adm-cta"><span class="rh-m-btn rh-p">+ New grid</span><span class="rh-m-btn"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Import</span><span class="rh-m-btn">Get started →</span></div>
                   <div class="rh-adm-cards">
                     <div class="rh-adm-card"><b>8</b>grids</div>
                     <div class="rh-adm-card rh-sky"><b>4</b>objects</div>
@@ -433,7 +433,7 @@
                     <div class="rh-adm-card rh-gold"><b>1</b>grid with child tables</div>
                     <div class="rh-adm-card rh-teal"><b>1 year</b>the edit log keeps its entries · <span class="rh-m-link">Settings →</span></div>
                   </div>
-                  <div class="rh-adm-lh"><div><span class="rh-adm-gk">Available grids</span><div class="rh-adm-count">8 grids</div></div><span class="rh-m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search grids</span></div>
+                  <div class="rh-adm-lh"><div><span class="rh-adm-gk">Available grids</span><div class="rh-adm-count">8 grids</div></div><span class="rh-adm-tools"><span class="rh-m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Export 8 grids</span><span class="rh-m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search grids</span></span></div>
                   <div class="rh-adm-gt">
                     <div class="rh-adm-gr rh-hd"><span>Grid Title ↑</span><span class="rh-gcode">API name</span><span>Object</span><span class="rh-gnum">Columns</span><span></span></div>
                     <div class="rh-adm-gr"><span class="rh-m-link">Account Directory</span><span class="rh-gcode">Account_Directory</span><span>Accounts</span><span class="rh-gnum">4</span><span class="rh-m-rm"></span></div>
@@ -448,17 +448,17 @@
                 </div>
               </div>
             </div></div></div>
-            <figcaption>The Grids page, with the eight grids that Get started and the tutorials build. On the left, what the list shows, each with how many; above the list, <b>New grid</b> and cards that sum up the org. Click a heading to sort the list by it; the <b>▾</b> at the end of a row is that grid's menu.</figcaption>
+            <figcaption>The Grids page, with the eight grids that Get started and the tutorials build. On the left, what the list shows, each with how many; above the list, <b>New grid</b>, <b>Import</b> and cards that sum up the org. <b>Export 8 grids</b> saves the grids the list shows to a file. Click a heading to sort the list by it; the <b>▾</b> at the end of a row is that grid's menu.</figcaption>
           </figure>
           <div class="rh-split">
             <div>
               <h4 class="rh-mt0">The Grid Admin tab</h4>
               <ul class="rh-tick">
                 <li>A tab of the <b>Rowhouse</b> app, which the App Launcher shows with the Rowhouse logo. Its header has two pages, <b>Grids</b> and <b>Settings</b>.</li>
-                <li><b>Grids</b> opens with <i>Your grids</i>, <b>New grid</b> and cards that sum up the org: how many grids and objects, how many grids log every change or have child tables, and how long the edit log keeps its entries. Under them, every grid in use, with its Grid Title, API name, object and number of columns; search it by title or API name. It opens sorted by Grid Title, A to Z: click another heading to sort by that column, and click it again to sort the other way.</li>
+                <li><b>Grids</b> opens with <i>Your grids</i>, <b>New grid</b>, <b>Import</b> and cards that sum up the org: how many grids and objects, how many grids log every change or have child tables, and how long the edit log keeps its entries. Under them, every grid in use, with its Grid Title, API name, object and number of columns; search it by title or API name, and <b>Export</b> the grids it shows to a file (<a href="#admin-transfer" data-anchor-link="admin-transfer">below</a>). It opens sorted by Grid Title, A to Z: click another heading to sort by that column, and click it again to sort the other way.</li>
                 <li>The side navigation on the left of the Grids page chooses what the list shows, each with how many: <b>Available grids</b>, the grids in use; <b>Archived grids</b>; and, under <b>By object</b>, the grids in use of one object.</li>
                 <li>Click a grid's title to change it. The grid's name heads the page, with its object and API name and <b>Close</b> and <b>Save</b>; <b>Grid Admin</b> or <b>Grids</b> above the name goes back, asking first if something is unsaved.</li>
-                <li>The <b>▾</b> at the end of each row is the grid's menu: <b>Edit</b>, as its title does; <b>Clone</b>; and <b>Archive</b>, which takes the grid out of use without deleting it (<a href="#admin-rows" data-anchor-link="admin-rows">below</a>).</li>
+                <li>The <b>▾</b> at the end of each row is the grid's menu: <b>Edit</b>, as its title does; <b>Clone</b>; <b>Export</b>, to a file; and <b>Archive</b>, which takes the grid out of use without deleting it (<a href="#admin-rows" data-anchor-link="admin-rows">below</a>).</li>
                 <li>Tabs for the grid itself, its columns (and formula columns), display rules, filters, actions and child tables, each with its count and an <b>Add</b> button under its table, and the Grid Guide's part about the open tab beside them. Formulas are checked as you type, with Salesforce's own message when one does not work.</li>
                 <li><b>Settings</b> holds what is set for Rowhouse as a whole: how long the edit log keeps its entries (<a href="#audit-retention" data-anchor-link="audit-retention">above</a>).</li>
               </ul>
@@ -471,7 +471,7 @@
               </ul>
             </div>
           </div>
-          <div class="rh-call" style="margin-top:18px"><span class="rh-k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do Clone, Archive and Restore, which are grayed out without it. Every field and setting is described in the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure&amp;rowhouse__section=admin" data-page="configure" data-section="admin">configuration reference</a>.</p></div>
+          <div class="rh-call" style="margin-top:18px"><span class="rh-k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do Clone, Archive, Restore and Import, which are grayed out without it. Export needs only Rowhouse Grid Admin. Every field and setting is described in the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure&amp;rowhouse__section=admin" data-page="configure" data-section="admin">configuration reference</a>.</p></div>
 
           <h3 id="admin-rows" data-anchor="admin-rows" style="margin-top:26px">Clone, archive and delete a grid</h3>
           <p>Each is in the grid's menu, the <span class="rh-ui">▾</span> at the end of its row on the Grid Admin tab's <span class="rh-ui">Grids</span> page. Clone, Archive and Restore are saved like any change to a grid, in a few seconds.</p>
@@ -483,6 +483,27 @@
             <li><b>Restore it.</b> Click <span class="rh-ui">▾</span>, then <span class="rh-ui">Restore</span>, then <span class="rh-ui">Restore</span> in the dialog. It is back under <span class="rh-ui">Available grids</span>, and pages that show it work again.</li>
             <li><b>Delete it for good.</b> Rowhouse cannot delete a grid: only Setup can delete Custom Metadata records. Click <span class="rh-ui">▾</span>, then <span class="rh-ui">Delete in Setup</span>. The dialog lists the grid's records in the order to delete them: other grids' child tables that show it, its columns, display rules, filters, actions and child tables, then the grid itself, last. Each opens its page in Setup in a new browser tab; click <span class="rh-ui">Delete</span> there, then <span class="rh-ui">OK</span>. Keep to the order: Salesforce will not delete the grid while any of its records still point at it. Once deleted, they cannot be restored here.</li>
           </ol>
+          <h3 id="admin-transfer" data-anchor="admin-transfer" style="margin-top:26px">Export and import grids</h3>
+          <p>A grid file sets up another org in a minute: a demo or trial org, a sandbox or org a change set cannot reach, or a colleague's org. It is a JSON file of grids, each with its settings, columns, display rules, filters, actions and child tables, by API name. It holds no records, no one's saved layout and no Lightning page.</p>
+          <div class="rh-stepper rh-rv" aria-hidden="true">
+            <div class="rh-sp" style="--rh-d:0s"><b>1</b><span>Export</span><small>one grid, or the grids the list shows, with the grids they show as child tables</small></div>
+            <div class="rh-sp" style="--rh-d:1s"><b>2</b><span>Choose the file</span><small>on the Grid Admin tab of this org or another</small></div>
+            <div class="rh-sp" style="--rh-d:2s"><b>3</b><span>Check</span><small>new, already here, a copy, or cannot be imported, grid by grid</small></div>
+            <div class="rh-sp" style="--rh-d:3s"><b>4</b><span>Import</span><small>one grid after another, child grids first</small></div>
+          </div>
+          <ol class="rh-steps">
+            <li><b>Export one grid.</b> Click <span class="rh-ui">▾</span> at the end of its row, then <span class="rh-ui">Export</span>. The browser saves a file named after the grid's API name, such as <span class="rh-v rh-plain">Key_Accounts.rowhouse.json</span>, with every grid it shows as a child table, so the file is complete. <i>Grids exported</i> says how many it holds.</li>
+            <li><b>Export several.</b> Search, or choose an object in the side navigation, until the list shows the grids you want, then click <span class="rh-ui">Export 8 grids</span> above the list; the number is how many the list shows. The file is named <span class="rh-v rh-plain">rowhouse-grids-</span> and the date. One file holds up to 50 grids, child grids included.</li>
+            <li><b>Import.</b> In the org that is to have the grids, on the Grid Admin tab, click <span class="rh-ui">Import</span> beside <span class="rh-ui">New grid</span>. Click <span class="rh-ui">Choose file</span>, or drop the file on the dialog. Nothing is saved yet: the dialog lists every grid in the file with what importing does here. A grid this org does not have says <i>New</i>, and is imported under its API name.</li>
+            <li><b>A grid this org already has is never changed.</b> Under <span class="rh-ui">Grids this org already has</span>, <span class="rh-ui">Leave them as they are</span> is chosen: such a grid says <i>left as it is</i>, and a grid in the file that shows it as a child table shows this org's. Choose <span class="rh-ui">Import them as copies</span> instead, and each is imported as <i>Copy of</i> its title, under a free API name, and the file's other grids show the copies.</li>
+            <li><b>Read what it says about each grid.</b> A grid on a field or an object this org does not have says <i>Cannot be imported</i>, and why; so does a grid that shows it as a child table. Create the field, or change the file, and import it again. <i>Imported with these warnings</i> lists what a grid would leave out here, as the Grid Admin tab's warnings do.</li>
+            <li><b>Click <span class="rh-ui">Import 3 grids</span></b>; the number is how many can be imported. They are saved one after the other, child grids first, a few seconds each. <i>Grids imported</i> names them, and they are under <span class="rh-ui">Available grids</span>. If one cannot be saved, the dialog says why, and the grids before it stay imported.</li>
+          </ol>
+          <ul class="rh-tick">
+            <li><b>Then put each grid on a page.</b> A file holds no Lightning page: add the Rowhouse Grid component to a page and enter the grid's API name. An action needs its flow, Apex class or quick action in the org, as it does when you add it by hand.</li>
+            <li><b>Checked like a save.</b> Every grid in a file is checked as a grid saved on this tab is, so a file can do nothing you could not do by building the grid here. A file's filter values are in it as you typed them: share it as you would the grid's settings.</li>
+            <li><b>Between a sandbox and its production org,</b> a change set or a deployment works too, and keeps the grids on your release path (<a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=start&amp;rowhouse__section=move" data-page="start" data-section="move">Moving grids between orgs</a>).</li>
+          </ul>
         </section>
 
         <section id="security" data-anchor="security">

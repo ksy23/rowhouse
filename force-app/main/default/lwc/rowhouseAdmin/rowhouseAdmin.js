@@ -12,7 +12,10 @@
  *             title or API name and sorted by any of its columns, a heading
  *             clicked once A to Z and again Z to A. Opening a grid shows
  *             the editor in its page layout, with the Grid Guide beside it.
- *             Each row's menu: Edit, Clone and Archive. Archived grids
+ *             Import reads grids from a file (c/gridAdminImportDialog);
+ *             Export writes the grids the list shows to one
+ *             (c/gridConfigFile), with the grids they show as child tables.
+ *             Each row's menu: Edit, Clone, Export and Archive. Archived grids
  *             leave the list and the cards. A side navigation, as the
  *             Grid Guide's pages have, chooses what the list shows: Available
  *             grids, Archived grids (each with Restore and Delete in Setup;
@@ -34,10 +37,13 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import listConfigs from '@salesforce/apex/GridAdminController.listConfigs';
 import canSaveConfig from '@salesforce/apex/GridAdminController.canSave';
 import logRetention from '@salesforce/apex/GridAdminController.logRetention';
+import exportGrids from '@salesforce/apex/GridAdminController.exportGrids';
 import LOGO from '@salesforce/resourceUrl/RowhouseLogo';
 import LOCALE from '@salesforce/i18n/locale';
 import { openGuide, guideRef, guideUrl } from 'c/guideRoute';
 import { namespaceOf } from 'c/gridFlowRoute';
+import { fileName, fileText, listed } from 'c/gridConfigFile';
+import { downloadText } from 'c/gridCsv';
 
 /** The tab's two pages, in the order its header shows them. */
 const VIEWS = [
@@ -106,9 +112,24 @@ export default class RowhouseAdmin extends NavigationMixin(LightningElement) {
     sortAnnouncement = '';
     /** The row dialog open: { action, grid }, or null. */
     dialog = null;
+    /** The import dialog is open. */
+    importOpen = false;
+    /** An export is being read from the server. */
+    exporting = false;
 
     // Non-reactive (HR-20).
     _runtime = { token: 0, pendingView: null };
+    /** Focus to put back once the import dialog has closed: on its opener, Import. */
+    _layout = { focusImport: false };
+
+    renderedCallback() {
+        if (!this._layout.focusImport) return;
+        const button = this.template.querySelector('.rh-admin-import');
+        if (button) {
+            this._layout.focusImport = false;
+            button.focus();
+        }
+    }
 
     get logoUrl() {
         return LOGO;
@@ -479,6 +500,10 @@ export default class RowhouseAdmin extends NavigationMixin(LightningElement) {
             this.editing = name;
             return;
         }
+        if (action === 'export') {
+            this.exportNamed([name]);
+            return;
+        }
         if (['clone', 'archive', 'restore'].includes(action) && this.deployDisabled) return;
         if (!['clone', 'archive', 'restore', 'setup'].includes(action)) return;
         // A plain object across the boundary (HR-28).
@@ -501,6 +526,99 @@ export default class RowhouseAdmin extends NavigationMixin(LightningElement) {
         if (toast) this.dispatchEvent(new ShowToastEvent({ ...toast(label, configName), variant: 'success' }));
         if (action === 'clone' && configName) this.editing = configName;
         this.load(false);
+    }
+
+    // ============================================================ export and import
+
+    /** Export over the list: the grids it shows, not under Archived grids. */
+    get showExportList() {
+        return this.hasRows && !this.showingArchived;
+    }
+
+    get exportListLabel() {
+        const n = this.visibleConfigs.length;
+        return n === 1 ? 'Export 1 grid' : `Export ${new Intl.NumberFormat(LOCALE).format(n)} grids`;
+    }
+
+    get exportListTitle() {
+        return 'Save the grids in this list to a file, with the grids they show as child tables, to import in this org or another';
+    }
+
+    handleExportList() {
+        this.exportNamed(this.sortedConfigs.map(c => c.name));
+    }
+
+    /** The grids named, and the grids they show as child tables, to a file. */
+    async exportNamed(names) {
+        if (this.exporting || !names.length) return;
+        this.exporting = true;
+        try {
+            const drafts = (await exportGrids({ configNames: names })) || [];
+            const now = new Date();
+            const name = fileName(names, now);
+            const container = this.template.querySelector('.rh-admin-download');
+            if (!downloadText(fileText(drafts, now), name, container, 'application/json')) {
+                this.toast(
+                    'The grids were not exported',
+                    'This browser did not allow the file to be downloaded.',
+                    'error'
+                );
+                return;
+            }
+            const asked = new Set(names.map(n => String(n).toLowerCase()));
+            const extra = drafts.filter(d => !asked.has(String(d.config.name).toLowerCase())).length;
+            const count = `${drafts.length} ${drafts.length === 1 ? 'grid' : 'grids'}`;
+            const children = extra
+                ? `, including ${extra} ${extra === 1 ? 'grid shown as a child table' : 'grids shown as child tables'}`
+                : '';
+            this.toast(
+                drafts.length === 1 ? 'Grid exported' : 'Grids exported',
+                `${name}: ${count}${children}.`,
+                'success'
+            );
+        } catch (e) {
+            this.toast('The grids were not exported', messageOf(e), 'error');
+        } finally {
+            this.exporting = false;
+        }
+    }
+
+    get importTitle() {
+        return this.canSave
+            ? 'Import grids from a file exported on the Grid Admin tab'
+            : 'Importing grids needs the Customize Application permission';
+    }
+
+    handleImportOpen() {
+        if (this.newDisabled) return;
+        this.importOpen = true;
+    }
+
+    /** Closed before the end: if some grids were imported before a failure, the list learns of them. */
+    handleImportCancel(event) {
+        this.importOpen = false;
+        this._layout.focusImport = true;
+        const imported = (event.detail && event.detail.imported) || [];
+        if (imported.length) this.load(false);
+    }
+
+    handleImportDone(event) {
+        const { imported = [], skipped = [] } = event.detail || {};
+        this.importOpen = false;
+        this._layout.focusImport = true;
+        const left = skipped.length
+            ? ` ${listed(skipped)} ${skipped.length === 1 ? 'was already here and is' : 'were already here and are'} left as before.`
+            : '';
+        this.toast(
+            imported.length === 1 ? 'Grid imported' : 'Grids imported',
+            `${listed(imported)} ${imported.length === 1 ? 'is' : 'are'} under Available grids now.${left}`,
+            'success'
+        );
+        this.load(false);
+    }
+
+    toast(title, message, variant) {
+        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
 
     // ============================================================ the editor and Settings

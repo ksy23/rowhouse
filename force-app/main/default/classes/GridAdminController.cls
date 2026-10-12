@@ -129,6 +129,29 @@ public with sharing class GridAdminController {
         }
     }
 
+    /** Grids as drafts for a file, with the grids they show as child tables; child grids first. */
+    @AuraEnabled
+    public static List<GridAdmin.Draft> exportGrids(List<String> configNames) {
+        try {
+            return GridAdminTransfer.exportGrids(configNames);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /**
+     * What importing a file's grids would do here, in the order to save them,
+     * each ready to save with saveDraft. Saves nothing; never changes a grid.
+     */
+    @AuraEnabled
+    public static List<GridAdminTransfer.Item> planImport(String gridsJson, Boolean asCopies) {
+        try {
+            return GridAdminTransfer.planImport(parseGrids(gridsJson), asCopies);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
     /** The records to delete in Setup to delete a grid for good, in order, with their Setup pages. */
     @AuraEnabled
     public static List<Map<String, String>> setupRecords(String configName) {
@@ -144,6 +167,27 @@ public with sharing class GridAdminController {
             throw new GridException('There is nothing to save.');
         }
         return (GridAdmin.Draft) JSON.deserialize(draftJson, GridAdmin.Draft.class);
+    }
+
+    /** About two megabytes of grids: far more than fifty grids take. */
+    private static final Integer MAX_GRIDS_JSON = 3000000;
+
+    /** A file's grids, as drafts. A file that is not one is refused in words the admin can act on. */
+    private static List<GridAdmin.Draft> parseGrids(String gridsJson) {
+        if (String.isBlank(gridsJson)) {
+            throw new GridException('The file has no grids.');
+        }
+        if (gridsJson.length() > MAX_GRIDS_JSON) {
+            throw new GridException('The file is too large. Export fewer grids at a time.');
+        }
+        try {
+            return (List<GridAdmin.Draft>) JSON.deserialize(gridsJson, List<GridAdmin.Draft>.class);
+        } catch (Exception e) {
+            // Not JSON, or not grids (JSONException, TypeException): either way, not a grid file.
+            throw new GridException(
+                'The grids in the file could not be read. Export them again from the Grid Admin tab.'
+            );
+        }
     }
 
     /**

@@ -92,7 +92,17 @@ export function toCsv(rows, columns) {
 export function downloadCsv(csv, fileName, container) {
     // The byte order mark, as a code point. Written as an escape in source, it
     // reached the org as the invisible character itself.
-    const text = String.fromCharCode(0xfeff) + csv;
+    return downloadText(String.fromCharCode(0xfeff) + csv, fileName || 'export.csv', container, 'text/csv');
+}
+
+/**
+ * Any text file, the same way as downloadCsv (which adds the byte order mark
+ * Excel needs): a blob: URL, or a data: URL of `dataType` where that is
+ * refused. The Grid Admin tab's grid files go this way.
+ *
+ * @returns {boolean} true once the browser was handed the file.
+ */
+export function downloadText(text, fileName, container, dataType) {
     const host = container || document.body;
     const link = document.createElement('a');
     let blobUrl = null;
@@ -102,12 +112,12 @@ export function downloadCsv(csv, fileName, container) {
     } catch {
         blobUrl = null;
         try {
-            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(text);
+            link.href = `data:${dataType || 'text/plain'};charset=utf-8,` + encodeURIComponent(text);
         } catch {
             return false;
         }
     }
-    link.download = fileName || 'export.csv';
+    link.download = fileName || 'download.txt';
     link.rel = 'noopener';
     link.style.display = 'none';
     host.appendChild(link);

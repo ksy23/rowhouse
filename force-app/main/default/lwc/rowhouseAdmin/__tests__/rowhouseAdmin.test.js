@@ -3,16 +3,31 @@
  * the Grids page's stat cards, its side navigation, search and
  * sortable headings,
  * opening a grid, starting a new one, coming back, Settings, what it says
- * to someone it refuses, and each row's menu with Archived grids.
+ * to someone it refuses, each row's menu with Archived grids, and exporting
+ * and importing grids.
  */
 import { createElement } from 'lwc';
 import RowhouseAdmin from 'c/rowhouseAdmin';
 import listConfigs from '@salesforce/apex/GridAdminController.listConfigs';
 import canSave from '@salesforce/apex/GridAdminController.canSave';
 import logRetention from '@salesforce/apex/GridAdminController.logRetention';
+import exportGrids from '@salesforce/apex/GridAdminController.exportGrids';
+import { downloadText } from 'c/gridCsv';
 
 jest.mock('@salesforce/apex/GridAdminController.listConfigs', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.canSave', () => ({ default: jest.fn() }), { virtual: true });
+jest.mock('@salesforce/apex/GridAdminController.exportGrids', () => ({ default: jest.fn() }), { virtual: true });
+// The import dialog is the real one (it has its own tests); here it is only opened and answered for.
+jest.mock(
+    '@salesforce/apex/GridAdminController.planImport',
+    () => ({ default: jest.fn(() => new Promise(() => {})) }),
+    { virtual: true }
+);
+// The browser's download is not jsdom's to do: Export hands the file over here.
+jest.mock('c/gridCsv', () => {
+    const actual = jest.requireActual('c/gridCsv');
+    return { ...actual, downloadText: jest.fn(() => true) };
+});
 // The editor is the real one (it has its own tests); its server calls answer here.
 jest.mock(
     '@salesforce/apex/GridAdminController.readConfig',
@@ -522,16 +537,17 @@ describe('the row menu', () => {
         await settle();
     };
 
-    it('gives every grid Edit, Clone and Archive', async () => {
+    it('gives every grid Edit, Clone, Export and Archive', async () => {
         const el = await mount();
         expect(menus(el).map(m => m.alternativeText)).toEqual(['Actions for Consignments', 'Actions for Open cases']);
-        expect(items(menus(el)[0]).map(i => i.label)).toEqual(['Edit', 'Clone', 'Archive']);
+        expect(items(menus(el)[0]).map(i => i.label)).toEqual(['Edit', 'Clone', 'Export', 'Archive']);
         expect(items(menus(el)[0]).map(i => i.prefixIconName)).toEqual([
             'utility:edit',
             'utility:copy',
+            'utility:download',
             'utility:archive'
         ]);
-        expect(items(menus(el)[0]).map(i => i.disabled)).toEqual([undefined, false, false]);
+        expect(items(menus(el)[0]).map(i => i.disabled)).toEqual([undefined, false, false, false]);
     });
 
     it('opens the grid on Edit', async () => {
@@ -540,10 +556,10 @@ describe('the row menu', () => {
         expect($(el, 'c-grid-config-editor').configName).toBe('Open_Cases');
     });
 
-    it('turns Clone and Archive off without Customize Application', async () => {
+    it('turns Clone and Archive off without Customize Application, but not Export', async () => {
         canSave.mockResolvedValue(false);
         const el = await mount();
-        expect(items(menus(el)[0]).map(i => i.disabled)).toEqual([undefined, true, true]);
+        expect(items(menus(el)[0]).map(i => i.disabled)).toEqual([undefined, true, false, true]);
         await pick(menus(el)[0], 'clone');
         expect($(el, 'c-grid-admin-row-dialog')).toBeNull();
     });
@@ -614,5 +630,153 @@ describe('the row menu', () => {
         expect($(el, '.rh-admin-no-archived')).not.toBeNull();
         expect($$(el, '.rh-admin-side-count').map(c => c.textContent)).toEqual(['3', '0', '1', '2']);
         expect($(el, 'c-grid-config-editor')).toBeNull();
+    });
+});
+
+describe('export and import', () => {
+    const draft = (name, objectApiName, children = []) => ({
+        config: { name, label: name.replace(/_/g, ' '), isNew: false, archived: false, objectApiName },
+        columns: [{ name: `${name}_Name`, field: 'Name' }],
+        rules: [],
+        filters: [],
+        actions: [],
+        children
+    });
+    const FILE = [
+        draft('Consignment_Items', 'Consignment_Item__c'),
+        draft('Consignments', 'Consignment__c', [{ name: 'Consignments_Items', childConfig: 'Consignment_Items' }])
+    ];
+    const menus = el => $$(el, '.rh-admin-row-menu');
+    const pick = async (menu, value) => {
+        menu.dispatchEvent(new CustomEvent('select', { detail: { value } }));
+        await settle();
+    };
+    const listen = el => {
+        const toasts = [];
+        el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
+        return toasts;
+    };
+
+    it('exports one grid from its menu, with the grid it shows as a child table', async () => {
+        exportGrids.mockResolvedValue(FILE);
+        const el = await mount();
+        const toasts = listen(el);
+        await pick(menus(el)[0], 'export');
+        expect(exportGrids).toHaveBeenCalledWith({ configNames: ['Consignments'] });
+        expect(downloadText).toHaveBeenCalledTimes(1);
+        const [text, name, container, type] = downloadText.mock.calls[0];
+        expect(name).toBe('Consignments.rowhouse.json');
+        expect(container).toBe($(el, '.rh-admin-download'));
+        expect(type).toBe('application/json');
+        const file = JSON.parse(text);
+        expect(file.kind).toBe('rowhouse-grids');
+        expect(file.grids.map(g => g.config.name)).toEqual(['Consignment_Items', 'Consignments']);
+        expect(file.grids[1].config.isNew).toBeUndefined();
+        expect(toasts).toEqual([
+            {
+                title: 'Grids exported',
+                message: 'Consignments.rowhouse.json: 2 grids, including 1 grid shown as a child table.',
+                variant: 'success'
+            }
+        ]);
+    });
+
+    it('exports the grids the list shows, and not under Archived grids', async () => {
+        exportGrids.mockResolvedValue([draft('Open_Cases', 'Case')]);
+        const el = await mount();
+        expect($(el, '.rh-admin-export').label).toBe('Export 2 grids');
+        $(el, '.rh-admin-search').dispatchEvent(new CustomEvent('change', { detail: { value: 'open' } }));
+        await settle();
+        expect($(el, '.rh-admin-export').label).toBe('Export 1 grid');
+        $(el, '.rh-admin-export').click();
+        await settle();
+        expect(exportGrids).toHaveBeenCalledWith({ configNames: ['Open_Cases'] });
+        expect(downloadText.mock.calls[0][1]).toBe('Open_Cases.rowhouse.json');
+        await choose(el, '__archived__');
+        expect($(el, '.rh-admin-export')).toBeNull();
+    });
+
+    it('names a file of several grids by the date', async () => {
+        exportGrids.mockResolvedValue(FILE.concat([draft('Open_Cases', 'Case')]));
+        const el = await mount();
+        $(el, '.rh-admin-export').click();
+        await settle();
+        expect(exportGrids).toHaveBeenCalledWith({ configNames: ['Consignments', 'Open_Cases'] });
+        expect(downloadText.mock.calls[0][1]).toMatch(/^rowhouse-grids-\d{4}-\d{2}-\d{2}\.json$/);
+    });
+
+    it('says when the browser refuses the file, or the server the export', async () => {
+        exportGrids.mockResolvedValue(FILE);
+        downloadText.mockReturnValueOnce(false);
+        const el = await mount();
+        const toasts = listen(el);
+        await pick(menus(el)[0], 'export');
+        exportGrids.mockRejectedValue({ body: { message: 'This needs the Rowhouse Grid Admin permission set.' } });
+        await pick(menus(el)[1], 'export');
+        expect(toasts).toEqual([
+            {
+                title: 'The grids were not exported',
+                message: 'This browser did not allow the file to be downloaded.',
+                variant: 'error'
+            },
+            {
+                title: 'The grids were not exported',
+                message: 'This needs the Rowhouse Grid Admin permission set.',
+                variant: 'error'
+            }
+        ]);
+    });
+
+    it('opens Import, which needs what saving needs', async () => {
+        const el = await mount();
+        expect($(el, '.rh-admin-import').disabled).toBe(false);
+        $(el, '.rh-admin-import').click();
+        await settle();
+        expect($(el, 'c-grid-admin-import-dialog')).not.toBeNull();
+        const focus = jest.spyOn($(el, '.rh-admin-import'), 'focus');
+        $(el, 'c-grid-admin-import-dialog').dispatchEvent(new CustomEvent('cancel', { detail: { imported: [] } }));
+        await settle();
+        expect($(el, 'c-grid-admin-import-dialog')).toBeNull();
+        expect(focus).toHaveBeenCalledTimes(1);
+        expect(listConfigs).toHaveBeenCalledTimes(1);
+    });
+
+    it('turns Import off without Customize Application', async () => {
+        canSave.mockResolvedValue(false);
+        const el = await mount();
+        expect($(el, '.rh-admin-import').disabled).toBe(true);
+        expect($(el, '.rh-admin-import').title).toBe('Importing grids needs the Customize Application permission');
+    });
+
+    it('brings the list up to date once grids are imported, and says which were left as they were', async () => {
+        const el = await mount();
+        const toasts = listen(el);
+        $(el, '.rh-admin-import').click();
+        await settle();
+        $(el, 'c-grid-admin-import-dialog').dispatchEvent(
+            new CustomEvent('done', { detail: { imported: ['Harbor Consignments'], skipped: ['Consignments'] } })
+        );
+        await settle();
+        expect($(el, 'c-grid-admin-import-dialog')).toBeNull();
+        expect(toasts).toEqual([
+            {
+                title: 'Grid imported',
+                message:
+                    'Harbor Consignments is under Available grids now. Consignments was already here and is left as before.',
+                variant: 'success'
+            }
+        ]);
+        expect(listConfigs).toHaveBeenCalledTimes(2);
+    });
+
+    it('brings the list up to date when the dialog closes after some grids were imported', async () => {
+        const el = await mount();
+        $(el, '.rh-admin-import').click();
+        await settle();
+        $(el, 'c-grid-admin-import-dialog').dispatchEvent(
+            new CustomEvent('cancel', { detail: { imported: ['Harbor Items'] } })
+        );
+        await settle();
+        expect(listConfigs).toHaveBeenCalledTimes(2);
     });
 });
