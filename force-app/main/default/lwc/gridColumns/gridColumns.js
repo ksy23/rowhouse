@@ -94,6 +94,23 @@ export function shownColumns(columns, choice) {
     return read.order.filter(k => !hidden.has(k)).map(k => byField.get(k));
 }
 
+/**
+ * What Search this list says while it has focus, as a list view's search box
+ * does: the shown columns search does not look in (each column's searchable,
+ * from the server's own rule), or '' when it looks in all of them. Past four
+ * columns, the first three and how many more.
+ */
+export function searchHint(columns) {
+    const names = (Array.isArray(columns) ? columns : [])
+        .filter(c => c && c.searchable !== true)
+        .map(c => c.label || c.field);
+    if (!names.length) return '';
+    if (names.length === 1) return `${names[0]} isn't searchable. Use filters or sort on this field instead.`;
+    const shown = names.length > 4 ? [...names.slice(0, 3), `${names.length - 3} other columns`] : names;
+    const list = `${shown.slice(0, -1).join(', ')} and ${shown[shown.length - 1]}`;
+    return `${list} aren't searchable. Use filters or sort on these fields instead.`;
+}
+
 /** The fields of the columns not drawn. */
 export function hiddenFields(columns, choice) {
     const read = readChoice(choice, columns);

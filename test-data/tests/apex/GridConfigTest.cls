@@ -132,6 +132,18 @@ private class GridConfigTest {
     }
 
     @IsTest
+    static void eachColumnSaysWhetherSearchLooksInIt() {
+        Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
+        for (GridConfig.Column c : GridConfig.load('Consignments').columns) {
+            byField.put(GridTestUsers.plain(c.field), c);
+        }
+        System.assertEquals(true, byField.get('Name').searchable, 'Text: searched.');
+        System.assertEquals(true, byField.get('Shipper__c').searchable, 'A lookup: searched by its record\'s name.');
+        System.assertEquals(false, byField.get('Pallet_Positions__c').searchable, 'A number: not searched.');
+        System.assertEquals(false, byField.get('Ship_Date__c').searchable, 'A date: not searched.');
+    }
+
+    @IsTest
     static void validForReadsOneBitPerControllingValueMostSignificantFirst() {
         List<String> nine = new List<String>{
             'Truckload',

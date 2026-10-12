@@ -310,6 +310,7 @@
   </div>
   <div class="split" style="margin-top:22px">
     <ul class="tick">
+      <li id="row-menu"><b>Before your actions</b>, every row's menu has Edit, Delete and Change Owner, as a list view's does. <b>Edit</b> and <b>Change Owner</b> are there in a grid that edits cells (<b>Allow Inline Edit</b>), for users who may edit the object; Change Owner only on an object with owners. <b>Delete</b> is there where <b>Allow Mass Delete</b> is on, for users who may delete. Edit opens Salesforce's own edit form; Change Owner saves at once, and a grid that logs logs it.</li>
       <li><b>Asking first.</b> An action on selected rows always asks, naming the first five rows. An action on one row runs at once unless you wrote a Confirmation, or the row has unsaved changes. A screen flow never asks: its own page opens, unless the grid has unsaved changes, which you save or cancel first.</li>
       <li><b>Afterwards</b> the rows are read again, with counts and subtotals. A record the action could not run on shows the reason on its row; a message says how many succeeded and failed. The selection stays, ready for the next action.</li>
     </ul>
@@ -376,7 +377,8 @@
         <li><b>All or nothing.</b> If an entry cannot be written, the change is not made either, and the user is told why. A grid that logs never changes something silently.</li>
         <li><b>Users read their own entries</b> and can never edit or delete one. The log is private, so anyone else reads an entry only as your org's sharing allows (a manager above its author in the role hierarchy, for example). To let an auditor read everyone's, give them View All on Grid Edit Log, and the Grid Edit Logs tab, in a permission set of your own.</li>
         <li id="audit-readers"><b>Whoever reads an entry reads its values</b>, old and new, even of a field hidden from them by field-level security: the log holds its own copy. So keep the readers few. In <span class="ui">Sharing Settings</span>, edit the organization-wide defaults and clear <span class="ui">Grant Access Using Hierarchies</span> for Grid Edit Log, so managers do not read their team's entries; give View All on it only to auditors; and install Rowhouse for admins only, then give people the Rowhouse permission sets, rather than for all users.</li>
-        <li><b>Not logged:</b> screen flows (they run in the browser), and changes made outside the grid.</li>
+        <li><b>Change Owner</b>, in a row's menu, is logged as an Update of Owner, with the old and new owner's record Ids.</li>
+        <li><b>Not logged:</b> screen flows (they run in the browser), a row's <b>Edit</b> (it saves in Salesforce's own edit form, as the record's page does), and changes made outside the grid.</li>
       </ul>
     </div>
   </div>

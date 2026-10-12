@@ -50,16 +50,27 @@
                 </div>
             </header>
             <div class="slds-no-flex slds-grid slds-grid_vertical-align-center rh-toolbar">
-                <lightning-input
-                    class="rh-search"
-                    type="search"
-                    label="Search this list"
-                    variant="label-hidden"
-                    placeholder="Search this list…"
-                    value={searchValue}
-                    disabled={searchDisabled}
-                    onchange={handleSearchChange}
-                ></lightning-input>
+                <!-- The search, and while it has focus, the columns it does not look in. -->
+                <div class="rh-search-wrap">
+                    <lightning-input
+                        class="rh-search"
+                        type="search"
+                        label="Search this list"
+                        variant="label-hidden"
+                        placeholder="Search this list…"
+                        value={searchValue}
+                        disabled={searchDisabled}
+                        onchange={handleSearchChange}
+                        onfocus={handleSearchFocus}
+                        onblur={handleSearchBlur}
+                    ></lightning-input>
+                    <template lwc:if={searchHint}>
+                        <div class="slds-popover slds-popover_tooltip slds-nubbin_top-left rh-search-hint" role="tooltip">
+                            <div class="slds-popover__body">{searchHint}</div>
+                        </div>
+                    </template>
+                    <span class="slds-assistive-text rh-search-hint-spoken" aria-live="polite">{searchHint}</span>
+                </div>
                 <template lwc:if={wideToolbar}>
                     <template lwc:if={hasLegend}>
                         <!-- A native button: aria-expanded and aria-controls stay in this shadow root. -->
@@ -358,6 +369,7 @@
                     onemptyaction={handleEmptyAction}
                     onchildcount={handleChildCount}
                     onrowaction={handleRowAction}
+                    onapplyselected={handleApplySelected}
                     onnewrecord={handleNewRecord}
                     onnamesfound={handleNamesFound}
                 ></c-grid-table>
@@ -396,6 +408,27 @@
                 oncreated={handleNewRecordCreated}
                 oncancel={handleNewRecordCancel}
             ></c-grid-new-record>
+        </template>
+
+        <template lwc:if={editRecord}>
+            <c-grid-edit-record
+                record-id={editRecord.recordId}
+                object-api-name={editRecord.objectApiName}
+                record-name={editRecord.name}
+                onsaved={handleEditRecordSaved}
+                oncancel={handleEditRecordCancel}
+            ></c-grid-edit-record>
+        </template>
+
+        <template lwc:if={ownerChange}>
+            <c-grid-change-owner
+                config-name={configName}
+                record-name={ownerChange.name}
+                busy={ownerChange.busy}
+                error={ownerChange.error}
+                onconfirm={handleOwnerConfirm}
+                oncancel={handleOwnerCancel}
+            ></c-grid-change-owner>
         </template>
 
         <template lwc:if={actionDialog}>

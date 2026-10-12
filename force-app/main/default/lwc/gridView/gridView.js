@@ -119,6 +119,16 @@
  *   GridController.countChildren after the rows load, and a child grid tells
  *   its tab its own count (countchange).
  *
+ * THE ROW MENU'S OWN ITEMS
+ * As a list view's row menu, each row's menu starts with Edit, Delete and
+ * Change Owner, each only where the server says this user may (the
+ * definition's canEditRecords, allowMassDelete and canChangeOwner), then the
+ * grid's actions. Edit opens Salesforce's edit form for the record
+ * (c/gridEditRecord); Delete asks in c/gridDeleteDialog, as for a selection;
+ * Change Owner asks for a user or queue (c/gridChangeOwner) and saves at once
+ * (GridController.changeOwner). Edit and Change Owner wait for a row's unsaved
+ * changes to be saved or cancelled. Afterwards the row is read again.
+ *
  * ACTIONS
  * A configuration's Grid Actions are offered in each row's menu (the table's
  * last column), in the selection bar, or both. The table says which action on
@@ -197,6 +207,7 @@ import saveRows from '@salesforce/apex/GridController.save';
 import createRows from '@salesforce/apex/GridController.createRows';
 import saveStatus from '@salesforce/apex/GridController.saveStatus';
 import deleteRows from '@salesforce/apex/GridController.deleteRows';
+import changeOwner from '@salesforce/apex/GridController.changeOwner';
 import restoreRows from '@salesforce/apex/GridController.restoreRows';
 import matchingIds from '@salesforce/apex/GridController.matchingIds';
 import lookupName from '@salesforce/apex/GridController.lookupName';
@@ -243,7 +254,7 @@ import {
 import { massChanges } from 'c/gridMassUpdate';
 import { sharedOptions } from 'c/gridFields';
 import { childTableHeight } from 'c/gridNest';
-import { readChoice, shownColumns, chooseColumns, sameChoice } from 'c/gridColumns';
+import { readChoice, shownColumns, chooseColumns, sameChoice, searchHint } from 'c/gridColumns';
 import { namespaceOf, newToken, backRef, flowPageRef, doneToken } from 'c/gridFlowRoute';
 import { openGuide } from 'c/guideRoute';
 
@@ -272,6 +283,10 @@ export const MAX_DELETE_ALL = 50000;
 export const ACTION_BATCH = 50;
 /** Selection actions shown as buttons; more than this and they are one menu. */
 export const MAX_ACTION_BUTTONS = 3;
+/** The row menu's own items, before the grid's actions: no Grid Action's name starts with "_". */
+export const ROW_EDIT = '__edit';
+export const ROW_DELETE = '__delete';
+export const ROW_OWNER = '__owner';
 /** A top-level grid, its child tables and theirs. */
 export const MAX_LEVELS = 3;
 /** Rows one countChildren call takes (GridNesting.MAX_COUNT_PARENTS). */
@@ -433,6 +448,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
     allMatching = false;
     /** A lookup's New item: { recordId, field, object, objectLabel } while its record form is open. */
     newRecord = null;
+    /** A row's Edit: { recordId, objectApiName, name } while Salesforce's edit form is open. */
+    editRecord = null;
+    /** A row's Change Owner: { recordId, name, busy, error } while its dialog is open. */
+    ownerChange = null;
     /** The records the last delete took out, for Undo: { ids }, or null. */
     undoDelete = null;
     restoring = false;
@@ -477,6 +496,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
     layoutSaved = false;
     /** This user's own columns, { order, hidden }, or null for the admin's. */
     columnChoice = null;
+    /** Search this list has focus: its hint shows. */
+    searchFocused = false;
     /** The Choose columns dialog is open. */
     columnsOpen = false;
     /**
@@ -1095,6 +1116,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
             rowActions: this.rowActions,
             // Row selection, for mass update and mass delete.
             selection: this.selectionMode,
+            // An edit to a selected row can go to every selected row, as Update field does.
+            bulkEdit: this.canMassUpdate && !this.allMatching,
             maxSelected: MAX_SELECTED,
             selectionKey: this.selectionKey,
             diagnostics: this.diagnostics,
@@ -1591,6 +1614,23 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     // ============================================================ search and sort
+
+    /**
+     * While Search this list has focus: the shown columns it does not look
+     * in, in Salesforce's tooltip under the box, as a list view's search does.
+     */
+    get searchHint() {
+        if (!this.searchFocused || !this.definition) return '';
+        return searchHint(shownColumns(this.definition.columns, this.columnChoice));
+    }
+
+    handleSearchFocus() {
+        this.searchFocused = true;
+    }
+
+    handleSearchBlur() {
+        this.searchFocused = false;
+    }
 
     handleSearchChange(event) {
         this.searchValue = String((event.detail && event.detail.value) || '');
@@ -2672,20 +2712,44 @@ export default class GridView extends NavigationMixin(LightningElement) {
     handleMassUpdateApply(event) {
         const { field, value, valueLabel } = event.detail || {};
         this.massUpdateOpen = false;
+        if (this.applyToRows('mass update', this.selectedIds, field, value, valueLabel))
+            this.focusButton('.rh-mass-edit');
+    }
+
+    /**
+     * An edit to one of several selected rows, for them all: the cell
+     * editor's "Update N selected items", or Ctrl+Enter (the table's
+     * applyselected). As Update field: the selected rows that are loaded,
+     * one undo step. Focus stays in the grid, on the cell.
+     */
+    handleApplySelected(event) {
+        const { recordId, field, value, valueLabel } = event.detail || {};
+        if (!recordId || this.allMatching) return;
+        const ids = this.selectedIds.includes(recordId) ? this.selectedIds : [recordId];
+        this.applyToRows('edit', ids, field, value, valueLabel);
+    }
+
+    /**
+     * Give a column one value on these rows, as unsaved edits: one undo step,
+     * with each row's own checks (c/gridMassUpdate massChanges). Says what
+     * changed, and warns when a row kept its value or a dependent value was
+     * cleared. Returns whether anything was tried.
+     */
+    applyToRows(label, ids, field, value, valueLabel) {
         const d = this.definition;
         const column = d && (d.columns || []).find(c => c.field === field && c.editable);
-        if (!column || this.saving || this.deleting) return;
+        if (!column || this.saving || this.deleting) return false;
         this.learnName(value, valueLabel);
         const rowById = new Map(this.rows.map(r => [r.Id, r]));
         const { changes, errors, cleared } = massChanges({
-            ids: this.selectedIds,
+            ids,
             column,
             value,
             rowById,
             drafts: this.drafts,
             columns: d.columns
         });
-        this.applyChanges('mass update', changes, errors);
+        this.applyChanges(label, changes, errors);
         const set = changes.length - cleared.length;
         let message = `${column.label} changed on ${this.format(set)} ${set === 1 ? 'row' : 'rows'}. Save to keep it; Undo takes it back.`;
         if (errors.length) {
@@ -2702,7 +2766,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             this.dispatchEvent(new ShowToastEvent({ title: 'Changed, with exceptions', message, variant: 'warning' }));
         }
         this.telemetry('massupdate', { rows: set, refused: errors.length, cleared: cleared.length });
-        this.focusButton('.rh-mass-edit');
+        return true;
     }
 
     /**
@@ -2746,13 +2810,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     handleDeleteCancel() {
+        const row = this._pendingDelete.row === true;
         this.deleteOpen = false;
         this._pendingDelete = { ids: [], all: false };
-        this.focusButton('.rh-mass-delete');
+        // A row's Delete came from its menu: back to the grid, where the menu was.
+        if (row) Promise.resolve().then(() => this.focus());
+        else this.focusButton('.rh-mass-delete');
     }
 
     async handleDeleteConfirm() {
-        const { ids, all } = this._pendingDelete;
+        const { ids, all, row } = this._pendingDelete;
         const total = this.totalRows;
         this.deleteOpen = false;
         this._pendingDelete = { ids: [], all: false };
@@ -2795,7 +2862,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
             });
             this.errors = mergeErrors(this.errors, rowErrors);
         }
-        this.clearSelection();
+        // A row's Delete leaves the selection alone, unless it took a selected row.
+        if (!row || ids.some(id => this.selectedIds.includes(id))) this.clearSelection();
         this.deleting = false;
         this.saveProgress = '';
         this.undoDelete = deleted.length ? { ids: deleted } : null;
@@ -2997,7 +3065,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (m.actionsFrom === this.definition && m.rowActions) return;
         const all = this.definition && Array.isArray(this.definition.actions) ? this.definition.actions : [];
         m.actionsFrom = this.definition;
-        m.rowActions = all.filter(a => a.onRow).map(a => ({ name: a.name, label: a.label }));
+        const d = this.definition || {};
+        const own = [];
+        if (d.canEditRecords) own.push({ name: ROW_EDIT, label: 'Edit' });
+        if (d.allowMassDelete) own.push({ name: ROW_DELETE, label: 'Delete' });
+        if (d.canChangeOwner) own.push({ name: ROW_OWNER, label: 'Change Owner' });
+        m.rowActions = own.concat(all.filter(a => a.onRow).map(a => ({ name: a.name, label: a.label })));
         m.selectionActions = all.filter(a => a.onSelection);
     }
 
@@ -3020,9 +3093,104 @@ export default class GridView extends NavigationMixin(LightningElement) {
     /** A row's menu (the table's rowaction): the action, on that record. */
     handleRowAction(event) {
         const { action, recordId } = event.detail || {};
+        if (recordId && (action === ROW_EDIT || action === ROW_DELETE || action === ROW_OWNER)) {
+            this.startRowCommand(action, recordId);
+            return;
+        }
         const a = this.actionNamed(action);
         if (!a || !a.onRow || !recordId) return;
         this.startAction(a, [recordId], 'row');
+    }
+
+    /**
+     * The row menu's Edit, Delete or Change Owner, on one record. Delete asks
+     * in the delete dialog, which says when the row has unsaved changes; Edit
+     * and Change Owner save the record outside the grid's Save, so they wait
+     * until the row's changes are saved or cancelled.
+     */
+    startRowCommand(action, recordId) {
+        if (this.saving || this.deleting || this.acting || this.restoring) return;
+        const d = this.definition || {};
+        if (action === ROW_DELETE) {
+            if (!d.allowMassDelete) return;
+            this._pendingDelete = { ids: [recordId], all: false, row: true };
+            this.deleteOpen = true;
+            return;
+        }
+        if (this.drafts[recordId]) {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Unsaved changes',
+                    message:
+                        action === ROW_EDIT
+                            ? 'Save or cancel the changes to this row, then edit it.'
+                            : 'Save or cancel the changes to this row, then change its owner.',
+                    variant: 'warning'
+                })
+            );
+            return;
+        }
+        const name = this.namesOf([recordId])[0] || '';
+        if (action === ROW_EDIT && d.canEditRecords) {
+            this.editRecord = { recordId, objectApiName: d.objectApiName, name };
+        } else if (action === ROW_OWNER && d.canChangeOwner) {
+            this.ownerChange = { recordId, name, busy: false, error: '' };
+        }
+    }
+
+    handleEditRecordCancel() {
+        this.editRecord = null;
+        Promise.resolve().then(() => this.focus());
+    }
+
+    /** Salesforce saved the record: read the row again, as after a save. */
+    async handleEditRecordSaved() {
+        const pending = this.editRecord;
+        this.editRecord = null;
+        if (!pending) return;
+        await this.refreshRows([pending.recordId], {}, 'Saved, but the row could not be read again. ');
+        this.loadSummary();
+        const name = this.namesOf([pending.recordId])[0] || pending.name;
+        const message = name ? `"${name}" was saved.` : 'The record was saved.';
+        this.announce(message);
+        this.dispatchEvent(new ShowToastEvent({ title: 'Saved', message, variant: 'success' }));
+        Promise.resolve().then(() => this.focus());
+    }
+
+    handleOwnerCancel() {
+        if (this.ownerChange && this.ownerChange.busy) return;
+        this.ownerChange = null;
+        Promise.resolve().then(() => this.focus());
+    }
+
+    /**
+     * Change Owner, saved at once. A refusal, or the record's own error,
+     * keeps the dialog open with the reason; success reads the row again.
+     */
+    async handleOwnerConfirm(event) {
+        const pending = this.ownerChange;
+        const { ownerId, ownerName } = event.detail || {};
+        if (!pending || pending.busy || !ownerId) return;
+        this.ownerChange = { ...pending, busy: true, error: '' };
+        let result;
+        try {
+            result = await changeOwner({ configName: this._configName, recordIds: [pending.recordId], ownerId });
+        } catch (e) {
+            this.ownerChange = { ...pending, busy: false, error: messageOf(e) };
+            return;
+        }
+        const errors = (result && result.errors) || [];
+        if (errors.length) {
+            this.ownerChange = { ...pending, busy: false, error: errors[0].message };
+            return;
+        }
+        this.ownerChange = null;
+        await this.refreshRows([pending.recordId], {}, 'The owner was changed, but the row could not be read again. ');
+        this.loadSummary();
+        const message = `${pending.name || 'The record'} is now owned by ${ownerName || 'the new owner'}.`;
+        this.announce(message);
+        this.dispatchEvent(new ShowToastEvent({ title: 'Owner changed', message, variant: 'success' }));
+        Promise.resolve().then(() => this.focus());
     }
 
     /** A selection bar button, or its Actions menu: the action, on the selected rows. */

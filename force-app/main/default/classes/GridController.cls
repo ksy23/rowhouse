@@ -389,6 +389,38 @@ public with sharing class GridController {
     }
 
     /**
+     * Users and queues a record of this grid can be given to, for a row's
+     * Change Owner: [{ id, name, kind, object }]. Refused unless the grid
+     * offers Change Owner to this user.
+     */
+    @AuraEnabled
+    public static List<Map<String, String>> searchOwners(String configName, String term) {
+        try {
+            return GridOwnerService.searchOwners(configName, term);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /**
+     * Change Owner, saved at once: { changedIds, errors }. Refused unless the
+     * grid offers Change Owner to this user and the owner is an active user
+     * or a queue that accepts the object.
+     */
+    @AuraEnabled
+    public static GridOwnerService.Result changeOwner(String configName, List<Id> recordIds, String ownerId) {
+        try {
+            return GridOwnerService.changeOwner(
+                configName,
+                recordIds,
+                String.isBlank(ownerId) ? null : Id.valueOf(ownerId)
+            );
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /**
      * Undo a delete: put up to 200 records the grid just deleted back
      * from the Recycle Bin. { restoredIds, errors }.
      */

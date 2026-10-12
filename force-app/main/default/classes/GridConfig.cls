@@ -290,6 +290,12 @@ public with sharing class GridConfig {
         /** The user may filter by this column from its menu; forUser() narrows it. */
         @AuraEnabled
         public Boolean filterable = false;
+        /**
+         * Search this list looks in this column (GridDataService.isSearchable):
+         * the grid names the columns it does not, when the search box has focus.
+         */
+        @AuraEnabled
+        public Boolean searchable = false;
         /** A formula column: worked out on the server, read only; field is _fx_ and its API name. */
         @AuraEnabled
         public Boolean isFormula = false;
@@ -486,6 +492,20 @@ public with sharing class GridConfig {
          */
         @AuraEnabled
         public Boolean allowNewRecords = false;
+        /**
+         * Each row's menu has Edit, which opens Salesforce's own edit form
+         * for the record: in a grid that edits cells, for a user who may edit
+         * the object. forUser() sets it.
+         */
+        @AuraEnabled
+        public Boolean canEditRecords = false;
+        /**
+         * Each row's menu has Change Owner (GridOwnerService): in a grid that
+         * edits cells, on an object with an owner, for a user who may edit the
+         * object and its owner. forUser() sets it.
+         */
+        @AuraEnabled
+        public Boolean canChangeOwner = false;
         /**
          * The object has record types and the grid an editable picklist: each
          * row carries its RecordTypeId, so its picklists offer only the values
@@ -1070,6 +1090,7 @@ public with sharing class GridConfig {
             }
             // A user filters by the values SOQL can filter on.
             col.filterable = d.isFilterable() && col.type != 'id' && !col.encrypted;
+            col.searchable = GridDataService.isSearchable(d);
             def.columns.add(col);
         }
         loadGrouping(def, groupDefaults);
@@ -1653,6 +1674,9 @@ public with sharing class GridConfig {
         def.allowImport = def.allowImport == true && objectEditable;
         def.canCreate = GridSecurity.canCreate(objectType);
         def.allowNewRecords = def.allowNewRecords == true && def.canCreate;
+        def.canEditRecords = objectEditable;
+        Schema.SObjectField owner = GridDescribe.fieldOrNull(objectType, 'OwnerId');
+        def.canChangeOwner = objectEditable && owner != null && GridSecurity.canEdit(owner);
         // A new row's cells are filled in only in a grid that edits cells.
         Boolean objectCreatable = def.allowNewRecords && def.allowInlineEdit == true;
         // The admin's filters narrow every query; one on a field this user cannot

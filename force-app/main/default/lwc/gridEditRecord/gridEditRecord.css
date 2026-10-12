@@ -1,0 +1,5 @@
+/* Room for Salesforce's spinner while the form loads. */
+.rh-edit-record-content {
+    position: relative;
+    min-height: 12rem;
+}

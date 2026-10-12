@@ -433,13 +433,7 @@ public with sharing class GridDataService {
             }
             Schema.DescribeFieldResult d = f.getDescribe();
             String api = fp.soql;
-            // An encrypted field cannot be searched with LIKE (GridDescribe.isEncrypted).
-            if (
-                SEARCHABLE_TYPES.contains(d.getType()) &&
-                d.isFilterable() &&
-                !GridDescribe.isEncrypted(d) &&
-                seen.add(api.toLowerCase())
-            ) {
+            if (isSearchableText(d) && seen.add(api.toLowerCase())) {
                 searchable.add(api);
             }
             String path = d.getType() == Schema.DisplayType.REFERENCE && GridSecurity.canReadName(f)
@@ -550,6 +544,20 @@ public with sharing class GridDataService {
     /** Digits that fit an Integer: a cursor holds at most 100,000 rows, a count far more. */
     private static Boolean isIndex(String s) {
         return s.isNumeric() && s.length() <= 9;
+    }
+
+    /**
+     * Does search look in a field of this kind? A filterable text-like field,
+     * not encrypted (an encrypted field cannot be searched with LIKE,
+     * GridDescribe.isEncrypted), or a lookup, searched by its record's name.
+     * The grid tells the user which columns search leaves out from the same rule.
+     */
+    public static Boolean isSearchable(Schema.DescribeFieldResult d) {
+        return isSearchableText(d) || d.getType() == Schema.DisplayType.REFERENCE;
+    }
+
+    private static Boolean isSearchableText(Schema.DescribeFieldResult d) {
+        return SEARCHABLE_TYPES.contains(d.getType()) && d.isFilterable() && !GridDescribe.isEncrypted(d);
     }
 
     /** Escape LIKE wildcards so a search for "%" finds a percent sign (TC-021). */

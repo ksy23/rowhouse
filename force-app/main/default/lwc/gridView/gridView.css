@@ -1,6 +1,17 @@
 /* Layout only. Color, type and spacing come from SLDS classes and hooks; Rowhouse classes only (HR-15). */
-.rh-search {
+/* The search box, and Salesforce's tooltip under it while it has focus. */
+.rh-search-wrap {
+    position: relative;
     min-width: 12rem;
+}
+
+.rh-search-hint {
+    position: absolute;
+    top: calc(100% + var(--slds-g-spacing-3, 0.75rem));
+    left: 0;
+    z-index: 7000;
+    width: max-content;
+    max-width: 20rem;
 }
 
 .rh-download {
@@ -71,7 +82,7 @@
     flex: 1 1 100%;
 }
 
-.rh-header_narrow .rh-search {
+.rh-header_narrow .rh-search-wrap {
     flex: 1 1 auto;
     min-width: 0;
 }

@@ -47,6 +47,8 @@
  *     level:       1 for a top-level grid, 2 or 3 for a child table
  *     rowActions:  [{ name, label }] the actions in each row's menu;
  *                  empty for no Actions column
+ *     bulkEdit:    true: an edit to a selected row can go to every selected
+ *                  row (the editor's "Update N selected items", Ctrl+Enter)
  *     filters:     [{ field, operator, value, valueTo }] the user's column
  *                  filters, one per column; the parent owns them
  *     adminFilters: [{ text }] the admin's filters, shown, never removable
@@ -70,6 +72,8 @@
  *   loadmore        (no detail) the user is near the end of the loaded rows
  *   groupchange     { grouping: [{ field, unit }] } from a column menu
  *   rowaction       { action, recordId } an action chosen from a row's menu
+ *   applyselected   { recordId, field, value, valueLabel } an edit to a
+ *                   selected row, for every selected row
  *   filterchange    { filters } a column filter applied or removed
  *   layoutchange    { widths, wrap, expanded, groupView } a width the user set,
  *                   Wrap or Clip chosen, a row's related records opened or
@@ -420,6 +424,8 @@ const DROPDOWN_WIDTH = { lookup: 320, date: 320, multipicklist: 416, datetime: 3
 // Experience: 354px under a 32px box).
 const EDITOR_ROOM = 320;
 const EDITOR_ROOM_BY = { date: 400, datetime: 470, textarea: 280 };
+/** px the editor's "Update N selected items" box adds below it. */
+const BULK_ROOM = 36;
 /** Layout entries the parent keeps: at most this many open rows. */
 const MAX_OPEN_ROWS = 50;
 /** Columns a user may freeze from a header's menu: as many as an admin may. */
@@ -445,7 +451,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     groupZoneField = null; // a groupable header being dragged: the drop zone above the table shows
     mode = MODE_NAVIGATION;
     hasFocus = false;
-    editing = null; // { rowId, field }
+    editing = null; // { rowId, field, seed, applyAll }: applyAll, the editor's "Update N selected items"
     firstRow = 0; // first row index of the rendered window
     rowHeight = DEFAULT_ROW_HEIGHT;
     widths = {};
@@ -478,6 +484,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     _memo = {};
     _timing = { firstRow: false, fullRender: false, sort: false, commit: false, key: false };
     _clip = { copy: null, pastePending: false, token: 0 };
+    // Ctrl+Enter in an open editor, read on the window while one is open (onBulkKey).
+    _bulk = { all: false, onKey: null, timer: null };
     // The focused cell, { rowId, field }; cells changed in place; and the range's
     // corners, the range as the page shows it, and the live region's text when
     // changed in place (see focusKey and setRange).
@@ -2879,7 +2887,39 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             dependentOn: c.dependentOn || null,
             required: Boolean(c.required),
             editorLabel: label,
+            // An edit to one of several selected rows can go to them all, as in a list view.
+            ...this.bulkFields(isEditing, id),
             cls: classes.join(' ')
+        };
+    }
+
+    /**
+     * How many selected rows an edit to this row can go to: every selected
+     * row, when this row is one of them and the grid allows it (bulkEdit);
+     * 0 otherwise. Not in cards, which have the selection bar's Update field.
+     */
+    bulkCount(rowId) {
+        if (this._config.bulkEdit !== true || this.isCards || !rowId || !this.selected[rowId]) return 0;
+        const n = Object.keys(this.selected).length;
+        return n > 1 ? n : 0;
+    }
+
+    /** The open editor's "Update N selected items" box, for the cell it is open on. */
+    bulkFields(isEditing, rowId) {
+        const n = isEditing ? this.bulkCount(rowId) : 0;
+        if (!n) return { bulkEdit: false };
+        const keys =
+            typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || '')
+                ? 'Command+Enter'
+                : 'Ctrl+Enter';
+        return {
+            bulkEdit: true,
+            // One editor is open at a time, so one id each will do.
+            bulkId: this._layout.gridId + '-bulk',
+            bulkHintId: this._layout.gridId + '-bulk-hint',
+            bulkText: `Update ${formatCount(n)} selected items`,
+            bulkHint: `Or press ${keys} in the editor`,
+            bulkChecked: this.editing.applyAll === true
         };
     }
 
@@ -4409,11 +4449,78 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const column = this.columnByField(key.field);
         if (!this.canEditCell(column, key.rowId) || this.isSaving) return;
         const editor = this.editorFor(column, key.rowId);
-        this.placeEditor(cellEl || this.cellElement(key), column, editor);
+        this.placeEditor(cellEl || this.cellElement(key), column, editor, this.bulkCount(key.rowId) ? BULK_ROOM : 0);
         const takesSeed = editor === 'text' || editor === 'number' || editor === 'lookup';
         this.focusKey = { rowId: key.rowId, field: key.field };
-        this.editing = { rowId: key.rowId, field: key.field, seed: takesSeed ? seed : undefined };
+        this.editing = { rowId: key.rowId, field: key.field, seed: takesSeed ? seed : undefined, applyAll: false };
         this._layout.focusEditor = true;
+        this.listenForBulkKey(true);
+    }
+
+    /**
+     * Ctrl+Enter (Command+Enter on a Mac) is read on the window, in the
+     * capture phase, while an editor is open: each editor keeps Enter to
+     * itself (it commits), so the table would never see it.
+     */
+    listenForBulkKey(on) {
+        if (typeof window === 'undefined') return;
+        if (on && !this._bulk.onKey) {
+            this._bulk.onKey = event => this.onBulkKey(event);
+            window.addEventListener('keydown', this._bulk.onKey, true);
+        } else if (!on && this._bulk.onKey) {
+            window.removeEventListener('keydown', this._bulk.onKey, true);
+            this._bulk.onKey = null;
+        }
+    }
+
+    /**
+     * Ctrl+Enter in this grid's open editor, on one of several selected rows:
+     * the editor's own Enter commits, and the commit goes to every selected
+     * row. Not in the text area editor, where Ctrl+Enter is how a long text is
+     * committed: there the box sends it to every row. The multi-select
+     * picklist has no Enter of its own, so it is committed here.
+     */
+    onBulkKey(event) {
+        // One editor is open at a time on the page: opening another commits this one.
+        if (!this.editing || event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) return;
+        if (!this.bulkCount(this.editing.rowId)) return;
+        const column = this.columnByField(this.editing.field);
+        const kind = column ? this.editorFor(column, this.editing.rowId) : 'text';
+        if (kind === 'textarea') return;
+        this._bulk.all = true;
+        clearTimeout(this._bulk.timer);
+        // After the editor's own handling of this key, whatever it did.
+        // eslint-disable-next-line @lwc/lwc/no-async-operation -- cleared on the next key and on disconnect
+        this._bulk.timer = setTimeout(() => {
+            this._bulk.all = false;
+        }, 0);
+        if (kind === 'multipicklist') {
+            event.preventDefault();
+            event.stopPropagation();
+            const editor = this.template.querySelector('[data-editor]');
+            if (editor && typeof editor.commit === 'function') editor.commit();
+        }
+    }
+
+    /** The editor's "Update N selected items": checked or not, focus goes back to the editor. */
+    handleBulkToggle(event) {
+        if (!this.editing) return;
+        this.editing = { ...this.editing, applyAll: event.target.checked === true };
+        this._layout.focusEditor = true;
+    }
+
+    /** Enter on the box commits the editor, as Enter in the editor does; Escape cancels. */
+    handleBulkKeyDown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            event.stopPropagation();
+            const editor = this.template.querySelector('[data-editor]');
+            if (editor && typeof editor.commit === 'function') editor.commit();
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            this.closeEditor();
+        }
     }
 
     /**
@@ -4498,7 +4605,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
      * from the box opens upwards instead when the grid cannot grow enough to hold it
      * below and there is room above (`dropdown-up`).
      */
-    placeEditor(cell, column, editorKind) {
+    placeEditor(cell, column, editorKind, extra = 0) {
         const scroller = this.template.querySelector('[data-scroller]');
         if (!cell || !scroller) {
             this.editRoom = 0;
@@ -4509,7 +4616,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const box = scroller.getBoundingClientRect();
         const rect = cell.getBoundingClientRect();
         const editor = editorKind || EDITOR_BY_TYPE[column.type] || 'text';
-        const room = EDITOR_ROOM_BY[editor] || EDITOR_ROOM;
+        const room = (EDITOR_ROOM_BY[editor] || EDITOR_ROOM) + extra;
         const need = Math.ceil(rect.bottom - box.top + room);
         const width = DROPDOWN_WIDTH[editor] || 0;
         this.editUp = width > 0 && need > this.maxScrollerHeight && rect.top - box.top >= room;
@@ -4518,14 +4625,23 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     handleEditorCommit(event) {
-        const { rowId, field } = this.editing || {};
+        const { rowId, field, applyAll } = this.editing || {};
         if (!rowId) return;
         if (this._config.diagnostics === true) {
             mark(true, 'commit-start');
             this._timing.commit = true;
         }
         const row = this.view[this.positionOf(rowId)];
+        const toSelected = (applyAll === true || this._bulk.all) && this.bulkCount(rowId) > 0;
+        this._bulk.all = false;
         this.closeEditor();
+        if (toSelected) {
+            // Every selected row: the parent applies it as Update field does, one undo step.
+            const detail = { recordId: rowId, field, value: event.detail.value };
+            if (event.detail.label !== undefined) detail.valueLabel = event.detail.label;
+            this.dispatchEvent(new CustomEvent('applyselected', { detail }));
+            return;
+        }
         const change = { recordId: rowId, field, value: event.detail.value, originalValue: row ? row[field] : null };
         // A lookup editor also says the chosen record's name, so the cell can show it at once.
         if (event.detail.label !== undefined) change.valueLabel = event.detail.label;
@@ -4602,6 +4718,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     closeEditor() {
+        this.listenForBulkKey(false);
         this.editing = null;
         this.editRoom = 0;
         this.editAlignRight = false;
@@ -5485,6 +5602,8 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     disconnectedCallback() {
+        this.listenForBulkKey(false);
+        clearTimeout(this._bulk.timer);
         if (this._layout.observer) this._layout.observer.disconnect();
         if (this._layout.onResize) window.removeEventListener('resize', this._layout.onResize);
         if (this._layout.onWindowResize) window.removeEventListener('resize', this._layout.onWindowResize);

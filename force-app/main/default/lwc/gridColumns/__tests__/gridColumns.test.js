@@ -6,7 +6,8 @@ import {
     hideColumn,
     moveColumn,
     chooseColumns,
-    sameChoice
+    sameChoice,
+    searchHint
 } from 'c/gridColumns';
 
 // The admin's columns, in the admin's order; Name is Always Shown.
@@ -158,6 +159,31 @@ describe('comparing choices', () => {
         ).toBe(true);
         expect(sameChoice({ order: ['Email', 'Phone'], hidden: [] }, { order: ['Phone', 'Email'], hidden: [] })).toBe(
             false
+        );
+    });
+});
+
+describe('searchHint', () => {
+    const col = (label, searchable) => ({ field: label.replace(/ /g, '_'), label, searchable });
+
+    it('says nothing when search looks in every column', () => {
+        expect(searchHint([col('Name', true), col('Consignee', true)])).toBe('');
+        expect(searchHint([])).toBe('');
+    });
+
+    it("names one column as Salesforce's list view does", () => {
+        expect(searchHint([col('Name', true), col('Ship Date', false)])).toBe(
+            "Ship Date isn't searchable. Use filters or sort on this field instead."
+        );
+    });
+
+    it('names up to four, then the first three and how many more', () => {
+        expect(searchHint([col('Pieces', false), col('Ship Date', false), col('Name', true)])).toBe(
+            "Pieces and Ship Date aren't searchable. Use filters or sort on these fields instead."
+        );
+        const many = ['Pieces', 'Ship Date', 'Freight Charge', 'Delivered', 'Pallet Positions'].map(l => col(l, false));
+        expect(searchHint(many)).toBe(
+            "Pieces, Ship Date, Freight Charge and 2 other columns aren't searchable. Use filters or sort on these fields instead."
         );
     });
 });

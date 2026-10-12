@@ -1,0 +1,56 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        aria-describedby="question"
+        class="slds-modal slds-fade-in-open rh-change-owner"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <button
+                class="slds-button slds-button_icon slds-modal__close rh-change-owner-close"
+                title="Cancel and close"
+                disabled={busy}
+                onclick={handleCancel}
+            >
+                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                <span class="slds-assistive-text">Cancel and close</span>
+            </button>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate">Change Owner</h1>
+            </div>
+            <div class="slds-modal__content slds-p-around_medium rh-change-owner-content">
+                <p id="question" class="slds-m-bottom_small rh-change-owner-question">{question}</p>
+                <div class="slds-form-element">
+                    <span class="slds-form-element__label" aria-hidden="true"><abbr class="slds-required" title="required">* </abbr>New Owner</span>
+                    <c-cell-lookup
+                        class="rh-change-owner-lookup"
+                        mode="edit"
+                        label="New Owner"
+                        required
+                        tab-leaves
+                        owner-search
+                        config-name={configName}
+                        oncommit={handleChoose}
+                        oncancel={handleLookupCancel}
+                    ></c-cell-lookup>
+                </div>
+                <template lwc:if={error}>
+                    <p class="slds-m-top_small slds-text-color_error rh-change-owner-error" role="alert">{error}</p>
+                </template>
+                <template lwc:if={busy}>
+                    <lightning-spinner alternative-text="Changing the owner" size="small" variant="brand"></lightning-spinner>
+                </template>
+            </div>
+            <div class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral rh-change-owner-cancel" disabled={busy} onclick={handleCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand rh-change-owner-confirm" disabled={confirmDisabled} onclick={handleConfirm}>Change Owner</button>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

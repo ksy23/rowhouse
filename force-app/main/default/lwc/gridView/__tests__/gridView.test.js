@@ -353,6 +353,39 @@ describe('loading', () => {
 });
 
 describe('search and sort', () => {
+    it('says which shown columns search does not look in while the box has focus, as a list view does', async () => {
+        const el = mount();
+        await settle();
+        expect(el.shadowRoot.querySelector('.rh-search-hint')).toBeNull();
+        const input = el.shadowRoot.querySelector('.rh-search');
+        input.dispatchEvent(new CustomEvent('focus'));
+        await settle();
+        const hint = el.shadowRoot.querySelector('.rh-search-hint');
+        expect(hint.getAttribute('role')).toBe('tooltip');
+        // The test definition marks no column searchable: both are named.
+        expect(hint.textContent).toBe(
+            "Name and Pieces aren't searchable. Use filters or sort on these fields instead."
+        );
+        expect(el.shadowRoot.querySelector('.rh-search-hint-spoken').textContent).toBe(hint.textContent);
+        input.dispatchEvent(new CustomEvent('blur'));
+        await settle();
+        expect(el.shadowRoot.querySelector('.rh-search-hint')).toBeNull();
+        expect(el.shadowRoot.querySelector('.rh-search-hint-spoken').textContent).toBe('');
+    });
+
+    it('says nothing on focus when search looks in every shown column', async () => {
+        getGridConfig.mockResolvedValue({
+            definition: { ...DEFINITION, columns: DEFINITION.columns.map(c => ({ ...c, searchable: true })) },
+            diagnostics: false,
+            canConfigure: false
+        });
+        const el = mount();
+        await settle();
+        el.shadowRoot.querySelector('.rh-search').dispatchEvent(new CustomEvent('focus'));
+        await settle();
+        expect(el.shadowRoot.querySelector('.rh-search-hint')).toBeNull();
+    });
+
     it('searches on the server after the user stops typing', async () => {
         const el = mount();
         await settle();

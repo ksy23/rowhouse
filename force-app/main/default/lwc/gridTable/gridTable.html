@@ -879,6 +879,19 @@
                                                             <div class="slds-form-element__help slds-text-color_error">{cell.errorMessage}</div>
                                                         </template>
                                                     </div>
+                                                    <!-- One of several selected rows: the edit can go to them all, as in a list view. -->
+                                                    <template lwc:if={cell.bulkEdit}>
+                                                        <div class="slds-popover__footer rh-edit-bulk">
+                                                            <div class="slds-checkbox" title={cell.bulkHint}>
+                                                                <input type="checkbox" id={cell.bulkId} class="rh-edit-bulk-check" checked={cell.bulkChecked} aria-describedby={cell.bulkHintId} onchange={handleBulkToggle} onkeydown={handleBulkKeyDown} />
+                                                                <label class="slds-checkbox__label" for={cell.bulkId}>
+                                                                    <span class="slds-checkbox_faux"></span>
+                                                                    <span class="slds-form-element__label rh-edit-bulk-label">{cell.bulkText}</span>
+                                                                </label>
+                                                                <span id={cell.bulkHintId} class="slds-assistive-text">{cell.bulkHint}</span>
+                                                            </div>
+                                                        </div>
+                                                    </template>
                                                 </section>
                                             </template>
                                         </template>

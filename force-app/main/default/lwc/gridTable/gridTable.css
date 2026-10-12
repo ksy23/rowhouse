@@ -544,6 +544,23 @@
     z-index: 3;
 }
 
+/* The editor's "Update N selected items": as wide as its words, under the box. */
+.rh-edit-bulk {
+    box-sizing: border-box;
+    width: max-content;
+    min-width: 100%;
+    margin: 0 calc(-1 * var(--slds-g-sizing-border-1, 1px)) calc(-1 * var(--slds-g-sizing-border-1, 1px));
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, #c9c9c9);
+    border-radius: 0 0 var(--slds-g-radius-border-2, 0.25rem) var(--slds-g-radius-border-2, 0.25rem);
+    background-color: var(--slds-g-color-surface-container-1, #fff);
+    white-space: nowrap;
+}
+
+/* The template drops the space between the box and its words (LWC whitespace). */
+.rh-edit-bulk-label {
+    margin-left: var(--slds-g-spacing-2, 0.5rem);
+}
+
 .rh-error-popover {
     position: absolute;
     top: 100%;

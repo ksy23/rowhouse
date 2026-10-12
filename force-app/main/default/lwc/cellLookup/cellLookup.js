@@ -28,10 +28,16 @@
  *   "New Account" item for each, after the matches, as Salesforce's lookups
  *   do. Choosing it fires `newrecord` { object, label, term }: the grid opens
  *   the record form and puts the new record in the cell.
+ *
+ * OWNERS FOR A ROW'S CHANGE OWNER
+ * With `ownerSearch`, the search asks for the users and queues a record of
+ * the grid can be given to (GridController.searchOwners) instead of a
+ * column's targets: c/gridChangeOwner's search box.
  */
 import { LightningElement, api } from 'lwc';
 import searchLookup from '@salesforce/apex/GridController.searchLookup';
 import lookupName from '@salesforce/apex/GridController.lookupName';
+import searchOwners from '@salesforce/apex/GridController.searchOwners';
 
 export const SEARCH_DELAY_MS = 250;
 export const REQUIRED_MESSAGE = 'Complete this field.';
@@ -76,6 +82,8 @@ export default class CellLookup extends LightningElement {
     @api recordId;
     /** Objects a record can be created of from the list, [{ object, label }]. */
     @api newTargets;
+    /** Search for a new owner of the grid's records (Change Owner), not a column's targets. */
+    @api ownerSearch = false;
 
     term;
     results = [];
@@ -267,7 +275,10 @@ export default class CellLookup extends LightningElement {
             return Promise.resolve();
         }
         this.status = 'Searching…';
-        return searchLookup({ configName: this.configName, field: this.field, term })
+        const asked = this.ownerSearch
+            ? searchOwners({ configName: this.configName, term })
+            : searchLookup({ configName: this.configName, field: this.field, term });
+        return asked
             .then(found => {
                 if (token !== this._search.token) return;
                 this.results = Array.isArray(found) ? found : [];

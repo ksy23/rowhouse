@@ -164,9 +164,10 @@ public with sharing class GridLookup {
     /**
      * Owners: active users, then queues that accept this object. Portal and
      * system users (guest, automated process, Chatter-only) cannot own
-     * records, so only standard and partner users are offered.
+     * records, so only standard and partner users are offered. Also Change
+     * Owner's search (GridOwnerService), which checks the grid first.
      */
-    private static List<Map<String, String>> owners(Schema.SObjectType objectType, String contains) {
+    public static List<Map<String, String>> owners(Schema.SObjectType objectType, String contains) {
         List<Map<String, String>> out = new List<Map<String, String>>();
         for (
             SObject u : GridSecurity.query(

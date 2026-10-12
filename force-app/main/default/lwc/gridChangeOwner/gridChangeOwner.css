@@ -1,0 +1,6 @@
+/* The matches hang below the search box, over the footer, as in Salesforce's own dialog. */
+.rh-change-owner-content {
+    position: relative;
+    overflow: visible;
+    min-height: 8rem;
+}
