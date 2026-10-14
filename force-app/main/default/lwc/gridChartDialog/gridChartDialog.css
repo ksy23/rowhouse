@@ -2,3 +2,118 @@
 .rh-chart-dialog-content {
     overflow: visible;
 }
+
+/* Chart type: three tiles in a row, each a radio button with its picture. */
+.rh-chart-types {
+    margin-bottom: var(--slds-g-spacing-4, 1rem);
+}
+
+.rh-chart-types-label {
+    padding: 0;
+    margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-chart-type-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-chart-type-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    min-height: 7.5rem;
+    padding: var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-2, 0.5rem);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, #c9c9c9);
+    border-radius: var(--slds-g-radius-border-3, 0.5rem);
+    background: var(--slds-g-color-surface-container-1, #fff);
+    color: var(--slds-g-color-on-surface-3, #181818);
+    font-size: var(--slds-g-font-scale-2, 1rem);
+    text-align: center;
+    cursor: pointer;
+}
+
+.rh-chart-type-tile:hover {
+    border-color: var(--slds-g-color-border-2, #939393);
+}
+
+/* Chosen: the brand's border, twice as thick, on the accent's light fill. */
+.rh-chart-type-tile_on,
+.rh-chart-type-tile_on:hover {
+    border-color: var(--slds-g-color-accent-1, #0176d3);
+    box-shadow: inset 0 0 0 var(--slds-g-sizing-border-1, 1px) var(--slds-g-color-accent-1, #0176d3);
+    background: var(--slds-g-color-accent-light-1, #eef4ff);
+}
+
+.rh-chart-type-tile_focus {
+    outline: var(--slds-g-sizing-border-2, 2px) solid var(--slds-g-color-accent-1, #0176d3);
+    outline-offset: var(--slds-g-sizing-border-2, 2px);
+}
+
+/* The radio button itself is not drawn; the tile is. It still takes focus and the arrow keys. */
+.rh-chart-type-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+}
+
+.rh-chart-type-figure {
+    width: 3.5rem;
+    height: 2.5rem;
+}
+
+.rh-chart-ring {
+    fill: none;
+    stroke-width: 7;
+}
+
+/* The chart's own colours (gridChartPanel), for the pictures. */
+.rh-chart-c0 {
+    fill: var(--slds-g-color-palette-teal-40, #0b827c);
+    stroke: var(--slds-g-color-palette-teal-40, #0b827c);
+}
+
+.rh-chart-c1 {
+    stroke: var(--slds-g-color-palette-purple-50, #9050e9);
+}
+
+.rh-chart-c2 {
+    stroke: var(--slds-g-color-palette-orange-60, #dd7a01);
+}
+
+.rh-chart-ring.rh-chart-c0 {
+    fill: none;
+}
+
+rect.rh-chart-c0 {
+    stroke: none;
+}
+
+/* Measure and Field side by side. */
+.rh-chart-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--slds-g-spacing-4, 1rem);
+}
+
+/* On a phone the tiles keep their row and the pair stacks. */
+@media (max-width: 30em) {
+    .rh-chart-pair {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--slds-g-spacing-3, 0.75rem);
+    }
+
+    .rh-chart-type-tile {
+        min-height: 6rem;
+        font-size: var(--slds-g-font-scale-1, 0.875rem);
+    }
+}

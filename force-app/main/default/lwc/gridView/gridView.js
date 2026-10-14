@@ -184,7 +184,7 @@
  * table (c/gridChartPanel), under it in a narrow space, with a chart of every
  * record the search and filters match: counted, or a number column added up or
  * averaged (GridController.chartGroups, sliced as the groups' subtotals are),
- * by one column the grid can group by. The gear's Edit Chart
+ * by one column the grid can group by. The gear's Edit chart
  * (c/gridChartDialog) chooses; Display As draws it as vertical or horizontal
  * bars or a donut. One chart per user per grid, kept with the layout, open or
  * closed; the first is the records counted by the grid's grouping, else by its
@@ -526,7 +526,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     chart = null;
     /** The chart's answer: { status, groups, message }, or null. */
     chartData = null;
-    /** Edit Chart is open. */
+    /** Edit chart is open. */
     chartDialogOpen = false;
     /** The Choose columns dialog is open. */
     columnsOpen = false;

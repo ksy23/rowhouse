@@ -14,56 +14,76 @@
                 <span class="slds-assistive-text">Cancel and close</span>
             </button>
             <div class="slds-modal__header">
-                <h1 id="heading" class="slds-modal__title slds-hyphenate">Edit Chart</h1>
+                <h1 id="heading" class="slds-modal__title slds-hyphenate">Edit chart</h1>
             </div>
             <div class="slds-modal__content slds-p-around_medium rh-chart-dialog-content">
-                <lightning-combobox
-                    class="rh-chart-type"
-                    label="Chart Type"
-                    value={type}
-                    options={typeOptions}
-                    required
-                    onchange={handleType}
-                ></lightning-combobox>
-                <lightning-combobox
-                    class="slds-m-top_small rh-chart-measure"
-                    label="Aggregate Type"
-                    value={measure}
-                    options={measureOptions}
-                    required
-                    field-level-help="Count counts the records. Sum and Average add up a number column."
-                    onchange={handleMeasure}
-                ></lightning-combobox>
-                <template lwc:if={needsField}>
+                <fieldset class="slds-form-element rh-chart-types">
+                    <legend class="slds-form-element__label rh-chart-types-label">Chart type</legend>
+                    <div class="rh-chart-type-row">
+                        <template for:each={typeTiles} for:item="t">
+                            <label key={t.value} class={t.tileClass}>
+                                <input
+                                    type="radio"
+                                    class="rh-chart-type-input"
+                                    name="rh-chart-type"
+                                    value={t.value}
+                                    checked={t.checked}
+                                    onchange={handleType}
+                                    onfocus={handleTypeFocus}
+                                    onblur={handleTypeBlur}
+                                />
+                                <svg class="rh-chart-type-figure" viewBox="0 0 46 32" aria-hidden="true" focusable="false">
+                                    <template lwc:if={t.isVbar}>
+                                        <rect class="rh-chart-c0" x="4" y="16" width="8" height="14"></rect>
+                                        <rect class="rh-chart-c0" x="19" y="6" width="8" height="24"></rect>
+                                        <rect class="rh-chart-c0" x="34" y="12" width="8" height="18"></rect>
+                                    </template>
+                                    <template lwc:elseif={t.isHbar}>
+                                        <rect class="rh-chart-c0" x="2" y="3" width="30" height="7"></rect>
+                                        <rect class="rh-chart-c0" x="2" y="13" width="42" height="7"></rect>
+                                        <rect class="rh-chart-c0" x="2" y="23" width="20" height="7"></rect>
+                                    </template>
+                                    <template lwc:else>
+                                        <circle class="rh-chart-ring rh-chart-c0" cx="23" cy="16" r="11" stroke-dasharray="28 41"></circle>
+                                        <circle class="rh-chart-ring rh-chart-c1" cx="23" cy="16" r="11" stroke-dasharray="20 49" stroke-dashoffset="-28"></circle>
+                                        <circle class="rh-chart-ring rh-chart-c2" cx="23" cy="16" r="11" stroke-dasharray="21 48" stroke-dashoffset="-48"></circle>
+                                    </template>
+                                </svg>
+                                <span class="rh-chart-type-label">{t.label}</span>
+                            </label>
+                        </template>
+                    </div>
+                </fieldset>
+                <div class="rh-chart-pair">
                     <lightning-combobox
-                        class="slds-m-top_small rh-chart-field"
-                        label="Aggregate Field"
-                        value={field}
-                        options={fieldOptions}
-                        placeholder="Choose a number column"
+                        class="rh-chart-measure"
+                        label="Measure"
+                        value={measure}
+                        options={measureOptions}
                         required
+                        onchange={handleMeasure}
+                    ></lightning-combobox>
+                    <lightning-combobox
+                        class="rh-chart-field"
+                        label="Field"
+                        value={fieldValue}
+                        options={fieldOptions}
+                        placeholder={fieldPlaceholder}
+                        required={needsField}
+                        disabled={fieldDisabled}
                         onchange={handleField}
                     ></lightning-combobox>
-                </template>
+                </div>
                 <lightning-combobox
                     class="slds-m-top_small rh-chart-group"
-                    label="Grouping Field"
-                    value={groupBy}
+                    label="Group by"
+                    value={groupValue}
                     options={groupOptions}
                     placeholder="Choose a column"
                     required
                     onchange={handleGroup}
                 ></lightning-combobox>
-                <template lwc:if={isDate}>
-                    <lightning-combobox
-                        class="slds-m-top_small rh-chart-unit"
-                        label="Group Dates By"
-                        value={unit}
-                        options={unitOptions}
-                        required
-                        onchange={handleUnit}
-                    ></lightning-combobox>
-                </template>
+                <p class="slds-m-top_x-small slds-text-color_weak rh-chart-help">Measure: Record count, or the Sum or Average of a number, currency or percent column, as a list view's chart offers. Group by: any column the grid can group by; dates by month, quarter or year.</p>
             </div>
             <div class="slds-modal__footer">
                 <button class="slds-button slds-button_neutral rh-chart-cancel" onclick={handleCancel}>Cancel</button>

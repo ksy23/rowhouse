@@ -1,6 +1,7 @@
 /**
- * Edit Chart: a list view's fields (Chart Type, Aggregate Type, Aggregate
- * Field, Grouping Field), Group Dates By for a date, and what it saves.
+ * Edit chart, as drawn in the mock-up: Chart type as three tiles; Measure
+ * (Record count, Sum of, Average of) beside Field; Group by, a date by
+ * month, quarter or year; and what it saves.
  */
 import { createElement } from 'lwc';
 import GridChartDialog from 'c/gridChartDialog';
@@ -17,8 +18,15 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 let el;
 let events;
 const $ = selector => el.shadowRoot.querySelector(selector);
+const $$ = selector => [...el.shadowRoot.querySelectorAll(selector)];
 const choose = async (selector, value) => {
     $(selector).dispatchEvent(new CustomEvent('change', { detail: { value } }));
+    await flush();
+};
+const pickType = async value => {
+    const input = $$('.rh-chart-type-input').find(i => i.value === value);
+    input.checked = true;
+    input.dispatchEvent(new CustomEvent('change'));
     await flush();
 };
 
@@ -36,45 +44,62 @@ afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
 });
 
-it("asks in a list view's words, starting from the chart as it is", async () => {
+it('is laid out as the mock-up: tiles, then Measure beside Field, then Group by and its help', async () => {
     await mount();
-    expect($('h1').textContent).toBe('Edit Chart');
-    expect($('.rh-chart-type').label).toBe('Chart Type');
-    expect($('.rh-chart-type').options.map(o => o.label)).toEqual([
-        'Vertical Bar Chart',
-        'Horizontal Bar Chart',
-        'Donut Chart'
+    expect($('h1').textContent).toBe('Edit chart');
+    expect($('legend').textContent).toBe('Chart type');
+    expect($$('.rh-chart-type-label').map(l => l.textContent)).toEqual(['Vertical bar', 'Horizontal bar', 'Donut']);
+    expect($$('.rh-chart-type-tile').map(t => t.classList.contains('rh-chart-type-tile_on'))).toEqual([
+        false,
+        true,
+        false
     ]);
-    expect($('.rh-chart-type').value).toBe('hbar');
-    expect($('.rh-chart-measure').label).toBe('Aggregate Type');
-    expect($('.rh-chart-measure').options.map(o => o.label)).toEqual(['Average', 'Sum', 'Count']);
-    expect($('.rh-chart-group').label).toBe('Grouping Field');
-    expect($('.rh-chart-group').options.map(o => o.label)).toEqual(['Service Level', 'Ship Date']);
-    expect($('.rh-chart-field')).toBeNull(); // Count counts the records: no field
+    expect($$('.rh-chart-pair lightning-combobox').map(c => c.label)).toEqual(['Measure', 'Field']);
+    expect($('.rh-chart-measure').options.map(o => o.label)).toEqual(['Record count', 'Sum of', 'Average of']);
+    expect($('.rh-chart-measure').value).toBe('count');
+    expect($('.rh-chart-group').label).toBe('Group by');
+    expect($('.rh-chart-help').textContent).toBe(
+        "Measure: Record count, or the Sum or Average of a number, currency or percent column, as a list view's chart offers. Group by: any column the grid can group by; dates by month, quarter or year."
+    );
 });
 
-it('asks for the field to add up for Sum or Average, choosing the only one there is', async () => {
+it('starts on the chosen chart type, and draws each with its own picture', async () => {
+    await mount({ chart: { ...CHART, type: 'donut' } });
+    expect(el.shadowRoot.activeElement).toBe($$('.rh-chart-type-input')[2]);
+    expect($$('.rh-chart-type-input').map(i => i.checked)).toEqual([false, false, true]);
+    expect($$('.rh-chart-type-figure').map(s => s.getElementsByTagName('rect').length)).toEqual([3, 3, 0]);
+    expect($$('.rh-chart-type-figure')[2].querySelectorAll('circle')).toHaveLength(3);
+});
+
+it('waits on Field until a sum or an average needs one, choosing the only one there is', async () => {
     await mount();
+    expect($('.rh-chart-field').disabled).toBe(true);
+    expect($('.rh-chart-field').required).toBe(false);
+    expect($('.rh-chart-field').placeholder).toBe('Not used for Record count');
     await choose('.rh-chart-measure', 'sum');
-    expect($('.rh-chart-field').label).toBe('Aggregate Field');
+    expect($('.rh-chart-field').disabled).toBe(false);
+    expect($('.rh-chart-field').required).toBe(true);
     expect($('.rh-chart-field').options).toEqual([{ value: 'Freight_Charge__c', label: 'Freight Charge' }]);
     expect($('.rh-chart-field').value).toBe('Freight_Charge__c');
     expect($('.rh-chart-save').disabled).toBe(false);
 });
 
-it('offers Count only where there is no number column', async () => {
+it('offers Record count only where there is no number column', async () => {
     await mount({ columns: COLUMNS.filter(c => c.type !== 'currency') });
-    expect($('.rh-chart-measure').options.map(o => o.label)).toEqual(['Count']);
+    expect($('.rh-chart-measure').options.map(o => o.label)).toEqual(['Record count']);
 });
 
-it('asks how to group dates, by month unless chosen', async () => {
+it('offers a date by month, quarter or year in Group by', async () => {
     await mount();
-    expect($('.rh-chart-unit')).toBeNull();
-    await choose('.rh-chart-group', 'Ship_Date__c');
-    expect($('.rh-chart-unit').label).toBe('Group Dates By');
-    expect($('.rh-chart-unit').value).toBe('month');
-    await choose('.rh-chart-unit', 'quarter');
-    await choose('.rh-chart-type', 'vbar');
+    expect($('.rh-chart-group').options.map(o => o.label)).toEqual([
+        'Service Level',
+        'Ship Date (Month)',
+        'Ship Date (Quarter)',
+        'Ship Date (Year)'
+    ]);
+    await choose('.rh-chart-group', 'Ship_Date__c:quarter');
+    await pickType('vbar');
+    expect($$('.rh-chart-type-tile')[0].classList.contains('rh-chart-type-tile_on')).toBe(true);
     $('.rh-chart-save').click();
     expect(events).toEqual([
         {
@@ -86,9 +111,15 @@ it('asks how to group dates, by month unless chosen', async () => {
     ]);
 });
 
+it('keeps a chart by another period as it is', async () => {
+    await mount({ chart: { ...CHART, groupBy: 'Ship_Date__c', unit: 'week' } });
+    expect($('.rh-chart-group').value).toBe('Ship_Date__c:week');
+    expect($('.rh-chart-group').options.map(o => o.label)).toContain('Ship Date (Week)');
+});
+
 it('saves an average of the field chosen, as a donut', async () => {
     await mount();
-    await choose('.rh-chart-type', 'donut');
+    await pickType('donut');
     await choose('.rh-chart-measure', 'average');
     $('.rh-chart-save').click();
     expect(events[0].detail.chart).toEqual({

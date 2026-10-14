@@ -1,7 +1,7 @@
 /**
  * gridChartPanel — the Charts panel beside a grid, as a list view's: the
  * chart's title, a gear whose menu says how it is drawn (Display As: Vertical
- * Bar Chart, Horizontal Bar Chart, Donut Chart) and opens Edit Chart, and the
+ * Bar Chart, Horizontal Bar Chart, Donut Chart) and opens Edit chart, and the
  * chart itself, of every record the grid's search and filters match.
  *
  * Drawn in SVG from c/gridCharts (no chart library, HR-26). The drawing is
@@ -29,7 +29,7 @@ export default class GridChartPanel extends LightningElement {
     // Non-reactive (HR-20).
     _memo = {};
 
-    /** The gear: where focus goes back to after Edit Chart. */
+    /** The gear: where focus goes back to after Edit chart. */
     @api
     focusMenu() {
         const menu = this.template.querySelector('.rh-charts-menu');

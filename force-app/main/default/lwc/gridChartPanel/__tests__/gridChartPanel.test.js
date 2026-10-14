@@ -1,6 +1,6 @@
 /**
  * The Charts panel: its heading and close button, the chart's title and gear
- * (Display As, Edit Chart), the chart drawn as bars or a donut, the donut's
+ * (Display As, Edit chart), the chart drawn as bars or a donut, the donut's
  * list of groups, a table of the figures for screen readers, and what it says
  * while loading, on an error, with too many groups or none.
  */
@@ -89,14 +89,14 @@ it('gives screen readers a table of the figures, with the total', async () => {
     ]);
 });
 
-it('offers Display As and Edit Chart in its gear, and says which type is drawn', async () => {
+it('offers Display As and Edit chart in its gear, and says which type is drawn', async () => {
     await mount();
     const items = $$('.rh-charts-menu lightning-menu-item');
     expect(items.map(i => [i.label, i.checked === true])).toEqual([
         ['Vertical Bar Chart', false],
         ['Horizontal Bar Chart', true],
         ['Donut Chart', false],
-        ['Edit Chart', false]
+        ['Edit chart', false]
     ]);
     expect($('.rh-charts-menu lightning-menu-subheader').label).toBe('Display As');
     const menu = $('.rh-charts-menu');

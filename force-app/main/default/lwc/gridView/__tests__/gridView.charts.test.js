@@ -209,7 +209,7 @@ it('draws it another way without asking the server again', async () => {
     expect(chartGroups).not.toHaveBeenCalled();
 });
 
-it('edits the chart in Edit Chart and reads it again', async () => {
+it('edits the chart in Edit chart and reads it again', async () => {
     const el = mount();
     await settle();
     await openCharts(el);
