@@ -382,6 +382,19 @@ private class GridActionServiceTest {
     }
 
     @IsTest
+    static void looksForAPlainNameAsWrittenThenWithoutANamespaceThenInRowhouses() {
+        // From the installed package a plain name is looked for in Rowhouse's
+        // namespace (measured), so the org's own actions are looked for again.
+        List<GridActionService.Place> plain = GridActionService.placesFor('Mark_Consignment_Reviewed');
+        System.assertEquals(String.isBlank(GridDescribe.NAMESPACE) ? 3 : 4, plain.size());
+        System.assertEquals(false, plain[0].withNamespace, 'First as written.');
+        System.assertEquals('', plain[1].namespace);
+        System.assertEquals(null, plain[2].namespace);
+        List<GridActionService.Place> prefixed = GridActionService.placesFor('cargo_ops__Mark_Reviewed');
+        System.assertEquals(1, prefixed.size(), 'A name with its own namespace is looked for as written.');
+    }
+
+    @IsTest
     static void findsTheApexInputOrSaysWhatIsMissing() {
         System.runAs(GridTestUsers.fullUser()) {
             GridConfig.Action apex = new GridConfig.Action();

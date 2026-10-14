@@ -145,10 +145,56 @@ public with sharing class GridActionService {
     // ---------------------------------------------------------------- helpers
 
     /**
+     * Where to look for an action's name, in turn. From the installed package
+     * a name without a namespace is looked for in Rowhouse's own: the org's own
+     * flows, its Apex and even Salesforce's global Log a Call came back "Action
+     * name not found: rowhouse__…" (measured, 0.1 Beta 11). So a plain name is
+     * tried as written, then with an empty namespace given both ways, then in
+     * this package's namespace (where the package build's own test flows
+     * live). A name with a namespace of its own is tried as written. A call
+     * that found no action ran nothing, so nothing runs twice.
+     */
+    @TestVisible
+    private static List<Place> placesFor(String actionName) {
+        List<Place> out = new List<Place>{ new Place(false, null) };
+        if (!actionName.contains('__')) {
+            out.add(new Place(true, ''));
+            out.add(new Place(true, null));
+            if (String.isNotBlank(GridDescribe.NAMESPACE)) {
+                out.add(new Place(true, GridDescribe.NAMESPACE));
+            }
+        }
+        return out;
+    }
+
+    /** One way to name an action: as written, or in a namespace (blank or null for none). */
+    @TestVisible
+    private class Place {
+        public Boolean withNamespace;
+        public String namespace;
+        Place(Boolean withNamespace, String namespace) {
+            this.withNamespace = withNamespace;
+            this.namespace = namespace;
+        }
+    }
+
+    /** The action named this way, or null when Salesforce refuses to make one. */
+    private static Invocable.Action actionAt(Place w, String type, String name) {
+        try {
+            return w.withNamespace
+                ? Invocable.Action.createCustomAction(type, w.namespace, name)
+                : Invocable.Action.createCustomAction(type, name);
+        } catch (Exception e) {
+            return null; // nothing was made, so nothing ran
+        }
+    }
+
+    /**
      * The input that takes the record Id: the Grid Action's Input Name, else
      * recordId for a flow and contextId for a quick action; for Apex, the
-     * action's one input, found by describe. Throws in an admin's terms when
-     * an Apex action has none, or several and no Input Name says which.
+     * action's one input, found by describe wherever the name is found
+     * (placesFor). Throws in an admin's terms when an Apex action has none, or
+     * several and no Input Name says which.
      */
     @TestVisible
     private static String inputFor(GridConfig.Action action) {
@@ -158,8 +204,18 @@ public with sharing class GridActionService {
         if (DEFAULT_INPUT.containsKey(action.type)) {
             return DEFAULT_INPUT.get(action.type);
         }
-        List<Invocable.Action.DescribeResult> described = Invocable.Action.createCustomAction('apex', action.actionName)
-            .getDescribe();
+        List<Invocable.Action.DescribeResult> described = new List<Invocable.Action.DescribeResult>();
+        for (Place w : placesFor(action.actionName)) {
+            Invocable.Action found = actionAt(w, 'apex', action.actionName);
+            try {
+                described = found == null ? described : found.getDescribe();
+            } catch (Exception e) {
+                described = new List<Invocable.Action.DescribeResult>(); // not here; look in the next place
+            }
+            if (!described.isEmpty()) {
+                break;
+            }
+        }
         if (described.isEmpty()) {
             throw new GridException(
                 'There is no invocable Apex action named "' + action.actionName + '" (Grid Action ' + action.name + ').'
@@ -181,38 +237,29 @@ public with sharing class GridActionService {
     }
 
     /**
-     * One call, one invocation per record, the Id as text. A flow named
-     * without a namespace is found only outside any namespace (measured: "Action
-     * name not found" for a flow in the package's own namespace, while
-     * ns__Name works). So when no record found the action, and the name has
-     * no namespace of its own, it is tried once in this package's: nothing ran
-     * the first time, so nothing runs twice.
+     * One call, one invocation per record, the Id as text, in the first place
+     * (placesFor) where Salesforce finds the action. When none finds it, the
+     * last place's "Action name not found" is what the rows say.
      */
     private static List<Invocable.Action.Result> invoke(GridConfig.Action action, String input, List<Id> ids) {
-        List<Invocable.Action.Result> results = invokeIn(null, action, input, ids);
-        if (String.isNotBlank(GridDescribe.NAMESPACE) && !action.actionName.contains('__') && notFound(results)) {
-            results = invokeIn(GridDescribe.NAMESPACE, action, input, ids);
-        }
-        return results;
-    }
-
-    private static List<Invocable.Action.Result> invokeIn(
-        String namespace,
-        GridConfig.Action action,
-        String input,
-        List<Id> ids
-    ) {
-        String type = INVOCABLE_TYPE.get(action.type);
-        Invocable.Action call = namespace == null
-            ? Invocable.Action.createCustomAction(type, action.actionName)
-            : Invocable.Action.createCustomAction(type, namespace, action.actionName);
-        for (Integer i = 0; i < ids.size(); i++) {
-            if (i > 0) {
-                call.addInvocation();
+        List<Invocable.Action.Result> results;
+        for (Place w : placesFor(action.actionName)) {
+            Invocable.Action call = actionAt(w, INVOCABLE_TYPE.get(action.type), action.actionName);
+            if (call == null) {
+                continue;
             }
-            call.setInvocationParameter(input, String.valueOf(ids[i]));
+            for (Integer i = 0; i < ids.size(); i++) {
+                if (i > 0) {
+                    call.addInvocation();
+                }
+                call.setInvocationParameter(input, String.valueOf(ids[i]));
+            }
+            results = call.invoke();
+            if (!notFound(results)) {
+                return results;
+            }
         }
-        return call.invoke();
+        return results == null ? new List<Invocable.Action.Result>() : results;
     }
 
     /** Did every invocation fail because no action by that name was found? */
