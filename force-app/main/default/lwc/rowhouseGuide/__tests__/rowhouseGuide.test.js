@@ -106,7 +106,13 @@ describe('the page', () => {
 
     it('says whose it is in the footer', async () => {
         await open();
-        expect($('.rh-guide-footer').textContent.trim()).toMatch(/^Rowhouse by Kugamon is free and open source/);
+        expect($('.rh-guide-footer').textContent.trim().replace(/\s+/g, ' ')).toBe(
+            'Rowhouse by Kugamon is free and open source, under the Mozilla Public License 2.0. ' +
+                'It is an independent project. ' +
+                'It is not affiliated with, endorsed by or sponsored by Salesforce, Inc. ' +
+                'Salesforce, Lightning and AppExchange are trademarks of Salesforce, Inc. ' +
+                '“Rowhouse” and the Rowhouse logo are trademarks of Kugamon LLC.'
+        );
     });
 
     it('opens Welcome for a page the guide does not have', async () => {
