@@ -14,10 +14,12 @@
                     </template>
                 </div>
             </header>
-            <div class="slds-no-flex">
-                <!-- Back to the grid without finishing; the grid reads the rows again. -->
-                <button class="slds-button slds-button_neutral rh-flow-cancel" onclick={handleCancel}>Cancel</button>
-            </div>
+            <template lwc:if={showHeaderCancel}>
+                <div class="slds-no-flex">
+                    <!-- Back to the grid without finishing; the grid reads the rows again. -->
+                    <button class="slds-button slds-button_neutral rh-flow-cancel" onclick={handleCancel}>Cancel</button>
+                </div>
+            </template>
         </div>
         <div class="slds-card__body slds-card__body_inner rh-flow-body">
             <template lwc:if={loading}>
@@ -33,6 +35,14 @@
                 <div class="slds-notify slds-notify_alert slds-alert_error rh-flow-error" role="alert">
                     <span class="slds-assistive-text">Error</span>
                     <h2>{error}</h2>
+                </div>
+            </template>
+            <template lwc:elseif={confirming}>
+                <!-- Opened from a link, not from a grid in this tab: ask before the flow starts. -->
+                <div class="rh-flow-confirm">
+                    <p id="confirm-text" class="slds-m-bottom_medium">This page was opened from a link, so it asks before running the flow.</p>
+                    <button class="slds-button slds-button_neutral rh-flow-confirm-cancel" onclick={handleCancel}>Cancel</button>
+                    <button class="slds-button slds-button_brand rh-flow-run" aria-describedby="confirm-text" onclick={handleRun}>Run</button>
                 </div>
             </template>
             <template lwc:elseif={showFlow}>

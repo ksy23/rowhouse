@@ -166,13 +166,17 @@
                 <dt>Offered in</dt>
                 <dd>Each row's menu, the selection bar, or both.</dd>
                 <dt>Permission</dt>
-                <dd>A custom permission's API name. Only users who hold it see and run the action.</dd>
+                <dd>
+                    A custom permission's API name: your own, or another package's with its prefix. Only users who
+                    hold it see and run the action. Required for an autolaunched flow or Apex action.
+                </dd>
             </dl>
             <div class="rh-call rh-call_warn">
                 <span class="rh-call-k">Access</span>
                 <p>
                     Rowhouse doesn't check access to the flow or class itself, and an autolaunched flow runs in system
-                    context by default. Use a Required Permission to limit who runs it.
+                    context by default. So an autolaunched flow or Apex action runs only for the people who hold its
+                    Required Permission.
                 </p>
             </div>
         </template>

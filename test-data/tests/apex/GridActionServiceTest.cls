@@ -3,9 +3,11 @@
  * Grid actions: what a grid offers, what the server refuses, and how
  * each kind runs and fails. The fixture actions are on Consignments (a screen
  * flow, an autolaunched flow, invocable Apex, a quick action, and one that
- * needs Rowhouse_Diagnostics); Consignments_By_Mode carries three that cannot work, so
- * their warnings are tested. The flow and the Apex action they run are test
- * data (test-data/actions): both fail on a record named "Held at customs, Calais".
+ * needs Rowhouse_Diagnostics; the flow and Apex ones need Run_Freight_Actions,
+ * which Freight Full Access grants); Consignments_By_Mode carries four that
+ * cannot work, so their warnings are tested. The flow and the Apex action
+ * they run are test data (test-data/actions): both fail on a record named
+ * "Held at customs, Calais".
  */
 @IsTest
 private class GridActionServiceTest {
@@ -127,7 +129,8 @@ private class GridActionServiceTest {
                     GridController.screenFlow('Consignments', notOne);
                     System.assert(false, notOne + ' is not a screen flow this user can run.');
                 } catch (AuraHandledException e) {
-                    System.assert(e.getMessage().contains('no screen flow called "' + notOne + '"'), e.getMessage());
+                    System.assert(e.getMessage().contains('no screen flow of that name'), e.getMessage());
+                    System.assert(!e.getMessage().contains(notOne), 'The name came from the address; not repeated.');
                 }
             }
         }
@@ -162,6 +165,37 @@ private class GridActionServiceTest {
                     'Grid Action Consignments_By_Mode_Bad_Name was skipped: "Mark as seen" is not an API name.'
                 ),
                 warnings
+            );
+            System.assert(
+                warnings.contains(
+                    'Grid Action Consignments_By_Mode_No_Permission was skipped: ' + GridActions.PERMISSION_NEEDED
+                ),
+                warnings
+            );
+        }
+    }
+
+    @IsTest
+    static void offersAFlowOrApexActionOnlyToThoseWhoHoldItsPermission() {
+        User reader = GridTestUsers.readOnlyUser(); // reads consignments; does not hold Run_Freight_Actions
+        List<Consignment__c> recs;
+        System.runAs(GridTestUsers.fullUser()) {
+            recs = newRecords(new List<String>{ 'Birch dowels, Skowhegan' });
+        }
+        System.runAs(reader) {
+            List<String> names = new List<String>();
+            for (GridConfig.Action a : GridConfig.forUser('Consignments').actions) {
+                names.add(a.name);
+            }
+            System.assertEquals(
+                new List<String>{ 'Consignments_Add_Note', 'Consignments_Log_Call' },
+                names,
+                'A screen flow and a quick action may name no permission; the flow and the Apex actions name ' +
+                'Run_Freight_Actions, which this user does not hold.'
+            );
+            System.assertEquals(
+                'You do not have permission to run Mark as seen.',
+                refusal('Consignments_Mark_Seen', idsOf(recs))
             );
         }
     }

@@ -5,7 +5,7 @@
     <type>Text</type>
     <length>80</length>
     <required>false</required>
-    <description>The API name of a custom permission. If set, only users with that permission see and can run the action. If blank, everyone who can use the grid and read the records can. Rowhouse does not check access to the flow, class or quick action itself, so use this to restrict actions that should not be available to everyone.</description>
-    <inlineHelpText>Optional. API name of a custom permission. Only users with it see and can run this action.</inlineHelpText>
+    <description>The API name of a custom permission: your own, or another package's with its prefix. Required for an autolaunched flow or Apex action, which runs with the access the flow or class gives it. Only users who hold it see and can run the action.</description>
+    <inlineHelpText>API name of a custom permission, your own or another package's with its prefix. Required for an autolaunched flow or Apex action; optional otherwise. Only users with it see and can run this action.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

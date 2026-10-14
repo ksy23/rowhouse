@@ -1,15 +1,17 @@
 /**
  * The hand-over of a screen flow to its own page and back, as plain
- * functions: what travels in the address, what in session storage, and what
- * the page reads back.
+ * functions: what travels in the address, what in session storage, what
+ * the page reads back, and which pages it may go back to.
  */
 import {
     FLOW_PAGE,
     IDS_IN_URL,
     STORE_PREFIX,
+    BACK_TYPES,
     namespaceOf,
     packageNamespace,
     newToken,
+    safeBack,
     backRef,
     flowPageRef,
     readFlowState,
@@ -25,6 +27,7 @@ const PAGE = {
     attributes: { recordId: '001000000000001AAA', actionName: 'view' },
     state: { c__tab: 'Consignments' }
 };
+const WEB = { type: 'standard__webPage', attributes: { url: 'https://granite-coast-login.net/verify' } };
 const memory = () => {
     const kept = new Map();
     return {
@@ -78,8 +81,80 @@ describe('the way back', () => {
     });
 });
 
+describe('only a Salesforce page is a way back', () => {
+    const PAGES = {
+        standard__navItemPage: { attributes: { apiName: 'Rowhouse_Dev' } },
+        standard__recordPage: { attributes: { recordId: '001000000000001AAA', actionName: 'view' } },
+        standard__objectPage: { attributes: { objectApiName: 'Account', actionName: 'list' } },
+        standard__namedPage: { attributes: { pageName: 'home' } },
+        standard__app: { attributes: { appTarget: 'c__Rowhouse' } },
+        standard__recordRelationshipPage: {
+            attributes: { recordId: '001000000000001AAA', relationshipApiName: 'Contacts', actionName: 'view' }
+        }
+    };
+
+    it.each(Object.keys(PAGES))('keeps %s, as a plain copy', type => {
+        const ref = { type, ...PAGES[type], state: { c__grid: 'Consignments' } };
+        const kept = safeBack(ref);
+        expect(kept).toEqual(ref);
+        expect(kept).not.toBe(ref);
+        expect(kept.state).not.toBe(ref.state);
+    });
+
+    it('allows exactly those six kinds of page', () => {
+        expect([...BACK_TYPES].sort()).toEqual(Object.keys(PAGES).sort());
+    });
+
+    it('gives a page with no attributes or state empty ones', () => {
+        expect(safeBack({ type: 'standard__namedPage' })).toEqual({
+            type: 'standard__namedPage',
+            attributes: {},
+            state: {}
+        });
+    });
+
+    it.each([
+        ['a web address', WEB],
+        [
+            'a component, with any state',
+            { type: 'standard__component', attributes: { componentName: 'c__payrollExport' } }
+        ],
+        ['an Experience Cloud page', { type: 'comm__namedPage', attributes: { name: 'Home' } }],
+        [
+            'a Knowledge article',
+            { type: 'standard__knowledgeArticlePage', attributes: { urlName: 'reset-your-password' } }
+        ],
+        ['a made-up kind', { type: 'standard__webPageX', attributes: {} }]
+    ])('refuses %s', (label, ref) => {
+        expect(safeBack(ref)).toBeNull();
+    });
+
+    it.each([
+        ['nothing', undefined],
+        ['null', null],
+        ['text', 'standard__namedPage'],
+        ['a list', [PAGE]],
+        ['no kind', { attributes: { pageName: 'home' } }],
+        ['a kind that is not text', { type: ['standard__namedPage'] }],
+        ['attributes that are text', { type: 'standard__namedPage', attributes: 'home' }],
+        ['attributes that are a list', { type: 'standard__namedPage', attributes: ['home'] }],
+        ['state that is text', { type: 'standard__namedPage', attributes: {}, state: 'c__tab=Consignments' }]
+    ])('refuses %s', (label, ref) => {
+        expect(safeBack(ref)).toBeNull();
+    });
+
+    it("checks an app page's page inside it too", () => {
+        const app = { type: 'standard__app', attributes: { appTarget: 'c__Rowhouse', pageRef: PAGE }, state: {} };
+        expect(safeBack(app)).toEqual(app);
+        expect(safeBack({ ...app, attributes: { appTarget: 'c__Rowhouse', pageRef: WEB } })).toBeNull();
+        expect(safeBack({ ...app, attributes: { appTarget: 'c__Rowhouse', pageRef: 'Consignments' } })).toBeNull();
+        expect(safeBack({ ...app, attributes: { appTarget: 'c__Rowhouse', pageRef: app } })).toBeNull(); // one level only
+        expect(safeBack({ ...PAGE, attributes: { ...PAGE.attributes, pageRef: PAGE } })).toBeNull();
+    });
+});
+
 describe('the address', () => {
-    it(`carries up to ${IDS_IN_URL} Ids and the way back`, () => {
+    it(`keeps the Ids and the way back in the tab, and carries up to ${IDS_IN_URL} Ids, never the way back`, () => {
         const store = memory();
         const ref = flowPageRef(
             'c',
@@ -94,11 +169,41 @@ describe('the address', () => {
                 c__action: 'Reschedule_Pickup',
                 c__on: 'row',
                 c__token: 't1',
-                c__ids: id(1),
-                c__back: JSON.stringify(PAGE)
+                c__ids: id(1)
             }
         });
-        expect(store.kept.size).toBe(0);
+        expect(JSON.parse(store.getItem(STORE_PREFIX + 't1'))).toEqual({ ids: [id(1)], back: PAGE });
+    });
+
+    it(`carries up to ${IDS_IN_URL} Ids and the way back when there is no session storage`, () => {
+        const ref = flowPageRef(
+            'c',
+            { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'row', ids: [id(1)], back: PAGE, token: 't1' },
+            null
+        );
+        expect(ref.state).toEqual({
+            c__grid: 'Consignments',
+            c__action: 'Reschedule_Pickup',
+            c__on: 'row',
+            c__token: 't1',
+            c__ids: id(1),
+            c__back: JSON.stringify(PAGE)
+        });
+    });
+
+    it('never keeps or carries a web address as the way back', () => {
+        const store = memory();
+        const run = {
+            grid: 'Consignments',
+            action: 'Reschedule_Pickup',
+            on: 'row',
+            ids: [id(1)],
+            back: WEB,
+            token: 't1'
+        };
+        flowPageRef('c', run, store);
+        expect(JSON.parse(store.getItem(STORE_PREFIX + 't1')).back).toBeNull();
+        expect(flowPageRef('c', run, null).state.c__back).toBeUndefined();
     });
 
     it('keeps more Ids in session storage, under the token', () => {
@@ -159,20 +264,82 @@ describe('the address', () => {
 });
 
 describe('what the page reads', () => {
-    it('reads the address', () => {
+    it('reads what this tab kept, and says the run came from this tab', () => {
+        const store = memory();
         const state = flowPageRef(
             'c',
             { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'row', ids: [id(7)], back: PAGE, token: 't' },
-            memory()
+            store
         ).state;
-        expect(readFlowState(state, null)).toEqual({
+        expect(readFlowState(state, store)).toEqual({
             grid: 'Consignments',
             action: 'Reschedule_Pickup',
             on: 'row',
             ids: [id(7)],
             back: PAGE,
-            token: 't'
+            token: 't',
+            fromThisTab: true
         });
+    });
+
+    it('reads a link from somewhere else from the address, and says it did not come from this tab', () => {
+        const state = flowPageRef(
+            'c',
+            { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'row', ids: [id(7)], back: PAGE, token: 't' },
+            null
+        ).state;
+        expect(readFlowState(state, memory())).toEqual({
+            grid: 'Consignments',
+            action: 'Reschedule_Pickup',
+            on: 'row',
+            ids: [id(7)],
+            back: PAGE,
+            token: 't',
+            fromThisTab: false
+        });
+        expect(readFlowState(state, null).fromThisTab).toBe(false);
+    });
+
+    it('takes the Ids from what this tab kept, not from the address', () => {
+        const store = memory();
+        store.setItem(STORE_PREFIX + 't', JSON.stringify({ ids: [id(1)], back: null }));
+        const run = readFlowState(
+            { c__grid: 'Consignments', c__action: 'Reschedule_Pickup', c__token: 't', c__ids: id(2) },
+            store
+        );
+        expect(run.ids).toEqual([id(1)]);
+        expect(run.fromThisTab).toBe(true);
+    });
+
+    it('refuses a web address as the way back, from the address or from session storage', () => {
+        const link = {
+            c__grid: 'Consignments',
+            c__action: 'Reschedule_Pickup',
+            c__token: 't',
+            c__ids: id(1),
+            c__back: JSON.stringify(WEB)
+        };
+        expect(readFlowState(link, memory()).back).toBeNull();
+        const store = memory();
+        store.setItem(STORE_PREFIX + 't', JSON.stringify({ ids: [id(1)], back: WEB }));
+        const run = readFlowState({ c__grid: 'Consignments', c__action: 'Reschedule_Pickup', c__token: 't' }, store);
+        expect(run.back).toBeNull();
+        expect(run.fromThisTab).toBe(true);
+    });
+
+    it('treats an entry it cannot use as no entry', () => {
+        const store = memory();
+        store.setItem(STORE_PREFIX + 't', JSON.stringify({ ids: id(1) }));
+        const run = readFlowState(
+            { c__grid: 'Consignments', c__action: 'Reschedule_Pickup', c__token: 't', c__ids: id(2) },
+            store
+        );
+        expect(run.ids).toEqual([id(2)]);
+        expect(run.fromThisTab).toBe(false);
+        store.setItem(STORE_PREFIX + 't', '{"ids":["a0B');
+        expect(
+            readFlowState({ c__grid: 'Consignments', c__action: 'Reschedule_Pickup', c__token: 't' }, store).error
+        ).toMatch(/not found in this browser tab/);
     });
 
     it('reads session storage for many Ids, and forgets them after', () => {
@@ -189,11 +356,26 @@ describe('what the page reads', () => {
             on: 'selection',
             ids,
             back: PAGE,
-            token: 't3'
+            token: 't3',
+            fromThisTab: true
         });
         forget('t3', store);
         expect(store.kept.size).toBe(0);
         expect(readFlowState(state, store).error).toMatch(/not found in this browser tab/);
+    });
+
+    it(`reads the address again once a hand-over of up to ${IDS_IN_URL} Ids is forgotten, without the way back`, () => {
+        const store = memory();
+        const state = flowPageRef(
+            'c',
+            { grid: 'Consignments', action: 'Reschedule_Pickup', on: 'row', ids: [id(7)], back: PAGE, token: 't4' },
+            store
+        ).state;
+        forget('t4', store);
+        const reloaded = readFlowState(state, store);
+        expect(reloaded.ids).toEqual([id(7)]);
+        expect(reloaded.back).toBeNull();
+        expect(reloaded.fromThisTab).toBe(false);
     });
 
     it('says what is missing, in words', () => {

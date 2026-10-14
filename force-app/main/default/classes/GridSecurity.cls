@@ -128,15 +128,89 @@ public with sharing class GridSecurity {
 
     // ---------------------------------------------------------------- actions
 
+    /** Rowhouse's own custom permissions, which FeatureManagement always answers for. */
+    private static final Set<String> OWN_PERMISSIONS = new Set<String>{
+        GridAdmin.PERMISSION.toLowerCase(),
+        GridException.DIAGNOSTICS.toLowerCase()
+    };
+    /** A custom permission's API name: Name, or ns__Name for another package's. */
+    private static final Pattern PERMISSION_NAME = Pattern.compile(
+        '^(?:([A-Za-z][A-Za-z0-9]*)__)?([A-Za-z][A-Za-z0-9_]{0,79})$'
+    );
+    /** What hasCustomPermission answered this transaction, by user and name. */
+    private static Map<String, Boolean> heldPermissions = new Map<String, Boolean>();
+    /** Tests: skip FeatureManagement, so that reading the user's assignments answers alone. */
+    @TestVisible
+    private static Boolean readAssignmentsOnly = false;
+
     /**
-     * Does the running user hold this custom permission? A blank name
-     * asks for nothing. An unknown name is false: FeatureManagement's answer
-     * (measured in a Developer Edition org). Every custom permission check in
-     * Rowhouse comes here: Rowhouse Grid Admin and Rowhouse Grid Diagnostics, and an
-     * action's own Required Permission.
+     * Does the running user hold this custom permission? A blank name asks
+     * for nothing; an unknown name is false. Every custom permission check in
+     * Rowhouse comes here: Rowhouse Grid Admin and Rowhouse Grid Diagnostics,
+     * and an action's own Required Permission.
+     *
+     * FeatureManagement answers for Rowhouse's own permissions and for another
+     * package's, named with its prefix. From the installed package it does not
+     * see the org's own custom permissions: it said false for one the user held
+     * (measured, 14 Oct 2026). So for a name it does not find, other than
+     * Rowhouse's own, the user's active permission set assignments are read in
+     * user mode (grantedByAssignment).
      */
     public static Boolean hasCustomPermission(String apiName) {
-        return String.isBlank(apiName) || FeatureManagement.checkPermission(apiName.trim());
+        if (String.isBlank(apiName)) {
+            return true;
+        }
+        String name = apiName.trim();
+        String key = UserInfo.getUserId() + ':' + name.toLowerCase();
+        Boolean held = heldPermissions.get(key);
+        if (held == null) {
+            held = !readAssignmentsOnly && FeatureManagement.checkPermission(name);
+            if (!held && !OWN_PERMISSIONS.contains(GridDescribe.withoutNamespace(name).toLowerCase())) {
+                held = grantedByAssignment(name);
+            }
+            heldPermissions.put(key, held);
+        }
+        return held;
+    }
+
+    /**
+     * Does a permission set, permission set group or profile the running user
+     * holds grant this custom permission? Read in user mode, which lets a user
+     * read their own: the custom permission of that name (the org's own, or
+     * with a prefix, that package's), and whether one of their active
+     * assignments grants it. An assignment of a session-based permission set
+     * that is not switched on does not count, nor does a permission muted in a
+     * group: measured, these gave the same answers as FeatureManagement for a
+     * user who held the permission, one who did not, and one whose group muted
+     * it. False on any failure.
+     */
+    private static Boolean grantedByAssignment(String name) {
+        Matcher m = PERMISSION_NAME.matcher(name);
+        if (!m.matches()) {
+            return false;
+        }
+        String prefix = m.group(1);
+        String own = String.isBlank(GridDescribe.NAMESPACE) ? null : GridDescribe.NAMESPACE;
+        try {
+            // A name without a prefix is the org's own, or Rowhouse's in its own build.
+            List<SObject> permissions = query(
+                'SELECT Id FROM CustomPermission WHERE DeveloperName = :name AND ' +
+                (prefix == null ? '(NamespacePrefix = null OR NamespacePrefix = :ns)' : 'NamespacePrefix = :ns'),
+                new Map<String, Object>{ 'name' => m.group(2), 'ns' => prefix == null ? own : prefix }
+            );
+            if (permissions.isEmpty()) {
+                return false;
+            }
+            Set<Id> ids = new Map<Id, SObject>(permissions).keySet();
+            return !query(
+                    'SELECT Id FROM SetupEntityAccess WHERE SetupEntityId IN :ids AND ParentId IN ' +
+                    '(SELECT PermissionSetId FROM PermissionSetAssignment WHERE AssigneeId = :me AND IsActive = true) LIMIT 1',
+                    new Map<String, Object>{ 'ids' => ids, 'me' => UserInfo.getUserId() }
+                )
+                .isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**

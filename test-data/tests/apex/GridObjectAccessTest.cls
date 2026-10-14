@@ -8,8 +8,9 @@
  *   limitedUser() cannot read Inspection__c (Freight_Limited_Access
  *   grants nothing on it). The Inspections grid is refused when it opens, when a
  *   page of its rows is read, when its groups are totalled and when its action
- *   (Inspections_Stamp, in test-data/config, which names no Required
- *   Permission) is run: the object check refuses it.
+ *   (Inspections_Stamp, in test-data/config, whose Required Permission,
+ *   Run_Freight_Actions, this user lacks too) is run: the object check
+ *   refuses it first.
  *   readOnlyUser() reads Consignment__c but may not edit or create
  *   (Freight_Read_Only). On Consignments, which allows editing, import
  *   and new records, a save, an import of updates and of new records and new

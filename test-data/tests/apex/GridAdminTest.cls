@@ -285,6 +285,39 @@ private class GridAdminTest {
     }
 
     @IsTest
+    static void aFlowOrApexActionCannotBeSavedWithoutARequiredPermission() {
+        System.runAs(GridTestUsers.adminUser()) {
+            GridAdmin.Draft d = newDraft('Open_Consignments');
+            for (String type : new List<String>{ 'Flow', 'Apex', 'QuickAction', 'ScreenFlow' }) {
+                GridAdmin.ActionDraft a = new GridAdmin.ActionDraft();
+                a.label = 'Reroute ' + type;
+                a.type = type;
+                a.actionName = type == 'QuickAction' ? 'LogACall' : 'Reroute_Consignment';
+                a.showIn = 'Row';
+                d.actions.add(a);
+            }
+            GridAdmin.ActionDraft off = new GridAdmin.ActionDraft();
+            off.label = 'Hold at depot';
+            off.type = 'Flow';
+            off.actionName = 'Hold_At_Depot';
+            off.inactive = true;
+            d.actions.add(off);
+            GridAdmin.Check result = GridAdmin.check(d);
+            System.assertEquals(
+                new List<String>{
+                    'Action "Reroute Flow": ' + GridActions.PERMISSION_NEEDED,
+                    'Action "Reroute Apex": ' + GridActions.PERMISSION_NEEDED
+                },
+                result.errors,
+                'A quick action, a screen flow and an action switched off may leave it blank.'
+            );
+            d.actions[0].requiredPermission = 'Run_Freight_Actions';
+            d.actions[1].requiredPermission = 'Run_Freight_Actions';
+            System.assertEquals(new List<String>(), GridAdmin.check(d).errors);
+        }
+    }
+
+    @IsTest
     static void aSaveDeploysEveryRecordWithEveryFieldNamedAfterTheGrid() {
         System.runAs(GridTestUsers.adminUser()) {
             GridAdmin.Draft d = newDraft('Open_Consignments');
@@ -302,6 +335,7 @@ private class GridAdminTest {
             a.type = 'Apex';
             a.actionName = 'AddDeliveryNoteAction';
             a.showIn = 'Both';
+            a.requiredPermission = 'Run_Freight_Actions';
             d.actions.add(a);
             GridAdmin.ChildDraft child = new GridAdmin.ChildDraft();
             child.childConfig = 'Consignment_Items';
@@ -349,6 +383,7 @@ private class GridAdminTest {
             System.assertEquals(true, valueOf(rule, 'Active__c'));
             Metadata.CustomMetadata action = sent.get('Grid_Action__mdt.Open_Consignments_Add_a_note');
             System.assertEquals('Add a note', action.label);
+            System.assertEquals('Run_Freight_Actions', valueOf(action, 'Required_Permission__c'));
             Metadata.CustomMetadata link = sent.get('Grid_Child__mdt.Open_Consignments_Items');
             System.assertEquals('Consignment_Items', valueOf(link, 'Child_Configuration__c'));
             System.assertEquals('Open_Consignments', valueOf(link, 'Grid_Configuration__c'));
@@ -431,6 +466,27 @@ private class GridAdminTest {
             System.assertEquals(
                 new List<String>{ 'Grid_Column__mdt.Consignments_Weight: Gross_Weight__c does not exist.' },
                 second.get('messages')
+            );
+        }
+    }
+
+    @IsTest
+    static void aRefusalForWantOfTheSecurityReviewIsSaidPlainly() {
+        User admin = GridTestUsers.adminUser();
+        System.runAs(admin) {
+            String refusal = 'Deploying metadata from Apex is not allowed for a non-certified package version.';
+            System.assertEquals(GridAdmin.NOT_CERTIFIED, GridAdmin.explained(new GridException(refusal)).getMessage());
+            Exception other = new GridException('Too many queued deployments.');
+            System.assertEquals(other, GridAdmin.explained(other), 'Any other failure as it came.');
+
+            Metadata.DeployResult failed = new Metadata.DeployResult();
+            failed.id = '0Afhk0000000004';
+            failed.status = Metadata.DeployStatus.Failed;
+            failed.errorMessage = refusal;
+            new GridAdminDeploy(admin.Id).handleResult(failed, null);
+            System.assertEquals(
+                new List<String>{ GridAdmin.NOT_CERTIFIED },
+                GridAdmin.saveStatus(String.valueOf(failed.id)).get('messages')
             );
         }
     }

@@ -41,6 +41,11 @@ public with sharing class GridAdminDeploy implements Metadata.DeployCallback {
                         : result.errorMessage
                 );
             }
+            for (Integer i = 0; i < messages.size(); i++) {
+                if (messages[i].containsIgnoreCase('certified')) {
+                    messages[i] = GridAdmin.NOT_CERTIFIED; // the security review, in plain words
+                }
+            }
         }
         return new Grid_Save_Result__c(
             Name = ('Admin ' + jobId).left(80),

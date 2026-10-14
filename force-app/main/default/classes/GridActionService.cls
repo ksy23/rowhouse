@@ -10,7 +10,8 @@
  *   it must be a kind that runs on the server, and offered for a selection if
  *   the request holds more than one record;
  *   the user must be able to read the object, and hold the action's custom
- *   permission when it names one (GridSecurity);
+ *   permission (GridSecurity), which an autolaunched flow or Apex action
+ *   always names (GridActions);
  *   the request holds at most MAX_IDS Ids, every one a record of the grid's
  *   object. One that is not refuses the whole request, as for a delete.
  * Records the user cannot see (sharing), or that were deleted, are not run and
@@ -36,9 +37,10 @@
  * The action runs with the access its own settings give it. From Apex the
  * platform does not check the user's access to the flow or the Apex class,
  * and a flow in its default run mode ran in system context: it wrote a field
- * the user could not edit (measured). A Grid Action's Required Permission is
- * how an admin limits one; Rowhouse checks the object, the records and that
- * permission.
+ * the user could not edit (measured). So an autolaunched flow or Apex action
+ * must name a Required Permission (GridActions skips one that does not), and
+ * runs only for users who hold it; a quick action may. Rowhouse checks the
+ * object, the records and that permission.
  *
  * AUDIT TRAIL
  * In a grid that logs its changes the user must be able to write the log

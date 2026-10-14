@@ -247,7 +247,8 @@ public with sharing class GridController {
      * page names only the grid and the action; which flow runs, and whether
      * this user may run it at all (its custom permission), is the
      * configuration's, as for every action. Throws for an action the
-     * grid does not offer this user, or one that is not a screen flow.
+     * grid does not offer this user, or one that is not a screen flow; the
+     * message does not repeat the name, which came from the page's address.
      */
     @AuraEnabled
     public static Map<String, Object> screenFlow(String configName, String actionName) {
@@ -264,7 +265,7 @@ public with sharing class GridController {
                     };
                 }
             }
-            throw new GridException('This grid has no screen flow called "' + actionName + '" that you can run.');
+            throw new GridException('This grid has no screen flow of that name that you can run.');
         } catch (Exception e) {
             throw auraError(e);
         }

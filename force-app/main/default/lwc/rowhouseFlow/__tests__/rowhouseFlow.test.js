@@ -2,7 +2,8 @@
  * The page a screen-flow action runs on: it reads what the grid sent,
  * asks the server which flow that is, runs it with the row's Id or the
  * selected Ids, and goes back to the grid, marked, when it finishes or is
- * left.
+ * left. A run a grid in this tab sent starts at once; one opened from a link
+ * asks first, and never goes back to anything but a Salesforce page.
  */
 import { createElement } from 'lwc';
 import RowhouseFlow from 'c/rowhouseFlow';
@@ -38,6 +39,7 @@ const BACK = {
     attributes: { apiName: 'Rowhouse_Dev' },
     state: { c__grid: 'Consignments' }
 };
+const WEB = { type: 'standard__webPage', attributes: { url: 'https://granite-coast-login.net/verify' } };
 const NOTE = {
     name: 'Add_Note',
     label: 'Add a note',
@@ -46,15 +48,23 @@ const NOTE = {
     onRow: true,
     onSelection: true
 };
+/** The address a grid sends: the Ids (up to 20) and the token; the way back stays in the tab. */
 const rowState = (extra = {}) => ({
     c__grid: 'Consignments',
     c__action: 'Add_Note',
     c__on: 'row',
     c__token: 'tok1',
     c__ids: ID,
-    c__back: JSON.stringify(BACK),
     ...extra
 });
+/** A run a grid in this tab sent: its hand-over is in the tab's session storage. */
+const fromThisTab = (extra = {}, entry = { ids: [ID], back: BACK }) => {
+    const state = rowState(extra);
+    sessionStorage.setItem(STORE_PREFIX + state.c__token, JSON.stringify(entry));
+    return state;
+};
+/** A link from somewhere else: everything in the address, nothing in this tab. */
+const fromLink = (back = BACK, extra = {}) => rowState({ c__back: JSON.stringify(back), ...extra });
 
 const settle = async () => {
     for (let i = 0; i < 10; i++) {
@@ -87,14 +97,16 @@ afterEach(() => {
 });
 
 describe('running the flow', () => {
-    it("asks the server which flow, and runs it with the row's Id under the action's label", async () => {
-        await mount(rowState());
+    it("asks the server which flow, and starts it at once, with the row's Id, when a grid in this tab sent it", async () => {
+        await mount(fromThisTab());
         expect(screenFlow).toHaveBeenCalledWith({ configName: 'Consignments', actionName: 'Add_Note' });
         expect($('h1').textContent).toBe('Add a note');
         expect($('.rh-flow-rows').textContent).toBe('On one row');
+        expect($('.rh-flow-run')).toBeNull(); // no question asked
         const flow = $('lightning-flow');
         expect(flow.flowApiName).toBe('Add_Delivery_Note');
         expect(flow.flowInputVariables).toEqual([{ name: 'recordId', type: 'String', value: ID }]);
+        expect(sessionStorage.getItem(STORE_PREFIX + 'tok1')).toBeNull(); // read once, then forgotten
     });
 
     it('runs on a selection with the Ids as the text collection ids, from session storage when there are many', async () => {
@@ -113,7 +125,7 @@ describe('running the flow', () => {
                 release = resolve;
             })
         );
-        await mount(rowState());
+        await mount(fromThisTab());
         expect($('lightning-spinner')).not.toBeNull();
         expect($('lightning-flow')).toBeNull();
         release(NOTE);
@@ -123,9 +135,89 @@ describe('running the flow', () => {
     });
 });
 
+describe('opened from a link', () => {
+    it("asks first, under the action's name and its rows, with Run focused, once the server has named the flow", async () => {
+        await mount(fromLink());
+        expect(screenFlow).toHaveBeenCalledWith({ configName: 'Consignments', actionName: 'Add_Note' });
+        expect($('lightning-flow')).toBeNull();
+        expect($('h1').textContent).toBe('Add a note');
+        expect($('.rh-flow-rows').textContent).toBe('On one row');
+        expect($('.rh-flow-confirm p').textContent).toBe(
+            'This page was opened from a link, so it asks before running the flow.'
+        );
+        const run = $('.rh-flow-run');
+        expect(run.textContent).toBe('Run');
+        expect(run.classList).toContain('slds-button_brand');
+        expect($('.rh-flow-confirm-cancel').textContent).toBe('Cancel');
+        expect($('.rh-flow-cancel')).toBeNull(); // one Cancel, beside Run
+        expect(el.shadowRoot.activeElement).toBe(run);
+        expect(run.getAttribute('aria-describedby')).toBe($('.rh-flow-confirm p').getAttribute('id'));
+        await expect(el).toBeAccessible();
+    });
+
+    it('asks on a reload too, once the hand-over has been read', async () => {
+        const state = fromThisTab();
+        await mount(state);
+        expect($('lightning-flow')).not.toBeNull();
+        el.remove();
+        await mount(state); // the same address, reloaded: this tab no longer holds its hand-over
+        expect($('lightning-flow')).toBeNull();
+        expect($('.rh-flow-run')).not.toBeNull();
+    });
+
+    it('starts the flow on Run', async () => {
+        await mount(fromLink());
+        $('.rh-flow-run').click();
+        await settle();
+        expect($('.rh-flow-run')).toBeNull();
+        const flow = $('lightning-flow');
+        expect(flow.flowApiName).toBe('Add_Delivery_Note');
+        expect(flow.flowInputVariables).toEqual([{ name: 'recordId', type: 'String', value: ID }]);
+        expect($('.rh-flow-cancel')).not.toBeNull(); // the header's Cancel is back
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("goes back to the grid's Salesforce page on Cancel, without running anything", async () => {
+        await mount(fromLink());
+        $('.rh-flow-confirm-cancel').click();
+        await settle();
+        expect($('lightning-flow')).toBeNull();
+        expect(mockNavigate).toHaveBeenCalledWith({ ...BACK, state: { ...BACK.state, c__flowDone: 'tok1' } });
+    });
+
+    it("never goes to a web address it was given: Cancel goes back in the browser's history", async () => {
+        const back = jest.spyOn(window.history, 'back').mockImplementation(() => {});
+        await mount(fromLink(WEB));
+        $('.rh-flow-confirm-cancel').click();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(back).toHaveBeenCalledTimes(1);
+        back.mockRestore();
+    });
+
+    it('never goes to a web address it was given: nor when the flow finishes', async () => {
+        const back = jest.spyOn(window.history, 'back').mockImplementation(() => {});
+        await mount(fromLink(WEB));
+        $('.rh-flow-run').click();
+        await settle();
+        $('lightning-flow').dispatchEvent(new CustomEvent('statuschange', { detail: { status: 'FINISHED' } }));
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(back).toHaveBeenCalledTimes(1);
+        back.mockRestore();
+    });
+
+    it('does not ask when the server refuses the action: it says why', async () => {
+        screenFlow.mockRejectedValue({
+            body: { message: 'This grid has no screen flow of that name that you can run.' }
+        });
+        await mount(fromLink());
+        expect($('.rh-flow-run')).toBeNull();
+        expect($('.rh-flow-error').textContent).toContain('no screen flow of that name');
+    });
+});
+
 describe('going back to the grid', () => {
     it('says the flow finished, once, and goes back to the grid marked with the token', async () => {
-        await mount(rowState());
+        await mount(fromThisTab());
         const flow = $('lightning-flow');
         flow.dispatchEvent(new CustomEvent('statuschange', { detail: { status: 'STARTED' } }));
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -137,7 +229,7 @@ describe('going back to the grid', () => {
     });
 
     it('goes back without finishing on Cancel, marked too, so the grid reads the row again', async () => {
-        await mount(rowState());
+        await mount(fromThisTab());
         $('.rh-flow-cancel').click();
         expect(toasts).toEqual([]);
         expect(mockNavigate).toHaveBeenCalledWith({ ...BACK, state: { ...BACK.state, c__flowDone: 'tok1' } });
@@ -145,10 +237,20 @@ describe('going back to the grid', () => {
 
     it("goes back in the browser's history when it was not told the way", async () => {
         const back = jest.spyOn(window.history, 'back').mockImplementation(() => {});
-        await mount(rowState({ c__back: undefined }));
+        await mount(fromThisTab({}, { ids: [ID], back: null }));
         $('.rh-flow-cancel').click();
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(back).toHaveBeenCalled();
+        back.mockRestore();
+    });
+
+    it("goes back in the browser's history when this tab kept a web address as the way back", async () => {
+        const back = jest.spyOn(window.history, 'back').mockImplementation(() => {});
+        await mount(fromThisTab({}, { ids: [ID], back: WEB }));
+        expect($('lightning-flow')).not.toBeNull();
+        $('.rh-flow-cancel').click();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(back).toHaveBeenCalledTimes(1);
         back.mockRestore();
     });
 });
@@ -156,16 +258,16 @@ describe('going back to the grid', () => {
 describe('what it will not run', () => {
     it('says why when the grid has no such screen flow for this user', async () => {
         screenFlow.mockRejectedValue({
-            body: { message: 'This grid has no screen flow called "Consignment_Rerate" that you can run.' }
+            body: { message: 'This grid has no screen flow of that name that you can run.' }
         });
-        await mount(rowState({ c__action: 'Consignment_Rerate' }));
-        expect($('.rh-flow-error').textContent).toContain('no screen flow called "Consignment_Rerate"');
+        await mount(fromThisTab({ c__action: 'Consignment_Rerate' }));
+        expect($('.rh-flow-error').textContent).toContain('no screen flow of that name');
         expect($('lightning-flow')).toBeNull();
     });
 
     it('will not run a row-only action on a selection', async () => {
         screenFlow.mockResolvedValue({ ...NOTE, onSelection: false });
-        await mount(rowState({ c__on: 'selection' }));
+        await mount(fromThisTab({ c__on: 'selection' }));
         expect($('.rh-flow-error h2').textContent).toBe('Add a note does not run on selected rows in this grid.');
     });
 

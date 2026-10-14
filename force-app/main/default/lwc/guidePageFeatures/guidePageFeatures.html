@@ -318,7 +318,8 @@
             </ul>
             <ul class="rh-tick">
               <li><b>Buttons, or one menu.</b> With up to three selection actions, each is a button; with four or more, they are all in one Actions menu.</li>
-              <li><b>Limit who can run it</b> with a Required Permission. Rowhouse checks that the user can read the object and the records; it does not check access to the flow or class itself.</li>
+              <li id="action-permission" data-anchor="action-permission"><b>Who can run it.</b> An autolaunched flow or Apex action needs a <b>Required Permission</b>: it runs with the access the flow or class gives it, which can be more than the user's own. Create a custom permission (Setup, Custom Permissions), add it to a permission set the right people hold, and enter its API name. A screen flow or quick action may have one too, to limit who sees it.</li>
+              <li><b>A screen flow from a link.</b> Its page starts the flow at once when a grid in the same browser tab sent it. Opened any other way, from a link or a reload, it names the action and its rows and asks first: <b>Cancel</b> or <b>Run</b>. It only ever goes back to a Salesforce page.</li>
               <li><b>Large selections</b> run 50 records per call, one call after another.</li>
             </ul>
           </div>

@@ -446,7 +446,7 @@ describe('a screen flow, on its own page', () => {
         sessionStorage.clear();
     });
 
-    it('goes to the flow page from a row, naming the grid, the action, the row and the way back', async () => {
+    it('goes to the flow page from a row, naming the grid, the action and the row; the way back stays in the tab', async () => {
         const el = mount();
         await settle();
         // eslint-disable-next-line @lwc/lwc/no-unexpected-wire-adapter-usages -- the test adapter's emit
@@ -464,8 +464,13 @@ describe('a screen flow, on its own page', () => {
             c__on: 'row',
             c__ids: row(3).Id
         });
-        expect(JSON.parse(ref.state.c__back)).toEqual(PAGE);
         expect(ref.state.c__token).toMatch(/^[a-z0-9]{8,}$/);
+        // The way back is kept in this tab, never put in the address, where a link could carry any page.
+        expect(ref.state.c__back).toBeUndefined();
+        expect(JSON.parse(sessionStorage.getItem(STORE_PREFIX + ref.state.c__token))).toEqual({
+            ids: [row(3).Id],
+            back: PAGE
+        });
         // The flow is the server's to name (GridController.screenFlow), never the address's.
         expect(JSON.stringify(ref)).not.toContain('Add_Delivery_Note');
     });

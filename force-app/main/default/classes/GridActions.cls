@@ -11,12 +11,26 @@
  * describe for every action on every page load is not free, and the platform
  * answers "Action name not found" when one is run.
  *
+ * An autolaunched flow or an Apex action must name a Required Permission.
+ * Started from Apex, it runs with the access the flow or class gives it: the
+ * platform does not check the user's access to it, and a flow in its default
+ * mode ran in system context, writing a field the user could not edit
+ * (measured). So one without a permission is skipped, and only users who hold
+ * the permission the admin chose see it or can run it. A screen flow runs in
+ * the browser under the user's own access, and a quick action through
+ * Salesforce's own; for those the permission is optional.
+ *
  * GridActionService runs the server's kinds; a screen flow runs in the
  * browser, in lightning-flow.
  */
 public with sharing class GridActions {
     /** The Action Type picklist's values, lower-cased, as the grid names them. */
     public static final Set<String> TYPES = new Set<String>{ 'screenflow', 'flow', 'apex', 'quickaction' };
+
+    /** Why an autolaunched flow or Apex action without a Required Permission is not offered. */
+    public static final String PERMISSION_NEEDED =
+        'an autolaunched flow or Apex action needs a Required Permission: it runs with the access the flow ' +
+        'or class gives it, which can be more than the user\'s own.';
 
     /** A flow's or class's API name, with an optional namespace: Name, ns__Name. */
     private static final Pattern API_NAME = Pattern.compile('^[A-Za-z][A-Za-z0-9_]{0,254}$');
@@ -64,7 +78,7 @@ public with sharing class GridActions {
         return out;
     }
 
-    /** May this user run the action? Only its custom permission, if it names one, decides here. */
+    /** May this user run the action? Only its custom permission, if it names one, decides here (GridSecurity). */
     public static Boolean canRun(GridConfig.Action a) {
         return GridSecurity.hasCustomPermission(a.requiredPermission);
     }
@@ -120,6 +134,9 @@ public with sharing class GridActions {
             throw new GridException('Required Permission "' + permission + '" is not an API name.');
         }
         a.requiredPermission = permission;
+        if (permission == null && (a.type == 'flow' || a.type == 'apex')) {
+            throw new GridException(PERMISSION_NEEDED);
+        }
         if (a.type == 'screenflow') {
             // The browser runs a screen flow (lightning-flow), so it needs both.
             a.flowName = a.actionName;

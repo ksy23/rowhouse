@@ -217,7 +217,7 @@
       <tr><td>Invocable Apex action</td><td class="d">CaseEscalation</td><td>Each record's Id, as text, in the action's only input</td><td>On the server, 50 records per call</td></tr>
       <tr><td>Quick action</td><td class="d">LogACall, or Object.ActionName</td><td>Each record's Id in <code>contextId</code></td><td>On the server, 50 records per call</td></tr>
     </tbody></table></div>
-  <div class="call w" style="margin-top:16px"><span class="k">Access</span><p>Rowhouse checks that the user can read the object and the records, and holds the action's Required Permission if it has one. It does not check the user's access to the flow or Apex class itself, and an autolaunched flow runs in system context by default. To limit who can run an action, give it a Required Permission (a custom permission); to make a flow respect field access, set it to run in user context.</p></div>
+  <div class="call w" style="margin-top:16px"><span class="k">Access</span><p>Rowhouse checks that the user can read the object and the records, and holds the action's Required Permission. Salesforce does not check the user's access to a flow or Apex class that Rowhouse runs, and an autolaunched flow runs in system context by default. So an <b>autolaunched flow</b> or an <b>Apex action</b> must name a Required Permission, a custom permission held by the people who may run it; without one it is not offered, and the Grid Admin tab will not save it. A screen flow and a quick action run with the user's own access, and the permission is optional. To make a flow respect field access too, set it to run in user context.</p></div>
 </section>
 
 <section id="celltypes">

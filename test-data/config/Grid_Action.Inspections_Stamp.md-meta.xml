@@ -10,4 +10,5 @@
     <values><field>Action_Name__c</field><value xsi:type="xsd:string">ConsignmentStampAction</value></values>
     <values><field>Show_In__c</field><value xsi:type="xsd:string">Both</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">10</value></values>
+    <values><field>Required_Permission__c</field><value xsi:type="xsd:string">Run_Freight_Actions</value></values>
 </CustomMetadata>

@@ -840,6 +840,14 @@ public with sharing class GridAdmin {
             } else if (a.label.trim().length() > MAX_NAME) {
                 result.errors.add('Action "' + a.label.trim() + '": its label is ' + MAX_NAME + ' characters at most.');
             }
+            String type = String.isBlank(a.type) ? '' : a.type.trim().toLowerCase();
+            if ((type == 'flow' || type == 'apex') && a.inactive != true && String.isBlank(a.requiredPermission)) {
+                result.errors.add(
+                    (String.isBlank(a.label) ? 'Action ' + (i + 1) : 'Action "' + a.label.trim() + '"') +
+                        ': ' +
+                        GridActions.PERMISSION_NEEDED
+                );
+            }
         }
         for (Integer i = 0; i < d.children.size(); i++) {
             ChildDraft ch = d.children[i];
@@ -1205,8 +1213,31 @@ public with sharing class GridAdmin {
 
     private class PlatformDeployer implements Deployer {
         public Id deploy(Metadata.DeployContainer container, Metadata.DeployCallback callback) {
-            return Metadata.Operations.enqueueDeployment(container, callback);
+            try {
+                return Metadata.Operations.enqueueDeployment(container, callback);
+            } catch (Exception e) {
+                throw explained(e);
+            }
         }
+    }
+
+    /**
+     * What a save says when Salesforce refuses it because the package has not
+     * yet passed its security review. Salesforce's documentation says an
+     * uncertified package's Apex may deploy metadata only with this setting
+     * on; a Developer Edition and a scratch org allowed it with the setting
+     * off (measured, 14 Oct 2026), so it is a production org's message.
+     */
+    public static final String NOT_CERTIFIED =
+        'Salesforce did not let Rowhouse save it. In this org, a package that has not yet passed Salesforce\'s ' +
+        'security review saves settings only with Deploy Metadata from Non-Certified Package Versions via Apex ' +
+        'turned on: in Setup, Apex Settings.';
+
+    /** A refusal for want of the security review, in plain words; anything else as it came. */
+    @TestVisible
+    private static Exception explained(Exception e) {
+        String message = e == null ? null : e.getMessage();
+        return message != null && message.containsIgnoreCase('certified') ? new GridException(NOT_CERTIFIED) : e;
     }
 
     // Not named after its type: Apex names are case-insensitive.

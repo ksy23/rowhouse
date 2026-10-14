@@ -4,6 +4,12 @@
     <description>DEVELOPMENT ONLY. Full access to the development objects and fields for the user the Apex suite's non-access checks run as (GridTestUsers.fullUser), so the suite passes in a fresh org. Never used by the access checks.</description>
     <hasActivationRequired>false</hasActivationRequired>
 
+    <!-- The fixture grids' flow and Apex actions require it (Grid Action Required Permission). -->
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>Run_Freight_Actions</name>
+    </customPermissions>
+
     <objectPermissions>
         <object>Consignment__c</object>
         <allowCreate>true</allowCreate>

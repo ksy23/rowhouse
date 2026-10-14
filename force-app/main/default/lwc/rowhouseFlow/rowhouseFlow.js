@@ -13,10 +13,16 @@
  * run it (GridController.screenFlow), then runs it, as the user, with the
  * row's Id or the selected Ids as its inputs, as before.
  *
+ * A run that a grid in this browser tab sent (its hand-over is in the tab's
+ * session storage) starts at once. Any other, a link from somewhere else or a
+ * reload, asks first: the action's name, its rows, and Cancel or Run. So a
+ * crafted link cannot start an admin's flow on rows someone else chose.
+ *
  * When the flow finishes, the page says so in a toast and goes back to the
  * grid, which reads those rows again. Cancel goes back without waiting; the
  * grid reads the rows again then too, since a screen finished before Cancel
- * may already have saved something.
+ * may already have saved something. The way back is only ever a Salesforce
+ * page (gridFlowRoute.safeBack); without one, the browser goes back.
  *
  * Exposed only so Lightning can open it (HR-2 as amended for), with no
  * @api member.
@@ -25,7 +31,7 @@ import { LightningElement, wire } from 'lwc';
 import { CurrentPageReference, NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import screenFlow from '@salesforce/apex/GridController.screenFlow';
-import { namespaceOf, readFlowState, forget, withDone, flowInputs } from 'c/gridFlowRoute';
+import { namespaceOf, readFlowState, forget, withDone, flowInputs, safeBack } from 'c/gridFlowRoute';
 
 /** lightning-flow's statuses when the flow is done. */
 const FINISHED = new Set(['FINISHED', 'FINISHED_SCREEN']);
@@ -51,9 +57,13 @@ export default class RowhouseFlow extends NavigationMixin(LightningElement) {
     inputs = [];
     error = '';
     loading = true;
+    /** A run from a link, not from a grid in this tab: Cancel or Run before the flow starts. */
+    confirming = false;
 
-    // Non-reactive (HR-20): the run being shown, and whether it has gone back.
-    _run = { key: null, value: null, done: false };
+    // Non-reactive (HR-20): the run being shown, whether it has gone back, and
+    // the flow a confirmed run starts; and whether Run is still to take focus.
+    _run = { key: null, value: null, done: false, flowName: '' };
+    _layout = { focusRun: false };
 
     @wire(CurrentPageReference)
     setPageReference(ref) {
@@ -64,11 +74,23 @@ export default class RowhouseFlow extends NavigationMixin(LightningElement) {
         this.start(state);
     }
 
+    renderedCallback() {
+        if (!this._layout.focusRun) return;
+        const run = this.template.querySelector('.rh-flow-run');
+        if (run) {
+            this._layout.focusRun = false;
+            run.focus();
+        }
+    }
+
     async start(state) {
         this.loading = true;
         this.error = '';
         this.flowName = '';
+        this.confirming = false;
         this._run.done = false;
+        this._run.flowName = '';
+        this._layout.focusRun = false;
         const store = sessionStore();
         const run = readFlowState(state, store);
         if (run.error) {
@@ -89,7 +111,14 @@ export default class RowhouseFlow extends NavigationMixin(LightningElement) {
                 );
             this.title = action.label;
             this.inputs = flowInputs(action, run);
-            this.flowName = action.flowName;
+            if (run.fromThisTab) {
+                this.flowName = action.flowName;
+            } else {
+                // Opened from a link: ask before the flow starts (Run, or Cancel).
+                this._run.flowName = action.flowName;
+                this._layout.focusRun = true;
+                this.confirming = true;
+            }
         } catch (e) {
             if (this._run.value !== run) return;
             this.error = messageOf(e);
@@ -100,6 +129,18 @@ export default class RowhouseFlow extends NavigationMixin(LightningElement) {
 
     get showFlow() {
         return Boolean(this.flowName) && !this.error;
+    }
+
+    /** The header's Cancel; while the page asks, its own Cancel sits beside Run. */
+    get showHeaderCancel() {
+        return !this.confirming;
+    }
+
+    /** Run, when the page asked first: start the flow the server named. */
+    handleRun() {
+        if (!this.confirming || this._run.done) return;
+        this.confirming = false;
+        this.flowName = this._run.flowName;
     }
 
     get rowsText() {
@@ -123,13 +164,16 @@ export default class RowhouseFlow extends NavigationMixin(LightningElement) {
         this.goBack();
     }
 
-    /** To the grid's page, marked with this run's token; or back in the browser's history. */
+    /**
+     * To the grid's page, marked with this run's token; or back in the
+     * browser's history. Only a Salesforce page is ever navigated to (safeBack).
+     */
     goBack() {
         if (this._run.done) return;
         this._run.done = true;
         const run = this._run.value;
         const ns = namespaceOf(this.template.host);
-        const back = run ? withDone(run.back, ns, run.token) : null;
+        const back = run ? safeBack(withDone(run.back, ns, run.token)) : null;
         if (back) {
             this[NavigationMixin.Navigate](back);
         } else if (typeof window !== 'undefined' && window.history) {

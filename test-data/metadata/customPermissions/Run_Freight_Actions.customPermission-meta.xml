@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>DEVELOPMENT ONLY. The Required Permission of the fixture grids' autolaunched flow and Apex actions, as an admin's own custom permission would be. Granted by Freight Full Access.</description>
+    <isLicensed>false</isLicensed>
+    <label>Run Freight Actions</label>
+</CustomPermission>

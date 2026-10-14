@@ -880,6 +880,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 confirmationLabel: `Question before ${name} runs`,
                 requiredPermission: a.requiredPermission || '',
                 permissionLabel: `Custom permission ${name} needs`,
+                // An autolaunched flow or Apex action must name one (GridActions.PERMISSION_NEEDED).
+                permissionHint: a.type === 'Flow' || a.type === 'Apex' ? 'Required' : 'Anyone',
                 on: !a.inactive,
                 onLabel: `Offer ${name}`,
                 rowClass: a.inactive ? 'rh-entry rh-entry_off' : 'rh-entry',
