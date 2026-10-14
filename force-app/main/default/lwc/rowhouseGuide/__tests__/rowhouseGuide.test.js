@@ -51,6 +51,23 @@ const $ = s => el.shadowRoot.querySelector(s);
 const $$ = s => [...el.shadowRoot.querySelectorAll(s)];
 const navLabels = () => $$('.rh-guide-nav-link').map(a => a.textContent);
 
+/** The <style> elements of components no longer in the document (see "is accessible"). */
+function staleStylesheets() {
+    const live = new Set();
+    const walk = root =>
+        root.querySelectorAll('*').forEach(e => {
+            e.getAttributeNames()
+                .filter(a => a.endsWith('-host'))
+                .forEach(a => live.add(a.slice(0, -'-host'.length)));
+            if (e.shadowRoot) walk(e.shadowRoot);
+        });
+    walk(document.body);
+    return [...document.head.querySelectorAll('style')].filter(s => {
+        const scope = s.textContent.match(/\[(lwc-[a-z0-9]+)-host\]/);
+        return scope && !live.has(scope[1]);
+    });
+}
+
 let scrolled;
 beforeEach(() => {
     scrolled = [];
@@ -141,10 +158,21 @@ describe('moving around', () => {
         expect(scrolled.some(s => s.getAttribute('data-anchor') === 'faq')).toBe(true);
     });
 
-    // The Tutorials page is the guide's largest, and checking all of it takes
-    // about 40 seconds on a laptop and more than twice that on a GitHub runner.
+    // jsdom works out each element's style against every stylesheet in the
+    // document, and LWC leaves a component's stylesheet behind after the
+    // component is gone. By this test the guide's 115 KB stylesheet is there
+    // once for every page the suite has opened, which made axe's style checks
+    // take about three minutes on a GitHub runner. The copies left by
+    // components no longer on the page are scoped to them and match nothing,
+    // so they are set aside while axe runs and put back afterwards.
     it('is accessible', async () => {
         await open({ c__page: 'tutorials' });
-        await expect(el).toBeAccessible();
-    }, 180000);
+        const stale = staleStylesheets();
+        stale.forEach(s => s.remove());
+        try {
+            await expect(el).toBeAccessible();
+        } finally {
+            stale.forEach(s => document.head.appendChild(s));
+        }
+    });
 });
