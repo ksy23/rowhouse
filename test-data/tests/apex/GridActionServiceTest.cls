@@ -382,16 +382,129 @@ private class GridActionServiceTest {
     }
 
     @IsTest
-    static void looksForAPlainNameAsWrittenThenWithoutANamespaceThenInRowhouses() {
+    static void triesAPlainNameAsWrittenFirstAndANamespacedOneOnlyAsWritten() {
         // From the installed package a plain name is looked for in Rowhouse's
-        // namespace (measured), so the org's own actions are looked for again.
-        List<GridActionService.Place> plain = GridActionService.placesFor('Mark_Consignment_Reviewed');
-        System.assertEquals(String.isBlank(GridDescribe.NAMESPACE) ? 3 : 4, plain.size());
-        System.assertEquals(false, plain[0].withNamespace, 'First as written.');
-        System.assertEquals('', plain[1].namespace);
-        System.assertEquals(null, plain[2].namespace);
-        List<GridActionService.Place> prefixed = GridActionService.placesFor('cargo_ops__Mark_Reviewed');
-        System.assertEquals(1, prefixed.size(), 'A name with its own namespace is looked for as written.');
+        // namespace (measured), so the org's own actions are looked for other ways.
+        GridConfig.Action flow = new GridConfig.Action();
+        flow.type = 'flow';
+        flow.actionName = 'Mark_Consignment_Reviewed';
+        List<GridActionService.Way> ways = GridActionService.waysFor(flow);
+        System.assertEquals('as written', ways[0].label);
+        System.assertEquals(false, ways[0].withNamespace, 'First as written.');
+        System.assert(howsOf(ways).contains('interview'), 'A flow is also tried as a flow interview.');
+        flow.actionName = 'cargo_ops__Mark_Reviewed';
+        System.assertEquals(1, GridActionService.waysFor(flow).size(), 'A name with its own namespace: as written.');
+        GridConfig.Action call = new GridConfig.Action();
+        call.type = 'quickaction';
+        call.actionName = 'LogACall';
+        System.assert(howsOf(GridActionService.waysFor(call)).contains('quickaction'));
+    }
+
+    private static Set<String> howsOf(List<GridActionService.Way> ways) {
+        Set<String> out = new Set<String>();
+        for (GridActionService.Way w : ways) {
+            out.add(w.how);
+        }
+        return out;
+    }
+
+    private static GridActionService.Way wayOf(GridConfig.Action action, String how, Boolean withNamespace) {
+        for (GridActionService.Way w : GridActionService.waysFor(action)) {
+            if (w.how == how && w.withNamespace == withNamespace) {
+                return w;
+            }
+        }
+        return null;
+    }
+
+    @IsTest
+    static void aFlowRunsAsAFlowInterviewAndAQuickActionThroughQuickAction() {
+        System.runAs(GridTestUsers.fullUser()) {
+            List<Consignment__c> recs = newRecords(new List<String>{ 'Paper rolls, Augusta', FAIL_ME });
+            GridConfig.Action flow = new GridConfig.Action();
+            flow.type = 'flow';
+            flow.actionName = 'Mark_Consignment_Reviewed';
+            GridActionService.Outcome ran = GridActionService.runWay(
+                wayOf(flow, 'interview', false),
+                flow,
+                'recordId',
+                idsOf(recs)
+            );
+            // In the package's build org the flow is Rowhouse's own, in its namespace:
+            // what a plain name finds there is not what an installed org's would.
+            if (String.isBlank(GridDescribe.NAMESPACE)) {
+                System.assert(ran.found, ran.note);
+                System.assertEquals(
+                    new Set<Id>{ recs[1].Id },
+                    ran.failures.keySet(),
+                    'An interview that fails, fails alone.'
+                );
+                System.assertEquals('Reviewed by dispatch', textsOf(recs).get(recs[0].Id));
+            }
+
+            GridConfig.Action call = new GridConfig.Action();
+            call.type = 'quickaction';
+            call.actionName = 'LogACall';
+            GridActionService.Outcome logged = GridActionService.runWay(
+                wayOf(call, 'quickaction', false),
+                call,
+                'contextId',
+                new List<Id>{ recs[0].Id }
+            );
+            if (String.isBlank(GridDescribe.NAMESPACE)) {
+                System.assert(logged.found, 'QuickAction finds Log a Call: ' + logged.note);
+            }
+        }
+    }
+
+    @IsTest
+    static void aDiagnosticsUserSeesWhatEachWayDidAndNothingIsKept() {
+        System.runAs(GridTestUsers.diagnosticsUser()) {
+            List<Consignment__c> recs = newRecords(new List<String>{ 'Bonded cargo, Portland' });
+            GridConfig.Action flow = new GridConfig.Action();
+            flow.type = 'flow';
+            flow.actionName = 'Mark_Consignment_Reviewed';
+            GridActionService.Outcome o = GridActionService.probe(
+                flow,
+                'recordId',
+                idsOf(recs),
+                GridActionService.waysFor(flow),
+                new List<String>{ 'as written: not tried' }
+            );
+            String report = o.failures.get(recs[0].Id);
+            System.assert(o.probe);
+            System.assert(report.startsWith('Probe, nothing kept.'), report);
+            System.assert(report.contains(': RAN'), 'At least one way finds the flow: ' + report);
+            System.assertEquals('Wachusett Paper', textsOf(recs).get(recs[0].Id), 'The probe undoes every run.');
+
+            GridConfig.Action apex = new GridConfig.Action();
+            apex.type = 'apex';
+            apex.actionName = 'ConsignmentStampAction';
+            report = GridActionService.probe(
+                    apex,
+                    'recordIds',
+                    idsOf(recs),
+                    GridActionService.waysFor(apex),
+                    new List<String>()
+                )
+                .failures.get(recs[0].Id);
+            System.assert(report.contains('describe as written: 1 inputs'), report);
+            System.assertEquals('Wachusett Paper', textsOf(recs).get(recs[0].Id), 'Nothing the Apex did is kept.');
+        }
+    }
+
+    @IsTest
+    static void saysWhatEachWayWasToldWhenNoneFindsTheAction() {
+        System.runAs(GridTestUsers.fullUser()) {
+            List<Consignment__c> recs = newRecords(new List<String>{ 'Paper rolls, Worcester' });
+            GridConfig.Action flow = new GridConfig.Action();
+            flow.type = 'flow';
+            flow.actionName = 'Rerate_Consignment';
+            GridActionService.Outcome o = GridActionService.runFirstFound(flow, 'recordId', idsOf(recs));
+            String message = o.failures.get(recs[0].Id);
+            System.assert(message.startsWith('Salesforce did not find Rerate_Consignment (as written: '), message);
+            System.assert(message.contains('interview: '), message);
+        }
     }
 
     @IsTest

@@ -126,9 +126,9 @@ public with sharing class GridActionService {
         GridAudit.Context audit = GridAudit.start(def); // null unless the grid logs; throws if the user cannot
         Map<Id, String> names = audit == null ? null : GridAudit.namesOf(objectType, runnable);
         String input = inputFor(action);
-        List<Invocable.Action.Result> outcomes = invoke(action, input, runnable);
-        Map<Id, String> failures = failuresOf(runnable, outcomes);
-        if (action.type == 'apex' && runnable.size() > 1 && failures.size() == runnable.size()) {
+        Outcome done = runFirstFound(action, input, runnable);
+        Map<Id, String> failures = done.failures;
+        if (!done.probe && action.type == 'apex' && runnable.size() > 1 && failures.size() == runnable.size()) {
             failures = retryOneByOne(action, input, runnable, failures);
         }
         for (Id recordId : runnable) {
@@ -145,56 +145,266 @@ public with sharing class GridActionService {
     // ---------------------------------------------------------------- helpers
 
     /**
-     * Where to look for an action's name, in turn. From the installed package
-     * a name without a namespace is looked for in Rowhouse's own: the org's own
-     * flows, its Apex and even Salesforce's global Log a Call came back "Action
-     * name not found: rowhouse__…" (measured, 0.1 Beta 11). So a plain name is
-     * tried as written, then with an empty namespace given both ways, then in
-     * this package's namespace (where the package build's own test flows
-     * live). A name with a namespace of its own is tried as written. A call
-     * that found no action ran nothing, so nothing runs twice.
+     * One way to reach an action by its name. From the installed package a
+     * name without a namespace was looked for in Rowhouse's own: the org's own
+     * flows, its Apex and even Salesforce's global Log a Call came back
+     * "Action name not found: rowhouse__…" (measured, 0.1 Beta 11 and 12). So
+     * the ways are tried in turn, and the first that finds the action runs it.
+     * A way that found nothing ran nothing, so nothing runs twice.
      */
     @TestVisible
-    private static List<Place> placesFor(String actionName) {
-        List<Place> out = new List<Place>{ new Place(false, null) };
-        if (!actionName.contains('__')) {
-            out.add(new Place(true, ''));
-            out.add(new Place(true, null));
-            if (String.isNotBlank(GridDescribe.NAMESPACE)) {
-                out.add(new Place(true, GridDescribe.NAMESPACE));
+    private class Way {
+        /** invocable (Invocable.Action), interview (Flow.Interview) or quickaction (QuickAction). */
+        public String how;
+        public Boolean withNamespace;
+        /** Blank or null for none. */
+        public String namespace;
+        public String label;
+        Way(String how, Boolean withNamespace, String namespace, String label) {
+            this.how = how;
+            this.withNamespace = withNamespace;
+            this.namespace = namespace;
+            this.label = label;
+        }
+    }
+
+    /** What one way did: whether it found the action, and the records that failed. */
+    @TestVisible
+    private class Outcome {
+        public Boolean found = true;
+        /** True when this is the troubleshooting report, which kept nothing. */
+        public Boolean probe = false;
+        public Map<Id, String> failures = new Map<Id, String>();
+        public String note = '';
+    }
+
+    /**
+     * The ways to try, first the name as written. A name with a namespace of
+     * its own is only ever looked for as written.
+     */
+    @TestVisible
+    private static List<Way> waysFor(GridConfig.Action action) {
+        List<Way> out = new List<Way>{ new Way('invocable', false, null, 'as written') };
+        if (action.actionName.contains('__')) {
+            return out;
+        }
+        out.add(new Way('invocable', true, '', 'blank namespace'));
+        out.add(new Way('invocable', true, null, 'null namespace'));
+        out.add(new Way('invocable', true, 'c', 'namespace c'));
+        if (action.type == 'flow') {
+            out.add(new Way('interview', true, '', 'interview, blank namespace'));
+            out.add(new Way('interview', true, null, 'interview, null namespace'));
+            out.add(new Way('interview', false, null, 'interview'));
+        }
+        if (action.type == 'quickaction') {
+            out.add(new Way('quickaction', false, null, 'performQuickActions'));
+        }
+        if (String.isNotBlank(GridDescribe.NAMESPACE)) {
+            out.add(new Way('invocable', true, GridDescribe.NAMESPACE, 'namespace ' + GridDescribe.NAMESPACE));
+        }
+        return out;
+    }
+
+    /**
+     * Runs the action the first way that finds it. When the first way finds
+     * nothing and the user holds Rowhouse Grid Diagnostics, every other way is
+     * tried and undone, and the rows say what each did (probe). When no way
+     * finds it, the rows say what each way was told.
+     */
+    @TestVisible
+    private static Outcome runFirstFound(GridConfig.Action action, String input, List<Id> ids) {
+        List<Way> ways = waysFor(action);
+        List<String> tried = new List<String>();
+        for (Integer i = 0; i < ways.size(); i++) {
+            Outcome o = runWay(ways[i], action, input, ids);
+            if (o.found) {
+                return o;
+            }
+            tried.add(ways[i].label + ': ' + o.note);
+            if (i == 0 && ways.size() > 1 && GridSecurity.hasCustomPermission(GridException.DIAGNOSTICS)) {
+                return probe(action, input, ids, ways, tried);
+            }
+        }
+        Outcome none = new Outcome();
+        String message = 'Salesforce did not find ' + action.actionName + ' (' + String.join(tried, ' | ') + ').';
+        for (Id recordId : ids) {
+            none.failures.put(recordId, message);
+        }
+        return none;
+    }
+
+    /** Every way after the first, each undone, and what each did, as every row's error. */
+    @TestVisible
+    private static Outcome probe(
+        GridConfig.Action action,
+        String input,
+        List<Id> ids,
+        List<Way> ways,
+        List<String> lines
+    ) {
+        for (Integer i = 1; i < ways.size(); i++) {
+            Savepoint before = Database.setSavepoint();
+            String line;
+            try {
+                Outcome o = runWay(ways[i], action, input, ids);
+                line = !o.found
+                    ? 'not found, ' + o.note
+                    : o.failures.isEmpty() ? 'RAN' : 'ran, failed: ' + String.join(o.failures.values(), ' / ');
+            } catch (Exception e) {
+                line = 'threw ' + e.getTypeName() + ': ' + e.getMessage();
+            }
+            Database.rollback(before);
+            lines.add(ways[i].label + ': ' + line);
+        }
+        if (action.type == 'apex') {
+            lines.add(describeNotes(action));
+        }
+        Outcome out = new Outcome();
+        out.probe = true;
+        String report = 'Probe, nothing kept. ' + String.join(lines, ' | ');
+        for (Id recordId : ids) {
+            out.failures.put(recordId, report);
+        }
+        return out;
+    }
+
+    @TestVisible
+    private static Outcome runWay(Way way, GridConfig.Action action, String input, List<Id> ids) {
+        if (way.how == 'interview') {
+            return interviews(way, action, input, ids);
+        }
+        if (way.how == 'quickaction') {
+            return quickActions(action, ids);
+        }
+        return invocable(way, action, input, ids);
+    }
+
+    private static Outcome notFoundBecause(String note) {
+        Outcome out = new Outcome();
+        out.found = false;
+        out.note = note;
+        return out;
+    }
+
+    /** The Invocable.Action this way names; throws when Salesforce refuses to make one. */
+    private static Invocable.Action invocableAt(Way way, String type, String name) {
+        return way.withNamespace
+            ? Invocable.Action.createCustomAction(type, way.namespace, name)
+            : Invocable.Action.createCustomAction(type, name);
+    }
+
+    /** One call, one invocation per record, the Id as text. */
+    private static Outcome invocable(Way way, GridConfig.Action action, String input, List<Id> ids) {
+        List<Invocable.Action.Result> results;
+        try {
+            Invocable.Action call = invocableAt(way, INVOCABLE_TYPE.get(action.type), action.actionName);
+            for (Integer i = 0; i < ids.size(); i++) {
+                if (i > 0) {
+                    call.addInvocation();
+                }
+                call.setInvocationParameter(input, String.valueOf(ids[i]));
+            }
+            results = call.invoke();
+        } catch (Exception e) {
+            return notFoundBecause(e.getTypeName() + ': ' + e.getMessage()); // the call was never made
+        }
+        String missing = notFound(results);
+        if (missing != null) {
+            return notFoundBecause(missing);
+        }
+        Outcome out = new Outcome();
+        out.failures = failuresOf(ids, results);
+        return out;
+    }
+
+    /** One flow interview per record, the Id as text. */
+    private static Outcome interviews(Way way, GridConfig.Action action, String input, List<Id> ids) {
+        Outcome out = new Outcome();
+        for (Id recordId : ids) {
+            Map<String, Object> inputs = new Map<String, Object>{ input => String.valueOf(recordId) };
+            Flow.Interview interview;
+            try {
+                interview = way.withNamespace
+                    ? Flow.Interview.createInterview(way.namespace, action.actionName, inputs)
+                    : Flow.Interview.createInterview(action.actionName, inputs);
+            } catch (Exception e) {
+                return notFoundBecause(e.getTypeName() + ': ' + e.getMessage());
+            }
+            try {
+                interview.start();
+            } catch (Exception e) {
+                out.failures.put(recordId, e.getMessage());
             }
         }
         return out;
     }
 
-    /** One way to name an action: as written, or in a namespace (blank or null for none). */
-    @TestVisible
-    private class Place {
-        public Boolean withNamespace;
-        public String namespace;
-        Place(Boolean withNamespace, String namespace) {
-            this.withNamespace = withNamespace;
-            this.namespace = namespace;
+    /** The quick action on each record, a new record of the action's target object for each. */
+    private static Outcome quickActions(GridConfig.Action action, List<Id> ids) {
+        Schema.SObjectType target;
+        try {
+            List<QuickAction.DescribeQuickActionResult> described = QuickAction.describeQuickActions(
+                new List<String>{ action.actionName }
+            );
+            target = GridDescribe.typeFor(described[0].getTargetSobjectType());
+        } catch (Exception e) {
+            return notFoundBecause(e.getTypeName() + ': ' + e.getMessage());
         }
+        List<QuickAction.QuickActionRequest> requests = new List<QuickAction.QuickActionRequest>();
+        for (Id recordId : ids) {
+            QuickAction.QuickActionRequest request = new QuickAction.QuickActionRequest();
+            request.setQuickActionName(action.actionName);
+            request.setContextId(recordId);
+            request.setRecord(target.newSObject());
+            requests.add(request);
+        }
+        Outcome out = new Outcome();
+        List<QuickAction.QuickActionResult> results;
+        try {
+            results = QuickAction.performQuickActions(requests, false);
+        } catch (Exception e) {
+            for (Id recordId : ids) {
+                out.failures.put(recordId, e.getMessage());
+            }
+            return out;
+        }
+        for (Integer i = 0; i < ids.size(); i++) {
+            if (!results[i].isSuccess()) {
+                List<String> messages = new List<String>();
+                for (Database.Error e : results[i].getErrors()) {
+                    messages.add(e.getMessage());
+                }
+                out.failures.put(ids[i], messages.isEmpty() ? 'The action failed.' : String.join(messages, ' '));
+            }
+        }
+        return out;
     }
 
-    /** The action named this way, or null when Salesforce refuses to make one. */
-    private static Invocable.Action actionAt(Place w, String type, String name) {
-        try {
-            return w.withNamespace
-                ? Invocable.Action.createCustomAction(type, w.namespace, name)
-                : Invocable.Action.createCustomAction(type, name);
-        } catch (Exception e) {
-            return null; // nothing was made, so nothing ran
+    /** For the probe: what describing the Apex action said, each Invocable.Action way. */
+    private static String describeNotes(GridConfig.Action action) {
+        List<String> notes = new List<String>();
+        for (Way way : waysFor(action)) {
+            if (way.how != 'invocable') {
+                continue;
+            }
+            String note;
+            try {
+                List<Invocable.Action.DescribeResult> d = invocableAt(way, 'apex', action.actionName).getDescribe();
+                note = d.isEmpty() ? 'nothing' : d[0].getInputs().size() + ' inputs';
+            } catch (Exception e) {
+                note = e.getTypeName() + ': ' + e.getMessage();
+            }
+            notes.add('describe ' + way.label + ': ' + note);
         }
+        return String.join(notes, ' | ');
     }
 
     /**
      * The input that takes the record Id: the Grid Action's Input Name, else
      * recordId for a flow and contextId for a quick action; for Apex, the
-     * action's one input, found by describe wherever the name is found
-     * (placesFor). Throws in an admin's terms when an Apex action has none, or
-     * several and no Input Name says which.
+     * action's one input, found by describe the first way (waysFor) that
+     * finds the action. Throws in an admin's terms when an Apex action has
+     * none, or several and no Input Name says which.
      */
     @TestVisible
     private static String inputFor(GridConfig.Action action) {
@@ -205,12 +415,14 @@ public with sharing class GridActionService {
             return DEFAULT_INPUT.get(action.type);
         }
         List<Invocable.Action.DescribeResult> described = new List<Invocable.Action.DescribeResult>();
-        for (Place w : placesFor(action.actionName)) {
-            Invocable.Action found = actionAt(w, 'apex', action.actionName);
+        for (Way way : waysFor(action)) {
+            if (way.how != 'invocable') {
+                continue;
+            }
             try {
-                described = found == null ? described : found.getDescribe();
+                described = invocableAt(way, 'apex', action.actionName).getDescribe();
             } catch (Exception e) {
-                described = new List<Invocable.Action.DescribeResult>(); // not here; look in the next place
+                described = new List<Invocable.Action.DescribeResult>(); // not this way; try the next
             }
             if (!described.isEmpty()) {
                 break;
@@ -236,47 +448,25 @@ public with sharing class GridActionService {
         return inputs[0].getName();
     }
 
-    /**
-     * One call, one invocation per record, the Id as text, in the first place
-     * (placesFor) where Salesforce finds the action. When none finds it, the
-     * last place's "Action name not found" is what the rows say.
-     */
-    private static List<Invocable.Action.Result> invoke(GridConfig.Action action, String input, List<Id> ids) {
-        List<Invocable.Action.Result> results;
-        for (Place w : placesFor(action.actionName)) {
-            Invocable.Action call = actionAt(w, INVOCABLE_TYPE.get(action.type), action.actionName);
-            if (call == null) {
-                continue;
-            }
-            for (Integer i = 0; i < ids.size(); i++) {
-                if (i > 0) {
-                    call.addInvocation();
-                }
-                call.setInvocationParameter(input, String.valueOf(ids[i]));
-            }
-            results = call.invoke();
-            if (!notFound(results)) {
-                return results;
-            }
-        }
-        return results == null ? new List<Invocable.Action.Result>() : results;
-    }
-
-    /** Did every invocation fail because no action by that name was found? */
-    private static Boolean notFound(List<Invocable.Action.Result> results) {
+    /** "Action name not found…" when every invocation failed for want of the action, else null. */
+    private static String notFound(List<Invocable.Action.Result> results) {
         if (results == null || results.isEmpty()) {
-            return false;
+            return null;
         }
+        String said;
         for (Invocable.Action.Result r : results) {
             Boolean missing = false;
             for (Invocable.Action.Error e : r.isSuccess() ? new List<Invocable.Action.Error>() : r.getErrors()) {
-                missing = missing || (e.getMessage() != null && e.getMessage().startsWith('Action name not found'));
+                if (e.getMessage() != null && e.getMessage().startsWith('Action name not found')) {
+                    missing = true;
+                    said = e.getMessage();
+                }
             }
             if (!missing) {
-                return false;
+                return null;
             }
         }
-        return true;
+        return said;
     }
 
     /** { recordId: message } for every record whose invocation failed. Results come back in the order sent. */
@@ -319,10 +509,7 @@ public with sharing class GridActionService {
             if (!roomToRetry()) {
                 break;
             }
-            Map<Id, String> single = failuresOf(
-                new List<Id>{ recordId },
-                invoke(action, input, new List<Id>{ recordId })
-            );
+            Map<Id, String> single = runFirstFound(action, input, new List<Id>{ recordId }).failures;
             if (single.containsKey(recordId)) {
                 out.put(recordId, single.get(recordId));
             } else {
