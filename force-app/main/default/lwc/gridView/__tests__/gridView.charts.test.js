@@ -131,12 +131,13 @@ afterEach(() => {
     jest.useRealTimers();
 });
 
-it("has a list view's Charts button, with its chart icon", async () => {
+it("has a list view's Charts button, with its chart icon and Salesforce's tooltip", async () => {
     const el = mount();
     await settle();
     expect(button(el).iconName).toBe('utility:chart');
     expect(button(el).alternativeText).toBe('Charts');
     expect(button(el).title).toBe('Charts');
+    expect(button(el).tooltip).toBe('Charts');
     expect(button(el).selected).toBe(false);
     expect(panel(el)).toBeNull();
 });

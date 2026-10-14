@@ -20,7 +20,10 @@ module.exports = {
     moduleNameMapper: {
         ...(jestConfig.moduleNameMapper || {}),
         '^c/guideStyles$': '<rootDir>/force-app/main/default/lwc/guideStyles/guideStyles.css',
-        '^c/adminStyles$': '<rootDir>/force-app/main/default/lwc/adminStyles/adminStyles.css'
+        '^c/adminStyles$': '<rootDir>/force-app/main/default/lwc/adminStyles/adminStyles.css',
+        // The shipped stub has no tooltip; Salesforce's component does.
+        '^lightning/buttonIconStateful$':
+            '<rootDir>/test-data/tests/jest/stubs/lightning/buttonIconStateful/buttonIconStateful.js'
     },
     collectCoverageFrom: ['force-app/**/lwc/**/*.js', '!**/__tests__/**']
 };

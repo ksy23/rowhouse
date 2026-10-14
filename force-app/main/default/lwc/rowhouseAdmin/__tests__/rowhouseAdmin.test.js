@@ -730,7 +730,7 @@ describe('export and import', () => {
     it('opens Import, which needs what saving needs', async () => {
         const el = await mount();
         expect($(el, '.rh-admin-import').disabled).toBe(false);
-        expect($(el, '.rh-admin-import').label).toBe('Import grid');
+        expect($(el, '.rh-admin-import').label).toBe('Import Grid');
         $(el, '.rh-admin-import').click();
         await settle();
         expect($(el, 'c-grid-admin-import-dialog')).not.toBeNull();
