@@ -1,30 +1,59 @@
 /**
- * gridChartPanel — the Charts panel beside a grid, as a list view's: the
- * chart's title, a gear whose menu says how it is drawn (Display As: Vertical
- * Bar Chart, Horizontal Bar Chart, Donut Chart) and opens Edit chart, and the
- * chart itself, of every record the grid's search and filters match.
+ * gridChartPanel — the chart beside a grid. At the top, the chart's title
+ * ("Sum of Amount by Opportunity Owner") and how it is drawn ("Donut · kept
+ * for you"), the gear (Edit chart) and the close button; under them the
+ * chart, of every record the grid's search and filters match: bars, or a
+ * donut with its total and count in the middle and its groups beside it; at
+ * the foot, what it covers and "Show as a table", which shows the figures in
+ * full in place of the drawing.
  *
  * Drawn in SVG from c/gridCharts (no chart library, HR-26). The drawing is
- * hidden from screen readers, who read a table of the same figures instead;
- * a donut lists its groups and their figures under it, as Salesforce's does.
+ * hidden from screen readers, who read a table of the same figures instead.
  *
  * INPUTS (plain values, HR-28)
- *   chart     the chart (gridCharts normalizeChart)
- *   data      { status: 'loading' | 'ready' | 'error' | 'tooMany', groups, message }
- *   columns   the grid's columns
- *   names     lookup names the grid already knows, { recordId: name }
+ *   chart        the chart (gridCharts normalizeChart)
+ *   data         { status: 'loading' | 'ready' | 'error' | 'tooMany', groups, message }
+ *   columns      the grid's columns
+ *   names        lookup names the grid already knows, { recordId: name }
+ *   objectLabel  the grid's object, plural ("Opportunities")
  * EVENTS OUT
- *   close, type { type }, edit
+ *   close, edit
  */
 import { LightningElement, api } from 'lwc';
 import { formatCount } from 'c/gridFormat';
-import { CHART_TYPES, chartTitle, chartSeries, barLayout, donutLayout } from 'c/gridCharts';
+import { MAX_NAMED, MAX_PERIODS, chartTitle, chartSeries, barLayout, donutLayout } from 'c/gridCharts';
+
+/** How each type is named under the title, as Edit chart's tiles name it. */
+const TYPE_NAMES = { vbar: 'Vertical bar', hbar: 'Horizontal bar', donut: 'Donut' };
+const MEASURE_HEADINGS = { count: 'Records', sum: 'Sum', average: 'Average' };
+/** A date's periods, as the foot names them. */
+const PERIODS = {
+    day: 'days',
+    week: 'weeks',
+    month: 'months',
+    quarter: 'quarters',
+    year: 'years',
+    fiscal_quarter: 'fiscal quarters',
+    fiscal_year: 'fiscal years'
+};
+
+/** "Opportunities" → "opportunities"; a word in capitals ("SLA") stays as it is. */
+function lowerNoun(label) {
+    return String(label || '')
+        .split(' ')
+        .map(w => (/^[A-Z][a-z'’-]*$/.test(w) ? w.toLowerCase() : w))
+        .join(' ');
+}
 
 export default class GridChartPanel extends LightningElement {
     @api chart;
     @api data;
     @api columns;
     @api names;
+    @api objectLabel;
+
+    /** Show as a table: the figures in place of the drawing, for this visit. */
+    showTable = false;
 
     // Non-reactive (HR-20).
     _memo = {};
@@ -32,17 +61,17 @@ export default class GridChartPanel extends LightningElement {
     /** The gear: where focus goes back to after Edit chart. */
     @api
     focusMenu() {
-        const menu = this.template.querySelector('.rh-charts-menu');
-        if (menu && typeof menu.focus === 'function') menu.focus();
+        const gear = this.template.querySelector('.rh-charts-edit');
+        if (gear && typeof gear.focus === 'function') gear.focus();
     }
 
     get title() {
         return chartTitle(this.chart, this.columns);
     }
 
-    get typeItems() {
-        const type = this.chart && this.chart.type;
-        return CHART_TYPES.map(t => ({ ...t, checked: t.value === type }));
+    get subtitle() {
+        const type = this.chart && TYPE_NAMES[this.chart.type];
+        return type ? `${type} · kept for you` : '';
     }
 
     get status() {
@@ -68,7 +97,9 @@ export default class GridChartPanel extends LightningElement {
     }
 
     get entries() {
-        return this.series ? this.series.entries : [];
+        return this.series
+            ? this.series.entries.map(e => ({ ...e, swatchClass: 'rh-charts-swatch ' + e.colorClass }))
+            : [];
     }
 
     get message() {
@@ -87,16 +118,16 @@ export default class GridChartPanel extends LightningElement {
         return !this.message && !this.loading && Boolean(this.chart);
     }
 
-    get isHbar() {
-        return this.drawn && this.chart.type === 'hbar';
+    get showHbar() {
+        return this.drawn && !this.showTable && this.chart.type === 'hbar';
     }
 
-    get isVbar() {
-        return this.drawn && this.chart.type === 'vbar';
+    get showVbar() {
+        return this.drawn && !this.showTable && this.chart.type === 'vbar';
     }
 
-    get isDonut() {
-        return this.drawn && this.chart.type === 'donut';
+    get showDonut() {
+        return this.drawn && !this.showTable && this.chart.type === 'donut';
     }
 
     get bars() {
@@ -122,6 +153,14 @@ export default class GridChartPanel extends LightningElement {
         return `rotate(-90 ${c} ${c})`;
     }
 
+    get donutTotalY() {
+        return this.donut.center - 2;
+    }
+
+    get donutCountY() {
+        return this.donut.center + 16;
+    }
+
     get totalShort() {
         return this.series ? this.series.total.short : '';
     }
@@ -130,29 +169,66 @@ export default class GridChartPanel extends LightningElement {
         return this.series ? this.series.total.text : '';
     }
 
-    get totalLabel() {
+    get recordCount() {
+        return this.series ? this.series.total.count : 0;
+    }
+
+    /** "31 opportunities"; one is "1 record", as the object's own name is plural. */
+    get countText() {
+        const n = this.recordCount;
+        const noun = n === 1 ? 'record' : lowerNoun(this.objectLabel) || 'records';
+        return `${formatCount(n)} ${noun}`;
+    }
+
+    /** The count in a donut's middle: "records" when the object's name would not fit there. */
+    get donutCountText() {
+        const text = this.countText;
+        if (text.length <= 17) return text;
+        const n = this.recordCount;
+        return `${formatCount(n)} ${n === 1 ? 'record' : 'records'}`;
+    }
+
+    get groupHeading() {
+        const c = (this.columns || []).find(col => this.chart && col.field === this.chart.groupBy);
+        return (c && (c.label || c.field)) || 'Group';
+    }
+
+    get valueHeading() {
         if (!this.chart) return '';
-        return this.chart.measure === 'count' ? 'records' : this.chart.measure === 'sum' ? 'in all' : 'on average';
+        if (this.chart.measure === 'count') return MEASURE_HEADINGS.count;
+        const c = (this.columns || []).find(col => col.field === this.chart.field);
+        return `${MEASURE_HEADINGS[this.chart.measure] || ''} of ${(c && (c.label || c.field)) || this.chart.field}`;
     }
 
     get footText() {
-        if (!this.series) return '';
-        const n = this.series.total.count;
-        let text = `All ${formatCount(n)} ${n === 1 ? 'record' : 'records'} the search and filters match, as saved.`;
+        if (!this.series || !this.drawn) return '';
+        let text = `All ${this.countText} the search and filters match, as saved.`;
+        if (this.series.dated) {
+            const periods = PERIODS[this.chart.unit] || 'periods';
+            text += ` The last ${MAX_PERIODS} ${periods}; the ones before go in Earlier.`;
+        } else {
+            const what = this.chart.type === 'donut' ? 'slices' : 'bars';
+            text += ` Up to ${MAX_NAMED + 1} ${what}; the rest go in Other.`;
+        }
         if (this.chart.type === 'donut' && this.series.hasNegative) {
             text += ' The donut leaves out groups below zero; the list has them.';
         }
         return text;
     }
 
-    handleClose() {
-        this.dispatchEvent(new CustomEvent('close'));
+    get toggleLabel() {
+        return this.showTable ? 'Show as a chart' : 'Show as a table';
     }
 
-    handleMenu(event) {
-        const value = event.detail && event.detail.value;
-        if (value === 'edit') this.dispatchEvent(new CustomEvent('edit'));
-        else if (CHART_TYPES.some(t => t.value === value))
-            this.dispatchEvent(new CustomEvent('type', { detail: { type: value } }));
+    handleToggleTable() {
+        this.showTable = !this.showTable;
+    }
+
+    handleEdit() {
+        this.dispatchEvent(new CustomEvent('edit'));
+    }
+
+    handleClose() {
+        this.dispatchEvent(new CustomEvent('close'));
     }
 }

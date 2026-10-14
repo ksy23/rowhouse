@@ -184,9 +184,9 @@
  * table (c/gridChartPanel), under it in a narrow space, with a chart of every
  * record the search and filters match: counted, or a number column added up or
  * averaged (GridController.chartGroups, sliced as the groups' subtotals are),
- * by one column the grid can group by. The gear's Edit chart
- * (c/gridChartDialog) chooses; Display As draws it as vertical or horizontal
- * bars or a donut. One chart per user per grid, kept with the layout, open or
+ * by one column the grid can group by, as vertical or horizontal bars or a
+ * donut. The panel's gear opens Edit chart (c/gridChartDialog), which
+ * chooses. One chart per user per grid, kept with the layout, open or
  * closed; the first is the records counted by the grid's grouping, else by its
  * first picklist. Read again whenever the counts and subtotals are. Not in a
  * child table.
@@ -2042,14 +2042,6 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.chartsOpen = false;
         this._runtime.chartToken++;
         this.announce('Charts hidden.');
-        this.rememberLayout();
-    }
-
-    /** Display As: the same figures, drawn another way. */
-    handleChartType(event) {
-        const type = event.detail && event.detail.type;
-        if (!this.chart || !type) return;
-        this.chart = normalizeChart({ ...this.chart, type }, this.definition.columns);
         this.rememberLayout();
     }
 

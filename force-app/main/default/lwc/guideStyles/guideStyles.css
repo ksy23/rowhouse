@@ -3545,33 +3545,48 @@ table.rh-ref td.rh-d {
 }
 
 .rh-m-charts {
+    display: flex;
+    flex-direction: column;
     flex: 0 0 13.5rem;
-    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
     border-left: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
     background: var(--rh-m-bg);
     font-size: var(--slds-g-font-scale-neg-2, 0.6875rem);
     color: var(--rh-m-ink);
 }
 
-.rh-m-charts-h,
-.rh-m-charts-t {
+/* The chart's title and how it is drawn, then the gear and close */
+.rh-m-charts-h {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--slds-g-spacing-2, 0.5rem);
-}
-
-.rh-m-charts-h b {
-    font-size: var(--slds-g-font-scale-1, 0.875rem);
-    font-weight: var(--slds-g-font-weight-4, 400);
-}
-
-.rh-m-charts-h .rh-m-x {
-    color: var(--rh-m-brand);
+    align-items: flex-start;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
 }
 
 .rh-m-charts-t {
-    margin: var(--slds-g-spacing-2, 0.5rem) 0;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.rh-m-charts-t b {
+    display: block;
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-m-charts-t span {
+    color: var(--rh-m-weak);
+}
+
+.rh-m-charts-h .rh-m-ibtn {
+    width: var(--slds-g-sizing-6, 20px);
+    height: var(--slds-g-sizing-6, 20px);
+    flex-basis: var(--slds-g-sizing-6, 20px);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+}
+
+.rh-m-charts-b {
+    flex: 1 1 auto;
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
 }
 
 .rh-m-cbar {
@@ -3601,7 +3616,7 @@ table.rh-ref td.rh-d {
     width: var(--rh-w, 0%);
     min-width: var(--slds-g-sizing-border-2, 2px);
     height: var(--slds-g-sizing-3, 0.625rem);
-    background: var(--slds-g-color-palette-teal-40, #0b827c);
+    background: #3274cc;
     border-radius: var(--slds-g-radius-border-1, 0.125rem);
 }
 
@@ -3619,8 +3634,13 @@ table.rh-ref td.rh-d {
 }
 
 .rh-m-charts-f {
-    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border-top: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
     color: var(--rh-m-weak);
+}
+
+.rh-m-charts-f .rh-m-lnk {
+    color: var(--rh-m-brand);
 }
 
 @media (max-width: 640px) {

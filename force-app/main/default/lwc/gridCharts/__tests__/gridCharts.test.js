@@ -240,7 +240,7 @@ describe('the drawing', () => {
             ],
             true
         );
-        expect(layout.bars.map(b => b.colorClass)).toEqual(['rh-chart-c0', 'rh-chart-c0', 'rh-chart-c10']);
+        expect(layout.bars.map(b => b.colorClass)).toEqual(['rh-chart-bar', 'rh-chart-bar', 'rh-chart-c10']);
     });
 
     it('shortens a month under a bar, and keeps it in full in the list', () => {

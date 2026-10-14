@@ -94,8 +94,13 @@
     fill: none;
 }
 
-rect.rh-chart-c0 {
-    stroke: none;
+/* The bars' colour (gridChartPanel). */
+:host {
+    --rh-chart-bar: #3274cc;
+}
+
+.rh-chart-bar {
+    fill: var(--rh-chart-bar);
 }
 
 /* Measure and Field side by side. */

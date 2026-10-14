@@ -1,38 +1,49 @@
-/* The panel: its heading and close button, the chart's title and gear, the chart. */
+/* The panel: the chart's title and tools, the chart, and what it covers. */
+:host {
+    --rh-chart-bar: #3274cc;
+}
+
 .rh-charts {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: var(--slds-g-spacing-3, 0.75rem);
     background-color: var(--slds-g-color-surface-container-1, #fff);
 }
 
-.rh-charts-head,
-.rh-charts-titlerow {
+.rh-charts-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--slds-g-spacing-2, 0.5rem);
+    padding: var(--slds-g-spacing-3, 0.75rem);
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-2, #e5e5e5);
 }
 
 .rh-charts-heading {
     flex: 1 1 auto;
-}
-
-.rh-charts-titlerow {
-    margin-top: var(--slds-g-spacing-2, 0.5rem);
+    min-width: 0;
 }
 
 .rh-charts-title {
-    flex: 1 1 auto;
-    min-width: 0;
     overflow-wrap: anywhere;
+    font-size: var(--slds-g-font-scale-1, 0.875rem);
     font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-charts-sub {
+    color: var(--slds-g-color-on-surface-1, #747474);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-charts-tools {
+    display: flex;
+    flex: none;
+    gap: var(--slds-g-spacing-1, 0.25rem);
 }
 
 .rh-charts-body {
     position: relative;
     flex: 1 1 auto;
-    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    padding: var(--slds-g-spacing-3, 0.75rem);
 }
 
 .rh-charts-loading {
@@ -52,11 +63,18 @@
     margin: 0 auto;
 }
 
+/* A donut, its total and count in the middle, its groups beside it. */
+.rh-charts-donutrow {
+    display: flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+}
+
 .rh-charts-donut {
     display: block;
-    width: 10rem;
-    height: 10rem;
-    margin: 0 auto;
+    flex: none;
+    width: 8.75rem;
+    height: 8.75rem;
 }
 
 /* A donut's slices are rings: the colour classes give them a stroke, never a fill. */
@@ -82,8 +100,13 @@
 
 .rh-charts-total {
     fill: var(--slds-g-color-on-surface-3, #181818);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-charts-count {
+    fill: var(--slds-g-color-on-surface-1, #747474);
+    font-size: 11px;
 }
 
 .rh-charts-axis {
@@ -91,20 +114,20 @@
     stroke-width: 1;
 }
 
-/* A donut's groups under it, each with its colour, as Salesforce lists them. */
 .rh-charts-legend {
-    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
 }
 
 .rh-charts-legend-item {
     display: flex;
     align-items: center;
-    gap: var(--slds-g-spacing-2, 0.5rem);
-    padding: var(--slds-g-spacing-2, 0.5rem) 0;
-    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-2, #e5e5e5);
+    gap: var(--slds-g-spacing-1, 0.25rem);
+    margin: var(--slds-g-spacing-1, 0.25rem) 0;
 }
 
-.rh-charts-legend-item > span:first-child {
+.rh-charts-swatch {
     flex: none;
     width: 0.625rem;
     height: 0.625rem;
@@ -121,13 +144,35 @@
 
 .rh-charts-legend-value {
     flex: none;
+    color: var(--slds-g-color-on-surface-1, #5c5c5c);
     font-variant-numeric: tabular-nums;
 }
 
+/* Show as a table: the figures in full, numbers to the right. */
+.rh-charts-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.rh-charts-grid-total {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
 .rh-charts-foot {
-    margin-top: var(--slds-g-spacing-3, 0.75rem);
-    color: var(--slds-g-color-on-surface-1, #5c5c5c);
+    padding: var(--slds-g-spacing-3, 0.75rem);
+    border-top: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-2, #e5e5e5);
+    color: var(--slds-g-color-on-surface-1, #747474);
     font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-charts-toggle {
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    line-height: inherit;
+}
+
+/* Bars: one colour; Other and Earlier in gray (rh-chart-c10). */
+.rh-chart-bar {
+    fill: var(--rh-chart-bar);
 }
 
 /* The colours, in turn: on a bar or a slice (fill), and on a legend swatch (background). */

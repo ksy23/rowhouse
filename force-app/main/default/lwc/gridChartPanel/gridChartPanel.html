@@ -1,35 +1,30 @@
 <template>
-    <section class="rh-charts" aria-labelledby="charts-heading">
+    <section class="rh-charts" aria-labelledby="chart-title">
         <div class="rh-charts-head">
-            <h2 id="charts-heading" class="slds-text-heading_small rh-charts-heading">Charts</h2>
-            <lightning-button-icon
-                class="rh-charts-close"
-                icon-name="utility:close"
-                variant="bare"
-                alternative-text="Close charts"
-                title="Close charts"
-                tooltip="Close charts"
-                onclick={handleClose}
-            ></lightning-button-icon>
-        </div>
-        <div class="rh-charts-titlerow">
-            <p class="rh-charts-title">{title}</p>
-            <!-- As a list view's gear: Display As, then the chart's own settings. -->
-            <lightning-button-menu
-                class="rh-charts-menu"
-                icon-name="utility:settings"
-                alternative-text="Chart settings"
-                title="Chart settings"
-                menu-alignment="right"
-                onselect={handleMenu}
-            >
-                <lightning-menu-subheader label="Display As"></lightning-menu-subheader>
-                <template for:each={typeItems} for:item="t">
-                    <lightning-menu-item key={t.value} value={t.value} label={t.label} checked={t.checked}></lightning-menu-item>
-                </template>
-                <lightning-menu-divider></lightning-menu-divider>
-                <lightning-menu-item value="edit" label="Edit chart"></lightning-menu-item>
-            </lightning-button-menu>
+            <div class="rh-charts-heading">
+                <h2 id="chart-title" class="rh-charts-title">{title}</h2>
+                <p class="rh-charts-sub">{subtitle}</p>
+            </div>
+            <div class="rh-charts-tools">
+                <lightning-button-icon
+                    class="rh-charts-edit"
+                    icon-name="utility:settings"
+                    variant="border-filled"
+                    size="small"
+                    alternative-text="Edit chart"
+                    title="Edit chart"
+                    onclick={handleEdit}
+                ></lightning-button-icon>
+                <lightning-button-icon
+                    class="rh-charts-close"
+                    icon-name="utility:close"
+                    variant="border-filled"
+                    size="small"
+                    alternative-text="Close the chart"
+                    title="Close the chart"
+                    onclick={handleClose}
+                ></lightning-button-icon>
+            </div>
         </div>
 
         <div class="rh-charts-body">
@@ -43,7 +38,7 @@
             </template>
 
             <!-- The drawing is for the eye; the table under it is what a screen reader reads. -->
-            <template lwc:if={isHbar}>
+            <template lwc:if={showHbar}>
                 <svg class="rh-charts-svg" viewBox={barsViewBox} aria-hidden="true" focusable="false">
                     <template for:each={bars.ticks} for:item="t">
                         <text key={t.key} class="rh-charts-tick" x={t.x} y={t.y} text-anchor="middle">{t.text}</text>
@@ -58,7 +53,7 @@
                     </template>
                 </svg>
             </template>
-            <template lwc:if={isVbar}>
+            <template lwc:if={showVbar}>
                 <svg class="rh-charts-svg" viewBox={barsViewBox} aria-hidden="true" focusable="false">
                     <template for:each={bars.ticks} for:item="t">
                         <text key={t.key} class="rh-charts-tick" x={t.x} y={t.y} text-anchor="end">{t.text}</text>
@@ -73,43 +68,70 @@
                     </template>
                 </svg>
             </template>
-            <template lwc:if={isDonut}>
-                <svg class="rh-charts-donut" viewBox={donutViewBox} aria-hidden="true" focusable="false">
-                    <g transform={donutRotate}>
-                        <template for:each={donut.segments} for:item="s">
-                            <circle
-                                key={s.key}
-                                class={s.colorClass}
-                                cx={donut.center}
-                                cy={donut.center}
-                                r={donut.radius}
-                                fill="none"
-                                stroke-width={donut.stroke}
-                                stroke-dasharray={s.dash}
-                                stroke-dashoffset={s.offset}
-                            ></circle>
+            <template lwc:if={showDonut}>
+                <div class="rh-charts-donutrow">
+                    <svg class="rh-charts-donut" viewBox={donutViewBox} aria-hidden="true" focusable="false">
+                        <g transform={donutRotate}>
+                            <template for:each={donut.segments} for:item="s">
+                                <circle
+                                    key={s.key}
+                                    class={s.colorClass}
+                                    cx={donut.center}
+                                    cy={donut.center}
+                                    r={donut.radius}
+                                    fill="none"
+                                    stroke-width={donut.stroke}
+                                    stroke-dasharray={s.dash}
+                                    stroke-dashoffset={s.offset}
+                                ></circle>
+                            </template>
+                        </g>
+                        <text class="rh-charts-total" x={donut.center} y={donutTotalY} text-anchor="middle">{totalShort}</text>
+                        <text class="rh-charts-count" x={donut.center} y={donutCountY} text-anchor="middle">{donutCountText}</text>
+                    </svg>
+                    <ul class="rh-charts-legend">
+                        <template for:each={entries} for:item="e">
+                            <li key={e.key} class="rh-charts-legend-item">
+                                <span class={e.swatchClass}></span>
+                                <span class="rh-charts-legend-label" title={e.label}>{e.axisLabel}</span>
+                                <span class="rh-charts-legend-value" title={e.text}>{e.short}</span>
+                            </li>
                         </template>
-                    </g>
-                    <text class="rh-charts-total" x={donut.center} y={donut.center} text-anchor="middle" dominant-baseline="middle">{totalShort}</text>
-                </svg>
-                <ul class="rh-charts-legend">
-                    <template for:each={entries} for:item="e">
-                        <li key={e.key} class="rh-charts-legend-item">
-                            <span class={e.colorClass}></span>
-                            <span class="rh-charts-legend-label" title={e.label}>{e.label}</span>
-                            <span class="rh-charts-legend-value">{e.text}</span>
-                        </li>
-                    </template>
-                </ul>
+                    </ul>
+                </div>
             </template>
 
-            <template lwc:if={drawn}>
+            <!-- Show as a table: the figures in full, in place of the drawing. -->
+            <template lwc:if={showTable}>
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered rh-charts-grid">
+                    <caption class="slds-assistive-text">{title}</caption>
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th scope="col"><div class="slds-truncate">{groupHeading}</div></th>
+                            <th scope="col" class="rh-charts-num"><div class="slds-truncate">{valueHeading}</div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={entries} for:item="e">
+                            <tr key={e.key}>
+                                <th scope="row">{e.label}</th>
+                                <td class="rh-charts-num">{e.text}</td>
+                            </tr>
+                        </template>
+                        <tr class="rh-charts-grid-total">
+                            <th scope="row">Total</th>
+                            <td class="rh-charts-num">{totalText}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </template>
+            <template lwc:elseif={drawn}>
                 <table class="slds-assistive-text rh-charts-table">
                     <caption>{title}</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Group</th>
-                            <th scope="col">Value</th>
+                            <th scope="col">{groupHeading}</th>
+                            <th scope="col">{valueHeading}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,7 +150,7 @@
             </template>
         </div>
         <template lwc:if={footText}>
-            <p class="rh-charts-foot">{footText}</p>
+            <p class="rh-charts-foot">{footText} <button class="slds-button rh-charts-toggle" onclick={handleToggleTable}>{toggleLabel}</button></p>
         </template>
     </section>
 </template>

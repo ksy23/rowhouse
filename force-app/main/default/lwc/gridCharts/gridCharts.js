@@ -28,6 +28,7 @@
  * panel scales to its width: no chart library (HR-26).
  */
 import LOCALE from '@salesforce/i18n/locale';
+import CURRENCY from '@salesforce/i18n/currency';
 import {
     rollUp,
     groupLabel,
@@ -142,6 +143,40 @@ export function shortNumber(value) {
     return compactFormat.format(n);
 }
 
+const compactCurrency = new Map();
+
+/**
+ * A figure shortened for a bar, a donut's middle or its list: an amount with
+ * its currency ("$3.6M"), a percent with its sign ("82.3%"), else as
+ * shortNumber. The table keeps every figure in full.
+ */
+export function shortFigure(value, column) {
+    const n = Number(value);
+    if (value === null || value === undefined || value === '' || !Number.isFinite(n)) return '';
+    const type = column && column.type;
+    if (type === 'currency') {
+        const code = column.currencyCode || CURRENCY;
+        try {
+            if (!compactCurrency.has(code)) {
+                compactCurrency.set(
+                    code,
+                    new Intl.NumberFormat(LOCALE, {
+                        style: 'currency',
+                        currency: code,
+                        notation: 'compact',
+                        maximumFractionDigits: 1
+                    })
+                );
+            }
+            return compactCurrency.get(code).format(n);
+        } catch {
+            // A currency code the browser does not know: the number alone.
+            return shortNumber(n);
+        }
+    }
+    return type === 'percent' ? shortNumber(n) + '%' : shortNumber(n);
+}
+
 /** One aggregate's figure: { value: number or null, text }. */
 function figure(aggregate, measureColumn) {
     if (!measureColumn) {
@@ -173,7 +208,7 @@ function combined(aggregates, field) {
 /**
  * The chart's figures from the server's groups (every slice):
  * { entries: [{ key, label, value, text, short, colorClass, isOther }],
- *   total: { value, text, short, count }, hasNegative }.
+ *   total: { value, text, short, count }, hasNegative, dated }.
  * `names` labels lookups the grid already knows; the server's label comes
  * first.
  */
@@ -231,15 +266,16 @@ export function chartSeries(groups, chart, columns, { names } = {}) {
         axisLabel: byMonth && !i.isOther && i.key !== '' ? shortMonth(i.key) : i.label,
         value: i.value,
         text: i.text,
-        short: shortNumber(i.value),
+        short: shortFigure(i.value, measureColumn),
         isOther: i.isOther === true,
         colorClass: `rh-chart-c${i.isOther ? COLOR_COUNT : colour++ % COLOR_COUNT}`
     }));
     const t = figure(total, measureColumn);
     return {
         entries,
-        total: { ...t, short: shortNumber(t.value), count: total.count },
-        hasNegative: entries.some(e => e.value !== null && e.value < 0)
+        total: { ...t, short: shortFigure(t.value, measureColumn), count: total.count },
+        hasNegative: entries.some(e => e.value !== null && e.value < 0),
+        dated
     };
 }
 
@@ -268,7 +304,7 @@ export function clip(text, max) {
 }
 
 const round = n => Math.round(n * 10) / 10;
-const barColour = e => (e.isOther ? `rh-chart-c${COLOR_COUNT}` : 'rh-chart-c0');
+const barColour = e => (e.isOther ? `rh-chart-c${COLOR_COUNT}` : 'rh-chart-bar');
 
 /** The panel's drawing width: the panel scales it to fit. */
 export const CHART_WIDTH = 300;
@@ -367,9 +403,11 @@ export function barLayout(entries, horizontal) {
  * Only positive figures have a share; a donut cannot show a negative one.
  */
 export function donutLayout(entries) {
-    const size = 160;
-    const radius = 56;
-    const stroke = 26;
+    // As drawn in the mock-up: a ring 22 wide, leaving room in the middle for
+    // the total and the count.
+    const size = 150;
+    const radius = 60;
+    const stroke = 22;
     const circumference = 2 * Math.PI * radius;
     const list = (entries || []).filter(e => e.value !== null && e.value > 0);
     const sum = list.reduce((a, e) => a + e.value, 0);

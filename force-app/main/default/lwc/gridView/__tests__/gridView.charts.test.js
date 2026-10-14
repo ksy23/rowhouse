@@ -1,7 +1,7 @@
 /**
  * Charts, as a list view has them: the Charts button opens a panel beside the
  * table with a chart of every record the search and filters match; the gear
- * draws it another way or edits it; it is kept with the user's layout, open
+ * edits it (Edit chart); it is kept with the user's layout, open
  * or closed, and read again whenever the counts and subtotals are.
  */
 import { createElement } from 'lwc';
@@ -198,15 +198,11 @@ it('says when the chart could not be read', async () => {
     expect(panel(el).data).toEqual({ status: 'error', message: 'Cannot group by Service_Level__c.' });
 });
 
-it('draws it another way without asking the server again', async () => {
+it("names the grid's records in the panel", async () => {
     const el = mount();
     await settle();
     await openCharts(el);
-    chartGroups.mockClear();
-    panel(el).dispatchEvent(new CustomEvent('type', { detail: { type: 'donut' } }));
-    await settle();
-    expect(panel(el).chart.type).toBe('donut');
-    expect(chartGroups).not.toHaveBeenCalled();
+    expect(panel(el).objectLabel).toBe('Consignments');
 });
 
 it('edits the chart in Edit chart and reads it again', async () => {
