@@ -32,7 +32,17 @@
                     <h1 id="heading" class="slds-modal__title slds-hyphenate rh-build-heading">{heading}</h1>
                 </div>
                 <div class="slds-modal__content slds-p-around_medium">
-                    <template lwc:if={checking}>
+                    <!-- While the grids are saved, a spinner takes the list's place, as Import does. -->
+                    <template lwc:if={working}>
+                        <div class="rh-build-busy" tabindex="-1">
+                            <div class="rh-build-spinner">
+                                <lightning-spinner alternative-text="Building the grids" size="medium" variant="brand"></lightning-spinner>
+                            </div>
+                            <p class="rh-build-progress" role="status">{progress}</p>
+                            <p class="rh-build-busy-note">Keep this window open until it is done.</p>
+                        </div>
+                    </template>
+                    <template lwc:elseif={checking}>
                         <div class="rh-build-loading">
                             <lightning-spinner
                                 alternative-text="Checking which grids this org has"
@@ -54,9 +64,6 @@
                         <template lwc:if={afterText}>
                             <p class="slds-m-top_small slds-text-color_weak rh-build-after">{afterText}</p>
                         </template>
-                    </template>
-                    <template lwc:if={progress}>
-                        <p class="slds-m-top_small rh-build-progress" role="status">{progress}</p>
                     </template>
                     <template lwc:if={error}>
                         <p class="slds-m-top_small slds-text-color_error rh-build-error" role="alert">{error}</p>

@@ -22,7 +22,16 @@
                 <h1 id="heading" class="slds-modal__title slds-hyphenate rh-row-dialog-heading">{heading}</h1>
             </div>
             <div class="slds-modal__content slds-p-around_medium">
-                <template lwc:if={isClone}>
+                <!-- While the deploy runs, a spinner takes the dialog's place, as Import does. -->
+                <template lwc:if={working}>
+                    <div class="rh-row-dialog-busy" tabindex="-1">
+                        <div class="rh-row-dialog-spinner">
+                            <lightning-spinner alternative-text={spinnerText} size="medium" variant="brand"></lightning-spinner>
+                        </div>
+                        <p class="rh-row-dialog-working" role="status">{workingText}</p>
+                    </div>
+                </template>
+                <template lwc:elseif={isClone}>
                     <p class="slds-m-bottom_small rh-row-dialog-lede">{cloneText}</p>
                     <lightning-input
                         class="rh-row-dialog-title"
@@ -79,9 +88,6 @@
                     <template lwc:if={usedByText}>
                         <p class="slds-m-top_small rh-row-dialog-used-by">{usedByText}</p>
                     </template>
-                </template>
-                <template lwc:if={working}>
-                    <p class="slds-m-top_small rh-row-dialog-working" role="status">{workingText}</p>
                 </template>
                 <template lwc:if={error}>
                     <p class="slds-m-top_small slds-text-color_error rh-row-dialog-error" role="alert">{error}</p>

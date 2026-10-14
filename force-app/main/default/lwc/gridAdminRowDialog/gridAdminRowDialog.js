@@ -14,6 +14,11 @@
  * grid's records in the order to delete them, each a link to its page in
  * Setup (a new browser tab), the grid itself last.
  *
+ * While a clone, archive or restore is deployed, the brand spinner takes the
+ * dialog's place, with what it is doing under it ("Archiving. This takes a
+ * few seconds."), as Import's does; the buttons wait, and focus waits on the
+ * spinner's panel, going back to Cancel if it did not go through.
+ *
  * The SLDS modal blueprint, as the delete dialog: focus starts on the
  * title (clone) or Cancel; a guard at each end keeps it in the dialog; Escape
  * cancels, except while a deploy is under way.
@@ -92,6 +97,7 @@ const WORKING = {
     archive: 'Archiving. This takes a few seconds.',
     restore: 'Restoring. This takes a few seconds.'
 };
+const SPINNER = { clone: 'Cloning the grid', archive: 'Archiving the grid', restore: 'Restoring the grid' };
 
 export default class GridAdminRowDialog extends LightningElement {
     @api action = 'clone';
@@ -107,7 +113,7 @@ export default class GridAdminRowDialog extends LightningElement {
 
     // Non-reactive (HR-20).
     _runtime = { token: 0, nameEdited: false };
-    _layout = { focused: false };
+    _layout = { focused: false, focusBusy: false, focusCancel: false };
 
     connectedCallback() {
         if (this.isClone) {
@@ -122,11 +128,23 @@ export default class GridAdminRowDialog extends LightningElement {
     }
 
     renderedCallback() {
+        // While a deploy runs the buttons are off: focus waits on the spinner's
+        // panel, and comes back to Cancel if it did not go through.
+        if (this._layout.focusBusy) this.focusOn('.rh-row-dialog-busy', 'focusBusy');
+        if (this._layout.focusCancel) this.focusOn('.rh-row-dialog-cancel', 'focusCancel');
         if (this._layout.focused) return;
         const first = this.template.querySelector(this.isClone ? '.rh-row-dialog-title' : '.rh-row-dialog-cancel');
         if (first) {
             this._layout.focused = true;
             first.focus();
+        }
+    }
+
+    focusOn(selector, flag) {
+        const el = this.template.querySelector(selector);
+        if (el) {
+            this._layout[flag] = false;
+            el.focus();
         }
     }
 
@@ -200,6 +218,10 @@ export default class GridAdminRowDialog extends LightningElement {
         return WORKING[this.action] || '';
     }
 
+    get spinnerText() {
+        return SPINNER[this.action] || 'Working';
+    }
+
     // ============================================================ the clone's names
 
     handleTitle(event) {
@@ -246,6 +268,7 @@ export default class GridAdminRowDialog extends LightningElement {
         const token = ++this._runtime.token;
         this.working = true;
         this.error = '';
+        this._layout.focusBusy = true;
         try {
             const name = this.grid.name;
             let configName = name;
@@ -270,7 +293,12 @@ export default class GridAdminRowDialog extends LightningElement {
         } catch (e) {
             if (token === this._runtime.token) this.error = messageOf(e);
         } finally {
-            if (token === this._runtime.token) this.working = false;
+            if (token === this._runtime.token) {
+                this.working = false;
+                this._layout.focusBusy = false;
+                // Still open: it did not go through, and the error says why.
+                this._layout.focusCancel = true;
+            }
         }
     }
 
@@ -308,6 +336,10 @@ export default class GridAdminRowDialog extends LightningElement {
 
     /** Shift+Tab from the first control: round to the last. */
     handleGuardStart() {
+        if (this.working) {
+            this.focusOn('.rh-row-dialog-busy', 'focusBusy');
+            return;
+        }
         const buttons = [...this.template.querySelectorAll('.slds-modal__footer button')];
         const last = buttons.reverse().find(b => !b.disabled);
         if (last) last.focus();
@@ -315,6 +347,10 @@ export default class GridAdminRowDialog extends LightningElement {
 
     /** Tab from the last control: round to the close button, the first. */
     handleGuardEnd() {
+        if (this.working) {
+            this.focusOn('.rh-row-dialog-busy', 'focusBusy');
+            return;
+        }
         const first = this.template.querySelector('.rh-row-dialog-close');
         if (first && !first.disabled) first.focus();
     }

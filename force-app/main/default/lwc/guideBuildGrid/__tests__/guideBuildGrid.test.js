@@ -196,6 +196,34 @@ describe('building', () => {
         ]);
     });
 
+    it('shows a spinner while it builds, with the buttons off and focus on the spinner', async () => {
+        saveDraft.mockResolvedValue('0Af000000000001');
+        saveStatus
+            .mockResolvedValueOnce({ status: 'pending' })
+            .mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
+        const el = await mount('tutorial-leads');
+        await open(el);
+        $(el, '.rh-build-confirm').click();
+        await settle();
+        const busy = $(el, '.rh-build-busy');
+        expect(busy).not.toBeNull();
+        expect($(el, '.rh-build-busy lightning-spinner').alternativeText).toBe('Building the grids');
+        expect($(el, '.rh-build-progress').textContent).toBe('Building Lead Queue. This takes a few seconds.');
+        expect($(el, '.rh-build-busy-note').textContent).toBe('Keep this window open until it is done.');
+        expect($(el, '.rh-build-items')).toBeNull();
+        expect($(el, '.rh-build-confirm').disabled).toBe(true);
+        expect($(el, '.rh-build-close').disabled).toBe(true);
+        expect(el.shadowRoot.activeElement).toBe(busy);
+        $(el, 'section[role="dialog"]').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await settle();
+        expect($(el, 'section[role="dialog"]')).not.toBeNull();
+        await tick();
+        expect($(el, '.rh-build-busy')).not.toBeNull(); // still pending
+        jest.advanceTimersByTime(1500);
+        await settle();
+        expect($(el, 'section[role="dialog"]')).toBeNull();
+    });
+
     it("sends the tutorial's draft as it is", async () => {
         saveDraft.mockResolvedValue('0Af000000000001');
         saveStatus.mockResolvedValue({ status: 'Succeeded', messages: [] });
@@ -225,6 +253,9 @@ describe('building', () => {
             'Key Account Deals was not built. Grid_Child__mdt.Key_Accounts_Deals: An unexpected error occurred. Please include this ErrorId if you contact support: 1873290553-41729 (-1404846893). Key Account Contacts was built and stays.'
         );
         expect($(el, '.rh-build-cancel').disabled).toBe(false);
+        expect($(el, '.rh-build-busy')).toBeNull();
+        expect($(el, '.rh-build-items')).not.toBeNull();
+        expect(el.shadowRoot.activeElement).toBe($(el, '.rh-build-cancel'));
         expect(toasts).toEqual([]);
     });
 

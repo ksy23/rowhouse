@@ -20,3 +20,30 @@
     position: relative;
     min-height: 4rem;
 }
+
+/* While a clone, archive or restore is deployed: the spinner, what it is doing under it. */
+.rh-row-dialog-busy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    min-height: 9rem;
+    padding: var(--slds-g-spacing-4, 1rem);
+    text-align: center;
+}
+
+.rh-row-dialog-busy:focus {
+    outline: none;
+}
+
+.rh-row-dialog-spinner {
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+}
+
+.rh-row-dialog-working {
+    margin: 0;
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}

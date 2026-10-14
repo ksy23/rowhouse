@@ -177,6 +177,45 @@ describe('Archive and Restore', () => {
         expect(events).toEqual([{ type: 'done', detail: { action: 'archive', configName: 'Account_People' } }]);
     });
 
+    it('shows a spinner while it archives, with the buttons off and focus on the spinner', async () => {
+        archiveConfig.mockResolvedValue('0Af000000000005');
+        saveStatus
+            .mockResolvedValueOnce({ status: 'pending' })
+            .mockResolvedValueOnce({ status: 'Succeeded', messages: [] });
+        const el = await mount('archive', { ...GRID, usedBy: ['Accounts'] });
+        $(el, '.rh-row-dialog-confirm').click();
+        await settle();
+        const busy = $(el, '.rh-row-dialog-busy');
+        expect(busy).not.toBeNull();
+        expect($(el, '.rh-row-dialog-busy lightning-spinner').alternativeText).toBe('Archiving the grid');
+        expect($(el, '.rh-row-dialog-working').textContent).toBe('Archiving. This takes a few seconds.');
+        expect($(el, '.rh-row-dialog-lede')).toBeNull();
+        expect($(el, '.rh-row-dialog-used-by')).toBeNull();
+        expect($(el, '.rh-row-dialog-confirm').disabled).toBe(true);
+        expect($(el, '.rh-row-dialog-cancel').disabled).toBe(true);
+        expect($(el, '.rh-row-dialog-close').disabled).toBe(true);
+        expect(el.shadowRoot.activeElement).toBe(busy);
+        $(el, '.rh-row-dialog').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(events).toEqual([]);
+        jest.advanceTimersByTime(1000);
+        await settle();
+        expect($(el, '.rh-row-dialog-busy')).not.toBeNull(); // still pending
+        jest.advanceTimersByTime(1500);
+        await settle();
+        expect(events).toEqual([{ type: 'done', detail: { action: 'archive', configName: 'Account_People' } }]);
+    });
+
+    it('puts the question back, says why, and returns focus to Cancel when it did not go through', async () => {
+        archiveConfig.mockRejectedValue({ body: { message: 'You need the Customize Application permission.' } });
+        const el = await mount('archive');
+        $(el, '.rh-row-dialog-confirm').click();
+        await settle();
+        expect($(el, '.rh-row-dialog-busy')).toBeNull();
+        expect($(el, '.rh-row-dialog-lede').textContent).toContain('goes to Archived grids');
+        expect($(el, '.rh-row-dialog-error').textContent).toBe('You need the Customize Application permission.');
+        expect(el.shadowRoot.activeElement).toBe($(el, '.rh-row-dialog-cancel'));
+    });
+
     it('restores: Archived unticked', async () => {
         archiveConfig.mockResolvedValue('0Af000000000004');
         saveStatus.mockResolvedValue({ status: 'Succeeded', messages: [] });

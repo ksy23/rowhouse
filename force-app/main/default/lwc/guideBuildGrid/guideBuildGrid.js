@@ -15,8 +15,11 @@
  * object stops the build). Build saves each missing grid in turn, as the
  * Grid Admin tab's Save does (GridAdminController.saveDraft, then
  * saveStatus until the deploy has succeeded or failed), a child table's grid
- * before the grid that shows it. If one fails, the ones before it stay built
- * and the dialog says which.
+ * before the grid that shows it. While it does, the brand spinner takes the
+ * list's place, saying which grid it is on, as Import's does; the buttons
+ * wait, and focus waits on the spinner's panel. If one fails, the ones before
+ * it stay built, the list comes back and the dialog says which, with focus on
+ * Close.
  *
  * The drafts are c/guideTutorialGrids'. The dialog is the SLDS modal, as
  * the Grid Admin tab's row dialog: focus starts on Cancel, stays inside,
@@ -102,7 +105,7 @@ export default class GuideBuildGrid extends LightningElement {
 
     // Non-reactive (HR-20).
     _runtime = { token: 0 };
-    _layout = { focusDialog: false, focusButton: false };
+    _layout = { focusDialog: false, focusButton: false, focusBusy: false, focusCancel: false };
 
     connectedCallback() {
         this.loadAccess();
@@ -113,6 +116,10 @@ export default class GuideBuildGrid extends LightningElement {
     }
 
     renderedCallback() {
+        // While the grids are saved the buttons are off: focus waits on the
+        // spinner's panel, and comes back to Cancel if the build stops short.
+        if (this._layout.focusBusy) this.focusOn('.rh-build-busy', 'focusBusy');
+        if (this._layout.focusCancel) this.focusOn('.rh-build-cancel', 'focusCancel');
         if (this._layout.focusDialog) {
             const cancel = this.template.querySelector('.rh-build-cancel');
             if (cancel) {
@@ -125,6 +132,14 @@ export default class GuideBuildGrid extends LightningElement {
                 this._layout.focusButton = false;
                 button.focus();
             }
+        }
+    }
+
+    focusOn(selector, flag) {
+        const el = this.template.querySelector(selector);
+        if (el) {
+            this._layout[flag] = false;
+            el.focus();
         }
     }
 
@@ -272,6 +287,10 @@ export default class GuideBuildGrid extends LightningElement {
 
     /** Shift+Tab from the first control: round to the last. */
     handleGuardStart() {
+        if (this.working) {
+            this.focusOn('.rh-build-busy', 'focusBusy');
+            return;
+        }
         const buttons = [...this.template.querySelectorAll('.slds-modal__footer button')];
         const last = buttons.reverse().find(b => !b.disabled);
         if (last) last.focus();
@@ -279,6 +298,10 @@ export default class GuideBuildGrid extends LightningElement {
 
     /** Tab from the last control: round to the close button, the first. */
     handleGuardEnd() {
+        if (this.working) {
+            this.focusOn('.rh-build-busy', 'focusBusy');
+            return;
+        }
         const first = this.template.querySelector('.rh-build-close');
         if (first && !first.disabled) first.focus();
     }
@@ -293,6 +316,7 @@ export default class GuideBuildGrid extends LightningElement {
         const built = [];
         this.working = true;
         this.error = '';
+        this._layout.focusBusy = true;
         try {
             for (let i = 0; i < steps.length; i++) {
                 const step = steps[i];
@@ -328,6 +352,9 @@ export default class GuideBuildGrid extends LightningElement {
             if (token === this._runtime.token) {
                 this.working = false;
                 this.progress = '';
+                this._layout.focusBusy = false;
+                // Still open: a grid was not built, and the error says which.
+                if (this.dialogOpen) this._layout.focusCancel = true;
             }
         }
     }
