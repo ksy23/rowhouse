@@ -475,7 +475,7 @@ private class GridAdminTest {
         User admin = GridTestUsers.adminUser();
         System.runAs(admin) {
             String refusal = 'Deploying metadata from Apex is not allowed for a non-certified package version.';
-            System.assertEquals(GridAdmin.NOT_CERTIFIED, GridAdmin.explained(new GridException(refusal)).getMessage());
+            System.assertEquals(GridAdmin.BEFORE_REVIEW, GridAdmin.explained(new GridException(refusal)).getMessage());
             Exception other = new GridException('Too many queued deployments.');
             System.assertEquals(other, GridAdmin.explained(other), 'Any other failure as it came.');
 
@@ -485,7 +485,7 @@ private class GridAdminTest {
             failed.errorMessage = refusal;
             new GridAdminDeploy(admin.Id).handleResult(failed, null);
             System.assertEquals(
-                new List<String>{ GridAdmin.NOT_CERTIFIED },
+                new List<String>{ GridAdmin.BEFORE_REVIEW },
                 GridAdmin.saveStatus(String.valueOf(failed.id)).get('messages')
             );
         }

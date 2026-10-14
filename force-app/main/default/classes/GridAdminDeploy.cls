@@ -43,7 +43,7 @@ public with sharing class GridAdminDeploy implements Metadata.DeployCallback {
             }
             for (Integer i = 0; i < messages.size(); i++) {
                 if (messages[i].containsIgnoreCase('certified')) {
-                    messages[i] = GridAdmin.NOT_CERTIFIED; // the security review, in plain words
+                    messages[i] = GridAdmin.BEFORE_REVIEW; // the security review, in plain words
                 }
             }
         }

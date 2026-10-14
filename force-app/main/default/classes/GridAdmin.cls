@@ -1228,7 +1228,7 @@ public with sharing class GridAdmin {
      * on; a Developer Edition and a scratch org allowed it with the setting
      * off (measured, 14 Oct 2026), so it is a production org's message.
      */
-    public static final String NOT_CERTIFIED =
+    public static final String BEFORE_REVIEW =
         'Salesforce did not let Rowhouse save it. In this org, a package that has not yet passed Salesforce\'s ' +
         'security review saves settings only with Deploy Metadata from Non-Certified Package Versions via Apex ' +
         'turned on: in Setup, Apex Settings.';
@@ -1237,7 +1237,7 @@ public with sharing class GridAdmin {
     @TestVisible
     private static Exception explained(Exception e) {
         String message = e == null ? null : e.getMessage();
-        return message != null && message.containsIgnoreCase('certified') ? new GridException(NOT_CERTIFIED) : e;
+        return message != null && message.containsIgnoreCase('certified') ? new GridException(BEFORE_REVIEW) : e;
     }
 
     // Not named after its type: Apex names are case-insensitive.
