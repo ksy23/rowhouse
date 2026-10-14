@@ -58,6 +58,22 @@ later. Metadata XML is left as Salesforce writes it, and component templates
 (`.html`) as you write them: the LWC compiler drops whitespace that contains a
 line break, so keep words and the inline tag beside them on one line.
 
+CI also runs [Salesforce Code Analyzer](https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/code-analyzer.html)
+with the AppExchange and security rules over `force-app`, and fails on any
+finding. To run it yourself (it needs the Salesforce CLI and Java 11 or later):
+
+```bash
+sf plugins install code-analyzer
+sf code-analyzer run --workspace . --target force-app \
+  --rule-selector AppExchange --rule-selector Recommended:Security --severity-threshold 5
+```
+
+Its settings are in `code-analyzer.yml`. A finding is fixed, or, when it is
+not a real problem, explained there with the narrowest suppression that
+silences it (one rule, one file, a fixed count). The path-based
+field-security check (Graph Engine) takes much longer and runs in its own
+workflow, on each release and on request.
+
 The Apex tests run in a Salesforce org. Every test builds the users and rows it
 needs (`test-data/tests/apex/GridTestUsers.cls`), so the suite does not depend
 on who runs it or on seed data. `test-data/README.md` explains how to stand up

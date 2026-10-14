@@ -1,0 +1,53 @@
+# Rowhouse — Salesforce Code Analyzer's Graph Engine.
+#
+# The path-based field-security check the AppExchange security review asks
+# for (ApexFlsViolation, and DatabaseOperationsMustUseWithSharing). It follows
+# every path from each @AuraEnabled method through the query and save code,
+# which takes far longer than the rule scan in ci.yml, so it runs on each
+# published release and whenever started by hand (Actions, "Run workflow").
+# Settings are in code-analyzer.yml. Any finding fails the job; the report is
+# kept as the run's artifact.
+name: code-analyzer-graph
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  graph:
+    name: Salesforce Code Analyzer (Graph Engine field security)
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      SF_DISABLE_TELEMETRY: 'true'
+      SF_AUTOUPDATE_DISABLE: 'true'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Java for the Graph Engine
+        run: java -version
+      - name: Install the Salesforce CLI and Code Analyzer
+        run: |
+          npm install -g @salesforce/cli@2.152.14
+          sf plugins install code-analyzer@5.16.0
+      - name: Scan every path
+        run: >
+          sf code-analyzer run --workspace . --target force-app
+          --rule-selector sfge:Security
+          --severity-threshold 5 --view table
+          --output-file code-analyzer-graph.html --output-file code-analyzer-graph.csv
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: code-analyzer-graph
+          path: code-analyzer-graph.*
+          if-no-files-found: ignore

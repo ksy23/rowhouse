@@ -32,6 +32,44 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npm run verify
 
+  code-analyzer:
+    # The scan the AppExchange security review asks for: Salesforce Code
+    # Analyzer's AppExchange and security rules over the package. Any finding
+    # fails the job; settings and each explained suppression are in
+    # code-analyzer.yml. The path-based field-security check (Graph Engine) is
+    # slower and has its own workflow, code-analyzer-graph.yml.
+    name: Salesforce Code Analyzer (AppExchange and security rules)
+    runs-on: ubuntu-latest
+    env:
+      SF_DISABLE_TELEMETRY: 'true'
+      SF_AUTOUPDATE_DISABLE: 'true'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Java for the PMD engine
+        run: java -version
+      - name: Install the Salesforce CLI and Code Analyzer
+        run: |
+          npm install -g @salesforce/cli@2.152.14
+          sf plugins install code-analyzer@5.16.0
+      - name: Scan
+        run: >
+          sf code-analyzer run --workspace . --target force-app
+          --rule-selector AppExchange --rule-selector Recommended:Security
+          --severity-threshold 5 --view table
+          --output-file code-analyzer-results.html --output-file code-analyzer-results.csv
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: code-analyzer-results
+          path: code-analyzer-results.*
+          if-no-files-found: ignore
+
   apex:
     name: Apex suite in a scratch org (unlocked build)
     runs-on: ubuntu-latest

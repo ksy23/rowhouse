@@ -1,0 +1,73 @@
+# Salesforce Code Analyzer settings for Rowhouse.
+#
+# The scan the AppExchange security review asks for, run on every push by CI
+# (.github/workflows/ci.yml) and by hand with:
+#
+#   sf code-analyzer run --workspace . --target force-app \
+#     --rule-selector AppExchange --rule-selector Recommended:Security \
+#     --severity-threshold 5
+#
+# Pass: no finding at any severity. A finding is fixed in the code, or, when
+# it is not a real problem, explained below with the narrowest suppression
+# that silences it (one rule, one file, a fixed count). The one built-in rule
+# turned off below runs again in its place, accepting only what it explains.
+#
+# The path-based field-security check (Graph Engine) is slower and runs in
+# its own workflow, .github/workflows/code-analyzer-graph.yml:
+#
+#   sf code-analyzer run --workspace . --target force-app \
+#     --rule-selector sfge:Security --severity-threshold 5
+
+# The Jest tests are not part of the package.
+ignores:
+  files:
+    - '**/__tests__/**'
+
+rules:
+  pmd:
+    # PMD's EmptyCatchBlock counts a catch that holds only a comment as empty.
+    # Rowhouse's empty catches are deliberate fallbacks (a user who cannot read
+    # a configuration type reads it the ordinary way; a value that is not a
+    # date falls through to the message for it), and each says so in a
+    # comment. The same rule with allowCommentedBlocks runs instead, at the
+    # same severity, so a catch that is empty and unexplained still fails.
+    EmptyCatchBlock:
+      disabled: true
+    EmptyCatchBlockWithoutComment:
+      severity: 2
+
+engines:
+  pmd:
+    custom_rulesets:
+      - config/code-analyzer/pmd-rowhouse.xml
+
+  regex:
+    custom_rules:
+      # PMD's AvoidLwcBubblesComposedTrue cannot parse some of the components'
+      # JavaScript (its parser stops on newer syntax), so this checks every
+      # file the same way by text. No Rowhouse event leaves its component's
+      # shadow tree.
+      NoComposedEvents:
+        regex: /composed\s*:\s*true/g
+        file_extensions: ['.js']
+        description: "An event that leaves the component's shadow tree (composed: true)."
+        violation_message: 'Events stay inside the component that fires them: drop composed: true.'
+        severity: 3
+        tags: ['Recommended', 'Security', 'JavaScript', 'Rowhouse']
+
+  sfge:
+    # The controllers' entry points lead through the grid's whole query and
+    # save code, so a path can take minutes to evaluate.
+    java_max_heap_size: 5g
+    java_thread_count: 2
+    java_thread_timeout: 600000
+
+suppressions:
+  # ProtectSensitiveData flags field names that look like secrets. Key__c holds
+  # the owner's user Id and the grid's API name, which make each user's layout
+  # of each grid one record; a validation rule requires it to start with the
+  # owner's Id. Metadata XML cannot carry an inline suppression.
+  'force-app/main/default/objects/Grid_User_Layout__c/fields/Key__c.field-meta.xml':
+    - rule_selector: 'pmd:ProtectSensitiveData'
+      max_suppressed_violations: 1
+      reason: "Holds the owner's user Id and the grid's API name, not a secret."

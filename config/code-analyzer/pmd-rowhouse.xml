@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="Rowhouse" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    <description>Rowhouse's PMD rules for Salesforce Code Analyzer (see code-analyzer.yml).</description>
+    <!-- PMD's EmptyCatchBlock, accepting a catch that holds only a comment
+         saying what happens instead. Code Analyzer runs it in place of the
+         built-in rule, which code-analyzer.yml switches off. -->
+    <rule ref="category/apex/errorprone.xml/EmptyCatchBlock" name="EmptyCatchBlockWithoutComment">
+        <properties>
+            <property name="allowCommentedBlocks" value="true"/>
+        </properties>
+    </rule>
+</ruleset>
