@@ -382,18 +382,26 @@ private class GridActionServiceTest {
     }
 
     @IsTest
-    static void triesAPlainNameAsWrittenFirstAndANamespacedOneOnlyAsWritten() {
-        // From the installed package a plain name is looked for in Rowhouse's
-        // namespace (measured), so the org's own actions are looked for other ways.
+    static void aFlowRunsAsAFlowInterviewAndApexAndQuickActionsAreTriedEachWay() {
+        // From the installed package Invocable.Action finds none of the org's own
+        // actions, while Flow.Interview runs its flows (measured).
         GridConfig.Action flow = new GridConfig.Action();
         flow.type = 'flow';
         flow.actionName = 'Mark_Consignment_Reviewed';
         List<GridActionService.Way> ways = GridActionService.waysFor(flow);
-        System.assertEquals('as written', ways[0].label);
-        System.assertEquals(false, ways[0].withNamespace, 'First as written.');
-        System.assert(howsOf(ways).contains('interview'), 'A flow is also tried as a flow interview.');
+        System.assertEquals(1, ways.size(), 'A flow runs one way.');
+        System.assertEquals('interview', ways[0].how);
+        System.assertEquals(false, ways[0].withNamespace);
         flow.actionName = 'cargo_ops__Mark_Reviewed';
-        System.assertEquals(1, GridActionService.waysFor(flow).size(), 'A name with its own namespace: as written.');
+        ways = GridActionService.waysFor(flow);
+        System.assertEquals('cargo_ops', ways[0].namespace, 'Another package\'s flow: its namespace.');
+        System.assertEquals('Mark_Reviewed', ways[0].name, 'Then its own name.');
+        GridConfig.Action apex = new GridConfig.Action();
+        apex.type = 'apex';
+        apex.actionName = 'ConsignmentStampAction';
+        ways = GridActionService.waysFor(apex);
+        System.assertEquals('as written', ways[0].label, 'First as written.');
+        System.assert(howsOf(ways).contains('callable'));
         GridConfig.Action call = new GridConfig.Action();
         call.type = 'quickaction';
         call.actionName = 'LogACall';
@@ -418,7 +426,7 @@ private class GridActionServiceTest {
     }
 
     @IsTest
-    static void aFlowRunsAsAFlowInterviewAndAQuickActionThroughQuickAction() {
+    static void aFlowInterviewRunsEachRecordAndAQuickActionIsFoundThroughQuickAction() {
         System.runAs(GridTestUsers.fullUser()) {
             List<Consignment__c> recs = newRecords(new List<String>{ 'Paper rolls, Augusta', FAIL_ME });
             GridConfig.Action flow = new GridConfig.Action();
@@ -430,17 +438,15 @@ private class GridActionServiceTest {
                 'recordId',
                 idsOf(recs)
             );
-            // In the package's build org the flow is Rowhouse's own, in its namespace:
-            // what a plain name finds there is not what an installed org's would.
-            if (String.isBlank(GridDescribe.NAMESPACE)) {
-                System.assert(ran.found, ran.note);
-                System.assertEquals(
-                    new Set<Id>{ recs[1].Id },
-                    ran.failures.keySet(),
-                    'An interview that fails, fails alone.'
-                );
-                System.assertEquals('Reviewed by dispatch', textsOf(recs).get(recs[0].Id));
-            }
+            System.assert(ran.found, ran.note);
+            System.assertEquals(
+                new Set<Id>{ recs[1].Id },
+                ran.failures.keySet(),
+                'An interview that fails, fails alone.'
+            );
+            Map<Id, String> texts = textsOf(recs);
+            System.assertEquals('Reviewed by dispatch', texts.get(recs[0].Id));
+            System.assertEquals('Wachusett Paper', texts.get(recs[1].Id), 'The failed interview\'s work is undone.');
 
             GridConfig.Action call = new GridConfig.Action();
             call.type = 'quickaction';
@@ -461,21 +467,22 @@ private class GridActionServiceTest {
     static void aDiagnosticsUserSeesWhatEachWayDidAndNothingIsKept() {
         System.runAs(GridTestUsers.diagnosticsUser()) {
             List<Consignment__c> recs = newRecords(new List<String>{ 'Bonded cargo, Portland' });
-            GridConfig.Action flow = new GridConfig.Action();
-            flow.type = 'flow';
-            flow.actionName = 'Mark_Consignment_Reviewed';
+            Integer tasksBefore = [SELECT COUNT() FROM Task];
+            GridConfig.Action call = new GridConfig.Action();
+            call.type = 'quickaction';
+            call.actionName = 'LogACall';
             GridActionService.Outcome o = GridActionService.probe(
-                flow,
-                'recordId',
+                call,
+                'contextId',
                 idsOf(recs),
-                GridActionService.waysFor(flow),
+                GridActionService.waysFor(call),
                 new List<String>{ 'as written: not tried' }
             );
             String report = o.failures.get(recs[0].Id);
             System.assert(o.probe);
-            System.assert(report.startsWith('Probe, nothing kept.'), report);
-            System.assert(report.contains(': RAN'), 'At least one way finds the flow: ' + report);
-            System.assertEquals('Wachusett Paper', textsOf(recs).get(recs[0].Id), 'The probe undoes every run.');
+            System.assert(report.startsWith('Probe, nothing kept. as written: not tried | '), report);
+            System.assert(report.contains('QuickAction: '), report);
+            System.assertEquals(tasksBefore, [SELECT COUNT() FROM Task], 'The probe undoes every run.');
 
             GridConfig.Action apex = new GridConfig.Action();
             apex.type = 'apex';
@@ -488,8 +495,8 @@ private class GridActionServiceTest {
                     new List<String>()
                 )
                 .failures.get(recs[0].Id);
-            System.assert(report.contains('describe as written: 1 inputs'), report);
-            System.assertEquals('Wachusett Paper', textsOf(recs).get(recs[0].Id), 'Nothing the Apex did is kept.');
+            System.assert(report.contains('Callable'), report);
+            System.assertEquals('Wachusett Paper', textsOf(recs).get(recs[0].Id), 'Nothing is kept.');
         }
     }
 
@@ -502,8 +509,7 @@ private class GridActionServiceTest {
             flow.actionName = 'Rerate_Consignment';
             GridActionService.Outcome o = GridActionService.runFirstFound(flow, 'recordId', idsOf(recs));
             String message = o.failures.get(recs[0].Id);
-            System.assert(message.startsWith('Salesforce did not find Rerate_Consignment (as written: '), message);
-            System.assert(message.contains('interview: '), message);
+            System.assert(message.startsWith('Salesforce did not find Rerate_Consignment (interview: '), message);
         }
     }
 

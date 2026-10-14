@@ -17,14 +17,19 @@
  * Records the user cannot see (sharing), or that were deleted, are not run and
  * come back as row errors.
  *
- * HOW IT RUNS (measured in a Developer Edition org)
- * One Invocable.Action call, one invocation per record, so a flow or an Apex
- * action gets the batch in bulk. The record Id goes in as text: a flow's Text
- * input and a quick action's contextId refuse an Id-typed value, and an Apex
- * action's Id input takes text.
- *   A flow or a quick action that fails for one record fails for that record
- *   alone. A flow's error is the platform's own ("An error occurred when
- *   executing a flow interview."); its fault path cannot say more here.
+ * HOW IT RUNS (measured)
+ * A flow runs as one flow interview per record (Flow.Interview), the record
+ * Id as text in its input. From the installed package that is the only way
+ * that reaches the org's own flows: Invocable.Action looks for them, and for
+ * the org's own Apex and quick actions, in vain.
+ *   An interview that fails is undone and fails alone; its error is the
+ *   platform's own. Before each interview after the first there must be room
+ *   in the transaction for twice what the last one used; rows not reached say
+ *   so, and nothing else about them changed.
+ * An Apex or quick action is one Invocable.Action call, one invocation per
+ * record. The record Id goes in as text: a quick action's contextId refuses an
+ * Id-typed value, and an Apex action's Id input takes text.
+ *   A quick action that fails for one record fails for that record alone.
  *   An Apex action that throws fails the whole call, every record with the
  *   same message, and the platform undoes the work the call had done. So a
  *   failed Apex call on several records is run again one record at a time:
@@ -52,6 +57,9 @@
 public with sharing class GridActionService {
     /** Records per call. Small, so a heavy flow or a retried Apex action stays within one transaction's limits. */
     public static final Integer MAX_IDS = 50;
+    /** Said of a row not reached because the request came close to the transaction's limits. */
+    @TestVisible
+    private static final String NOT_REACHED = 'Not run: this request came close to Salesforce\'s limits. Run the action again on this row.';
 
     /** The Invocable.Action type for each server kind. */
     private static final Map<String, String> INVOCABLE_TYPE = new Map<String, String>{
@@ -145,23 +153,27 @@ public with sharing class GridActionService {
     // ---------------------------------------------------------------- helpers
 
     /**
-     * One way to reach an action by its name. From the installed package a
-     * name without a namespace was looked for in Rowhouse's own: the org's own
-     * flows, its Apex and even Salesforce's global Log a Call came back
-     * "Action name not found: rowhouse__…" (measured, 0.1 Beta 11 and 12). So
-     * the ways are tried in turn, and the first that finds the action runs it.
-     * A way that found nothing ran nothing, so nothing runs twice.
+     * One way to reach an action. From the installed package, Invocable.Action
+     * finds none of the org's own flows, Apex or quick actions, whatever
+     * namespace it is given, while Flow.Interview runs the org's own flow by
+     * its plain name (measured, 0.1 Beta 11 to 13). So a flow runs as a flow
+     * interview; Apex and quick actions are tried each way in turn, and the
+     * first that finds the action runs it. A way that found nothing ran
+     * nothing, so nothing runs twice.
      */
     @TestVisible
     private class Way {
-        /** invocable (Invocable.Action), interview (Flow.Interview) or quickaction (QuickAction). */
+        /** invocable (Invocable.Action), interview (Flow.Interview), callable (System.Callable) or quickaction (QuickAction). */
         public String how;
+        /** The name this way looks for. */
+        public String name;
         public Boolean withNamespace;
         /** Blank or null for none. */
         public String namespace;
         public String label;
-        Way(String how, Boolean withNamespace, String namespace, String label) {
+        Way(String how, String name, Boolean withNamespace, String namespace, String label) {
             this.how = how;
+            this.name = name;
             this.withNamespace = withNamespace;
             this.namespace = namespace;
             this.label = label;
@@ -178,29 +190,34 @@ public with sharing class GridActionService {
         public String note = '';
     }
 
-    /**
-     * The ways to try, first the name as written. A name with a namespace of
-     * its own is only ever looked for as written.
-     */
+    /** The ways to try, in turn. */
     @TestVisible
     private static List<Way> waysFor(GridConfig.Action action) {
-        List<Way> out = new List<Way>{ new Way('invocable', false, null, 'as written') };
-        if (action.actionName.contains('__')) {
-            return out;
-        }
-        out.add(new Way('invocable', true, '', 'blank namespace'));
-        out.add(new Way('invocable', true, null, 'null namespace'));
-        out.add(new Way('invocable', true, 'c', 'namespace c'));
+        String name = action.actionName;
         if (action.type == 'flow') {
-            out.add(new Way('interview', true, '', 'interview, blank namespace'));
-            out.add(new Way('interview', true, null, 'interview, null namespace'));
-            out.add(new Way('interview', false, null, 'interview'));
+            // A flow of another package: its namespace, then its own name.
+            Integer cut = name.indexOf('__');
+            return new List<Way>{
+                cut > 0
+                    ? new Way('interview', name.substring(cut + 2), true, name.left(cut), 'interview')
+                    : new Way('interview', name, false, null, 'interview')
+            };
+        }
+        List<Way> out = new List<Way>{ new Way('invocable', name, false, null, 'as written') };
+        if (action.type == 'apex') {
+            out.add(new Way('callable', name, true, '', 'Callable, blank namespace'));
+            out.add(new Way('callable', name, true, null, 'Callable, null namespace'));
+            out.add(new Way('callable', name, false, null, 'Callable'));
         }
         if (action.type == 'quickaction') {
-            out.add(new Way('quickaction', false, null, 'performQuickActions'));
-        }
-        if (String.isNotBlank(GridDescribe.NAMESPACE)) {
-            out.add(new Way('invocable', true, GridDescribe.NAMESPACE, 'namespace ' + GridDescribe.NAMESPACE));
+            Boolean bare = !name.contains('.');
+            if (bare) {
+                out.add(new Way('invocable', 'Global.' + name, false, null, 'as Global.' + name));
+            }
+            out.add(new Way('quickaction', name, false, null, 'QuickAction'));
+            if (bare) {
+                out.add(new Way('quickaction', 'Global.' + name, false, null, 'QuickAction, Global.' + name));
+            }
         }
         return out;
     }
@@ -256,9 +273,6 @@ public with sharing class GridActionService {
             Database.rollback(before);
             lines.add(ways[i].label + ': ' + line);
         }
-        if (action.type == 'apex') {
-            lines.add(describeNotes(action));
-        }
         Outcome out = new Outcome();
         out.probe = true;
         String report = 'Probe, nothing kept. ' + String.join(lines, ' | ');
@@ -271,10 +285,13 @@ public with sharing class GridActionService {
     @TestVisible
     private static Outcome runWay(Way way, GridConfig.Action action, String input, List<Id> ids) {
         if (way.how == 'interview') {
-            return interviews(way, action, input, ids);
+            return interviews(way, input, ids);
+        }
+        if (way.how == 'callable') {
+            return callable(way, input, ids);
         }
         if (way.how == 'quickaction') {
-            return quickActions(action, ids);
+            return quickActions(way, ids);
         }
         return invocable(way, action, input, ids);
     }
@@ -287,17 +304,17 @@ public with sharing class GridActionService {
     }
 
     /** The Invocable.Action this way names; throws when Salesforce refuses to make one. */
-    private static Invocable.Action invocableAt(Way way, String type, String name) {
+    private static Invocable.Action invocableAt(Way way, String type) {
         return way.withNamespace
-            ? Invocable.Action.createCustomAction(type, way.namespace, name)
-            : Invocable.Action.createCustomAction(type, name);
+            ? Invocable.Action.createCustomAction(type, way.namespace, way.name)
+            : Invocable.Action.createCustomAction(type, way.name);
     }
 
     /** One call, one invocation per record, the Id as text. */
     private static Outcome invocable(Way way, GridConfig.Action action, String input, List<Id> ids) {
         List<Invocable.Action.Result> results;
         try {
-            Invocable.Action call = invocableAt(way, INVOCABLE_TYPE.get(action.type), action.actionName);
+            Invocable.Action call = invocableAt(way, INVOCABLE_TYPE.get(action.type));
             for (Integer i = 0; i < ids.size(); i++) {
                 if (i > 0) {
                     call.addInvocation();
@@ -317,35 +334,102 @@ public with sharing class GridActionService {
         return out;
     }
 
-    /** One flow interview per record, the Id as text. */
-    private static Outcome interviews(Way way, GridConfig.Action action, String input, List<Id> ids) {
+    /**
+     * One flow interview per record, the Id as text. An interview that fails
+     * is undone and fails alone. Before each interview after the first, there
+     * must be room in the transaction for twice what the last one used; rows
+     * not reached say so.
+     */
+    private static Outcome interviews(Way way, String input, List<Id> ids) {
         Outcome out = new Outcome();
-        for (Id recordId : ids) {
+        List<Integer> used = new List<Integer>{ 0, 0, 0 }; // queries, DML statements, CPU ms, of the last interview
+        for (Integer i = 0; i < ids.size(); i++) {
+            Id recordId = ids[i];
+            if (i > 0 && !roomForTwice(used)) {
+                for (Integer j = i; j < ids.size(); j++) {
+                    out.failures.put(ids[j], NOT_REACHED);
+                }
+                break;
+            }
             Map<String, Object> inputs = new Map<String, Object>{ input => String.valueOf(recordId) };
             Flow.Interview interview;
             try {
                 interview = way.withNamespace
-                    ? Flow.Interview.createInterview(way.namespace, action.actionName, inputs)
-                    : Flow.Interview.createInterview(action.actionName, inputs);
+                    ? Flow.Interview.createInterview(way.namespace, way.name, inputs)
+                    : Flow.Interview.createInterview(way.name, inputs);
             } catch (Exception e) {
-                return notFoundBecause(e.getTypeName() + ': ' + e.getMessage());
+                if (i == 0) {
+                    return notFoundBecause(e.getTypeName() + ': ' + e.getMessage());
+                }
+                out.failures.put(recordId, e.getMessage());
+                continue;
             }
+            Integer queries = Limits.getQueries();
+            Integer dml = Limits.getDmlStatements();
+            Integer cpu = Limits.getCpuTime();
+            Savepoint before = Database.setSavepoint();
             try {
                 interview.start();
             } catch (Exception e) {
+                Database.rollback(before);
                 out.failures.put(recordId, e.getMessage());
+            }
+            used = new List<Integer>{
+                Limits.getQueries() - queries,
+                Limits.getDmlStatements() - dml,
+                Limits.getCpuTime() - cpu
+            };
+        }
+        return out;
+    }
+
+    /** Is there room for twice what one interview used (at least one query and two DML statements)? */
+    private static Boolean roomForTwice(List<Integer> used) {
+        return Limits.getQueries() + 2 * Math.max(used[0], 1) <= Limits.getLimitQueries() &&
+            Limits.getDmlStatements() + 2 * Math.max(used[1], 2) <= Limits.getLimitDmlStatements() &&
+            Limits.getCpuTime() + 2 * used[2] <= Limits.getLimitCpuTime();
+    }
+
+    /** For the probe: the org's own class, as a System.Callable, given the record Ids as text. */
+    private static Outcome callable(Way way, String input, List<Id> ids) {
+        Object made;
+        try {
+            Type t = way.withNamespace ? Type.forName(way.namespace, way.name) : Type.forName(way.name);
+            if (t == null) {
+                return notFoundBecause('Type.forName found nothing');
+            }
+            made = t.newInstance();
+        } catch (Exception e) {
+            return notFoundBecause(e.getTypeName() + ': ' + e.getMessage());
+        }
+        if (!(made instanceof Callable)) {
+            return notFoundBecause('found, but not a Callable');
+        }
+        List<String> texts = new List<String>();
+        for (Id recordId : ids) {
+            texts.add(String.valueOf(recordId));
+        }
+        Outcome out = new Outcome();
+        try {
+            ((Callable) made).call('run', new Map<String, Object>{ input => texts });
+        } catch (Exception e) {
+            for (Id recordId : ids) {
+                out.failures.put(recordId, e.getTypeName() + ': ' + e.getMessage());
             }
         }
         return out;
     }
 
     /** The quick action on each record, a new record of the action's target object for each. */
-    private static Outcome quickActions(GridConfig.Action action, List<Id> ids) {
+    private static Outcome quickActions(Way way, List<Id> ids) {
         Schema.SObjectType target;
         try {
             List<QuickAction.DescribeQuickActionResult> described = QuickAction.describeQuickActions(
-                new List<String>{ action.actionName }
+                new List<String>{ way.name }
             );
+            if (described.isEmpty()) {
+                return notFoundBecause('describeQuickActions found nothing');
+            }
             target = GridDescribe.typeFor(described[0].getTargetSobjectType());
         } catch (Exception e) {
             return notFoundBecause(e.getTypeName() + ': ' + e.getMessage());
@@ -353,7 +437,7 @@ public with sharing class GridActionService {
         List<QuickAction.QuickActionRequest> requests = new List<QuickAction.QuickActionRequest>();
         for (Id recordId : ids) {
             QuickAction.QuickActionRequest request = new QuickAction.QuickActionRequest();
-            request.setQuickActionName(action.actionName);
+            request.setQuickActionName(way.name);
             request.setContextId(recordId);
             request.setRecord(target.newSObject());
             requests.add(request);
@@ -364,7 +448,7 @@ public with sharing class GridActionService {
             results = QuickAction.performQuickActions(requests, false);
         } catch (Exception e) {
             for (Id recordId : ids) {
-                out.failures.put(recordId, e.getMessage());
+                out.failures.put(recordId, e.getTypeName() + ': ' + e.getMessage());
             }
             return out;
         }
@@ -380,31 +464,11 @@ public with sharing class GridActionService {
         return out;
     }
 
-    /** For the probe: what describing the Apex action said, each Invocable.Action way. */
-    private static String describeNotes(GridConfig.Action action) {
-        List<String> notes = new List<String>();
-        for (Way way : waysFor(action)) {
-            if (way.how != 'invocable') {
-                continue;
-            }
-            String note;
-            try {
-                List<Invocable.Action.DescribeResult> d = invocableAt(way, 'apex', action.actionName).getDescribe();
-                note = d.isEmpty() ? 'nothing' : d[0].getInputs().size() + ' inputs';
-            } catch (Exception e) {
-                note = e.getTypeName() + ': ' + e.getMessage();
-            }
-            notes.add('describe ' + way.label + ': ' + note);
-        }
-        return String.join(notes, ' | ');
-    }
-
     /**
      * The input that takes the record Id: the Grid Action's Input Name, else
      * recordId for a flow and contextId for a quick action; for Apex, the
-     * action's one input, found by describe the first way (waysFor) that
-     * finds the action. Throws in an admin's terms when an Apex action has
-     * none, or several and no Input Name says which.
+     * action's one input, found by describe. Throws in an admin's terms when
+     * an Apex action has none, or several and no Input Name says which.
      */
     @TestVisible
     private static String inputFor(GridConfig.Action action) {
@@ -414,19 +478,11 @@ public with sharing class GridActionService {
         if (DEFAULT_INPUT.containsKey(action.type)) {
             return DEFAULT_INPUT.get(action.type);
         }
-        List<Invocable.Action.DescribeResult> described = new List<Invocable.Action.DescribeResult>();
-        for (Way way : waysFor(action)) {
-            if (way.how != 'invocable') {
-                continue;
-            }
-            try {
-                described = invocableAt(way, 'apex', action.actionName).getDescribe();
-            } catch (Exception e) {
-                described = new List<Invocable.Action.DescribeResult>(); // not this way; try the next
-            }
-            if (!described.isEmpty()) {
-                break;
-            }
+        List<Invocable.Action.DescribeResult> described;
+        try {
+            described = Invocable.Action.createCustomAction('apex', action.actionName).getDescribe();
+        } catch (Exception e) {
+            described = new List<Invocable.Action.DescribeResult>();
         }
         if (described.isEmpty()) {
             throw new GridException(
