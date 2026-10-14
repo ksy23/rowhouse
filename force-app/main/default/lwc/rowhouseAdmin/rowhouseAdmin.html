@@ -86,6 +86,17 @@
                                     disabled={newDisabled}
                                     onclick={handleImportOpen}
                                 ></lightning-button>
+                                <!-- Export the grids the list below shows (its search and side navigation). -->
+                                <template lwc:if={showExportList}>
+                                    <lightning-button
+                                        class="rh-admin-export"
+                                        label={exportListLabel}
+                                        icon-name="utility:download"
+                                        title={exportListTitle}
+                                        disabled={exporting}
+                                        onclick={handleExportList}
+                                    ></lightning-button>
+                                </template>
                                 <a class="rh-link-button rh-admin-guide-link" href={startUrl} onclick={handleGuideLink}>Get started →</a>
                             </div>
                             <div class="rh-stats rh-admin-stats">
@@ -121,16 +132,6 @@
                                     <h2 class="rh-h2 rh-admin-count" id="rh-admin-list-heading">{countText}</h2>
                                 </div>
                                 <div class="rh-admin-filters">
-                                    <template lwc:if={showExportList}>
-                                        <lightning-button
-                                            class="rh-admin-export"
-                                            label={exportListLabel}
-                                            icon-name="utility:download"
-                                            title={exportListTitle}
-                                            disabled={exporting}
-                                            onclick={handleExportList}
-                                        ></lightning-button>
-                                    </template>
                                     <lightning-input
                                         class="rh-admin-search"
                                         type="search"
