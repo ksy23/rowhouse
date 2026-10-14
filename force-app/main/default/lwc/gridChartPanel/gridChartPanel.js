@@ -21,7 +21,7 @@
  */
 import { LightningElement, api } from 'lwc';
 import { formatCount } from 'c/gridFormat';
-import { MAX_NAMED, MAX_PERIODS, chartTitle, chartSeries, barLayout, donutLayout } from 'c/gridCharts';
+import { MAX_NAMED, MAX_PERIODS, chartTitle, chartSeries, barLayout, donutLayout, donutTotalSize } from 'c/gridCharts';
 
 /** How each type is named under the title, as Edit chart's tiles name it. */
 const TYPE_NAMES = { vbar: 'Vertical bar', hbar: 'Horizontal bar', donut: 'Donut' };
@@ -163,6 +163,11 @@ export default class GridChartPanel extends LightningElement {
 
     get totalShort() {
         return this.series ? this.series.total.short : '';
+    }
+
+    /** A longer total ("USD 105.2K") is set smaller, to fit inside the ring. */
+    get donutTotalStyle() {
+        return `font-size: ${donutTotalSize(this.totalShort)}px`;
     }
 
     get totalText() {

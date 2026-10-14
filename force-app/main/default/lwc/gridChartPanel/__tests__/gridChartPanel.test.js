@@ -108,7 +108,24 @@ it('shows an amount with its currency in the middle and beside the donut', async
         }
     });
     expect($('.rh-charts-total').textContent).toMatch(/^\D*2\.1M$/);
+    expect($('.rh-charts-total').getAttribute('style')).toMatch(/font-size: 18px/);
     expect($('.rh-charts-legend-value').textContent).toMatch(/^\D*1\.1M$/);
+});
+
+it('sets a total with a currency code smaller, to fit inside the ring', async () => {
+    await mount({
+        chart: { ...CHART, type: 'donut', measure: 'sum', field: 'Freight_Charge__c' },
+        columns: [COLUMNS[0], { ...COLUMNS[1], currencyField: 'CurrencyIsoCode', totalCurrency: 'GBP' }],
+        data: {
+            status: 'ready',
+            groups: [
+                { k: ['Economy'], l: [''], n: 3, v: { Freight_Charge__c: { s: '61208.14', c: 3 } } },
+                { k: ['Standard'], l: [''], n: 5, v: { Freight_Charge__c: { s: '44000', c: 5 } } }
+            ]
+        }
+    });
+    expect($('.rh-charts-total').textContent).toMatch(/GBP/);
+    expect($('.rh-charts-total').getAttribute('style')).toMatch(/font-size: 1[0-7]px/);
 });
 
 it('says what it covers at its foot', async () => {
@@ -138,6 +155,10 @@ it('shows the figures as a table, and the chart again', async () => {
     expect($('svg')).toBeNull();
     const table = $('.rh-charts-grid');
     expect([...table.querySelectorAll('thead th')].map(th => th.textContent)).toEqual(['Service Level', 'Records']);
+    // The groups' names may wrap; the figures keep to one line.
+    expect(
+        [...table.querySelectorAll('th[scope="row"]')].every(th => th.classList.contains('rh-charts-grid-label'))
+    ).toBe(true);
     expect([...table.querySelectorAll('tbody tr')].map(tr => tr.textContent)).toEqual([
         'Standard5',
         'Economy3',

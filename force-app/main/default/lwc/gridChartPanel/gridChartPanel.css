@@ -154,6 +154,12 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* The groups' names wrap, so the figures in full keep to the panel's width. */
+.rh-charts-grid .rh-charts-grid-label {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 .rh-charts-grid-total {
     font-weight: var(--slds-g-font-weight-bold, 700);
 }

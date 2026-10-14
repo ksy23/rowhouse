@@ -409,6 +409,20 @@ export function barLayout(entries, horizontal) {
  * segment is a ring drawn with a dash: { key, dash, offset, colorClass }.
  * Only positive figures have a share; a donut cannot show a negative one.
  */
+/**
+ * The font size, in pixels, of the total in a donut's middle, so that it fits
+ * inside the ring: 18 for a short figure such as "$105.2K", smaller for a
+ * longer one such as "USD 105.2K" in an org with more than one currency.
+ */
+export function donutTotalSize(text) {
+    const length = String(text || '').length;
+    if (!length) return 18;
+    // The hole is 98 across (donutLayout: radius 60 less half the 22 ring); the
+    // total keeps 6 clear on each side, and a bold figure or letter is about
+    // 0.58 of the font size wide.
+    return Math.max(11, Math.min(18, Math.floor(86 / (length * 0.58))));
+}
+
 export function donutLayout(entries) {
     // As drawn in the mock-up: a ring 22 wide, leaving room in the middle for
     // the total and the count.

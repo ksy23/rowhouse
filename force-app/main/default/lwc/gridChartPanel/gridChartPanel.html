@@ -86,7 +86,7 @@
                                 ></circle>
                             </template>
                         </g>
-                        <text class="rh-charts-total" x={donut.center} y={donutTotalY} text-anchor="middle">{totalShort}</text>
+                        <text class="rh-charts-total" style={donutTotalStyle} x={donut.center} y={donutTotalY} text-anchor="middle">{totalShort}</text>
                         <text class="rh-charts-count" x={donut.center} y={donutCountY} text-anchor="middle">{donutCountText}</text>
                     </svg>
                     <ul class="rh-charts-legend">
@@ -107,19 +107,19 @@
                     <caption class="slds-assistive-text">{title}</caption>
                     <thead>
                         <tr class="slds-line-height_reset">
-                            <th scope="col"><div class="slds-truncate">{groupHeading}</div></th>
+                            <th scope="col" class="rh-charts-grid-label"><div class="slds-truncate">{groupHeading}</div></th>
                             <th scope="col" class="rh-charts-num"><div class="slds-truncate">{valueHeading}</div></th>
                         </tr>
                     </thead>
                     <tbody>
                         <template for:each={entries} for:item="e">
                             <tr key={e.key}>
-                                <th scope="row">{e.label}</th>
+                                <th scope="row" class="rh-charts-grid-label">{e.label}</th>
                                 <td class="rh-charts-num">{e.text}</td>
                             </tr>
                         </template>
                         <tr class="rh-charts-grid-total">
-                            <th scope="row">Total</th>
+                            <th scope="row" class="rh-charts-grid-label">Total</th>
                             <td class="rh-charts-num">{totalText}</td>
                         </tr>
                     </tbody>

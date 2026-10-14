@@ -13,6 +13,7 @@ import {
     niceScale,
     barLayout,
     donutLayout,
+    donutTotalSize,
     shortNumber,
     shortFigure,
     clip,
@@ -299,6 +300,16 @@ describe('the drawing', () => {
             '105.2K'
         );
         expect(shortFigure(82.26, { field: 'Probability', type: 'percent' })).toBe('82.3%');
+    });
+
+    it("sets a donut's total small enough to fit inside the ring", () => {
+        expect(donutTotalSize('$105.2K')).toBe(18);
+        expect(donutTotalSize('9')).toBe(18);
+        expect(donutTotalSize('')).toBe(18);
+        // With a currency code, as in an org with more than one currency.
+        expect(donutTotalSize('USD 105.2K')).toBe(14);
+        expect(donutTotalSize('-USD 105.2K')).toBe(13);
+        expect(donutTotalSize('x'.repeat(40))).toBe(11);
     });
 
     it('shortens a figure for a bar or the middle of a donut', () => {
