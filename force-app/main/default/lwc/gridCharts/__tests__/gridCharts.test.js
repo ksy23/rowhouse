@@ -14,6 +14,7 @@ import {
     barLayout,
     donutLayout,
     shortNumber,
+    shortFigure,
     clip,
     measureColumns,
     groupByColumns,
@@ -285,6 +286,19 @@ describe('the drawing', () => {
         const lengths = donut.segments.map(s => Number(s.dash.split(' ')[0]));
         expect(lengths[0] + lengths[1]).toBeCloseTo(donut.circumference, 0);
         expect(donut.segments[1].offset).toBeCloseTo(-lengths[0], 0);
+    });
+
+    it('shortens an amount with its currency, by code in an org with more than one', () => {
+        const amount = { field: 'Amount', type: 'currency' };
+        expect(shortFigure(3645000, amount)).toMatch(/^\D*3\.6M$/);
+        // More than one currency: the corporate one, as the Total row shows it, never the user's.
+        expect(shortFigure(105208.14, { ...amount, currencyField: 'CurrencyIsoCode', totalCurrency: 'GBP' })).toMatch(
+            /GBP/
+        );
+        expect(shortFigure(105208.14, { ...amount, currencyField: 'CurrencyIsoCode', totalCurrency: null })).toBe(
+            '105.2K'
+        );
+        expect(shortFigure(82.26, { field: 'Probability', type: 'percent' })).toBe('82.3%');
     });
 
     it('shortens a figure for a bar or the middle of a donut', () => {

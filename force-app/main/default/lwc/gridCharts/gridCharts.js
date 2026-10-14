@@ -148,27 +148,34 @@ const compactCurrency = new Map();
 /**
  * A figure shortened for a bar, a donut's middle or its list: an amount with
  * its currency ("$3.6M"), a percent with its sign ("82.3%"), else as
- * shortNumber. The table keeps every figure in full.
+ * shortNumber. In an org with more than one currency a chart's figures are
+ * in the corporate currency, as the Total row's are, and shown by its code
+ * ("USD 105.2K"); the number alone when that currency could not be read. The
+ * table keeps every figure in full.
  */
 export function shortFigure(value, column) {
     const n = Number(value);
     if (value === null || value === undefined || value === '' || !Number.isFinite(n)) return '';
     const type = column && column.type;
     if (type === 'currency') {
-        const code = column.currencyCode || CURRENCY;
+        const multi = Boolean(column.currencyField || column.currencyCode);
+        const code = multi ? column.totalCurrency : CURRENCY;
+        if (!code) return shortNumber(n);
+        const key = code + (multi ? ':code' : '');
         try {
-            if (!compactCurrency.has(code)) {
+            if (!compactCurrency.has(key)) {
                 compactCurrency.set(
-                    code,
+                    key,
                     new Intl.NumberFormat(LOCALE, {
                         style: 'currency',
                         currency: code,
+                        currencyDisplay: multi ? 'code' : 'symbol',
                         notation: 'compact',
                         maximumFractionDigits: 1
                     })
                 );
             }
-            return compactCurrency.get(code).format(n);
+            return compactCurrency.get(key).format(n);
         } catch {
             // A currency code the browser does not know: the number alone.
             return shortNumber(n);
