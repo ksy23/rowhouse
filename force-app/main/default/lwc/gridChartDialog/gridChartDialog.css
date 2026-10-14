@@ -1,0 +1,4 @@
+/* The comboboxes' lists open over the footer, as in Salesforce's own dialog. */
+.rh-chart-dialog-content {
+    overflow: visible;
+}

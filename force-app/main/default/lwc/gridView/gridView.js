@@ -179,6 +179,18 @@
  * record, and an import fills it in on the records it creates. A child table
  * is filtered by its parent row instead.
  *
+ * CHARTS
+ * As a list view's: the Charts button (utility:chart) opens a panel beside the
+ * table (c/gridChartPanel), under it in a narrow space, with a chart of every
+ * record the search and filters match: counted, or a number column added up or
+ * averaged (GridController.chartGroups, sliced as the groups' subtotals are),
+ * by one column the grid can group by. The gear's Edit Chart
+ * (c/gridChartDialog) chooses; Display As draws it as vertical or horizontal
+ * bars or a donut. One chart per user per grid, kept with the layout, open or
+ * closed; the first is the records counted by the grid's grouping, else by its
+ * first picklist. Read again whenever the counts and subtotals are. Not in a
+ * child table.
+ *
  * EACH USER'S LAYOUT
  * A grid reads this user's layout with its configuration (openGrid,
  * never cached), and starts with its sort, grouping, widths, Wrap or Clip,
@@ -212,6 +224,7 @@ import restoreRows from '@salesforce/apex/GridController.restoreRows';
 import matchingIds from '@salesforce/apex/GridController.matchingIds';
 import lookupName from '@salesforce/apex/GridController.lookupName';
 import summarizeGroups from '@salesforce/apex/GridController.summarizeGroups';
+import chartGroups from '@salesforce/apex/GridController.chartGroups';
 import countChildren from '@salesforce/apex/GridController.countChildren';
 import runAction from '@salesforce/apex/GridController.runAction';
 import saveLayout from '@salesforce/apex/GridController.saveLayout';
@@ -257,6 +270,7 @@ import { childTableHeight } from 'c/gridNest';
 import { readChoice, shownColumns, chooseColumns, sameChoice, searchHint } from 'c/gridColumns';
 import { namespaceOf, newToken, backRef, flowPageRef, doneToken } from 'c/gridFlowRoute';
 import { openGuide } from 'c/guideRoute';
+import { normalizeChart, defaultChart, chartParam, groupByColumns } from 'c/gridCharts';
 
 /** Loaded up front: the published benchmark ceiling. Beyond it, rows load as the user scrolls. */
 export const PRELOAD_ROWS = 10000;
@@ -385,8 +399,16 @@ export function readLayout(json, columns) {
         groupView:
             saved.groups && typeof saved.groups === 'object' && !Array.isArray(saved.groups)
                 ? { order: saved.groups.order || null, percent: saved.groups.percent === true }
-                : null
+                : null,
+        // The user's chart, as far as it still fits the columns, and whether its panel was open.
+        ...chartOf(saved.chart, cols)
     };
+}
+
+/** A kept chart, read back: { chart, chartsOpen }. */
+function chartOf(saved, cols) {
+    const chart = normalizeChart(saved, cols);
+    return { chart, chartsOpen: Boolean(chart) && saved.open === true };
 }
 
 /** A saved grouping that still fits; null when it had levels and none is left. */
@@ -498,6 +520,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
     columnChoice = null;
     /** Search this list has focus: its hint shows. */
     searchFocused = false;
+    /** The Charts panel is open. */
+    chartsOpen = false;
+    /** This user's chart of this grid (gridCharts), or null until there is one. */
+    chart = null;
+    /** The chart's answer: { status, groups, message }, or null. */
+    chartData = null;
+    /** Edit Chart is open. */
+    chartDialogOpen = false;
     /** The Choose columns dialog is open. */
     columnsOpen = false;
     /**
@@ -530,6 +560,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     _runtime = {
         token: 0,
         summaryToken: 0,
+        chartToken: 0,
         countToken: 0,
         searchTimer: null,
         connected: false,
@@ -663,6 +694,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this._runtime.connected = false;
         this._runtime.token++; // any response still in flight is now stale
         this._runtime.summaryToken++;
+        this._runtime.chartToken++;
         this._runtime.countToken++;
         clearTimeout(this._runtime.searchTimer);
         this.keepLayoutNow(); // a change still waiting is kept, not lost
@@ -788,6 +820,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 : { widths: null, wrap: {}, expanded: [], groupView: null, frozen: null };
             this.userLayout = saved ? { key: ++this._saved.key, ...this._saved.table, sort: this.sort } : null;
             this.columnChoice = saved ? saved.columns : null;
+            this.chart = saved ? saved.chart : null;
+            this.chartsOpen = Boolean(saved && saved.chartsOpen) && !this._parent;
+            this.chartData = null;
             this.newRowContext = opened.newRow || null;
             this.definition = d;
             const first = this.firstPageOf(opened, openMs);
@@ -1377,6 +1412,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
             items.push({ key: 'import', value: 'import', label: 'Import', disabled: this.importDisabled });
         if (this.canExport)
             items.push({ key: 'export', value: 'export', label: 'Export as CSV', disabled: this.exportDisabled });
+        if (this.canChart)
+            items.push({
+                key: 'charts',
+                value: 'charts',
+                label: this.chartsOpen ? 'Hide charts' : 'Charts',
+                disabled: false
+            });
         if (this.hasLegend)
             items.push({
                 key: 'legend',
@@ -1399,6 +1441,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         else if (value === 'import') this.handleImportOpen();
         else if (value === 'export') this.handleExport();
         else if (value === 'legend') this.handleLegendToggle();
+        else if (value === 'charts') this.handleChartsToggle();
         else if (value === 'settings') this.handleSettingsOpen();
         else if (value === 'reset') this.handleResetLayout();
         else if (value === 'columns') this.handleColumnsOpen();
@@ -1711,6 +1754,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         // The groups' order and percentages, when not the default.
         const gv = t.groupView;
         if (gv && ((gv.order && gv.order.by && gv.order.by !== 'name') || gv.percent === true)) layout.groups = gv;
+        if (this.chart) layout.chart = { ...this.chart, open: this.chartsOpen };
         return JSON.stringify(layout);
     }
 
@@ -1799,6 +1843,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.sort = sort;
         this.grouping = grouping;
         this.columnChoice = null;
+        this.chart = null;
+        this.chartsOpen = false;
+        this.chartData = null;
+        this._runtime.chartToken++;
         this.userLayout = {
             key: ++this._saved.key,
             widths: null,
@@ -1897,6 +1945,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * new configuration, makes an older one's answer stale.
      */
     async loadSummary() {
+        // The chart covers the same records: it is read again with them.
+        this.loadChart();
         const token = ++this._runtime.summaryToken;
         if (!this.needsSummary) {
             this.groupSummary = null;
@@ -1949,6 +1999,124 @@ export default class GridView extends NavigationMixin(LightningElement) {
             if (token !== this._runtime.summaryToken) return;
             this.groupSummary = { status: 'unavailable' };
             this.notice = { variant: 'warning', message: 'Counts and subtotals could not be loaded. ' + messageOf(e) };
+        }
+    }
+
+    // ============================================================ charts
+
+    /** A list view's Charts: on a grid with a column to group by, not in a child table. */
+    get canChart() {
+        const d = this.definition;
+        return Boolean(d) && !this._parent && groupByColumns(d.columns).length > 0;
+    }
+
+    get showCharts() {
+        return this.chartsOpen && this.canChart && Boolean(this.chart);
+    }
+
+    get chartRowClass() {
+        return 'rh-chart-row' + (this.showCharts ? ' rh-chart-row_open' : '');
+    }
+
+    /** The Charts button, or Charts in the narrow menu: open or close the panel. */
+    handleChartsToggle() {
+        if (!this.canChart) return;
+        if (this.chartsOpen) {
+            this.closeCharts();
+            return;
+        }
+        if (!this.chart) this.chart = defaultChart(this.definition.columns, this.grouping);
+        if (!this.chart) return;
+        this.chartsOpen = true;
+        this.announce('Charts shown beside the list.');
+        this.rememberLayout();
+        this.loadChart();
+    }
+
+    handleChartsClose() {
+        this.closeCharts();
+        this.focusButton('.rh-charts');
+    }
+
+    closeCharts() {
+        this.chartsOpen = false;
+        this._runtime.chartToken++;
+        this.announce('Charts hidden.');
+        this.rememberLayout();
+    }
+
+    /** Display As: the same figures, drawn another way. */
+    handleChartType(event) {
+        const type = event.detail && event.detail.type;
+        if (!this.chart || !type) return;
+        this.chart = normalizeChart({ ...this.chart, type }, this.definition.columns);
+        this.rememberLayout();
+    }
+
+    handleChartEdit() {
+        this.chartDialogOpen = true;
+    }
+
+    handleChartDialogCancel() {
+        this.chartDialogOpen = false;
+        this.focusChartMenu();
+    }
+
+    handleChartDialogSave(event) {
+        const chart = event.detail && event.detail.chart;
+        this.chartDialogOpen = false;
+        if (chart) {
+            this.chart = chart;
+            this.rememberLayout();
+            this.loadChart();
+        }
+        this.focusChartMenu();
+    }
+
+    focusChartMenu() {
+        Promise.resolve().then(() => {
+            const panel = this.template.querySelector('c-grid-chart-panel');
+            if (panel && typeof panel.focusMenu === 'function') panel.focusMenu();
+        });
+    }
+
+    /**
+     * The chart's figures for the current search and filters: one call, or
+     * slices of a large list one after another, as the groups' subtotals are.
+     * A newer request makes an older answer stale.
+     */
+    async loadChart() {
+        const token = ++this._runtime.chartToken;
+        if (!this.showCharts) return;
+        const chart = this.chart;
+        const params = {
+            configName: this._configName,
+            searchTerm: this.searchTerm || null,
+            groupBy: chartParam(chart),
+            measure: chart.measure,
+            measureField: chart.field || null,
+            ...this.parentParams,
+            ...this.filterParams
+        };
+        this.chartData = { status: 'loading' };
+        try {
+            const first = (await chartGroups({ ...params, fromId: null, toId: null })) || {};
+            if (token !== this._runtime.chartToken) return;
+            let groups = first.groups || [];
+            let tooMany = first.tooManyGroups === true;
+            const starts = first.boundaries || [];
+            for (let i = 0; i < starts.length && !tooMany; i++) {
+                // Sequential by design: each slice is its own transaction.
+                // eslint-disable-next-line no-await-in-loop
+                const slice = (await chartGroups({ ...params, fromId: starts[i], toId: starts[i + 1] || null })) || {};
+                if (token !== this._runtime.chartToken) return;
+                groups = groups.concat(slice.groups || []);
+                tooMany = slice.tooManyGroups === true;
+            }
+            this.chartData = tooMany ? { status: 'tooMany' } : { status: 'ready', groups };
+        } catch (e) {
+            if (token !== this._runtime.chartToken) return;
+            this.chartData = { status: 'error', message: messageOf(e) };
         }
     }
 

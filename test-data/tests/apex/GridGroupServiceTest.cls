@@ -544,6 +544,107 @@ private class GridGroupServiceTest {
         }
     }
 
+    // ---------------------------------------------------------------- charts
+
+    private static GridGroupService.Result chart(String groupBy, String measure, String field, String search) {
+        return GridGroupService.chart(CONFIG, search, groupBy, measure, field, null, null, null, null, null, null);
+    }
+
+    private static String chartRefusal(String groupBy, String measure, String field) {
+        try {
+            chart(groupBy, measure, field, null);
+        } catch (GridException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    @IsTest
+    static void aChartCountsTheRecordsOfEachGroup() {
+        System.runAs(GridTestUsers.fullUser()) {
+            seed();
+            Test.startTest();
+            GridGroupService.Result result = chart('Service_Level__c', 'count', null, null);
+            Test.stopTest();
+            System.assertEquals(3, result.groups.size(), String.valueOf(result.groups));
+            System.assertEquals(3, groupFor(result, new List<String>{ 'Economy' }).get('n'));
+            System.assertEquals(1, groupFor(result, new List<String>{ 'Standard' }).get('n'));
+            System.assertEquals(1, groupFor(result, new List<String>{ '' }).get('n'), 'Blank is a group of its own.');
+            System.assert(
+                ((Map<String, Object>) groupFor(result, new List<String>{ 'Economy' }).get('v')).isEmpty(),
+                'Counting the records needs no other figure.'
+            );
+        }
+    }
+
+    @IsTest
+    static void aChartAddsUpOrAveragesTheNumberColumnChosen() {
+        System.runAs(GridTestUsers.fullUser()) {
+            seed();
+            Test.startTest();
+            GridGroupService.Result sums = chart('Service_Level__c', 'sum', 'Pieces__c', null);
+            GridGroupService.Result averages = chart('Service_Level__c', 'Average', 'Freight_Charge__c', null);
+            Test.stopTest();
+            Map<String, Object> economy = groupFor(sums, new List<String>{ 'Economy' });
+            System.assert(number(economy, 'Pieces__c', 's') == 15, String.valueOf(economy));
+            System.assert(
+                !((Map<String, Object>) economy.get('v')).containsKey('Freight_Charge__c'),
+                'Only the column chosen is measured, not the grid\'s subtotals.'
+            );
+            Map<String, Object> avg = groupFor(averages, new List<String>{ 'Economy' });
+            System.assert(number(avg, 'Freight_Charge__c', 's') == 180, String.valueOf(avg));
+            System.assertEquals(3, value(avg, 'Freight_Charge__c', 'c'), 'An average travels as a sum and a count.');
+        }
+    }
+
+    @IsTest
+    static void aChartGroupsADateByTheUnitChosenAndFollowsTheSearch() {
+        System.runAs(GridTestUsers.fullUser()) {
+            seed();
+            Test.startTest();
+            GridGroupService.Result quarters = chart('Ship_Date__c:quarter', 'count', null, null);
+            GridGroupService.Result searched = chart('Service_Level__c', 'count', null, 'potatoes');
+            Test.stopTest();
+            System.assertEquals(3, groupFor(quarters, new List<String>{ '2026-Q1' }).get('n'));
+            System.assertEquals(1, groupFor(quarters, new List<String>{ '2026-Q2' }).get('n'));
+            System.assertEquals(1, searched.groups.size(), String.valueOf(searched.groups));
+            System.assertEquals(1, groupFor(searched, new List<String>{ 'Standard' }).get('n'));
+        }
+    }
+
+    @IsTest
+    static void aChartIsRefusedWhatTheGridCannotChart() {
+        System.runAs(GridTestUsers.fullUser()) {
+            Test.startTest();
+            String noGroup = chartRefusal(' ', 'count', null);
+            String notAColumn = chartRefusal('Weight_Kg__c', 'count', null);
+            String twoLevels = chartRefusal('Service_Level__c,Ship_Date__c', 'count', null);
+            String badMeasure = chartRefusal('Service_Level__c', 'max', 'Pieces__c');
+            String text = chartRefusal('Service_Level__c', 'sum', 'Consignee__c');
+            String absent = chartRefusal('Service_Level__c', 'average', 'Weight_Kg__c');
+            Test.stopTest();
+            System.assertEquals('Choose a column to group the chart by.', noGroup);
+            System.assertEquals('Cannot group by Weight_Kg__c.', notAColumn);
+            System.assert(twoLevels != null && twoLevels.startsWith('Cannot group by'), twoLevels);
+            System.assertEquals('A chart counts the records, or adds up or averages a number column.', badMeasure);
+            System.assertEquals('Consignee cannot be added up.', text);
+            System.assertEquals('This grid has no column "Weight_Kg__c" to chart.', absent);
+        }
+    }
+
+    @IsTest
+    static void aChartNeverReachesAColumnTheUserCannotRead() {
+        // Freight_Limited_Access cannot read Picked Up or Shipper (GridSecurityTest).
+        System.runAs(GridTestUsers.limitedUser()) {
+            Test.startTest();
+            String byShipper = chartRefusal('Shipper__c', 'count', null);
+            String ofPickedUp = chartRefusal('Service_Level__c', 'sum', 'Picked_Up__c');
+            Test.stopTest();
+            System.assertEquals('Cannot group by Shipper__c.', byShipper);
+            System.assertEquals('This grid has no column "Picked_Up__c" to chart.', ofPickedUp);
+        }
+    }
+
     @IsTest
     static void theSearchNarrowsTheGroupsAsItNarrowsTheRows() {
         System.runAs(GridTestUsers.fullUser()) {

@@ -155,8 +155,50 @@ describe('readLayout', () => {
             expanded: [OPEN_ROW],
             columns: null,
             frozen: null,
-            groupView: null
+            groupView: null,
+            chart: null,
+            chartsOpen: false
         });
+    });
+
+    it("reads the user's chart as far as it fits the grid, and whether it was open", () => {
+        expect(
+            read({
+                chart: {
+                    type: 'donut',
+                    measure: 'sum',
+                    field: 'Freight_Charge__c',
+                    groupBy: 'Service_Level__c',
+                    open: true
+                }
+            })
+        ).toEqual(
+            expect.objectContaining({
+                chart: {
+                    type: 'donut',
+                    measure: 'sum',
+                    field: 'Freight_Charge__c',
+                    groupBy: 'Service_Level__c',
+                    unit: null
+                },
+                chartsOpen: true
+            })
+        );
+        // A date gets a unit; a column it can no longer add up is counted instead.
+        expect(read({ chart: { type: 'vbar', measure: 'sum', field: 'Name', groupBy: 'Ship_Date__c' } }).chart).toEqual(
+            {
+                type: 'vbar',
+                measure: 'count',
+                field: null,
+                groupBy: 'Ship_Date__c',
+                unit: 'month'
+            }
+        );
+        // A column the grid can no longer group by: no chart, and nothing open.
+        expect(read({ chart: { type: 'hbar', measure: 'count', groupBy: 'Rate_Class__c', open: true } })).toEqual(
+            expect.objectContaining({ chart: null, chartsOpen: false })
+        );
+        expect(read({ chart: 'nonsense' }).chart).toBeNull();
     });
 
     it('reads the columns the user froze, 0 to 5', () => {
@@ -918,7 +960,7 @@ describe('Reset layout', () => {
         await settle();
         narrow();
         await settle();
-        expect(items(el)).toEqual(['Refresh', 'Choose columns', 'Export as CSV', 'Help']);
+        expect(items(el)).toEqual(['Refresh', 'Choose columns', 'Export as CSV', 'Charts', 'Help']);
         el.remove();
 
         observers = [];

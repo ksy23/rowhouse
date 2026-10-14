@@ -38,6 +38,13 @@
  *   boundaries: where the other slices start, on a first call that needed
  *     them; null when the answer is complete.
  *   tooManyGroups: more than maxGroups groups. Nothing else is returned.
+ *
+ * CHARTS
+ * A chart (chart()) asks the same question of one column the user chose to
+ * group by, measured by the records or by one number column the user chose,
+ * summed or averaged. Both columns come from the request, so each must be a
+ * column of this grid that the user can read, of a kind that fits (HR-6); the
+ * answer, its slices and its limits are a grouping's.
  */
 public with sharing class GridGroupService {
     /** Records per slice: the 50,000-row budget, less room for the count and the boundaries. */
@@ -241,9 +248,6 @@ public with sharing class GridGroupService {
         String recordId
     ) {
         GridConfig.Definition def = GridConfig.forUser(configName);
-        Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-        GridSecurity.requireRead(objectType);
-        GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
         List<Level> levels = levels(def, grouping);
         List<GridConfig.Column> totals = new List<GridConfig.Column>();
         for (GridConfig.Column c : def.columns) {
@@ -251,10 +255,95 @@ public with sharing class GridGroupService {
                 totals.add(c);
             }
         }
-        Result result = new Result();
         if (levels.isEmpty() && totals.isEmpty()) {
-            return result;
+            return new Result();
         }
+        return run(def, levels, totals, searchTerm, fromId, toId, parentLink, parentId, filters, recordId);
+    }
+
+    /** What a chart measures: the records, or a number column summed or averaged. */
+    public static final Set<String> CHART_MEASURES = new Set<String>{ 'count', 'sum', 'average' };
+
+    /**
+     * A chart's numbers: grouped by one column (groupBy, as a grouping level
+     * is sent: "Field__c", or "Field__c:month" for a date), measured by the
+     * records (count) or by one number column summed or averaged
+     * (measureField). Narrowed as the rows are, and sliced as a grouping is.
+     */
+    public static Result chart(
+        String configName,
+        String searchTerm,
+        String groupBy,
+        String measure,
+        String measureField,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId
+    ) {
+        GridConfig.Definition def = GridConfig.forUser(configName);
+        if (String.isBlank(groupBy)) {
+            throw new GridException('Choose a column to group the chart by.');
+        }
+        List<Level> levels = levels(def, new List<String>{ groupBy });
+        String kind = measure == null ? '' : measure.trim().toLowerCase();
+        if (!CHART_MEASURES.contains(kind)) {
+            throw new GridException('A chart counts the records, or adds up or averages a number column.');
+        }
+        List<GridConfig.Column> totals = new List<GridConfig.Column>();
+        if (kind != 'count') {
+            totals.add(measureColumn(def, kind, measureField));
+        }
+        return run(def, levels, totals, searchTerm, fromId, toId, parentLink, parentId, filters, recordId);
+    }
+
+    /**
+     * The column a chart sums or averages: one of this grid's (so one the user
+     * can read), a field of a number type, not encrypted, not a formula or
+     * child total column. Anything else refuses the request (HR-6).
+     */
+    private static GridConfig.Column measureColumn(GridConfig.Definition def, String kind, String field) {
+        Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
+        for (GridConfig.Column c : def.columns) {
+            if (String.isBlank(field) || !c.field.equalsIgnoreCase(field.trim())) {
+                continue;
+            }
+            Boolean fits =
+                c.isFormula != true &&
+                c.isChildTotal != true &&
+                c.encrypted != true &&
+                GridDescribe.subtotalFits(kind, GridPaths.resolve(objectType, c.field).field.getDescribe());
+            if (!fits) {
+                throw new GridException(c.label + ' cannot be ' + (kind == 'sum' ? 'added up' : 'averaged') + '.');
+            }
+            GridConfig.Column m = new GridConfig.Column();
+            m.field = c.field;
+            m.label = c.label;
+            m.subtotal = kind;
+            return m;
+        }
+        throw new GridException('This grid has no column "' + field + '" to chart.');
+    }
+
+    /** One grouping's or one chart's counts and totals, narrowed as the rows are. */
+    private static Result run(
+        GridConfig.Definition def,
+        List<Level> levels,
+        List<GridConfig.Column> totals,
+        String searchTerm,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId
+    ) {
+        Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
+        GridSecurity.requireRead(objectType);
+        GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
+        Result result = new Result();
 
         Map<String, Object> binds = new Map<String, Object>();
         List<String> conditions = new List<String>();

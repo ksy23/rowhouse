@@ -547,6 +547,45 @@ public with sharing class GridController {
     }
 
     /**
+     * A chart's numbers: { groups, boundaries, tooManyGroups }, as
+     * summarizeGroups answers, for one column to group by and what to measure
+     * (count, or sum or average of a number column). Both columns must be the
+     * grid's, and the user's to read (HR-6). Sliced as summarizeGroups is.
+     */
+    @AuraEnabled
+    public static GridGroupService.Result chartGroups(
+        String configName,
+        String searchTerm,
+        String groupBy,
+        String measure,
+        String measureField,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId
+    ) {
+        try {
+            return GridGroupService.chart(
+                configName,
+                searchTerm,
+                groupBy,
+                measure,
+                measureField,
+                fromId,
+                toId,
+                parentLink,
+                parentId,
+                filters,
+                recordId
+            );
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /**
      * How many related records each of these rows has, per tab:
      * { parentId: { total, byTab: { tab: n } } }, for at most 2,000 rows a
      * call. The tabs are the named grid's own, as this user may open them;

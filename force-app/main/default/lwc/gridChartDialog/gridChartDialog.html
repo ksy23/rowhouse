@@ -1,0 +1,76 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        class="slds-modal slds-fade-in-open rh-chart-dialog"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <button class="slds-button slds-button_icon slds-modal__close rh-chart-close" title="Cancel and close" onclick={handleCancel}>
+                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                <span class="slds-assistive-text">Cancel and close</span>
+            </button>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate">Edit Chart</h1>
+            </div>
+            <div class="slds-modal__content slds-p-around_medium rh-chart-dialog-content">
+                <lightning-combobox
+                    class="rh-chart-type"
+                    label="Chart Type"
+                    value={type}
+                    options={typeOptions}
+                    required
+                    onchange={handleType}
+                ></lightning-combobox>
+                <lightning-combobox
+                    class="slds-m-top_small rh-chart-measure"
+                    label="Aggregate Type"
+                    value={measure}
+                    options={measureOptions}
+                    required
+                    field-level-help="Count counts the records. Sum and Average add up a number column."
+                    onchange={handleMeasure}
+                ></lightning-combobox>
+                <template lwc:if={needsField}>
+                    <lightning-combobox
+                        class="slds-m-top_small rh-chart-field"
+                        label="Aggregate Field"
+                        value={field}
+                        options={fieldOptions}
+                        placeholder="Choose a number column"
+                        required
+                        onchange={handleField}
+                    ></lightning-combobox>
+                </template>
+                <lightning-combobox
+                    class="slds-m-top_small rh-chart-group"
+                    label="Grouping Field"
+                    value={groupBy}
+                    options={groupOptions}
+                    placeholder="Choose a column"
+                    required
+                    onchange={handleGroup}
+                ></lightning-combobox>
+                <template lwc:if={isDate}>
+                    <lightning-combobox
+                        class="slds-m-top_small rh-chart-unit"
+                        label="Group Dates By"
+                        value={unit}
+                        options={unitOptions}
+                        required
+                        onchange={handleUnit}
+                    ></lightning-combobox>
+                </template>
+            </div>
+            <div class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral rh-chart-cancel" onclick={handleCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand rh-chart-save" disabled={saveDisabled} onclick={handleSave}>Save</button>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

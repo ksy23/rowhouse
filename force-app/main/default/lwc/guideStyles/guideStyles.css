@@ -1218,7 +1218,7 @@ figcaption {
 }
 
 .rh-m-head > div:nth-child(2) {
-    flex: 1 1 180px;
+    flex: 1 1 160px;
     min-width: 0;
 }
 
@@ -1298,6 +1298,15 @@ figcaption {
     padding: 0 var(--slds-g-spacing-2, 0.5rem);
     display: flex;
     align-items: center;
+}
+
+/* The Welcome page's grid is narrower: its tools keep to one row */
+.rh-hero-grid .rh-m-tools {
+    gap: var(--slds-g-spacing-1, 0.25rem);
+}
+
+.rh-hero-grid .rh-m-search {
+    width: 132px;
 }
 
 .rh-m-btn {
@@ -3515,6 +3524,115 @@ table.rh-ref td.rh-d {
     color: var(--rh-m-brand);
     background: var(--slds-g-color-palette-neutral-100, #fff);
     flex: 0 0 var(--slds-g-sizing-8, 28px);
+}
+
+/* A pressed icon button, as lightning-button-icon-stateful draws it selected (Charts) */
+.rh-m-ibtn.rh-on {
+    color: var(--slds-g-color-neutral-base-100, #fff);
+    background: var(--rh-m-brand);
+    border-color: var(--rh-m-brand);
+}
+
+/* The Charts panel beside the list (User guide › Charts) */
+.rh-m-chartrow {
+    display: flex;
+    align-items: stretch;
+}
+
+.rh-m-chartrow > table.rh-mt {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.rh-m-charts {
+    flex: 0 0 13.5rem;
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border-left: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+    background: var(--rh-m-bg);
+    font-size: var(--slds-g-font-scale-neg-2, 0.6875rem);
+    color: var(--rh-m-ink);
+}
+
+.rh-m-charts-h,
+.rh-m-charts-t {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-m-charts-h b {
+    font-size: var(--slds-g-font-scale-1, 0.875rem);
+    font-weight: var(--slds-g-font-weight-4, 400);
+}
+
+.rh-m-charts-h .rh-m-x {
+    color: var(--rh-m-brand);
+}
+
+.rh-m-charts-t {
+    margin: var(--slds-g-spacing-2, 0.5rem) 0;
+}
+
+.rh-m-cbar {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    align-items: center;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+    margin: var(--slds-g-spacing-1, 0.25rem) 0;
+}
+
+.rh-m-cbar .rh-lb {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+    color: var(--rh-m-ink2);
+}
+
+.rh-m-cbar .rh-tr {
+    display: flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+}
+
+.rh-m-cbar i {
+    display: block;
+    width: var(--rh-w, 0%);
+    min-width: var(--slds-g-sizing-border-2, 2px);
+    height: var(--slds-g-sizing-3, 0.625rem);
+    background: var(--slds-g-color-palette-teal-40, #0b827c);
+    border-radius: var(--slds-g-radius-border-1, 0.125rem);
+}
+
+.rh-m-cbar em {
+    font-style: normal;
+}
+
+.rh-m-caxis {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 6.75rem;
+    padding-top: var(--slds-g-spacing-1, 0.25rem);
+    border-top: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+    color: var(--rh-m-weak);
+}
+
+.rh-m-charts-f {
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    color: var(--rh-m-weak);
+}
+
+@media (max-width: 640px) {
+    .rh-m-chartrow {
+        flex-direction: column;
+    }
+
+    .rh-m-charts {
+        flex-basis: auto;
+        border-left: 0;
+        border-top: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+    }
 }
 
 /* A bare icon button, as lightning-button-icon variant="bare" draws it */

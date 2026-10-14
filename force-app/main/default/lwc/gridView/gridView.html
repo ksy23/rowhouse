@@ -117,6 +117,17 @@
                             onclick={handleColumnsOpen}
                         ></lightning-button-icon>
                     </template>
+                    <template lwc:if={canChart}>
+                        <!-- A list view's Charts: a chart of every matching record, beside the list. -->
+                        <lightning-button-icon-stateful
+                            class="slds-m-left_x-small rh-charts"
+                            icon-name="utility:chart"
+                            alternative-text="Charts"
+                            title="Charts"
+                            selected={chartsOpen}
+                            onclick={handleChartsToggle}
+                        ></lightning-button-icon-stateful>
+                    </template>
                     <template lwc:if={canResetLayout}>
                         <!-- This user's layout is kept: put back the admin's. -->
                         <lightning-button-icon
@@ -351,6 +362,9 @@
                 </div>
             </template>
             <template lwc:elseif={showTable}>
+                <!-- The table, and the Charts panel beside it (under it in a narrow space). -->
+                <div class={chartRowClass}>
+                <div class="rh-chart-main">
                 <c-grid-table
                     config={tableConfig}
                     oncellchange={handleCellChange}
@@ -373,6 +387,20 @@
                     onnewrecord={handleNewRecord}
                     onnamesfound={handleNamesFound}
                 ></c-grid-table>
+                </div>
+                <template lwc:if={showCharts}>
+                    <c-grid-chart-panel
+                        class="rh-chart-panel"
+                        chart={chart}
+                        data={chartData}
+                        columns={definition.columns}
+                        names={refNames}
+                        onclose={handleChartsClose}
+                        ontype={handleChartType}
+                        onedit={handleChartEdit}
+                    ></c-grid-chart-panel>
+                </template>
+                </div>
             </template>
         </div>
 
@@ -408,6 +436,15 @@
                 oncreated={handleNewRecordCreated}
                 oncancel={handleNewRecordCancel}
             ></c-grid-new-record>
+        </template>
+
+        <template lwc:if={chartDialogOpen}>
+            <c-grid-chart-dialog
+                chart={chart}
+                columns={definition.columns}
+                onsave={handleChartDialogSave}
+                oncancel={handleChartDialogCancel}
+            ></c-grid-chart-dialog>
         </template>
 
         <template lwc:if={editRecord}>

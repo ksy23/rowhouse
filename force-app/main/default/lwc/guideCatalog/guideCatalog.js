@@ -100,6 +100,7 @@ export const PAGES = [
             "sheet",
             "select",
             "group",
+            "charts",
             "related",
             "actions",
             "io",

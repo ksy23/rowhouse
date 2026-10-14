@@ -19,6 +19,7 @@
     <span class="s-k">More</span>
     <a href="#select">Change many rows</a>
     <a href="#group">Group and total</a>
+    <a href="#charts">Charts</a>
     <a href="#related">Related records</a>
     <a href="#actions">Actions</a>
     <a href="#io">Import and export</a>
@@ -36,7 +37,7 @@
       <div class="m-head">
         <div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div>
         <div><div class="m-title">Service Triage</div><div class="m-meta">26 items • Sorted by Priority • Updated a few seconds ago</div></div>
-        <div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Grid settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div>
+        <div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Charts"><svg viewBox="0 0 24 24"><path d="M11 3.5a8.5 8.5 0 1 0 9.5 9.5H11z"/><path d="M14 2.5a7.5 7.5 0 0 1 7.5 7.5H14z"/></svg></div><div class="m-ibtn" title="Grid settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div>
       </div>
       <table class="mt"><colgroup><col style="width:7%"><col style="width:5%"><col style="width:14%"><col style="width:26%"><col style="width:17%"><col style="width:14%"><col style="width:12%"><col style="width:5%"></colgroup>
         <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Case</th><th class="dd">Subject</th><th class="dd">Status</th><th class="dd">Priority <span class="srt">↓</span></th><th class="dd">Origin</th><th></th></tr></thead>
@@ -48,9 +49,9 @@
       <div style="height:78px"></div>
       <div class="m-pill" style="opacity:1"><span class="ms">1 unsaved change</span><span class="mb"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Undo</span><span class="mb"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Redo</span><span class="mb">Cancel</span><span class="mb p">Save</span></div>
       <span class="hot" style="left:0.3%;top:6px">1</span>
-      <span class="hot" style="left:31%;top:34px">2</span>
+      <span class="hot" style="left:23.6%;top:34px">2</span>
       <span class="hot" style="left:35.9%;top:7px">3</span>
-      <span class="hot" style="left:73.8%;top:5px">4</span>
+      <span class="hot" style="left:68.9%;top:5px">4</span>
       <span class="hot" style="left:34.3%;top:67px">5</span>
       <span class="hot" style="left:1.5%;top:96px">6</span>
       <span class="hot" style="left:51.1%;top:159px">7</span>
@@ -62,7 +63,7 @@
     <li style="break-inside:avoid"><b>The grid's icon and title.</b> Your admin names each grid.</li>
     <li style="break-inside:avoid"><b>How many records</b>, the sort, and when it was loaded.</li>
     <li style="break-inside:avoid"><b>Search</b> the list as you type.</li>
-    <li style="break-inside:avoid"><b>Refresh</b>; <b>Choose columns</b>; <b>Display Key</b> when the grid has display rules; <b>New</b>, <b>Import</b> and <b>Export</b> when your admin allows them; <b>Reset layout</b> once your layout is kept; for the people who manage grids, a gear that opens the grid's settings; and <b>?</b>, which opens this guide. Point at an icon and its name shows, as on a list view's icons.</li>
+    <li style="break-inside:avoid"><b>Refresh</b>; <b>Choose columns</b>; <b>Charts</b>; <b>Display Key</b> when the grid has display rules; <b>New</b>, <b>Import</b> and <b>Export</b> when your admin allows them; <b>Reset layout</b> once your layout is kept; for the people who manage grids, a gear that opens the grid's settings; and <b>?</b>, which opens this guide. Point at an icon and its name shows, as on a list view's icons.</li>
     <li style="break-inside:avoid"><b>Column headers.</b> Click to sort; the ▾ opens a menu.</li>
     <li style="break-inside:avoid"><b>Checkboxes</b> select rows, to change or act on many at once.</li>
     <li style="break-inside:avoid"><b>The focused cell</b>, with a blue ring. A pencil means you can edit it; yellow means an unsaved change.</li>
@@ -99,7 +100,7 @@
   </div>
   <figure class="rv" style="margin-top:22px">
     <div class="screen"><div class="stage"><div class="card-m" style="min-height:250px">
-      <div class="m-head"><div class="m-ico cont"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Account People</div><div class="m-meta">5 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-head"><div class="m-ico cont"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Account People</div><div class="m-meta">5 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Charts"><svg viewBox="0 0 24 24"><path d="M11 3.5a8.5 8.5 0 1 0 9.5 9.5H11z"/><path d="M14 2.5a7.5 7.5 0 0 1 7.5 7.5H14z"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
       <div class="m-chips">Filtered by <span class="m-chip lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Email is not blank</span></div>
       <table class="mt"><colgroup><col style="width:7%"><col style="width:5%"><col style="width:26%"><col style="width:29%"><col style="width:33%"></colgroup>
         <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Full Name</th><th class="dd" style="box-shadow:inset 0 0 0 2px #0250D9">Title</th><th class="dd">Email</th></tr></thead>
@@ -236,7 +237,7 @@
   <div class="sec-head"><span class="sec-num">More</span><h2>Change many rows at once</h2></div>
   <figure class="rv">
     <div class="screen"><div class="stage"><div class="card-m" style="min-height:190px">
-      <div class="m-head"><div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div><div><div class="m-title">Service Triage</div><div class="m-meta">35 items • Sorted by Opened • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-head"><div class="m-ico case"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 4h8v2H8z"/></svg></div><div><div class="m-title">Service Triage</div><div class="m-meta">35 items • Sorted by Opened • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Charts"><svg viewBox="0 0 24 24"><path d="M11 3.5a8.5 8.5 0 1 0 9.5 9.5H11z"/><path d="M14 2.5a7.5 7.5 0 0 1 7.5 7.5H14z"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
       <div class="m-selbar"><b>3 selected</b><span class="mb"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Update field</span><span class="m-link">Clear</span></div>
       <table class="mt"><colgroup><col style="width:7%"><col style="width:5%"><col style="width:15%"><col style="width:43%"><col style="width:30%"></colgroup><thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Case</th><th class="dd">Subject</th><th class="dd">Status</th></tr></thead><tbody>
         <tr class="sel"><td class="rn">1</td><td class="cb"><span class="mcb on"></span></td><td class="lnk">00001026</td><td>Generator GC1060 trips on start-up</td><td>New</td></tr>
@@ -272,6 +273,48 @@
       <li><b>Subtotals follow your edits</b> before you save, marked yellow. An edited row moves to its new group when you save.</li>
     </ul>
   </div>
+</section>
+
+<section id="charts">
+  <div class="sec-head"><span class="sec-num">More</span><h2>Charts</h2>
+  <p class="sec-sub">As on a list view: a chart of every record the search and filters match, beside the list.</p></div>
+  <figure class="rv">
+    <div class="screen"><div class="stage"><div class="card-m">
+      <div class="m-head"><div class="m-ico opp"><svg viewBox="0 0 24 24"><path d="M4 18h16v2H4zM6 10h3v6H6zm5-4h3v10h-3zm5 6h3v4h-3z"/></svg></div><div><div class="m-title">Pipeline Review</div><div class="m-meta">31 items • Sorted by Close Date • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg>Display Key</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn on" title="Charts"><svg viewBox="0 0 24 24"><path d="M11 3.5a8.5 8.5 0 1 0 9.5 9.5H11z"/><path d="M14 2.5a7.5 7.5 0 0 1 7.5 7.5H14z"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
+      <div class="m-chartrow">
+        <table class="mt"><colgroup><col style="width:9%"><col style="width:37%"><col style="width:30%"><col style="width:24%"></colgroup>
+          <thead><tr><th class="rn"></th><th class="dd">Opportunity</th><th class="dd">Stage</th><th class="dd r">Amount</th></tr></thead>
+          <tbody>
+            <tr><td class="rn">1</td><td class="lnk">Pyramid Emergency Generators</td><td>Prospecting</td><td class="r">$100,000.00</td></tr>
+            <tr><td class="rn">2</td><td class="lnk">Dickenson Mobile Generators</td><td>Qualification</td><td class="r">$15,000.00</td></tr>
+            <tr><td class="rn">3</td><td class="lnk">United Oil Plant Standby Generators</td><td>Needs Analysis</td><td class="r">$675,000.00</td></tr>
+            <tr><td class="rn">4</td><td class="lnk">Grand Hotels Guest Portable Generators</td><td>Value Proposition</td><td class="r">$250,000.00</td></tr>
+            <tr><td class="rn">5</td><td class="lnk">Express Logistics Portable Truck Generators</td><td>Value Proposition</td><td class="r">$80,000.00</td></tr>
+            <tr><td class="rn">6</td><td class="lnk">GenePoint Lab Generators</td><td>Id. Decision Makers</td><td class="r">$60,000.00</td></tr>
+          </tbody>
+        </table>
+        <div class="m-charts">
+          <div class="m-charts-h"><b>Charts</b><span class="m-x">✕</span></div>
+          <div class="m-charts-t"><b>Record Count by Stage</b><span class="m-ibtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></span></div>
+          <div class="m-cbar"><span class="lb">Closed Won</span><span class="tr"><i style="--w:90%"></i><em>18</em></span></div><div class="m-cbar"><span class="lb">Negotiation/Review</span><span class="tr"><i style="--w:15%"></i><em>3</em></span></div><div class="m-cbar"><span class="lb">Id. Decision Makers</span><span class="tr"><i style="--w:10%"></i><em>2</em></span></div><div class="m-cbar"><span class="lb">Proposal/Price Quote</span><span class="tr"><i style="--w:10%"></i><em>2</em></span></div><div class="m-cbar"><span class="lb">Value Proposition</span><span class="tr"><i style="--w:10%"></i><em>2</em></span></div><div class="m-cbar"><span class="lb">Needs Analysis</span><span class="tr"><i style="--w:5%"></i><em>1</em></span></div><div class="m-cbar"><span class="lb">Perception Analysis</span><span class="tr"><i style="--w:5%"></i><em>1</em></span></div><div class="m-cbar"><span class="lb">Prospecting</span><span class="tr"><i style="--w:5%"></i><em>1</em></span></div><div class="m-cbar"><span class="lb">Qualification</span><span class="tr"><i style="--w:5%"></i><em>1</em></span></div>
+          <div class="m-caxis"><span>0</span><span>10</span><span>20</span></div>
+          <p class="m-charts-f">All 31 records the search and filters match, as saved.</p>
+        </div>
+      </div>
+    </div></div></div>
+    <figcaption>Pipeline Review with Charts open: the records counted by Stage, largest first. The gear draws it another way or changes what it shows.</figcaption>
+  </figure>
+  <ol class="tut">
+    <li><b>Open it.</b> Click <span class="ui">Charts</span>, the chart icon beside <span class="ui">Choose columns</span>. A panel opens beside the list, under it in a narrow space. The first chart counts the records by the grid's grouping, or else by its first picklist.<div class="check">The button stays pressed while the panel is open. <span class="ui">✕</span> in the panel, or the button again, closes it.</div></li>
+    <li><b>Draw it another way.</b> Click the gear beside the chart's title. Under <span class="ui">Display As</span>, choose <span class="ui">Vertical Bar Chart</span>, <span class="ui">Horizontal Bar Chart</span> or <span class="ui">Donut Chart</span>. A donut lists its groups and figures under it.</li>
+    <li><b>Change what it shows.</b> In the gear, choose <span class="ui">Edit Chart</span>: <span class="ui">Chart Type</span>; <span class="ui">Aggregate Type</span>, which is <span class="ui">Count</span> (the records), <span class="ui">Sum</span> or <span class="ui">Average</span>; for Sum and Average, <span class="ui">Aggregate Field</span>, a number column; <span class="ui">Grouping Field</span>, any column the grid can group by; and for a date, <span class="ui">Group Dates By</span>. Click <span class="ui">Save</span>.<div class="check">The title says what it shows. On Pipeline Review, with <span class="ui">Sum</span>, <span class="ui">Amount</span> and <span class="ui">Close Date</span>: <span class="v plain">Sum of Amount by Close Date (Month)</span>.</div></li>
+  </ol>
+  <ul class="tick">
+    <li><b>Every matching record</b>, not only the rows on screen, as the Total row adds them up. The nine largest groups are named and the rest are in Other; a date shows its last 24 periods, and the ones before in Earlier.</li>
+    <li><b>Saved values.</b> An unsaved change counts once it is saved; the chart is read again with the counts and subtotals, after a save, a search or a filter.</li>
+    <li><b>Yours.</b> Your chart, and whether the panel is open, is kept with your layout, on any device. <b>Reset layout</b> puts it away.</li>
+    <li><b>Screen readers</b> read the chart as a table of its groups and figures. A child table has no Charts.</li>
+  </ul>
 </section>
 
 <section id="related">

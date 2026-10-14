@@ -1,0 +1,199 @@
+/* The panel: its heading and close button, the chart's title and gear, the chart. */
+.rh-charts {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--slds-g-spacing-3, 0.75rem);
+    background-color: var(--slds-g-color-surface-container-1, #fff);
+}
+
+.rh-charts-head,
+.rh-charts-titlerow {
+    display: flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-charts-heading {
+    flex: 1 1 auto;
+}
+
+.rh-charts-titlerow {
+    margin-top: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-charts-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-charts-body {
+    position: relative;
+    flex: 1 1 auto;
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-charts-loading {
+    position: relative;
+    min-height: 8rem;
+}
+
+.rh-charts-message {
+    color: var(--slds-g-color-on-surface-1, #5c5c5c);
+}
+
+.rh-charts-svg {
+    display: block;
+    width: 100%;
+    max-width: 28rem;
+    height: auto;
+    margin: 0 auto;
+}
+
+.rh-charts-donut {
+    display: block;
+    width: 10rem;
+    height: 10rem;
+    margin: 0 auto;
+}
+
+/* A donut's slices are rings: the colour classes give them a stroke, never a fill. */
+.rh-charts-donut circle {
+    fill: none;
+}
+
+/* Text inside the drawing: SVG takes fill, not color. */
+.rh-charts-tick {
+    fill: var(--slds-g-color-on-surface-1, #5c5c5c);
+    font-size: 10px;
+}
+
+.rh-charts-label {
+    fill: var(--slds-g-color-on-surface-2, #2e2e2e);
+    font-size: 11px;
+}
+
+.rh-charts-value {
+    fill: var(--slds-g-color-on-surface-3, #181818);
+    font-size: 11px;
+}
+
+.rh-charts-total {
+    fill: var(--slds-g-color-on-surface-3, #181818);
+    font-size: 20px;
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-charts-axis {
+    stroke: var(--slds-g-color-border-1, #c9c9c9);
+    stroke-width: 1;
+}
+
+/* A donut's groups under it, each with its colour, as Salesforce lists them. */
+.rh-charts-legend {
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-charts-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+    padding: var(--slds-g-spacing-2, 0.5rem) 0;
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-2, #e5e5e5);
+}
+
+.rh-charts-legend-item > span:first-child {
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--slds-g-radius-border-1, 0.125rem);
+}
+
+.rh-charts-legend-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rh-charts-legend-value {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+}
+
+.rh-charts-foot {
+    margin-top: var(--slds-g-spacing-3, 0.75rem);
+    color: var(--slds-g-color-on-surface-1, #5c5c5c);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+/* The colours, in turn: on a bar or a slice (fill), and on a legend swatch (background). */
+.rh-chart-c0 {
+    fill: var(--slds-g-color-palette-teal-40, #0b827c);
+    stroke: var(--slds-g-color-palette-teal-40, #0b827c);
+    background-color: var(--slds-g-color-palette-teal-40, #0b827c);
+}
+
+.rh-chart-c1 {
+    fill: var(--slds-g-color-palette-purple-50, #9050e9);
+    stroke: var(--slds-g-color-palette-purple-50, #9050e9);
+    background-color: var(--slds-g-color-palette-purple-50, #9050e9);
+}
+
+.rh-chart-c2 {
+    fill: var(--slds-g-color-palette-orange-60, #dd7a01);
+    stroke: var(--slds-g-color-palette-orange-60, #dd7a01);
+    background-color: var(--slds-g-color-palette-orange-60, #dd7a01);
+}
+
+.rh-chart-c3 {
+    fill: var(--slds-g-color-palette-indigo-50, #5867e8);
+    stroke: var(--slds-g-color-palette-indigo-50, #5867e8);
+    background-color: var(--slds-g-color-palette-indigo-50, #5867e8);
+}
+
+.rh-chart-c4 {
+    fill: var(--slds-g-color-palette-green-50, #3ba755);
+    stroke: var(--slds-g-color-palette-green-50, #3ba755);
+    background-color: var(--slds-g-color-palette-green-50, #3ba755);
+}
+
+.rh-chart-c5 {
+    fill: var(--slds-g-color-palette-pink-50, #e3066a);
+    stroke: var(--slds-g-color-palette-pink-50, #e3066a);
+    background-color: var(--slds-g-color-palette-pink-50, #e3066a);
+}
+
+.rh-chart-c6 {
+    fill: var(--slds-g-color-palette-cloud-blue-50, #08abed);
+    stroke: var(--slds-g-color-palette-cloud-blue-50, #08abed);
+    background-color: var(--slds-g-color-palette-cloud-blue-50, #08abed);
+}
+
+.rh-chart-c7 {
+    fill: var(--slds-g-color-palette-violet-50, #ba01ff);
+    stroke: var(--slds-g-color-palette-violet-50, #ba01ff);
+    background-color: var(--slds-g-color-palette-violet-50, #ba01ff);
+}
+
+.rh-chart-c8 {
+    fill: var(--slds-g-color-palette-hot-orange-50, #ff5d2d);
+    stroke: var(--slds-g-color-palette-hot-orange-50, #ff5d2d);
+    background-color: var(--slds-g-color-palette-hot-orange-50, #ff5d2d);
+}
+
+.rh-chart-c9 {
+    fill: var(--slds-g-color-palette-blue-50, #0176d3);
+    stroke: var(--slds-g-color-palette-blue-50, #0176d3);
+    background-color: var(--slds-g-color-palette-blue-50, #0176d3);
+}
+
+/* Other, and Earlier: gray. */
+.rh-chart-c10 {
+    fill: var(--slds-g-color-palette-neutral-60, #939393);
+    stroke: var(--slds-g-color-palette-neutral-60, #939393);
+    background-color: var(--slds-g-color-palette-neutral-60, #939393);
+}
