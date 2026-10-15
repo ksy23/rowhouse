@@ -278,3 +278,16 @@ it('closes from its own close button, and keeps that it is closed', async () => 
     await settle();
     expect(keptLayout().chart.open).toBe(false);
 });
+
+it('tells the table its room changed when Charts opens and when it closes', async () => {
+    // Found in Lightning Experience under Locker, which has no ResizeObserver:
+    // with a frozen column the table kept its width when Charts opened.
+    const el = mount();
+    await settle();
+    const measured = jest.spyOn($(el, 'c-grid-table'), 'measureWidth');
+    await openCharts(el);
+    expect(measured).toHaveBeenCalledTimes(1);
+    button(el).click();
+    await settle();
+    expect(measured).toHaveBeenCalledTimes(2);
+});

@@ -649,6 +649,26 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         );
     }
 
+    /**
+     * The grid around the table changed the table's room (Charts opened or
+     * closed beside it). Under Lightning Locker there is no ResizeObserver,
+     * so the window's resize is all the table hears of its own width (HR-23),
+     * and a panel opening beside it is not one: the parent says so here. The
+     * width is measured in the next frame, after the parent's layout (HR-20).
+     * Found in Lightning Experience under Locker: with a frozen column, the
+     * table kept its width when Charts opened, and the grid scrolled sideways.
+     */
+    @api
+    measureWidth() {
+        if (this._measurements.viewPending) return;
+        this._measurements.viewPending = true;
+        // eslint-disable-next-line @lwc/lwc/no-async-operation -- measured after the parent's layout (HR-20)
+        requestAnimationFrame(() => {
+            this._measurements.viewPending = false;
+            this.measureView();
+        });
+    }
+
     /** Re-entering the grid lands on the last focused cell, not the first. */
     @api
     focus() {
@@ -815,7 +835,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             'slds-table slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols slds-table_edit slds-no-cell-focus' +
             (wraps ? ' rh-table_wrap' : '') +
             // Child grids' dialogs must escape this table (see gridTable.css).
-            (this.hasChildren ? ' rh-table_parent' : '')
+            (this.hasChildren ? ' rh-table_parent' : '') +
+            // Grouped, the checkbox column draws its own edge (see gridTable.css).
+            (this.isGrouped ? ' rh-table_grouped' : '')
         );
     }
 

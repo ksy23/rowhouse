@@ -8,6 +8,10 @@ import { createElement } from 'lwc';
 import GridTable from 'c/gridTable';
 import { rollUp } from 'c/gridGroups';
 
+/* global require, __dirname -- Jest runs in Node, where one test reads the stylesheet. */
+const fs = require('fs');
+const path = require('path');
+
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 const COLUMNS = [
@@ -155,6 +159,22 @@ describe('a grouped grid', () => {
         const order = $$('tbody tr[role="row"]').map(tr => (tr.dataset.kind === 'group' ? '#' : tr.dataset.rowId));
         expect(order).toEqual(['#', id(4), '#', id(1), id(3), '#', id(2), id(5), '#', id(6)]);
         expect($('th[data-field="__group"]').getAttribute('aria-label')).toBe('Grouped by Service Level');
+    });
+
+    it("draws a line at the checkbox column's edge, so each checkbox sits centered in a column of its own", async () => {
+        // Found in Lightning Experience: a record row's guide line closed a
+        // wider box round the checkbox, which looked left of center.
+        await mount({ selection: 'multi' });
+        expect($('table').classList).toContain('rh-table_grouped');
+        expect($('th[data-field="__select"]')).not.toBeNull();
+        const css = fs
+            .readFileSync(path.join(__dirname, '..', 'gridTable.css'), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '');
+        const rule = css.match(/\.rh-table_grouped td\[data-field=['"]__select['"]\]\s*\{([^}]*)\}/);
+        expect(rule).not.toBeNull();
+        expect(rule[1]).toMatch(/background-position:\s*right 0/);
+        await mount({ selection: 'multi', grouping: [] });
+        expect($('table').classList).not.toContain('rh-table_grouped');
     });
 
     it('numbers every row, group rows included, and knows the count once every row is loaded (HR-10)', async () => {

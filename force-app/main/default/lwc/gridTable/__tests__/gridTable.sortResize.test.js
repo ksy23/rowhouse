@@ -305,6 +305,16 @@ describe('column widths after a resize', () => {
             expect(th(el, 'Name').classList).toContain('rh-frozen');
         });
 
+        it('measures again when the grid says its room changed, with no resize to hear (Locker)', async () => {
+            const el = await mountFrozen();
+            room = 700; // Charts opened beside it: the window did not resize
+            el.measureWidth();
+            await settle();
+            expect(drawn(el) + 2).toBeLessThanOrEqual(700);
+            expect(drawn(el) + 2).toBeGreaterThanOrEqual(697);
+            expect(th(el, 'Name').classList).toContain('rh-frozen');
+        });
+
         it('keeps a width the user chose', async () => {
             const el = await mountFrozen();
             const handle = th(el, 'Name').querySelector('.slds-resizable__handle');

@@ -352,6 +352,24 @@
     background-position: var(--rh-guide, 18px) 0;
 }
 
+/*
+ * Grouped, the checkbox column draws a line at its right edge, in every row,
+ * so each checkbox sits centered in a column of its own. Without it the guide
+ * line above closed a wider box, and the checkbox looked left of center
+ * (found in Lightning Experience). A background, like the guide, so it
+ * changes no width and leaves the focus ring, a box shadow, as it is.
+ */
+.rh-grid .rh-table_grouped th[data-field='__select'],
+.rh-grid .rh-table_grouped td[data-field='__select'] {
+    background-image: linear-gradient(
+        var(--slds-g-color-neutral-base-80, #c9c9c9),
+        var(--slds-g-color-neutral-base-80, #c9c9c9)
+    );
+    background-size: 1px 100%;
+    background-repeat: no-repeat;
+    background-position: right 0;
+}
+
 .rh-group-chips {
     gap: 0.25rem;
 }

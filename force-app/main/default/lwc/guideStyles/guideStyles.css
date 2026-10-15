@@ -1384,6 +1384,12 @@ table.rh-mt td.rh-cb {
     padding: 0;
 }
 
+/* Grouped, the checkbox column has a line at its right edge, in every row, as the grid draws it. */
+table.rh-mt.rh-grouped th:nth-child(2),
+table.rh-mt.rh-grouped td:nth-child(2) {
+    border-right: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+}
+
 /* The row numbers down a grid's left edge, where a list view puts them: after room for an error icon, from the left. */
 table.rh-mt th.rh-rn,
 table.rh-mt td.rh-rn {

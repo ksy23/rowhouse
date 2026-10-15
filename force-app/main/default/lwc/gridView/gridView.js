@@ -596,8 +596,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
     };
     _memo = {};
     _readers = {};
-    /** Non-reactive (HR-20): the width observer, and the last count told to the tab. */
-    _layout = { observer: null, onResize: null, started: false };
+    /** Non-reactive (HR-20): the width observer, and whether Charts was shown at the last drawing. */
+    _layout = { observer: null, onResize: null, started: false, chartsShown: undefined };
     _reported = { count: null };
     /** What the delete dialog is about: the Ids, fixed when it opens. */
     _pendingDelete = { ids: [], all: false };
@@ -742,6 +742,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * known yet (a hidden tab): the toolbar stays as it is.
      */
     renderedCallback() {
+        this.tellTableItsRoom();
         if (this._layout.started || this.isNested) return;
         const root = this.template.querySelector('[data-view-root]');
         if (!root) return;
@@ -763,6 +764,22 @@ export default class GridView extends NavigationMixin(LightningElement) {
             // eslint-disable-next-line @lwc/lwc/no-async-operation -- measured after the render (HR-20)
             requestAnimationFrame(this._layout.onResize);
         }
+    }
+
+    /**
+     * Charts opened or closed beside the table, so the table has more or less
+     * room. Under Lightning Locker nothing else tells it (no ResizeObserver;
+     * see gridTable.measureWidth). Only on a change after the first drawing,
+     * when the table measures itself anyway. Written to a non-reactive
+     * container (HR-20).
+     */
+    tellTableItsRoom() {
+        const shown = this.showCharts;
+        const before = this._layout.chartsShown;
+        this._layout.chartsShown = shown;
+        if (before === undefined || before === shown) return;
+        const table = this.template.querySelector('c-grid-table');
+        if (table) table.measureWidth();
     }
 
     // ============================================================ loading
