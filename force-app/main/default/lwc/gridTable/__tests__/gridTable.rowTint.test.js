@@ -21,11 +21,11 @@ function block(selector) {
     return css.slice(start, css.indexOf('}', start)).replace(/\s+/g, ' ').trim();
 }
 
-const COLORS = ['green', 'amber', 'red', 'purple', 'grey'];
+const COLORS = ['green', 'amber', 'red', 'purple', 'gray'];
 
 describe("a whole-row rule's tint", () => {
     it.each(COLORS)('gives %s a tint as well as a bar', color => {
-        const d = block('.rh-fmt_bar-' + color);
+        const d = block('.rh-rule_bar-' + color);
         expect(d).toMatch(/--rh-bar-color:/);
         expect(d).toMatch(/--rh-tint-color:/);
     });
@@ -48,17 +48,17 @@ describe("a whole-row rule's tint", () => {
     it("leaves Lightning's unsaved yellow and hover grey to Lightning", () => {
         // Measured in Lightning Experience: an unsaved cell is yellow 95, a
         // hovered row neutral 95. A tint in either would hide it.
-        const amber = block('.rh-fmt_bar-amber');
+        const amber = block('.rh-rule_bar-amber');
         expect(amber).not.toMatch(/palette-yellow-95/);
         expect(amber).toMatch(/palette-orange-95/);
-        const grey = block('.rh-fmt_bar-grey');
-        expect(grey).toMatch(/color-mix\(/);
-        expect(grey).toMatch(/palette-neutral-95, rgb\(243, 243, 243\)\) 50%/);
+        const gray = block('.rh-rule_bar-gray');
+        expect(gray).toMatch(/color-mix\(/);
+        expect(gray).toMatch(/palette-neutral-95, rgb\(243, 243, 243\)\) 50%/);
     });
 
     it('stays lighter than a cell fill, so a cell rule still shows on a tinted row', () => {
         ['green', 'red', 'purple'].forEach(color => {
-            expect(block('.rh-fmt_bar-' + color)).toMatch(new RegExp('palette-' + color + '-95'));
+            expect(block('.rh-rule_bar-' + color)).toMatch(new RegExp('palette-' + color + '-95'));
         });
     });
 

@@ -72,20 +72,20 @@
                     <span class="slds-assistive-text rh-search-hint-spoken" aria-live="polite">{searchHint}</span>
                 </div>
                 <template lwc:if={wideToolbar}>
-                    <template lwc:if={hasLegend}>
+                    <template lwc:if={hasDisplayKey}>
                         <!-- A native button: aria-expanded and aria-controls stay in this shadow root. -->
                         <button
-                            class="slds-button slds-button_neutral slds-m-left_x-small rh-legend-toggle"
-                            aria-expanded={legendExpanded}
-                            aria-controls="legend"
-                            onclick={handleLegendToggle}
+                            class="slds-button slds-button_neutral slds-m-left_x-small rh-display-key-toggle"
+                            aria-expanded={displayKeyExpanded}
+                            aria-controls="display-key"
+                            onclick={handleDisplayKeyToggle}
                         >
                             <!-- While the key opens or closes, SLDS's inline spinner stands in for the
                                  icon: the same 16px, so the button keeps its width. Spans, as a button
                                  may hold only phrasing content. -->
-                            <template lwc:if={legendBusy}>
-                                <span role="status" class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-legend-spinner">
-                                    <span class="slds-assistive-text">{legendBusy}</span>
+                            <template lwc:if={displayKeyBusy}>
+                                <span role="status" class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-display-key-spinner">
+                                    <span class="slds-assistive-text">{displayKeyBusy}</span>
                                     <span class="slds-spinner__dot-a"></span>
                                     <span class="slds-spinner__dot-b"></span>
                                 </span>
@@ -278,10 +278,10 @@
             </template>
         </div>
 
-        <template lwc:if={legendOpen}>
-            <div class="slds-p-horizontal_medium slds-p-bottom_x-small rh-legend" id="legend" role="region" aria-label="Display Key">
+        <template lwc:if={displayKeyOpen}>
+            <div class="slds-p-horizontal_medium slds-p-bottom_x-small rh-display-key" id="display-key" role="region" aria-label="Display Key">
                 <ul class="slds-grid slds-wrap">
-                    <template for:each={legendItems} for:item="l">
+                    <template for:each={displayKeyItems} for:item="l">
                         <li key={l.key} class="slds-grid slds-grid_vertical-align-center slds-m-right_medium slds-m-bottom_xx-small">
                             <span class={l.swatchCls} aria-hidden="true">
                                 <template lwc:if={l.hasIcon}>
@@ -406,7 +406,7 @@
         </div>
 
         <template lwc:if={massUpdateOpen}>
-            <c-grid-mass-update
+            <c-grid-update-field
                 columns={massUpdateColumns}
                 count={selectedCount}
                 rows={selectedRows}
@@ -414,7 +414,7 @@
                 config-name={configName}
                 onapply={handleMassUpdateApply}
                 oncancel={handleMassUpdateCancel}
-            ></c-grid-mass-update>
+            ></c-grid-update-field>
         </template>
 
         <template lwc:if={deleteOpen}>

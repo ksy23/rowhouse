@@ -107,6 +107,38 @@ describe('reading', () => {
         ]);
     });
 
+    it("reads a file an earlier beta wrote, with today's names for its values", () => {
+        const grids = readGridFile(
+            file([
+                {
+                    config: { name: 'Consignments' },
+                    rules: [
+                        { name: 'Late', style: 'fill_grey', active: true },
+                        { name: 'Retired', style: 'text_grey', active: false },
+                        { name: 'Big', style: 'fill_green', inactive: true }
+                    ],
+                    actions: [
+                        { name: 'Note', type: 'ScreenFlow', showIn: 'Both' },
+                        { name: 'Stamp', type: 'Flow', showIn: 'Selection' },
+                        { name: 'Call', type: 'QuickAction', showIn: 'Row' },
+                        { name: 'Now', type: 'autolaunched_flow', showIn: 'row_menu' }
+                    ]
+                }
+            ])
+        );
+        expect(grids[0].rules).toEqual([
+            { name: 'Late', style: 'fill_gray', inactive: false },
+            { name: 'Retired', style: 'text_gray', inactive: true },
+            { name: 'Big', style: 'fill_green', inactive: true }
+        ]);
+        expect(grids[0].actions.map(a => [a.type, a.showIn])).toEqual([
+            ['screen_flow', 'row_menu_and_selection'],
+            ['autolaunched_flow', 'selection'],
+            ['quick_action', 'row_menu'],
+            ['autolaunched_flow', 'row_menu']
+        ]);
+    });
+
     it('reads a chosen file as text, and refuses one over 2 MB', async () => {
         const chosen = new File([fileText([DRAFT], WHEN)], 'Consignments.rowhouse.json', { type: 'application/json' });
         expect(readGridFile(await readText(chosen))[0].config.name).toBe('Consignments');

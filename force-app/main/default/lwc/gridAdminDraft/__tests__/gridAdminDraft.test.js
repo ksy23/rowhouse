@@ -60,8 +60,12 @@ describe('API names', () => {
 
 describe('picklist values', () => {
     it("are the Custom Metadata fields' own values", () => {
-        expect(values(ACTION_TYPES)).toEqual(['ScreenFlow', 'Flow', 'QuickAction']);
-        expect(values(SHOW_IN)).toEqual(['Both', 'Row', 'Selection']);
+        expect(values(ACTION_TYPES)).toEqual(['screen_flow', 'autolaunched_flow', 'quick_action']);
+        expect(values(SHOW_IN)).toEqual(['row_menu_and_selection', 'row_menu', 'selection']);
+        // The labels are Setup's, word for word.
+        expect(ACTION_TYPES.map(o => o.label)).toEqual(['Screen flow', 'Autolaunched flow', 'Quick action']);
+        expect(SHOW_IN.map(o => o.label)).toEqual(['Row menu and selection', 'Row menu', 'Selection']);
+        expect(values(STYLES)).toEqual(expect.arrayContaining(['fill_gray', 'text_gray']));
         expect(values(STYLES)).not.toContain('fill_blue');
         expect(values(OPERATORS)).toHaveLength(12); // Between included
     });
@@ -333,7 +337,7 @@ describe('new entries', () => {
             formula: null,
             style: 'fill_green',
             applyTo: 'cell',
-            active: true
+            inactive: false
         });
         expect(rule._key).toMatch(/^rule\d+$/);
     });

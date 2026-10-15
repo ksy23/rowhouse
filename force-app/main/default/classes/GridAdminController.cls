@@ -1,7 +1,7 @@
 /**
  * GridAdminController — what the Grid Admin tab and the grid's gear call.
  * Only the Rowhouse Grid Admin permission set grants access to this
- * class; every method checks the Rowhouse_Admin custom permission again
+ * class; every method checks the Rowhouse_Grid_Admin custom permission again
  * (GridAdmin.requireAdmin), and saving also needs Customize Application.
  *
  * public, not global (HR-1). A draft travels as JSON, so the page and the

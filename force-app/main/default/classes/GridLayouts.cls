@@ -245,7 +245,7 @@ public with sharing class GridLayouts {
         if (String.isBlank(parentLink)) {
             return null;
         }
-        Grid_Child__mdt link = Grid_Child__mdt.getInstance(parentLink.trim());
+        Grid_Child_Table__mdt link = Grid_Child_Table__mdt.getInstance(parentLink.trim());
         Grid_Configuration__mdt cfg = Grid_Configuration__mdt.getInstance(configName);
         if (link == null || cfg == null || !GridConfig.belongsTo(link.Child_Configuration__c, cfg)) {
             throw new GridException(

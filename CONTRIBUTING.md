@@ -126,7 +126,7 @@ it, a machine does.
 Retractability. A managed package can hard-delete any Apex class it ships except a global one, which stays in every subscriber org until the package dies. A package with zero global Apex can take back anything it ships.  
 *Enforced by:* `scripts/checks/run-all.js`.
 
-**HR-2. One exposed grid component, `gridApp`, with exactly two `@api` members: `configName`, the name of its Grid Configuration, and `recordId`, which Lightning sets on a record page. `rowhouseAdmin` is exposed too, with no `@api` member, only so it can be the Grid Admin tab, and so is `rowhouseFlow`, with no `@api` member, only so Lightning can open it as the page a screen-flow action runs on, and `rowhouseGuide`, with no `@api` member, only so it can be the Grid Guide tab. Every other component `isExposed=false`.**  
+**HR-2. One exposed grid component, `gridApp`, with exactly two `@api` members: `configName`, the name of its Grid Configuration, and `recordId`, which Lightning sets on a record page. `gridAdmin` is exposed too, with no `@api` member, only so it can be the Grid Admin tab, and so is `rowhouseFlow`, with no `@api` member, only so Lightning can open it as the page a screen-flow action runs on, and `gridGuide`, with no `@api` member, only so it can be the Grid Guide tab. Every other component `isExposed=false`.**  
 An exposed component's `@api` properties can never be removed, even ones added after the last release. Twenty scalar props is twenty permanent commitments; one text setting is one. Everything else an admin controls lives in the configuration, which is data, not API. `rowhouseFlow` is a URL-addressable page so that Salesforce's flow engine stays out of every grid's first load.  
 *Enforced by:* `run-all.js`.
 

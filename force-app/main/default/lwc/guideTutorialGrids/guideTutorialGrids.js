@@ -58,7 +58,7 @@ function childTotal(childTable, extra) {
 }
 
 function logACall() {
-    return { ...newAction(), label: 'Log a call', type: 'QuickAction', actionName: 'LogACall', showIn: 'Row' };
+    return { ...newAction(), label: 'Log a call', type: 'quick_action', actionName: 'LogACall', showIn: 'row_menu' };
 }
 
 // ================================================================ the tutorials
@@ -86,7 +86,7 @@ function leads() {
                         applyTo: 'row'
                     }),
                     rule({ label: 'Hot', field: 'Rating', value: 'Hot', style: 'icon_up' }),
-                    rule({ label: 'Cold', field: 'Rating', value: 'Cold', style: 'text_grey' })
+                    rule({ label: 'Cold', field: 'Rating', value: 'Cold', style: 'text_gray' })
                 ],
                 actions: [logACall()]
             }
@@ -353,7 +353,7 @@ function assets() {
                         value: 'TODAY',
                         style: 'text_red'
                     }),
-                    rule({ label: 'Retired', field: 'Status', value: 'Obsolete', style: 'text_grey', applyTo: 'row' })
+                    rule({ label: 'Retired', field: 'Status', value: 'Obsolete', style: 'text_gray', applyTo: 'row' })
                 ]
             }
         ),

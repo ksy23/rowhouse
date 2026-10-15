@@ -272,7 +272,7 @@
                             <!-- An open record's child tables, under its card. -->
                             <template lwc:elseif={card.isDetail}>
                                 <div class="rh-card-panel" id={card.panelId} role="region" aria-label={card.label}>
-                                    <c-grid-children
+                                    <c-grid-child-tabs
                                         data-row-id={card.parentId}
                                         tabs={card.tabs}
                                         counts={card.counts}
@@ -280,7 +280,7 @@
                                         parent-name={card.parentName}
                                         level={card.level}
                                         onchildcount={handleChildCount}
-                                    ></c-grid-children>
+                                    ></c-grid-child-tabs>
                                 </div>
                             </template>
                             <template lwc:else>
@@ -603,7 +603,7 @@
                                         data-col-index={row.detailCell.colIndex}
                                     >
                                         <div class="rh-detail-panel" style={row.detailCell.panelStyle}>
-                                            <c-grid-children
+                                            <c-grid-child-tabs
                                                 data-row-id={row.detailCell.parentId}
                                                 tabs={row.detailCell.tabs}
                                                 counts={row.detailCell.counts}
@@ -612,7 +612,7 @@
                                                 level={row.detailCell.level}
                                                 onpanelsize={handlePanelSize}
                                                 onchildcount={handleChildCount}
-                                            ></c-grid-children>
+                                            ></c-grid-child-tabs>
                                         </div>
                                     </td>
                                 </template>

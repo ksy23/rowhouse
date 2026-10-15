@@ -6,8 +6,8 @@
     <label>Log a call</label>
     <protected>false</protected>
     <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignments</value></values>
-    <values><field>Action_Type__c</field><value xsi:type="xsd:string">QuickAction</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">quick_action</value></values>
     <values><field>Action_Name__c</field><value xsi:type="xsd:string">LogACall</value></values>
-    <values><field>Show_In__c</field><value xsi:type="xsd:string">Row</value></values>
+    <values><field>Show_In__c</field><value xsi:type="xsd:string">row_menu</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">40</value></values>
 </CustomMetadata>

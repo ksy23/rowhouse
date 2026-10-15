@@ -72,7 +72,7 @@
     <li><b>Open the Grid Admin tab.</b> Click the App Launcher, type <span class="v plain">Rowhouse</span>, click the <span class="ui">Rowhouse</span> app, then the <span class="ui">Grid Admin</span> tab, and click <span class="ui">New grid</span>.</li>
     <li><b>Fill in the Grid tab:</b>
       <table class="fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
-        <tr><td>Grid Title</td><td><span class="v">Account Assets</span><button class="copy" data-copy="Account Assets">Copy</button></td></tr>
+        <tr><td>Grid title</td><td><span class="v">Account Assets</span><button class="copy" data-copy="Account Assets">Copy</button></td></tr>
         <tr><td>API name</td><td><span class="v">Account_Assets</span> <span class="note">fills in by itself</span></td></tr>
         <tr><td>Object</td><td><span class="v">Asset (Asset)</span></td></tr>
         <tr><td>Sort by</td><td><span class="v">Usage End Date (UsageEndDate)</span></td></tr>
@@ -113,7 +113,7 @@
   <ol class="tut">
     <li><b>Start another grid.</b> Click <span class="ui">Grids</span> at the top of the Grid Admin tab, then <span class="ui">New grid</span>, and fill in the Grid tab:
       <table class="fields"><tbody>
-        <tr><td>Grid Title</td><td><span class="v">Installed Base</span><button class="copy" data-copy="Installed Base">Copy</button></td></tr>
+        <tr><td>Grid title</td><td><span class="v">Installed Base</span><button class="copy" data-copy="Installed Base">Copy</button></td></tr>
         <tr><td>API name</td><td><span class="v">Installed_Base</span> <span class="note">fills in by itself</span></td></tr>
         <tr><td>Object</td><td><span class="v">Account (Account)</span></td></tr>
         <tr><td>Sort by</td><td><span class="v">Account Name (Name)</span></td></tr>
@@ -131,7 +131,7 @@
     <li><b>Show the earliest warranty end.</b> Click <span class="ui">Add child total column</span> again:
       <table class="fields"><tbody>
         <tr><td>Field column: the list that says <i>Choose a child table</i></td><td><span class="v">Assets (Installed_Base_Assets)</span></td></tr>
-        <tr><td>The list under it</td><td><span class="v">Lowest</span></td></tr>
+        <tr><td>The list under it</td><td><span class="v">Min</span></td></tr>
         <tr><td>The list beside it, <i>Choose a field</i></td><td><span class="v">Usage End Date (UsageEndDate)</span></td></tr>
         <tr><td>Header</td><td><span class="v">Earliest warranty end</span><button class="copy" data-copy="Earliest warranty end">Copy</button></td></tr>
       </tbody></table></li>
@@ -213,7 +213,7 @@
     <div class="tile"><div class="ic">{{ic:grid}}</div><h4>One grid, two places</h4><p>A record page grid can also be another grid's tab, with the same columns and rules.</p></div>
     <div class="tile gold"><div class="ic">{{ic:plus}}</div><h4>New rows that know their parent</h4><p>On a record page, or from a tab's ▾ menu, New fills in the record it belongs to.</p></div>
     <div class="tile rose"><div class="ic">{{ic:palette}}</div><h4>Dates that move</h4><p>TODAY and TODAY+90 keep the colors right every day.</p></div>
-    <div class="tile teal"><div class="ic">{{ic:gauge}}</div><h4>Lowest and count</h4><p>Child totals put each account's asset count and earliest date on its row.</p></div>
+    <div class="tile teal"><div class="ic">{{ic:gauge}}</div><h4>Min and count</h4><p>Child totals put each account's asset count and earliest date on its row.</p></div>
   </div>
   <div class="next">
     <a href="tutorial-pipeline.html"><small>Previous tutorial</small><b>← The weekly pipeline review</b></a>

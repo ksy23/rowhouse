@@ -24,7 +24,7 @@
  *
  * In a child grid a new row is created under the grid's parent: the
  * relationship field is set on it unless the file sets it. The field comes from
- * GridNesting.scopeFor, not from the browser, and the user must be allowed to
+ * GridChildTables.scopeFor, not from the browser, and the user must be allowed to
  * set it on create, or the batch creates nothing.
  *
  * MATCHING AND UNDOING
@@ -41,7 +41,7 @@
  * In a grid that logs its changes the user must be able to write the
  * log before anything is written; each field an update changes is logged, and
  * each record created, in this same transaction, all or nothing. A batch that
- * would log more than GridAudit.MAX_ENTRIES entries is refused whole; the
+ * would log more than GridEditLog.MAX_ENTRIES entries is refused whole; the
  * browser sizes its batches so none does.
  */
 public with sharing class GridImportService {
@@ -131,7 +131,7 @@ public with sharing class GridImportService {
         if (def.allowImport != true || def.allowInlineEdit != true) {
             throw new GridException('This grid does not allow importing records.');
         }
-        GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
+        GridChildTables.Scope scope = GridChildTables.scopeFor(def, parentLink, parentId);
         if (scope == null) {
             scope = GridFilters.recordScope(def, pageRecordId);
         }
@@ -245,11 +245,11 @@ public with sharing class GridImportService {
                 );
             }
         }
-        GridAudit.Context audit = updates.isEmpty() && inserts.isEmpty() ? null : GridAudit.start(def); // throws if the user cannot log
-        if (audit != null && cellsIn(updates) + inserts.size() > GridAudit.MAX_ENTRIES) {
+        GridEditLog.Context audit = updates.isEmpty() && inserts.isEmpty() ? null : GridEditLog.start(def); // throws if the user cannot log
+        if (audit != null && cellsIn(updates) + inserts.size() > GridEditLog.MAX_ENTRIES) {
             throw new GridException(
                 'This batch would write more than ' +
-                    GridAudit.MAX_ENTRIES +
+                    GridEditLog.MAX_ENTRIES +
                     ' log entries; import fewer rows or columns at a time. Nothing was imported.'
             );
         }
@@ -260,11 +260,11 @@ public with sharing class GridImportService {
             collectRemoved(decision, objectType, stripped);
             List<SObject> writing = decision.getRecords();
             // What the fields held, for the log and for Undo import.
-            Map<Id, SObject> before = GridAudit.before(objectType, writing);
+            Map<Id, SObject> before = GridEditLog.before(objectType, writing);
             List<Database.SaveResult> outcomes = GridSecurity.updateRecords(writing);
             apply(outcomes, updated, objectType);
             keepPrevious(writing, updated, before);
-            entries.addAll(GridAudit.updates(audit, objectType, writing, outcomes, audit == null ? null : before));
+            entries.addAll(GridEditLog.updates(audit, objectType, writing, outcomes, audit == null ? null : before));
         }
         if (!inserts.isEmpty()) {
             SObjectAccessDecision decision = GridSecurity.stripForCreate(inserts);
@@ -272,9 +272,9 @@ public with sharing class GridImportService {
             List<SObject> writing = decision.getRecords();
             List<Database.SaveResult> outcomes = GridSecurity.insertRecords(writing);
             apply(outcomes, created, objectType);
-            entries.addAll(GridAudit.creates(audit, objectType, writing, outcomes));
+            entries.addAll(GridEditLog.creates(audit, objectType, writing, outcomes));
         }
-        GridAudit.write(entries); // one statement; throws, and undoes the batch, if the log cannot be written
+        GridEditLog.write(entries); // one statement; throws, and undoes the batch, if the log cannot be written
         result.strippedFields.addAll(stripped);
         return result;
     }
@@ -523,8 +523,8 @@ public with sharing class GridImportService {
         if (ids.isEmpty()) {
             return result;
         }
-        GridAudit.Context audit = GridAudit.start(def);
-        Map<Id, String> names = audit == null ? null : GridAudit.namesOf(objectType, ids);
+        GridEditLog.Context audit = GridEditLog.start(def);
+        Map<Id, String> names = audit == null ? null : GridEditLog.namesOf(objectType, ids);
         List<Database.DeleteResult> outcomes = GridSecurity.deleteRecords(objectType, ids);
         for (Integer i = 0; i < outcomes.size(); i++) {
             if (outcomes[i].isSuccess()) {
@@ -537,7 +537,7 @@ public with sharing class GridImportService {
             }
             result.errors.add(new GridSaveError(ids[i], null, String.join(messages, ' ')));
         }
-        GridAudit.write(GridAudit.deletes(audit, result.deletedIds, names));
+        GridEditLog.write(GridEditLog.deletes(audit, result.deletedIds, names));
         return result;
     }
 
@@ -545,7 +545,7 @@ public with sharing class GridImportService {
     private static Integer cellsIn(List<SObject> records) {
         Integer n = 0;
         for (SObject r : records) {
-            n += GridAudit.cellsOf(r);
+            n += GridEditLog.cellsOf(r);
         }
         return n;
     }

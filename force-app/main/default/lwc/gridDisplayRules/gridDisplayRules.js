@@ -74,22 +74,22 @@ import { isBlank } from 'c/gridFormat';
 
 /** Each style: the class it adds and the one thing it sets. */
 export const STYLES = Object.freeze({
-    fill_green: { kind: 'fill', cls: 'rh-fmt_fill-green', bar: 'rh-fmt_bar-green', swatch: 'Green' },
-    fill_amber: { kind: 'fill', cls: 'rh-fmt_fill-amber', bar: 'rh-fmt_bar-amber', swatch: 'Amber' },
-    fill_red: { kind: 'fill', cls: 'rh-fmt_fill-red', bar: 'rh-fmt_bar-red', swatch: 'Red' },
-    fill_purple: { kind: 'fill', cls: 'rh-fmt_fill-purple', bar: 'rh-fmt_bar-purple', swatch: 'Purple' },
-    fill_grey: { kind: 'fill', cls: 'rh-fmt_fill-grey', bar: 'rh-fmt_bar-grey', swatch: 'Gray' },
-    text_red: { kind: 'text', cls: 'rh-fmt_text-red', swatch: 'Red text' },
-    text_green: { kind: 'text', cls: 'rh-fmt_text-green', swatch: 'Green text' },
-    text_grey: { kind: 'text', cls: 'rh-fmt_text-grey', swatch: 'Gray text' },
-    bold: { kind: 'weight', cls: 'rh-fmt_bold', swatch: 'Bold' },
+    fill_green: { kind: 'fill', cls: 'rh-rule_fill-green', bar: 'rh-rule_bar-green', swatch: 'Green' },
+    fill_amber: { kind: 'fill', cls: 'rh-rule_fill-amber', bar: 'rh-rule_bar-amber', swatch: 'Amber' },
+    fill_red: { kind: 'fill', cls: 'rh-rule_fill-red', bar: 'rh-rule_bar-red', swatch: 'Red' },
+    fill_purple: { kind: 'fill', cls: 'rh-rule_fill-purple', bar: 'rh-rule_bar-purple', swatch: 'Purple' },
+    fill_gray: { kind: 'fill', cls: 'rh-rule_fill-gray', bar: 'rh-rule_bar-gray', swatch: 'Gray' },
+    text_red: { kind: 'text', cls: 'rh-rule_text-red', swatch: 'Red text' },
+    text_green: { kind: 'text', cls: 'rh-rule_text-green', swatch: 'Green text' },
+    text_gray: { kind: 'text', cls: 'rh-rule_text-gray', swatch: 'Gray text' },
+    bold: { kind: 'weight', cls: 'rh-rule_bold', swatch: 'Bold' },
     icon_warning: { kind: 'icon', icon: 'utility:warning', variant: 'warning', swatch: 'Warning icon' },
     icon_error: { kind: 'icon', icon: 'utility:error', variant: 'error', swatch: 'Error icon' },
     icon_success: { kind: 'icon', icon: 'utility:success', variant: 'success', swatch: 'Success icon' },
     icon_info: { kind: 'icon', icon: 'utility:info', variant: null, swatch: 'Info icon' },
     icon_up: { kind: 'icon', icon: 'utility:arrowup', variant: null, swatch: 'Up arrow' },
     icon_down: { kind: 'icon', icon: 'utility:arrowdown', variant: null, swatch: 'Down arrow' },
-    data_bar: { kind: 'databar', cls: 'rh-fmt_databar', swatch: 'Data bar' }
+    data_bar: { kind: 'databar', cls: 'rh-rule_databar', swatch: 'Data bar' }
 });
 
 const NUMBER_TYPES = new Set(['number', 'currency', 'percent', 'double', 'integer', 'long']);
@@ -295,11 +295,11 @@ export function compileRules(rules, context = {}) {
 }
 
 /**
- * What the rules look like, for the grid's Formatting legend: one entry
+ * What the rules look like, for the grid's Display Key: one entry
  * per rule, in order, { key, label, cls, bar, row, style }. `cls` is the class
  * a cell rule gives; `bar` the bar a row fill gives.
  */
-export function legendFor(rules) {
+export function displayKeyFor(rules) {
     return (Array.isArray(rules) ? rules : [])
         .filter(r => r && (r.field || r.isFormula) && STYLES[r.style])
         .map((r, i) => {

@@ -30,7 +30,7 @@ private class GridDisplayRuleTest {
             Value__c = value,
             Style__c = style,
             Apply_To__c = applyTo,
-            Active__c = true
+            Inactive__c = false
         );
     }
 
@@ -58,7 +58,7 @@ private class GridDisplayRuleTest {
             System.assertEquals('TODAY+7', check(rule('Ship_Date__c', 'less_than', 'today + 7', 'fill_amber')).value);
             System.assertEquals('2026-12-31', check(rule('Ship_Date__c', 'equals', '2026-12-31', 'bold')).value);
             System.assertEquals('TODAY-30', check(rule('Picked_Up__c', 'greater_than', 'Today-30', 'bold')).value);
-            System.assertEquals('false', check(rule('Delivered__c', 'equals', 'FALSE', 'text_grey')).value);
+            System.assertEquals('false', check(rule('Delivered__c', 'equals', 'FALSE', 'text_gray')).value);
             System.assertEquals(
                 'Express',
                 check(rule('Service_Level__c', 'equals', 'express', 'fill_purple')).value,
@@ -80,7 +80,7 @@ private class GridDisplayRuleTest {
                 'Nor is part of a value: contains and does not contain match it as text.'
             );
             System.assertEquals('$User', check(rule('OwnerId', 'equals', '$user', 'bold')).value);
-            System.assertEquals(null, check(rule('Consignee__c', 'is_blank', 'ignored', 'text_grey')).value);
+            System.assertEquals(null, check(rule('Consignee__c', 'is_blank', 'ignored', 'text_gray')).value);
         }
     }
 
@@ -247,7 +247,7 @@ private class GridDisplayRuleTest {
                     null
                 )
                 .get('definition');
-            System.assertEquals(0, def.warnings.size(), 'Without Rowhouse_Diagnostics, no warnings are sent.');
+            System.assertEquals(0, def.warnings.size(), 'Without Rowhouse_Grid_Diagnostics, no warnings are sent.');
         }
     }
 }

@@ -151,7 +151,7 @@
                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
                                     <lightning-input
                                         class="rh-config-label"
-                                        label="Grid Title"
+                                        label="Grid title"
                                         required
                                         max-length={maxName}
                                         value={config.label}
@@ -983,8 +983,8 @@
                                                                 checked={r.on}
                                                                 data-list="rules"
                                                                 data-key={r.key}
-                                                                data-prop="active"
-                                                                data-kind="checkbox"
+                                                                data-prop="inactive"
+                                                                data-kind="on"
                                                                 onchange={handleChange}
                                                             ></lightning-input>
                                                         </td>
@@ -1051,7 +1051,7 @@
                                             <thead>
                                                 <tr class="slds-line-height_reset">
                                                     <th scope="col"><span class="slds-assistive-text">Order</span></th>
-                                                    <th scope="col">Name</th>
+                                                    <th scope="col">Label</th>
                                                     <th scope="col">Field</th>
                                                     <th scope="col">Condition</th>
                                                     <th scope="col">Value</th>

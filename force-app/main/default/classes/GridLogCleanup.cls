@@ -159,7 +159,7 @@ public with sharing class GridLogCleanup implements Queueable {
             said = skipped;
         }
         Grid_Edit_Log__c entry = new Grid_Edit_Log__c(
-            Operation__c = GridAudit.OP_CLEANUP,
+            Operation__c = GridEditLog.OP_CLEANUP,
             Object__c = 'Grid_Edit_Log__c',
             Record_Name__c = ('Entries older than ' +
                 GridLogRetention.label(days) +

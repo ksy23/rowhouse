@@ -136,7 +136,7 @@ const DRAFT = {
             formula: null,
             style: 'fill_green',
             applyTo: 'row',
-            active: true
+            inactive: false
         }
     ],
     actions: [],
@@ -662,7 +662,7 @@ describe('display rules', () => {
                         formula: 'Done__c',
                         style: 'icon_success',
                         applyTo: 'row',
-                        active: true
+                        inactive: false
                     }
                 ];
             }),

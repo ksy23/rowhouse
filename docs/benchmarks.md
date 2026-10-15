@@ -18,7 +18,7 @@ check.
 ## What is measured
 
 Every number is a User Timing measure the grid records itself, only for a user
-with the `Rowhouse_Diagnostics` permission set (`c/gridTiming`).
+with the `Rowhouse_Grid_Diagnostics` permission set (`c/gridTiming`).
 
 | Measure | From | To |
 | --- | --- | --- |
@@ -49,8 +49,8 @@ column types are the same, so the results stand.
 
 ## Running it
 
-1. Give the user running the benchmark the `Rowhouse_User`,
-   `Freight_Full_Access` and `Rowhouse_Diagnostics` permission sets.
+1. Give the user running the benchmark the `Rowhouse_Grid_User`,
+   `Freight_Full_Access` and `Rowhouse_Grid_Diagnostics` permission sets.
 2. Load rows 1–1,000:
    `FreightBillData.insertRows(1, 1000);` in Anonymous Apex, or
    `benchmark-to-1k.csv` through the Bulk API.

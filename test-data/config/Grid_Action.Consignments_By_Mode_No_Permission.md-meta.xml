@@ -6,7 +6,7 @@
     <label>Consignments by Mode: no permission</label>
     <protected>false</protected>
     <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignments_By_Mode</value></values>
-    <values><field>Action_Type__c</field><value xsi:type="xsd:string">Flow</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">autolaunched_flow</value></values>
     <values><field>Action_Name__c</field><value xsi:type="xsd:string">Mark_Consignment_Reviewed</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">4</value></values>
 </CustomMetadata>

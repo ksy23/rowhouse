@@ -54,7 +54,7 @@ body:
     id: diagnostics
     attributes:
       label: Diagnostic lines (optional)
-      description: Assign the Rowhouse_Diagnostics permission set to the affected user, reproduce the problem, and paste the browser console lines that start with [rowhouse]. They carry timings and counts, never record data.
+      description: Assign the Rowhouse_Grid_Diagnostics permission set to the affected user, reproduce the problem, and paste the browser console lines that start with [rowhouse]. They carry timings and counts, never record data.
       render: text
   - type: checkboxes
     id: searched

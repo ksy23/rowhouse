@@ -2,7 +2,7 @@
  * gridTiming — User Timing marks and measures for the published benchmark, and
  * for anyone profiling a slow grid in the browser's Performance panel.
  *
- * Only with the Rowhouse_Diagnostics permission: the grid passes that flag as
+ * Only with the Rowhouse_Grid_Diagnostics permission: the grid passes that flag as
  * `on`, and without it every call returns at once and writes nothing. Names
  * all start "rowhouse:", so they are easy to find in the Timings track and to
  * read back with performance.getEntriesByName.

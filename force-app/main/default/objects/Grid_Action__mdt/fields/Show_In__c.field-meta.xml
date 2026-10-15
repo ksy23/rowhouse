@@ -11,17 +11,17 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>Both</fullName>
+                <fullName>row_menu_and_selection</fullName>
                 <default>true</default>
                 <label>Row menu and selection</label>
             </value>
             <value>
-                <fullName>Row</fullName>
+                <fullName>row_menu</fullName>
                 <default>false</default>
                 <label>Row menu</label>
             </value>
             <value>
-                <fullName>Selection</fullName>
+                <fullName>selection</fullName>
                 <default>false</default>
                 <label>Selection</label>
             </value>

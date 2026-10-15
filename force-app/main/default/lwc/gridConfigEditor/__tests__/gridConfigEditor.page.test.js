@@ -119,7 +119,7 @@ const DRAFT = {
             value: '1000',
             style: 'fill_green',
             applyTo: 'row',
-            active: true
+            inactive: false
         }
     ],
     actions: [],

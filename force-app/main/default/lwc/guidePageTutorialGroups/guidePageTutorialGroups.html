@@ -3,7 +3,7 @@
     <div class="rh-page" onclick={handleClick}>
         <header class="rh-phead rh-hero rh-alive" id="main" data-anchor="main">
           <div class="rh-phead-in">
-            <div class="rh-crumbs"><a href="/lightning/n/rowhouse__Rowhouse_Guide" data-page="welcome">Grid Guide</a> / <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=tutorials" data-page="tutorials">Tutorials</a> / A group of companies</div>
+            <div class="rh-crumbs"><a href="/lightning/n/rowhouse__Grid_Guide" data-page="welcome">Grid Guide</a> / <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=tutorials" data-page="tutorials">Tutorials</a> / A group of companies</div>
             <span class="rh-aud rh-both">Account management · about 25 minutes</span>
             <h1 style="margin-top:14px">A group of companies</h1>
             <p class="rh-dek">Theresa looks after customers that are groups: a parent company and the companies it owns. In Salesforce each one is its own account, and nothing shows the group at a glance. Here, a grid lists only the parent companies, and each one opens to show its subsidiaries, with their count and revenue on the parent's row.</p>
@@ -72,12 +72,12 @@
 
         <section id="child" data-anchor="child">
           <div class="rh-sec-head"><span class="rh-sec-num">Build it · admin</span><h2>1. The subsidiaries grid</h2>
-          <p class="rh-sec-sub">Build the grid that goes in the tab first, so you can choose it in step 3. You need the Rowhouse Grid Admin permission set, and Customize Application to save (see <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=start&amp;rowhouse__section=access" data-page="start" data-section="access">Give people access</a>).</p></div>
+          <p class="rh-sec-sub">Build the grid that goes in the tab first, so you can choose it in step 3. You need the Rowhouse Grid Admin permission set, and Customize Application to save (see <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=start&amp;rowhouse__section=access" data-page="start" data-section="access">Give people access</a>).</p></div>
           <ol class="rh-tut">
             <li><b>Open the Grid Admin tab.</b> Click the App Launcher, type <span class="rh-v rh-plain">Rowhouse</span>, click the <span class="rh-ui">Rowhouse</span> app, then the <span class="rh-ui">Grid Admin</span> tab, and click <span class="rh-ui">New grid</span>.</li>
             <li><b>Fill in the Grid tab:</b>
               <table class="rh-fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
-                <tr><td>Grid Title</td><td><span class="rh-v">Subsidiaries</span><button class="rh-copy" data-copy="Subsidiaries" type="button">Copy</button></td></tr>
+                <tr><td>Grid title</td><td><span class="rh-v">Subsidiaries</span><button class="rh-copy" data-copy="Subsidiaries" type="button">Copy</button></td></tr>
                 <tr><td>API name</td><td><span class="rh-v">Subsidiaries</span> <span class="rh-note">fills in by itself</span></td></tr>
                 <tr><td>Object</td><td><span class="rh-v">Account (Account)</span></td></tr>
                 <tr><td>Sort by</td><td><span class="rh-v">Account Name (Name)</span></td></tr>
@@ -100,7 +100,7 @@
           <ol class="rh-tut">
             <li><b>Start another grid.</b> Click <span class="rh-ui">Grids</span> at the top of the Grid Admin tab, then <span class="rh-ui">New grid</span>, and fill in the Grid tab:
               <table class="rh-fields"><tbody>
-                <tr><td>Grid Title</td><td><span class="rh-v">Account Groups</span><button class="rh-copy" data-copy="Account Groups" type="button">Copy</button></td></tr>
+                <tr><td>Grid title</td><td><span class="rh-v">Account Groups</span><button class="rh-copy" data-copy="Account Groups" type="button">Copy</button></td></tr>
                 <tr><td>API name</td><td><span class="rh-v">Account_Groups</span> <span class="rh-note">fills in by itself</span></td></tr>
                 <tr><td>Object</td><td><span class="rh-v">Account (Account)</span></td></tr>
                 <tr><td>Sort by</td><td><span class="rh-v">Account Name (Name)</span></td></tr>
@@ -116,7 +116,7 @@
               <div class="rh-check">The Parent Account ID column's Header box suggests <b>Parent Account</b>, in gray: a lookup is headed by what it points to.</div></li>
             <li><b>Show only the parent companies.</b> Click <span class="rh-ui">Filters (0)</span>, then <span class="rh-ui">Add filter</span>:
               <table class="rh-fields"><tbody>
-                <tr><td>Name</td><td><span class="rh-v">Top-level accounts</span><button class="rh-copy" data-copy="Top-level accounts" type="button">Copy</button></td></tr>
+                <tr><td>Label</td><td><span class="rh-v">Top-level accounts</span><button class="rh-copy" data-copy="Top-level accounts" type="button">Copy</button></td></tr>
                 <tr><td>Field</td><td><span class="rh-v">Parent Account ID (ParentId)</span></td></tr>
                 <tr><td>Condition</td><td><span class="rh-v">Is blank</span></td></tr>
               </tbody></table>
@@ -221,8 +221,8 @@
             <div class="rh-tile rh-sky"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></div><h4>Data bars</h4><p>Compare numbers down a column without reading them.</p></div>
           </div>
           <div class="rh-next">
-            <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=tutorial-leads" data-page="tutorial-leads"><small>Previous tutorial</small><b>← The morning lead queue</b></a>
-            <a class="rh-fwd" href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=tutorial-contacts" data-page="tutorial-contacts"><small>Next tutorial</small><b>Contacts on an account page →</b></a>
+            <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=tutorial-leads" data-page="tutorial-leads"><small>Previous tutorial</small><b>← The morning lead queue</b></a>
+            <a class="rh-fwd" href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=tutorial-contacts" data-page="tutorial-contacts"><small>Next tutorial</small><b>Contacts on an account page →</b></a>
           </div>
         </section>
 

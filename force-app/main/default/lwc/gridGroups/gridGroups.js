@@ -83,7 +83,7 @@ const FIRST_DAY = firstDayFromSalesforce(FIRST_DAY_OF_WEEK);
 /** Shown before a subtotal in its cell. */
 export const SUBTOTAL_SHORT = { sum: 'Sum', average: 'Avg', min: 'Min', max: 'Max', count: 'Count' };
 /** Read out with a subtotal. */
-export const SUBTOTAL_NAMES = { sum: 'Sum', average: 'Average', min: 'Lowest', max: 'Highest', count: 'Count' };
+export const SUBTOTAL_NAMES = { sum: 'Sum', average: 'Average', min: 'Min', max: 'Max', count: 'Count' };
 export const BLANK_LABEL = '(blank)';
 /** Joins a group's keys into its path; a control character, so no value contains it. */
 const SEP = String.fromCharCode(31);

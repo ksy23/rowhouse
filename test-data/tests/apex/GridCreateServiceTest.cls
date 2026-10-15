@@ -267,7 +267,7 @@ private class GridCreateServiceTest {
                 WHERE Record_Id__c = :String.valueOf(result.rows[0].recordId)
             ];
             System.assertEquals(1, entries.size());
-            System.assertEquals('Create', entries[0].Operation__c);
+            System.assertEquals('create', entries[0].Operation__c);
             System.assertEquals('Frozen cod, Portland', entries[0].Record_Name__c);
             System.assertEquals('Consignment_Audit', entries[0].Grid_Configuration__c);
         }

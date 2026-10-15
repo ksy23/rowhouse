@@ -105,14 +105,14 @@ private class GridControllerTest {
             Id first = [SELECT Id FROM Consignment__c LIMIT 1].Id;
             String prefix = String.valueOf(first).left(3);
             List<String> ids = new List<String>();
-            for (Integer i = 0; i <= GridNesting.MAX_COUNT_PARENTS; i++) {
+            for (Integer i = 0; i <= GridChildTables.MAX_COUNT_PARENTS; i++) {
                 ids.add(prefix + '0'.repeat(12 - String.valueOf(i).length()) + String.valueOf(i)); // 15 characters
             }
             try {
                 GridController.countChildren('Consignments', ids);
                 System.assert(false, 'More than the limit must be refused.');
             } catch (AuraHandledException e) {
-                System.assert(e.getMessage().contains('at most ' + GridNesting.MAX_COUNT_PARENTS), e.getMessage());
+                System.assert(e.getMessage().contains('at most ' + GridChildTables.MAX_COUNT_PARENTS), e.getMessage());
             }
         }
     }

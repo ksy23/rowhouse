@@ -12,7 +12,7 @@ import GridView, {
     COUNT_BATCH,
     NARROW_WIDTH
 } from 'c/gridView';
-import { childTableHeight } from 'c/gridNest';
+import { childTableHeight } from 'c/gridChildTables';
 import getGridConfig from '@salesforce/apex/GridController.getGridConfig';
 import openGrid from '@salesforce/apex/GridController.openGrid';
 import { openGridFrom } from './openGridFrom';
@@ -1227,7 +1227,7 @@ describe('mass update and mass delete', () => {
     const $ = (el, selector) => el.shadowRoot.querySelector(selector);
     const select = (el, ids) =>
         table(el).dispatchEvent(new CustomEvent('selectionchange', { detail: { selectedIds: ids } }));
-    const dialog = el => $(el, 'c-grid-mass-update');
+    const dialog = el => $(el, 'c-grid-update-field');
     const live = el => $(el, '.rh-live').textContent;
     const edit = (el, recordId, field, value, originalValue) =>
         table(el).dispatchEvent(new CustomEvent('cellchange', { detail: { recordId, field, value, originalValue } }));
@@ -2179,11 +2179,11 @@ describe('list view details', () => {
             await settle();
             return el;
         };
-        const spinner = el => $(el, '.rh-legend-toggle .rh-legend-spinner');
+        const spinner = el => $(el, '.rh-display-key-toggle .rh-display-key-spinner');
 
         it('shows a spinner in the button while the key opens, then the key, then the icon again', async () => {
             const el = await mountWithRules();
-            const toggle = $(el, '.rh-legend-toggle');
+            const toggle = $(el, '.rh-display-key-toggle');
             expect(spinner(el)).toBeNull();
             expect(toggle.querySelector('lightning-icon')).not.toBeNull();
 
@@ -2194,12 +2194,12 @@ describe('list view details', () => {
             expect(spinner(el).classList).toContain('slds-spinner_inline');
             expect(spinner(el).textContent.trim()).toBe('Opening the Display Key');
             expect(toggle.querySelector('lightning-icon')).toBeNull();
-            expect($(el, '.rh-legend')).toBeNull();
+            expect($(el, '.rh-display-key')).toBeNull();
 
             await paint();
             await settle();
             // The key, with the spinner still there until the key has been drawn.
-            expect($(el, '.rh-legend')).not.toBeNull();
+            expect($(el, '.rh-display-key')).not.toBeNull();
             expect(toggle.getAttribute('aria-expanded')).toBe('true');
             expect(spinner(el)).not.toBeNull();
 
@@ -2211,14 +2211,14 @@ describe('list view details', () => {
 
         it('says it is closing when it closes, and ignores a second click while it works', async () => {
             const el = await mountWithRules();
-            const toggle = $(el, '.rh-legend-toggle');
+            const toggle = $(el, '.rh-display-key-toggle');
             toggle.click();
             await settle();
             toggle.click(); // while the first is still working: not a second toggle
             await paint();
             await paint();
             await settle();
-            expect($(el, '.rh-legend')).not.toBeNull();
+            expect($(el, '.rh-display-key')).not.toBeNull();
 
             toggle.click();
             await settle();
@@ -2226,7 +2226,7 @@ describe('list view details', () => {
             await paint();
             await paint();
             await settle();
-            expect($(el, '.rh-legend')).toBeNull();
+            expect($(el, '.rh-display-key')).toBeNull();
             expect(toggle.getAttribute('aria-expanded')).toBe('false');
             expect(spinner(el)).toBeNull();
         });
@@ -2234,29 +2234,29 @@ describe('list view details', () => {
         it('is offered only with display rules, and says what each color means', async () => {
             let el = mount();
             await settle();
-            expect($(el, '.rh-legend-toggle')).toBeNull();
+            expect($(el, '.rh-display-key-toggle')).toBeNull();
             el.remove();
 
             getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, displayRules: RULES }, diagnostics: false });
             el = mount();
             await settle();
-            const toggle = $(el, '.rh-legend-toggle');
+            const toggle = $(el, '.rh-display-key-toggle');
             expect(toggle.textContent.trim()).toBe('Display Key');
             expect(toggle.getAttribute('aria-expanded')).toBe('false');
-            expect($(el, '.rh-legend')).toBeNull();
+            expect($(el, '.rh-display-key')).toBeNull();
             toggle.click();
             await paint();
             await settle();
             expect(toggle.getAttribute('aria-expanded')).toBe('true');
-            expect($(el, '.rh-legend').getAttribute('aria-label')).toBe('Display Key');
-            const items = [...el.shadowRoot.querySelectorAll('.rh-legend li')];
+            expect($(el, '.rh-display-key').getAttribute('aria-label')).toBe('Display Key');
+            const items = [...el.shadowRoot.querySelectorAll('.rh-display-key li')];
             expect(items.map(li => li.textContent)).toEqual(['AaOverdue: Red text, Cell', 'AaLarge load: Purple, Row']);
-            const swatches = [...el.shadowRoot.querySelectorAll('.rh-legend .rh-legend-swatch')].map(
+            const swatches = [...el.shadowRoot.querySelectorAll('.rh-display-key .rh-display-key-swatch')].map(
                 sw => sw.className
             );
-            expect(swatches[0]).toContain('rh-fmt_text-red');
-            expect(swatches[1]).toContain('rh-legend-swatch_bar');
-            expect(swatches[1]).toContain('rh-fmt_bar-purple');
+            expect(swatches[0]).toContain('rh-rule_text-red');
+            expect(swatches[1]).toContain('rh-display-key-swatch_bar');
+            expect(swatches[1]).toContain('rh-rule_bar-purple');
         });
     });
 

@@ -86,17 +86,17 @@
     --rh-f-amber: var(--slds-g-color-palette-yellow-90, #f9e3b6);
     --rh-f-red: var(--slds-g-color-palette-red-90, #feded8);
     --rh-f-purple: var(--slds-g-color-palette-purple-90, #ece1f9);
-    --rh-f-grey: var(--slds-g-color-palette-neutral-90, #e5e5e5);
+    --rh-f-gray: var(--slds-g-color-palette-neutral-90, #e5e5e5);
     --rh-b-green: var(--slds-g-color-palette-green-50, #2e844a);
     --rh-b-amber: var(--slds-g-color-palette-orange-60, #dd7a01);
     --rh-b-red: var(--slds-g-color-palette-red-40, #ba0517);
     --rh-b-purple: var(--slds-g-color-palette-purple-50, #9050e9);
-    --rh-b-grey: var(--slds-g-color-palette-neutral-60, #939393);
+    --rh-b-gray: var(--slds-g-color-palette-neutral-60, #939393);
     --rh-t-green: var(--slds-g-color-palette-green-95, #ebf7e6);
     --rh-t-amber: var(--slds-g-color-palette-orange-95, #fff1ea);
     --rh-t-red: var(--slds-g-color-palette-red-95, #fef1ee);
     --rh-t-purple: var(--slds-g-color-palette-purple-95, #f6f2fb);
-    --rh-t-grey: color-mix(
+    --rh-t-gray: color-mix(
         in srgb,
         var(--slds-g-color-palette-neutral-95, #f3f3f3) 50%,
         var(--slds-g-color-neutral-base-100, #fff)

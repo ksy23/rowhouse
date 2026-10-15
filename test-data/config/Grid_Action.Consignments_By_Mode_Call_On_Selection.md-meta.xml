@@ -6,8 +6,8 @@
     <label>Consignments by Mode: call, selection</label>
     <protected>false</protected>
     <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignments_By_Mode</value></values>
-    <values><field>Action_Type__c</field><value xsi:type="xsd:string">QuickAction</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">quick_action</value></values>
     <values><field>Action_Name__c</field><value xsi:type="xsd:string">LogACall</value></values>
-    <values><field>Show_In__c</field><value xsi:type="xsd:string">Selection</value></values>
+    <values><field>Show_In__c</field><value xsi:type="xsd:string">selection</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">5</value></values>
 </CustomMetadata>

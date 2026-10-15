@@ -47,7 +47,7 @@ jest.mock('lightning/navigation', () => {
 const CALL = {
     name: 'Log_Call',
     label: 'Log a call',
-    type: 'quickaction',
+    type: 'quick_action',
     onRow: true,
     onSelection: false,
     confirmation: null,

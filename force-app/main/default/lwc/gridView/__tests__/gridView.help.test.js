@@ -105,7 +105,7 @@ it('opens the User guide in a new browser tab', async () => {
     await settle();
     expect(mockGenerateUrl).toHaveBeenCalledWith({
         type: 'standard__navItemPage',
-        attributes: { apiName: 'Rowhouse_Guide' },
+        attributes: { apiName: 'Grid_Guide' },
         state: { c__page: 'using' }
     });
     expect(open).toHaveBeenCalledWith('/generated?{"c__page":"using"}', '_blank');

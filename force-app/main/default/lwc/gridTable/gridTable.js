@@ -183,15 +183,15 @@
  * shows above the table while it is dragged, groups by it (mouse only; the
  * column menu does the same from the keyboard).
  *
- * CHILD TABLES (c/gridNest, c/gridChildren)
+ * CHILD TABLES (c/gridChildTables, c/gridChildTabs)
  * With tabs in config.children, a column after the selection column holds a
  * toggle on each record. An open record is followed by a detail row: one cell
- * across the table, holding c/gridChildren, a tab per child table, each a grid
+ * across the table, holding c/gridChildTabs, a tab per child table, each a grid
  * of its own. Detail rows are rows of the view with synthetic ids, like group
  * rows, so windowing, focus and the keyboard treat them alike, and editing,
  * paste, fill, clear, copy and selection skip them. A detail row is
- * a fixed height by level (gridNest detailHeight), so a row's top is still
- * arithmetic (gridNest rowTop).
+ * a fixed height by level (gridChildTables detailHeight), so a row's top is still
+ * arithmetic (gridChildTables rowTop).
  * Enter on the detail cell moves focus into the open tab's grid; Escape there,
  * when the child grid has no use for it, brings focus back. Keys, clicks,
  * focus and clipboard events from inside a child grid bubble up through this
@@ -293,7 +293,7 @@ import {
     SUBTOTAL_NAMES,
     MAX_LEVELS
 } from 'c/gridGroups';
-import { detailId, withDetails, rowTop, rowAt, panelHeightFor, panelMax } from 'c/gridNest';
+import { detailId, withDetails, rowTop, rowAt, panelHeightFor, panelMax } from 'c/gridChildTables';
 import { NEW_MARK } from 'c/gridEditState';
 import { minWidthFor, fitsToValues, fitWidth, linesNeeded, FIT_CAP, TEXT_FIT_CAP, MAX_LINES } from 'c/gridSizing';
 import { canFilter, describeFilter, withFilter, MAX_FILTERS } from 'c/gridFilters';
@@ -2447,7 +2447,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     /**
      * An open row's panel: one cell across every column, holding the
      * row's tabs of related records. Its height is fixed, so the windowing
-     * arithmetic stays exact (c/gridNest).
+     * arithmetic stays exact (c/gridChildTables).
      */
     detailRowModel(item, index, recordLevel, focus) {
         const id = String(item[this.keyField]);
@@ -2501,7 +2501,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     /**
-     * An open panel's content changed height (c/gridChildren measures it):
+     * An open panel's content changed height (c/gridChildTabs measures it):
      * the panel follows, up to its level's maximum. A new object, and
      * only on a real change, so a render never loops.
      */
@@ -2812,7 +2812,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         const editor = cut ? 'textarea' : EDITOR_BY_TYPE[c.type] || 'text';
         const label = c.label || c.field;
         const barPct = formatted && format.bars && format.bars[c.field] ? this.barPercent(c.field, value) : null;
-        if (barPct !== null) classes.push('rh-fmt_databar');
+        if (barPct !== null) classes.push('rh-rule_databar');
         const style = barPct === null ? base.style : [base.style, `--rh-databar:${barPct}%`].filter(Boolean).join(';');
         return {
             ...base,
@@ -3640,7 +3640,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         if (this.mode === MODE_NAVIGATION && key.field === DETAIL_FIELD && event.key === 'Enter') {
             event.preventDefault();
             const panel = this.cellElement(key);
-            const children = panel && panel.querySelector('c-grid-children');
+            const children = panel && panel.querySelector('c-grid-child-tabs');
             if (children) children.focus();
             return;
         }
@@ -5808,7 +5808,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             errorMessage: error || '',
             errorId: error ? this.errorIdFor(id, c.field) : null,
             // In a card, a value sits beside its label, whatever its type.
-            valueCls: 'rh-card-value' + (fmt ? ' ' + fmt : '') + (barPct !== null ? ' rh-fmt_databar' : ''),
+            valueCls: 'rh-card-value' + (fmt ? ' ' + fmt : '') + (barPct !== null ? ' rh-rule_databar' : ''),
             valueStyle: barPct !== null ? `--rh-databar:${barPct}%` : null,
             hasFormatIcon: Boolean(icon),
             formatIcon: icon ? icon.name : null,

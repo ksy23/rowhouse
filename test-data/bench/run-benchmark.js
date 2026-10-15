@@ -1,6 +1,6 @@
 /*
  * Rowhouse benchmark runner. Paste into the browser console on a page showing
- * one Rowhouse grid, as a user with the Rowhouse_Diagnostics permission set,
+ * one Rowhouse grid, as a user with the Rowhouse_Grid_Diagnostics permission set,
  * straight after a hard reload (Cmd+Shift+R). It prints one line of JSON.
  *
  * It reads the User Timing measures the grid records (c/gridTiming), then:

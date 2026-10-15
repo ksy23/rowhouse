@@ -164,7 +164,7 @@ public with sharing class GridLogRetention implements Schedulable {
         List<Grid_Edit_Log__c> notes = (List<Grid_Edit_Log__c>) GridSecurity.query(
             'SELECT CreatedDate, Record_Name__c, New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = :op ' +
             'ORDER BY CreatedDate DESC LIMIT 1',
-            new Map<String, Object>{ 'op' => GridAudit.OP_CLEANUP }
+            new Map<String, Object>{ 'op' => GridEditLog.OP_CLEANUP }
         );
         if (!notes.isEmpty()) {
             out.put(

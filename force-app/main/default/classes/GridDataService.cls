@@ -396,7 +396,7 @@ public with sharing class GridDataService {
 
     /**
      * A child grid's parent filter, or null for a top-level grid. The
-     * field is an API name GridNesting took from describe; the Id is bound. The
+     * field is an API name GridChildTables took from describe; the Id is bound. The
      * rows and the subtotals both filter through here.
      */
     public static String parentCondition(String fieldApiName, Id parentId, Map<String, Object> binds) {

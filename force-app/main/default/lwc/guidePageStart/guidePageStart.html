@@ -3,7 +3,7 @@
     <div class="rh-page" onclick={handleClick}>
         <header class="rh-phead rh-hero rh-alive" id="main" data-anchor="main">
           <div class="rh-phead-in">
-            <div class="rh-crumbs"><a href="/lightning/n/rowhouse__Rowhouse_Guide" data-page="welcome">Grid Guide</a> / Admin guide</div>
+            <div class="rh-crumbs"><a href="/lightning/n/rowhouse__Grid_Guide" data-page="welcome">Grid Guide</a> / Admin guide</div>
             <span class="rh-aud rh-admin">Admin</span>
             <h1 style="margin-top:14px">Get started</h1>
             <p class="rh-dek">What you need, how a grid is put together, who needs which permission set, and a first grid on a page in about ten minutes.</p>
@@ -21,8 +21,8 @@
             <a href="#move" data-anchor-link="move">Moving grids between orgs</a>
             <a href="#tips" data-anchor-link="tips">Tips</a>
             <span class="rh-s-k">Admin guide</span>
-            <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure" data-page="configure">Configuration reference</a>
-            <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=features" data-page="features">Features in depth</a>
+            <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure" data-page="configure">Configuration reference</a>
+            <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=features" data-page="features">Features in depth</a>
           </aside>
 
           <main class="rh-content">
@@ -85,7 +85,7 @@
               </tbody>
             </table>
           </div>
-          <p class="rh-note" style="margin-top:10px">Every field of every record is in the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure" data-page="configure">configuration reference</a>. In Setup, each field also has help text: hover over the <b>i</b> beside its label.</p>
+          <p class="rh-note" style="margin-top:10px">Every field of every record is in the <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure" data-page="configure">configuration reference</a>. In Setup, each field also has help text: hover over the <b>i</b> beside its label.</p>
         </section>
 
         <section id="access" data-anchor="access">
@@ -109,7 +109,7 @@
 
         <section id="first" data-anchor="first">
           <div class="rh-sec-head"><span class="rh-sec-num">04</span><h2>Your first grid: an account directory</h2>
-            <p class="rh-sec-sub">A small grid of Accounts with four columns, where users can fix phone numbers, industries and owners, built on the Grid Admin tab. Ten minutes, start to finish. For a bigger example with grouping and colors, follow <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=tutorial-pipeline" data-page="tutorial-pipeline">the pipeline review tutorial</a>, which builds its grid in Setup, record by record.</p></div>
+            <p class="rh-sec-sub">A small grid of Accounts with four columns, where users can fix phone numbers, industries and owners, built on the Grid Admin tab. Ten minutes, start to finish. For a bigger example with grouping and colors, follow <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=tutorial-pipeline" data-page="tutorial-pipeline">the pipeline review tutorial</a>, which builds its grid in Setup, record by record.</p></div>
 
           <h3>1 · Open the Grid Admin tab</h3>
           <ol class="rh-tut">
@@ -121,7 +121,7 @@
           <ol class="rh-tut">
             <li><b>Fill in the Grid tab</b> and leave the rest as it is:
               <table class="rh-fields"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
-                <tr><td>Grid Title</td><td><span class="rh-v">Account Directory</span><button class="rh-copy" data-copy="Account Directory" type="button">Copy</button></td></tr>
+                <tr><td>Grid title</td><td><span class="rh-v">Account Directory</span><button class="rh-copy" data-copy="Account Directory" type="button">Copy</button></td></tr>
                 <tr><td>API name</td><td><span class="rh-v">Account_Directory</span> <span class="rh-note">fills in by itself</span></td></tr>
                 <tr><td>Object</td><td><span class="rh-v">Account (Account)</span> <span class="rh-note">choose it from the list</span></td></tr>
                 <tr><td>Sort by</td><td><span class="rh-v">Account Name (Name)</span> <span class="rh-note">appears once the object is chosen</span></td></tr>
@@ -147,7 +147,7 @@
             </li>
             <li><b>Save.</b> Click <span class="rh-ui">Save</span>. The editor says <i>Saving. This takes a few seconds…</i>, and then a green <i>Grid saved</i> message appears. If Save stays gray, the list under the grid's name says what to fix first.</li>
           </ol>
-          <p class="rh-note">Rather build it in Setup? A grid is a Grid Configuration record and a Grid Column record per column; the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure" data-page="configure">configuration reference</a> has every field, and the tutorials build their grids that way.</p>
+          <p class="rh-note">Rather build it in Setup? A grid is a Grid Configuration record and a Grid Column record per column; the <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure" data-page="configure">configuration reference</a> has every field, and the tutorials build their grids that way.</p>
 
           <h3>4 · Put the grid on a page</h3>
           <ol class="rh-tut">
@@ -165,14 +165,14 @@
           <div class="rh-tiles rh-rv-stagger">
             <div class="rh-tile"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></div><h4>App page: the usual home</h4><p>A grid on its own App page, added to an app as a tab, fills the window from its top edge to the bottom of the screen. Leave Height (px) empty for this.</p></div>
             <div class="rh-tile rh-sky"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg></div><h4>Home page</h4><p>Beside other components, set <b>Height (px)</b> on the Grid Configuration (for example 420), or the grid pushes the rest of the page down a full window.</p></div>
-            <div class="rh-tile rh-plum"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></div><h4>Record page</h4><p>With a Height set. Give the grid a <b>Record Page Field</b> and it shows only that record's related rows; without one it shows its whole list. See <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=tutorial-contacts" data-page="tutorial-contacts">Contacts on an account page</a>.</p></div>
+            <div class="rh-tile rh-plum"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></div><h4>Record page</h4><p>With a Height set. Give the grid a <b>Record Page Field</b> and it shows only that record's related rows; without one it shows its whole list. See <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=tutorial-contacts" data-page="tutorial-contacts">Contacts on an account page</a>.</p></div>
           </div>
         </section>
 
         <section id="move" data-anchor="move">
           <div class="rh-sec-head"><span class="rh-sec-num">06</span><h2>Moving grids between orgs</h2></div>
           <div class="rh-prose">
-            <p><b>To any org, with a file.</b> On the Grid Admin tab, <b>Export</b> a grid from its <b>▾</b> menu, or the grids the list shows with the Export button beside Import Grid; in the other org, click <b>Import Grid</b> and choose the file. The dialog shows what importing does before anything is saved, and a grid that org already has is never changed. This is the quick way to set up a demo or trial org, or an org a change set cannot reach. See <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=features&amp;rowhouse__section=admin-transfer" data-page="features" data-section="admin-transfer">Export and import grids</a>.</p>
+            <p><b>To any org, with a file.</b> On the Grid Admin tab, <b>Export</b> a grid from its <b>▾</b> menu, or the grids the list shows with the Export button beside Import Grid; in the other org, click <b>Import Grid</b> and choose the file. The dialog shows what importing does before anything is saved, and a grid that org already has is never changed. This is the quick way to set up a demo or trial org, or an org a change set cannot reach. See <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=features&amp;rowhouse__section=admin-transfer" data-page="features" data-section="admin-transfer">Export and import grids</a>.</p>
             <p><b>From a sandbox to its production org, on your release path.</b> Grid Configurations and everything that points to them are Custom Metadata records. Build a grid in a sandbox, then add its records to an outbound change set (they are listed under <b>Custom Metadata Type</b> records by type) or include them in your deployment. Deploy the Grid Configuration with its columns, rules, filters, child tables and actions together, since they point to it.</p>
             <p>The page that shows the grid is a Lightning page, which deploys the same way as any other; a grid file holds no page.</p>
           </div>
@@ -189,8 +189,8 @@
             <li><b>Lookups show names.</b> A lookup column, such as AccountId or OwnerId, shows the related record's name as a link and is edited by searching.</li>
           </ul>
           <div class="rh-next">
-            <a href="/lightning/n/rowhouse__Rowhouse_Guide" data-page="welcome"><small>Back</small><b>← Home</b></a>
-            <a class="rh-fwd" href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure" data-page="configure"><small>Next</small><b>Configuration reference →</b></a>
+            <a href="/lightning/n/rowhouse__Grid_Guide" data-page="welcome"><small>Back</small><b>← Home</b></a>
+            <a class="rh-fwd" href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure" data-page="configure"><small>Next</small><b>Configuration reference →</b></a>
           </div>
         </section>
 

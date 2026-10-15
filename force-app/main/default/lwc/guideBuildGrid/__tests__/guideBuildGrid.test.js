@@ -239,7 +239,7 @@ describe('building', () => {
         saveStatus.mockResolvedValueOnce({ status: 'Succeeded', messages: [] }).mockResolvedValueOnce({
             status: 'Failed',
             messages: [
-                'Grid_Child__mdt.Key_Accounts_Deals: An unexpected error occurred. Please include this ErrorId if you contact support: 1873290553-41729 (-1404846893)'
+                'Grid_Child_Table__mdt.Key_Accounts_Deals: An unexpected error occurred. Please include this ErrorId if you contact support: 1873290553-41729 (-1404846893)'
             ]
         });
         const el = await mount('tutorial-accounts');
@@ -250,7 +250,7 @@ describe('building', () => {
         await tick();
         expect(saved()).toEqual(['Key_Account_Contacts', 'Key_Account_Deals']);
         expect($(el, '.rh-build-error').textContent).toBe(
-            'Key Account Deals was not built. Grid_Child__mdt.Key_Accounts_Deals: An unexpected error occurred. Please include this ErrorId if you contact support: 1873290553-41729 (-1404846893). Key Account Contacts was built and stays.'
+            'Key Account Deals was not built. Grid_Child_Table__mdt.Key_Accounts_Deals: An unexpected error occurred. Please include this ErrorId if you contact support: 1873290553-41729 (-1404846893). Key Account Contacts was built and stays.'
         );
         expect($(el, '.rh-build-cancel').disabled).toBe(false);
         expect($(el, '.rh-build-busy')).toBeNull();

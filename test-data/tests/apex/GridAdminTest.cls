@@ -97,7 +97,7 @@ private class GridAdminTest {
     }
 
     @IsTest
-    static void everythingNeedsTheRowhouseAdminPermission() {
+    static void everythingNeedsTheRowhouseGridAdminPermission() {
         System.runAs(GridTestUsers.fullUser()) {
             for (Integer i = 0; i < 3; i++) {
                 try {
@@ -168,7 +168,7 @@ private class GridAdminTest {
             }
             Boolean switchedOff = false;
             for (GridAdmin.RuleDraft r : d.rules) {
-                if (r.active == false)
+                if (r.inactive == true)
                     switchedOff = true;
             }
             System.assert(switchedOff, 'A rule that is off is in the draft, so it can be turned back on.');
@@ -199,7 +199,7 @@ private class GridAdminTest {
                 GridAdmin.configRecord(d),
                 GridAdmin.columnRecords(d),
                 new List<Grid_Display_Rule__mdt>(),
-                new List<Grid_Child__mdt>(),
+                new List<Grid_Child_Table__mdt>(),
                 new List<Grid_Action__mdt>()
             );
             System.assertEquals(1, def.columns.size(), 'The grid leaves the turned-off column out.');
@@ -288,23 +288,28 @@ private class GridAdminTest {
     static void anAutolaunchedFlowCannotBeSavedWithoutARequiredPermission() {
         System.runAs(GridTestUsers.adminUser()) {
             GridAdmin.Draft d = newDraft('Open_Consignments');
-            for (String type : new List<String>{ 'Flow', 'QuickAction', 'ScreenFlow' }) {
+            Map<String, String> labels = new Map<String, String>{
+                'autolaunched_flow' => 'Reroute',
+                'quick_action' => 'Log the call',
+                'screen_flow' => 'Reroute with a note'
+            };
+            for (String type : new List<String>{ 'autolaunched_flow', 'quick_action', 'screen_flow' }) {
                 GridAdmin.ActionDraft a = new GridAdmin.ActionDraft();
-                a.label = 'Reroute ' + type;
+                a.label = labels.get(type);
                 a.type = type;
-                a.actionName = type == 'QuickAction' ? 'LogACall' : 'Reroute_Consignment';
-                a.showIn = 'Row';
+                a.actionName = type == 'quick_action' ? 'LogACall' : 'Reroute_Consignment';
+                a.showIn = 'row_menu';
                 d.actions.add(a);
             }
             GridAdmin.ActionDraft off = new GridAdmin.ActionDraft();
             off.label = 'Hold at depot';
-            off.type = 'Flow';
+            off.type = 'autolaunched_flow';
             off.actionName = 'Hold_At_Depot';
             off.inactive = true;
             d.actions.add(off);
             GridAdmin.Check result = GridAdmin.check(d);
             System.assertEquals(
-                new List<String>{ 'Action "Reroute Flow": ' + GridActions.PERMISSION_NEEDED },
+                new List<String>{ 'Action "Reroute": ' + GridActions.PERMISSION_NEEDED },
                 result.errors,
                 'A quick action, a screen flow and an action switched off may leave it blank.'
             );
@@ -325,9 +330,9 @@ private class GridAdminTest {
             d.actions.add(apex);
             GridAdmin.ActionDraft call = new GridAdmin.ActionDraft();
             call.label = 'Log a call';
-            call.type = 'QuickAction';
+            call.type = 'quick_action';
             call.actionName = 'LogACall';
-            call.showIn = 'Selection';
+            call.showIn = 'selection';
             d.actions.add(call);
             System.assertEquals(
                 new List<String>{
@@ -336,7 +341,7 @@ private class GridAdminTest {
                 },
                 GridAdmin.check(d).errors
             );
-            call.showIn = 'Both';
+            call.showIn = 'row_menu_and_selection';
             d.actions = new List<GridAdmin.ActionDraft>{ call };
             System.assertEquals(
                 new List<String>(),
@@ -361,9 +366,9 @@ private class GridAdminTest {
             d.rules.add(r);
             GridAdmin.ActionDraft a = new GridAdmin.ActionDraft();
             a.label = 'Add a note';
-            a.type = 'Flow';
+            a.type = 'autolaunched_flow';
             a.actionName = 'Mark_Consignment_Reviewed';
-            a.showIn = 'Both';
+            a.showIn = 'row_menu_and_selection';
             a.requiredPermission = 'Run_Freight_Actions';
             d.actions.add(a);
             GridAdmin.ChildDraft child = new GridAdmin.ChildDraft();
@@ -409,11 +414,11 @@ private class GridAdminTest {
 
             Metadata.CustomMetadata rule = sent.get('Grid_Display_Rule__mdt.Open_Consignments_Big_amount');
             System.assertEquals('Big amount', rule.label);
-            System.assertEquals(true, valueOf(rule, 'Active__c'));
+            System.assertEquals(false, valueOf(rule, 'Inactive__c'));
             Metadata.CustomMetadata action = sent.get('Grid_Action__mdt.Open_Consignments_Add_a_note');
             System.assertEquals('Add a note', action.label);
             System.assertEquals('Run_Freight_Actions', valueOf(action, 'Required_Permission__c'));
-            Metadata.CustomMetadata link = sent.get('Grid_Child__mdt.Open_Consignments_Items');
+            Metadata.CustomMetadata link = sent.get('Grid_Child_Table__mdt.Open_Consignments_Items');
             System.assertEquals('Consignment_Items', valueOf(link, 'Child_Configuration__c'));
             System.assertEquals('Open_Consignments', valueOf(link, 'Grid_Configuration__c'));
             System.assertEquals(
@@ -891,16 +896,18 @@ private class GridAdminTest {
             Map<String, Object> m = new Map<String, Object>{
                 'DeveloperName' => 'Consignments_Items_2025',
                 'MasterLabel' => 'Items 2025',
-                GridDescribe.apiName(Grid_Child__mdt.Relationship_Field__c) => 'Consignment__c',
-                GridDescribe.apiName(Grid_Child__mdt.Child_Configuration__c) => Grid_Configuration__mdt.getInstance(
-                        'Consignment_Items_2025'
-                    )
-                    .Id
+                GridDescribe.apiName(Grid_Child_Table__mdt.Relationship_Field__c) => 'Consignment__c',
+                GridDescribe.apiName(
+                    Grid_Child_Table__mdt.Child_Configuration__c
+                ) => Grid_Configuration__mdt.getInstance('Consignment_Items_2025').Id
             };
-            Grid_Child__mdt link = (Grid_Child__mdt) JSON.deserialize(JSON.serialize(m), Grid_Child__mdt.class);
+            Grid_Child_Table__mdt link = (Grid_Child_Table__mdt) JSON.deserialize(
+                JSON.serialize(m),
+                Grid_Child_Table__mdt.class
+            );
             List<String> warnings = new List<String>();
-            List<GridConfig.Child> tabs = GridNesting.childrenFrom(
-                new List<Grid_Child__mdt>{ link },
+            List<GridConfig.Child> tabs = GridChildTables.childrenFrom(
+                new List<Grid_Child_Table__mdt>{ link },
                 Consignment__c.SObjectType,
                 warnings
             );
@@ -1041,7 +1048,7 @@ private class GridAdminTest {
                     'A new record, named after the copy: ' + fullName
                 );
                 System.assertEquals('Copy_of_Nest_Accounts', valueOf(sent.get(fullName), 'Grid_Configuration__c'));
-                if (fullName.startsWith('Grid_Child__mdt.')) {
+                if (fullName.startsWith('Grid_Child_Table__mdt.')) {
                     links.add(fullName.substringAfter('.'));
                 }
             }

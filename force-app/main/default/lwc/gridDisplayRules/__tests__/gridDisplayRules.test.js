@@ -2,7 +2,7 @@
  * Conditional formatting rules: what each operator means for each type,
  * and which classes a cell ends up with when several rules match.
  */
-import { compileRules, formatsFor, legendFor, resolveDate, dateIn, STYLES } from 'c/gridDisplayRules';
+import { compileRules, formatsFor, displayKeyFor, resolveDate, dateIn, STYLES } from 'c/gridDisplayRules';
 
 const CONTEXT = { today: '2026-09-28', timeZone: 'America/New_York', userId: '005000000000001AAA' };
 const one = (rule, value) =>
@@ -191,32 +191,32 @@ describe('which classes a cell takes', () => {
 
     it('marks a row fill with a bar, not a fill on every cell', () => {
         const f = formats({ Freight_Charge__c: '4999', Service_Level__c: 'Express', Ship_Date__c: null });
-        expect(f.bar).toBe('rh-fmt_bar-purple');
-        expect(f.cells.Name).toBe('rh-fmt_bold');
-        expect(f.cells.Freight_Charge__c).toBe('rh-fmt_fill-green rh-fmt_bold'); // the cell fill still shows
-        expect(f.cells.Service_Level__c).toBe('rh-fmt_bold');
+        expect(f.bar).toBe('rh-rule_bar-purple');
+        expect(f.cells.Name).toBe('rh-rule_bold');
+        expect(f.cells.Freight_Charge__c).toBe('rh-rule_fill-green rh-rule_bold'); // the cell fill still shows
+        expect(f.cells.Service_Level__c).toBe('rh-rule_bold');
         expect(f.labels).toEqual({ Freight_Charge__c: 'Large charge' });
         expect(f.rowLabels).toEqual(['Express service', 'Has a service level']);
     });
 
     it('takes the first row fill for the bar, and the first rule to set each thing on a cell', () => {
         const f = formats({ Freight_Charge__c: '-5', Service_Level__c: 'Express', Ship_Date__c: '2026-01-01' });
-        expect(f.bar).toBe('rh-fmt_bar-purple'); // Express (earlier) beats Late
-        expect(f.cells.Freight_Charge__c).toBe('rh-fmt_text-red rh-fmt_bold');
-        expect(f.cells.Ship_Date__c).toBe('rh-fmt_bold');
+        expect(f.bar).toBe('rh-rule_bar-purple'); // Express (earlier) beats Late
+        expect(f.cells.Freight_Charge__c).toBe('rh-rule_text-red rh-rule_bold');
+        expect(f.cells.Ship_Date__c).toBe('rh-rule_bold');
         expect(f.rowLabels).toEqual(['Express service', 'Has a service level']); // Late lost the bar: not listed
     });
 
     it('returns a bar alone when only a row fill matches', () => {
         const only = compileRules([RULES[3]], CONTEXT);
         const f = formatsFor(only, field => ({ Ship_Date__c: '2026-01-01' })[field], FIELDS);
-        expect(f).toEqual({ cells: {}, labels: {}, bar: 'rh-fmt_bar-red', rowLabels: ['Late'], icons: {}, bars: {} });
+        expect(f).toEqual({ cells: {}, labels: {}, bar: 'rh-rule_bar-red', rowLabels: ['Late'], icons: {}, bars: {} });
     });
 
     it('has no blue fill, because a blue row looks selected', () => {
         expect(compileRules([{ ...RULES[2], style: 'fill_blue' }], CONTEXT)).toEqual([]);
         const purple = compileRules([{ ...RULES[2], style: 'fill_purple' }], CONTEXT);
-        expect(formatsFor(purple, f => ({ Service_Level__c: 'Express' })[f], FIELDS).bar).toBe('rh-fmt_bar-purple');
+        expect(formatsFor(purple, f => ({ Service_Level__c: 'Express' })[f], FIELDS).bar).toBe('rh-rule_bar-purple');
     });
 
     it('leaves out a rule with a style the grid does not know', () => {
@@ -227,19 +227,19 @@ describe('which classes a cell takes', () => {
     });
 });
 
-describe('the Formatting legend', () => {
+describe('the Display Key', () => {
     it('lists each rule with its label and what it looks like', () => {
-        const legend = legendFor([
+        const legend = displayKeyFor([
             { name: 'Large', label: 'Large charge', field: 'Freight_Charge__c', style: 'fill_green', applyTo: 'cell' },
             { name: 'Express', field: 'Service_Level__c', style: 'fill_purple', applyTo: 'row' },
             { name: 'Heavy', label: 'Has a service level', field: 'Service_Level__c', style: 'bold', applyTo: 'row' },
             { name: 'Odd', field: 'Carrier_Code__c', style: 'mauve', applyTo: 'cell' }
         ]);
         expect(legend.map(l => [l.label, l.cls, l.bar, l.row])).toEqual([
-            ['Large charge', 'rh-fmt_fill-green', null, false],
-            ['Express', null, 'rh-fmt_bar-purple', true],
-            ['Has a service level', 'rh-fmt_bold', null, true]
+            ['Large charge', 'rh-rule_fill-green', null, false],
+            ['Express', null, 'rh-rule_bar-purple', true],
+            ['Has a service level', 'rh-rule_bold', null, true]
         ]);
-        expect(legendFor(undefined)).toEqual([]);
+        expect(displayKeyFor(undefined)).toEqual([]);
     });
 });

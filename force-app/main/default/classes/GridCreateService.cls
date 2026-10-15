@@ -31,7 +31,7 @@
  *   the user must have create permission on the object;
  *   a required column left blank is refused before anything is written.
  * The parent of a child table, or the record of a record page, is set from
- * the server's own scope (GridNesting.scopeFor, GridFilters.recordScope),
+ * the server's own scope (GridChildTables.scopeFor, GridFilters.recordScope),
  * never from the browser, and the user must be allowed to set it on create.
  * Then one partial insert in user mode: a row that fails (sharing, a
  * validation rule, a trigger, a required field that is not a column) fails
@@ -92,7 +92,7 @@ public with sharing class GridCreateService {
             return null;
         }
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-        GridNesting.Scope scope = scopeOf(def, parentLink, parentId, pageRecordId);
+        GridChildTables.Scope scope = scopeOf(def, parentLink, parentId, pageRecordId);
         if (scope != null && !GridSecurity.canSetOnCreate(scope.field)) {
             return null; // as for an import: the record would not be under its parent
         }
@@ -140,7 +140,7 @@ public with sharing class GridCreateService {
         Map<String, Object> presets = new Map<String, Object>();
         if (scope != null) {
             presets.put(GridDescribe.localName(scope.field), scope.parentId);
-            Map<Id, String> parentName = GridAudit.namesOf(
+            Map<Id, String> parentName = GridEditLog.namesOf(
                 scope.parentId.getSObjectType(),
                 new List<Id>{ scope.parentId }
             );
@@ -221,7 +221,7 @@ public with sharing class GridCreateService {
         }
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         GridSecurity.requireCreate(objectType);
-        GridNesting.Scope scope = scopeOf(def, parentLink, parentId, pageRecordId);
+        GridChildTables.Scope scope = scopeOf(def, parentLink, parentId, pageRecordId);
         if (scope != null && !GridSecurity.canSetOnCreate(scope.field)) {
             throw new GridException(
                 'You cannot set ' +
@@ -263,7 +263,7 @@ public with sharing class GridCreateService {
         if (inserts.isEmpty()) {
             return result;
         }
-        GridAudit.Context audit = GridAudit.start(def); // throws if the user cannot log
+        GridEditLog.Context audit = GridEditLog.start(def); // throws if the user cannot log
         SObjectAccessDecision decision = GridSecurity.stripForCreate(inserts);
         Set<String> stripped = new Set<String>();
         for (Set<String> fields : decision.getRemovedFields().values()) {
@@ -290,7 +290,7 @@ public with sharing class GridCreateService {
                 }
             }
         }
-        GridAudit.write(GridAudit.creates(audit, objectType, written, outcomes)); // throws, and undoes the insert, if the log cannot be written
+        GridEditLog.write(GridEditLog.creates(audit, objectType, written, outcomes)); // throws, and undoes the insert, if the log cannot be written
         result.strippedFields.addAll(stripped);
         return result;
     }
@@ -323,13 +323,13 @@ public with sharing class GridCreateService {
     }
 
     /** The parent of a child table, or the record of a record page; null for neither. */
-    private static GridNesting.Scope scopeOf(
+    private static GridChildTables.Scope scopeOf(
         GridConfig.Definition def,
         String parentLink,
         String parentId,
         String pageRecordId
     ) {
-        GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
+        GridChildTables.Scope scope = GridChildTables.scopeFor(def, parentLink, parentId);
         return scope != null ? scope : GridFilters.recordScope(def, pageRecordId);
     }
 

@@ -64,8 +64,8 @@ public with sharing class GridDeleteService {
         GridConfig.Definition def = deletable(configName);
         List<Id> ids = checkedIds(def, recordIds);
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-        GridAudit.Context audit = GridAudit.start(def); // null unless the grid logs; throws if the user cannot
-        Map<Id, String> names = audit == null ? null : GridAudit.namesOf(objectType, ids);
+        GridEditLog.Context audit = GridEditLog.start(def); // null unless the grid logs; throws if the user cannot
+        Map<Id, String> names = audit == null ? null : GridEditLog.namesOf(objectType, ids);
         List<Database.DeleteResult> outcomes = GridSecurity.deleteRecords(objectType, ids);
         for (Integer i = 0; i < outcomes.size(); i++) {
             Database.DeleteResult outcome = outcomes[i];
@@ -79,7 +79,7 @@ public with sharing class GridDeleteService {
             }
             result.errors.add(new GridSaveError(ids[i], null, String.join(messages, ' ')));
         }
-        GridAudit.write(GridAudit.deletes(audit, result.deletedIds, names)); // throws, and undoes the delete, if it cannot
+        GridEditLog.write(GridEditLog.deletes(audit, result.deletedIds, names)); // throws, and undoes the delete, if it cannot
         return result;
     }
 
@@ -92,7 +92,7 @@ public with sharing class GridDeleteService {
         GridConfig.Definition def = deletable(configName);
         List<Id> ids = checkedIds(def, recordIds);
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
-        GridAudit.Context audit = GridAudit.start(def);
+        GridEditLog.Context audit = GridEditLog.start(def);
         List<Database.UndeleteResult> outcomes = GridSecurity.undeleteRecords(objectType, ids);
         for (Integer i = 0; i < outcomes.size(); i++) {
             if (outcomes[i].isSuccess()) {
@@ -106,8 +106,8 @@ public with sharing class GridDeleteService {
             result.errors.add(new GridSaveError(ids[i], null, String.join(messages, ' ')));
         }
         // Named now they are back, so readable again.
-        Map<Id, String> names = audit == null ? null : GridAudit.namesOf(objectType, result.restoredIds);
-        GridAudit.write(GridAudit.restores(audit, result.restoredIds, names));
+        Map<Id, String> names = audit == null ? null : GridEditLog.namesOf(objectType, result.restoredIds);
+        GridEditLog.write(GridEditLog.restores(audit, result.restoredIds, names));
         return result;
     }
 

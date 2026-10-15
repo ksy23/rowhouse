@@ -11,17 +11,17 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>ScreenFlow</fullName>
+                <fullName>screen_flow</fullName>
                 <default>false</default>
                 <label>Screen flow</label>
             </value>
             <value>
-                <fullName>Flow</fullName>
+                <fullName>autolaunched_flow</fullName>
                 <default>false</default>
                 <label>Autolaunched flow</label>
             </value>
             <value>
-                <fullName>QuickAction</fullName>
+                <fullName>quick_action</fullName>
                 <default>false</default>
                 <label>Quick action</label>
             </value>

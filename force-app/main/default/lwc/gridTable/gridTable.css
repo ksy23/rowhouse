@@ -213,27 +213,27 @@
     background-color: var(--rh-bar-color);
 }
 
-.rh-fmt_bar-green {
+.rh-rule_bar-green {
     --rh-bar-color: var(--slds-g-color-palette-green-60, #3ba755);
     --rh-tint-color: var(--slds-g-color-palette-green-95, rgb(235, 247, 230));
 }
 
-.rh-fmt_bar-amber {
+.rh-rule_bar-amber {
     --rh-bar-color: var(--slds-g-color-palette-yellow-70, #e4a201);
     --rh-tint-color: var(--slds-g-color-palette-orange-95, rgb(255, 241, 234));
 }
 
-.rh-fmt_bar-red {
+.rh-rule_bar-red {
     --rh-bar-color: var(--slds-g-color-palette-red-60, #fe5c4c);
     --rh-tint-color: var(--slds-g-color-palette-red-95, rgb(254, 241, 238));
 }
 
-.rh-fmt_bar-purple {
+.rh-rule_bar-purple {
     --rh-bar-color: var(--slds-g-color-palette-purple-60, #ad7bee);
     --rh-tint-color: var(--slds-g-color-palette-purple-95, rgb(246, 242, 251));
 }
 
-.rh-fmt_bar-grey {
+.rh-rule_bar-gray {
     --rh-bar-color: var(--slds-g-color-palette-neutral-60, #939393);
     --rh-tint-color: color-mix(
         in srgb,
@@ -259,44 +259,44 @@
  * not blue: SLDS marks a selected row in light blue, and a blue fill looked
  * selected.
  */
-.rh-grid td.rh-fmt_fill-green,
-.rh-grid .rh-card-value.rh-fmt_fill-green {
+.rh-grid td.rh-rule_fill-green,
+.rh-grid .rh-card-value.rh-rule_fill-green {
     background-color: var(--slds-g-color-palette-green-90, rgb(205, 239, 196));
 }
 
-.rh-grid td.rh-fmt_fill-amber,
-.rh-grid .rh-card-value.rh-fmt_fill-amber {
+.rh-grid td.rh-rule_fill-amber,
+.rh-grid .rh-card-value.rh-rule_fill-amber {
     background-color: var(--slds-g-color-palette-yellow-90, rgb(249, 227, 182));
 }
 
-.rh-grid td.rh-fmt_fill-red,
-.rh-grid .rh-card-value.rh-fmt_fill-red {
+.rh-grid td.rh-rule_fill-red,
+.rh-grid .rh-card-value.rh-rule_fill-red {
     background-color: var(--slds-g-color-palette-red-90, rgb(254, 222, 216));
 }
 
-.rh-grid td.rh-fmt_fill-purple,
-.rh-grid .rh-card-value.rh-fmt_fill-purple {
+.rh-grid td.rh-rule_fill-purple,
+.rh-grid .rh-card-value.rh-rule_fill-purple {
     background-color: var(--slds-g-color-palette-purple-90, rgb(236, 225, 249));
 }
 
-.rh-grid td.rh-fmt_fill-grey,
-.rh-grid .rh-card-value.rh-fmt_fill-grey {
+.rh-grid td.rh-rule_fill-gray,
+.rh-grid .rh-card-value.rh-rule_fill-gray {
     background-color: var(--slds-g-color-palette-neutral-90, rgb(229, 229, 229));
 }
 
-.rh-grid .rh-fmt_text-red {
+.rh-grid .rh-rule_text-red {
     color: var(--slds-g-color-palette-red-40, rgb(186, 5, 23));
 }
 
-.rh-grid .rh-fmt_text-green {
+.rh-grid .rh-rule_text-green {
     color: var(--slds-g-color-palette-green-40, rgb(57, 101, 71));
 }
 
-.rh-grid .rh-fmt_text-grey {
+.rh-grid .rh-rule_text-gray {
     color: var(--slds-g-color-palette-neutral-40, rgb(92, 92, 92));
 }
 
-.rh-grid .rh-fmt_bold {
+.rh-grid .rh-rule_bold {
     font-weight: var(--slds-g-font-weight-bold, 700);
 }
 
@@ -306,8 +306,8 @@
  * text stays above 4.5:1 on it). A background image, so a fill, a frozen
  * cell's color or the selected range's tint still shows past the bar's end.
  */
-.rh-grid td.rh-fmt_databar,
-.rh-grid .rh-card-value.rh-fmt_databar {
+.rh-grid td.rh-rule_databar,
+.rh-grid .rh-card-value.rh-rule_databar {
     background-image: linear-gradient(
         to right,
         var(--slds-g-color-palette-teal-90, rgb(172, 243, 228)) var(--rh-databar, 0%),
@@ -387,12 +387,12 @@
 
 /*
  * Child tables. An open row's panel is one cell across the whole row,
- * its height set inline (fixed by level, gridNest detailHeight, so the
+ * its height set inline (fixed by level, gridChildTables detailHeight, so the
  * windowing arithmetic stays exact). The panel inside it is as wide as the
  * scroller's visible area (measured), and its left margin follows a sideways
  * scroll (--rh-scroll-left, set by gridTable handleScroll), so the tabs stay
  * in view however far the parent table is scrolled; the child grid inside is
- * sized to fit it (gridNest childTableHeight).
+ * sized to fit it (gridChildTables childTableHeight).
  *
  * NOT position: sticky. A sticky element is always a stacking context, and a
  * child grid's dialogs (import, change a field) are position: fixed inside it:

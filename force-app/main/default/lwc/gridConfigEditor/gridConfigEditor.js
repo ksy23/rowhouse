@@ -461,7 +461,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
     }
 
     get rulesTabLabel() {
-        return `Display rules (${this.countOn('rules', r => r.active !== false)})`;
+        return `Display rules (${this.countOn('rules', r => !r.inactive)})`;
     }
 
     get actionsTabLabel() {
@@ -714,7 +714,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         if (!this.draft) return 0;
         return (
             this.draft.columns.filter(c => isFormulaColumn(c) && !c.inactive).length +
-            this.draft.rules.filter(r => isFormulaRule(r) && r.active !== false).length
+            this.draft.rules.filter(r => isFormulaRule(r) && !r.inactive).length
         );
     }
 
@@ -774,9 +774,9 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 styleLabel: `Look of ${name}`,
                 applyTo: r.applyTo || 'cell',
                 applyLabel: `Where ${name} applies`,
-                on: r.active !== false,
+                on: !r.inactive,
                 onLabel: `Use ${name}`,
-                rowClass: r.active === false ? 'rh-entry rh-entry_off' : 'rh-entry',
+                rowClass: r.inactive ? 'rh-entry rh-entry_off' : 'rh-entry',
                 upDisabled: i === 0,
                 downDisabled: i === list.length - 1,
                 upLabel: `Move ${name} up`,
@@ -814,7 +814,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             return {
                 key: x._key,
                 label: x.label || '',
-                labelLabel: `Name of filter ${i + 1}`,
+                labelLabel: `Label of filter ${i + 1}`,
                 field: x.field,
                 fieldOptions: this.fieldOptions(x.field, y => y.filterable !== false),
                 fieldLabel: `Field ${name} tests`,
@@ -856,12 +856,12 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         const list = this.draft.actions;
         return list.map((a, i) => {
             const name = a.label || `action ${i + 1}`;
-            const quick = a.type === 'QuickAction';
+            const quick = a.type === 'quick_action';
             return {
                 key: a._key,
                 label: a.label || '',
                 labelLabel: `Label of action ${i + 1}`,
-                type: a.type || 'ScreenFlow',
+                type: a.type || 'screen_flow',
                 typeLabel: `Type of ${name}`,
                 actionName: a.actionName || '',
                 actionNameLabel: `What ${name} runs`,
@@ -871,16 +871,16 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 inputHint: quick ? 'Not used' : 'recordId',
                 // Salesforce's window takes no input and asks its own question.
                 quick,
-                showIn: quick ? 'Row' : a.showIn || 'Both',
+                showIn: quick ? 'row_menu' : a.showIn || 'row_menu_and_selection',
                 showInLabel: `Where ${name} is offered`,
-                showInOptions: quick ? SHOW_IN.filter(o => o.value === 'Row') : SHOW_IN,
+                showInOptions: quick ? SHOW_IN.filter(o => o.value === 'row_menu') : SHOW_IN,
                 confirmation: a.confirmation || '',
                 confirmationLabel: `Question before ${name} runs`,
-                confirmationHint: a.type === 'Flow' ? 'Nothing' : 'Not used',
+                confirmationHint: a.type === 'autolaunched_flow' ? 'Nothing' : 'Not used',
                 requiredPermission: a.requiredPermission || '',
                 permissionLabel: `Custom permission ${name} needs`,
                 // An autolaunched flow must name one (GridActions.PERMISSION_NEEDED).
-                permissionHint: a.type === 'Flow' ? 'Required' : 'Anyone',
+                permissionHint: a.type === 'autolaunched_flow' ? 'Required' : 'Anyone',
                 on: !a.inactive,
                 onLabel: `Offer ${name}`,
                 rowClass: a.inactive ? 'rh-entry rh-entry_off' : 'rh-entry',
@@ -984,7 +984,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             if (!String(c.columnLabel || '').trim()) out.push(`Formula column ${i + 1}: give it a header.`);
         });
         this.draft.rules.forEach((r, i) => {
-            if (isFormulaRule(r) && r.active !== false && !String(r.formula || '').trim()) {
+            if (isFormulaRule(r) && !r.inactive && !String(r.formula || '').trim()) {
                 out.push(`${r.label || `Rule ${i + 1}`}: write its formula.`);
             }
         });
@@ -1127,8 +1127,8 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 changed.valueTo = '';
             if (list === 'columns' && prop === 'formulaType' && !NUMBER_RESULTS.has(next)) changed.decimalPlaces = null;
             // A quick action opens Salesforce's window for one row: the row menu only, no input, no question.
-            if (list === 'actions' && prop === 'type' && next === 'QuickAction') {
-                changed.showIn = 'Row';
+            if (list === 'actions' && prop === 'type' && next === 'quick_action') {
+                changed.showIn = 'row_menu';
                 changed.inputName = '';
                 changed.confirmation = '';
             }

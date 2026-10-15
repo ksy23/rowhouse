@@ -15,7 +15,7 @@
  *      happened: updated, created, and each row the server refused, by line.
  * Closing reports whether anything was written, so the grid reloads.
  *
- * The dialog is the SLDS modal blueprint, as c/gridMassUpdate is: focus starts
+ * The dialog is the SLDS modal blueprint, as c/gridUpdateField is: focus starts
  * on the file choice and stays inside, and Escape closes it, except while
  * rows are being written.
  *
@@ -67,7 +67,7 @@ import { toCsv, downloadCsv } from 'c/gridCsv';
 export const IMPORT_BATCH = 200;
 /**
  * Values per server call, the Id aside. A grid that logs its changes writes a
- * log entry for each, and one call may write at most GridAudit.MAX_ENTRIES.
+ * log entry for each, and one call may write at most GridEditLog.MAX_ENTRIES.
  * Only a file with more than 25 columns makes a batch smaller.
  */
 export const IMPORT_CELLS = 5000;

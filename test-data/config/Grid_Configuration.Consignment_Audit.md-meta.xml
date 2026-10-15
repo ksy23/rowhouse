@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- The audit trail: a grid that logs every change, for GridAuditTest and the live checks. Edits, imports, deletes and an action. -->
+<!-- The audit trail: a grid that logs every change, for GridEditLogTest and the live checks. Edits, imports, deletes and an action. -->
 <CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

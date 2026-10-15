@@ -57,7 +57,7 @@ private class GridFormulasTest {
             cfg(),
             columns,
             rules,
-            new List<Grid_Child__mdt>(),
+            new List<Grid_Child_Table__mdt>(),
             new List<Grid_Action__mdt>(),
             new List<Grid_Filter__mdt>()
         );
@@ -201,7 +201,7 @@ private class GridFormulasTest {
                 Formula__c = 'Pieces__c > 3',
                 Style__c = 'icon_warning',
                 Apply_To__c = 'cell',
-                Active__c = true
+                Inactive__c = false
             );
             GridConfig.Definition def = build(
                 new List<Grid_Column__mdt>{ column('Name', 10) },

@@ -73,7 +73,7 @@ const PACKAGE_NS = packageNamespace(LOGO_URL);
 /**
  * The namespace a component runs in: "c", or the package's. Only the
  * component Lightning places on a page carries the namespace in its tag
- * (rowhouse-rowhouse-guide); a component rendered from the package's own
+ * (rowhouse-grid-guide); a component rendered from the package's own
  * template is tagged c-guide-page-tutorials even in the package (measured).
  * So the logo's address decides, and the element only when it names none.
  */

@@ -10,12 +10,12 @@
         <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
-            <value><fullName>Update</fullName><default>false</default><label>Update</label></value>
-            <value><fullName>Create</fullName><default>false</default><label>Create</label></value>
-            <value><fullName>Delete</fullName><default>false</default><label>Delete</label></value>
-            <value><fullName>Action</fullName><default>false</default><label>Action</label></value>
-            <value><fullName>Restore</fullName><default>false</default><label>Restore</label></value>
-            <value><fullName>Cleanup</fullName><default>false</default><label>Cleanup</label></value>
+            <value><fullName>update</fullName><default>false</default><label>Update</label></value>
+            <value><fullName>create</fullName><default>false</default><label>Create</label></value>
+            <value><fullName>delete</fullName><default>false</default><label>Delete</label></value>
+            <value><fullName>action</fullName><default>false</default><label>Action</label></value>
+            <value><fullName>restore</fullName><default>false</default><label>Restore</label></value>
+            <value><fullName>cleanup</fullName><default>false</default><label>Cleanup</label></value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

@@ -3,7 +3,7 @@
  * Grid actions: what a grid offers, what the server refuses, and how an
  * autolaunched flow runs and fails. The fixture actions are on Consignments (a
  * screen flow, an autolaunched flow, a flow that runs Apex, a quick action, and
- * one that needs Rowhouse_Diagnostics); the autolaunched flows need
+ * one that needs Rowhouse_Grid_Diagnostics); the autolaunched flows need
  * Run_Freight_Actions, which Freight Full Access grants. Consignments_By_Mode
  * carries five that cannot work, so their warnings are tested. The flows and
  * the Apex action they run are test data (test-data/actions): they fail on a
@@ -79,7 +79,7 @@ private class GridActionServiceTest {
             Map<String, GridConfig.Action> a = byName(def.actions);
             GridConfig.Action note = a.get('Consignments_Add_Note');
             System.assertEquals('Add a note', note.label, 'The record\'s Label is what the menu says.');
-            System.assertEquals('screenflow', note.type);
+            System.assertEquals('screen_flow', note.type);
             System.assertEquals(
                 'Add_Delivery_Note',
                 note.flowName,
@@ -93,18 +93,18 @@ private class GridActionServiceTest {
             System.assert(note.onRow && note.onSelection, 'Show In Both: the row menu and the selection bar.');
 
             GridConfig.Action seen = a.get('Consignments_Mark_Seen');
-            System.assertEquals('flow', seen.type);
+            System.assertEquals('autolaunched_flow', seen.type);
             System.assertEquals(null, seen.flowName, 'What a server action runs is not told to the browser.');
             System.assertEquals(null, seen.inputName);
             System.assertEquals('Mark_Consignment_Reviewed', seen.actionName, 'The server keeps it.');
 
             GridConfig.Action stamp = a.get('Consignments_Stamp');
-            System.assertEquals('flow', stamp.type, 'Apex runs from an autolaunched flow.');
+            System.assertEquals('autolaunched_flow', stamp.type, 'Apex runs from an autolaunched flow.');
             System.assert(!stamp.onRow && stamp.onSelection, 'Show In Selection.');
             System.assertEquals('Stamp these records with Apex?', stamp.confirmation);
 
             GridConfig.Action call = a.get('Consignments_Log_Call');
-            System.assertEquals('quickaction', call.type);
+            System.assertEquals('quick_action', call.type);
             System.assert(call.onRow && !call.onSelection, 'Show In Row.');
             System.assertEquals(
                 'Global.LogACall',
@@ -147,7 +147,7 @@ private class GridActionServiceTest {
     static void offersAnActionThatNeedsAPermissionOnlyToThoseWhoHaveIt() {
         System.runAs(GridTestUsers.diagnosticsUser()) {
             Map<String, GridConfig.Action> a = byName(GridConfig.forUser('Consignments').actions);
-            System.assert(a.containsKey('Consignments_Diagnostics_Only'), 'This user holds Rowhouse_Diagnostics.');
+            System.assert(a.containsKey('Consignments_Diagnostics_Only'), 'This user holds Rowhouse_Grid_Diagnostics.');
         }
     }
 
@@ -427,7 +427,7 @@ private class GridActionServiceTest {
             List<Consignment__c> recs = newRecords(new List<String>{ 'Paper rolls, Worcester', 'Paper rolls, Lowell' });
             GridConfig.Action flow = new GridConfig.Action();
             flow.name = 'Consignments_Rerate';
-            flow.type = 'flow';
+            flow.type = 'autolaunched_flow';
             flow.actionName = 'Rerate_Consignment';
             Map<Id, String> failures = GridActionService.interviews(flow, idsOf(recs));
             String missing = 'There is no autolaunched flow named "Rerate_Consignment" (Grid Action Consignments_Rerate).';

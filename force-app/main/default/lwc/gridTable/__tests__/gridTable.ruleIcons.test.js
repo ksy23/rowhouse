@@ -137,7 +137,7 @@ describe('icons', () => {
             style: 'fill_red'
         });
         await mount([red, OVERDUE]);
-        expect(cell(1, 'Amount__c').classList).toContain('rh-fmt_fill-red');
+        expect(cell(1, 'Amount__c').classList).toContain('rh-rule_fill-red');
         expect(icon(1, 'Amount__c').iconName).toBe('utility:warning');
         expect(said(1, 'Amount__c')).toEqual([', Loss, Overdue']);
     });
@@ -203,15 +203,15 @@ describe('icons', () => {
 describe('data bars', () => {
     it("draws a bar behind each value, its length the value's place from zero to the highest loaded value", async () => {
         await mount([SCORE_BAR]);
-        expect(cell(1, 'Score__c').classList).toContain('rh-fmt_databar');
+        expect(cell(1, 'Score__c').classList).toContain('rh-rule_databar');
         expect(bar(1, 'Score__c')).toBe('10%');
         expect(bar(2, 'Score__c')).toBe('50%');
         expect(bar(3, 'Score__c')).toBe('100%');
         // A blank has no bar.
-        expect(cell(4, 'Score__c').classList).not.toContain('rh-fmt_databar');
+        expect(cell(4, 'Score__c').classList).not.toContain('rh-rule_databar');
         expect(bar(4, 'Score__c')).toBe('');
         // Only in the rule's column.
-        expect(cell(1, 'Amount__c').classList).not.toContain('rh-fmt_databar');
+        expect(cell(1, 'Amount__c').classList).not.toContain('rh-rule_databar');
     });
 
     it('measures from the lowest value when some are below zero', async () => {
@@ -237,7 +237,7 @@ describe('data bars', () => {
             style: 'data_bar'
         });
         await mount([high]);
-        expect(cell(1, 'Score__c').classList).not.toContain('rh-fmt_databar'); // 10 does not match
+        expect(cell(1, 'Score__c').classList).not.toContain('rh-rule_databar'); // 10 does not match
         expect(bar(2, 'Score__c')).toBe('50%');
         expect(bar(3, 'Score__c')).toBe('100%');
     });
@@ -245,7 +245,7 @@ describe('data bars', () => {
     it('draws no bar when every loaded value is zero or blank: there is nothing to measure', async () => {
         const rows = ROWS.map(r => ({ ...r, Score__c: r.Score__c === null ? null : 0 }));
         await mount([SCORE_BAR], { rows });
-        expect($$('td.rh-fmt_databar')).toHaveLength(0);
+        expect($$('td.rh-rule_databar')).toHaveLength(0);
     });
 
     it('draws full bars when every loaded value is the same: each is all the way from zero', async () => {
@@ -257,7 +257,7 @@ describe('data bars', () => {
     it('rescales with an unsaved edit, and the edited cell shows as unsaved, without a bar', async () => {
         await mount([SCORE_BAR], { drafts: { [id(4)]: { Score__c: 200 } } });
         expect(cell(4, 'Score__c').classList).toContain('slds-is-edited');
-        expect(cell(4, 'Score__c').classList).not.toContain('rh-fmt_databar');
+        expect(cell(4, 'Score__c').classList).not.toContain('rh-rule_databar');
         expect(bar(2, 'Score__c')).toBe('25%'); // 50 of 200
         expect(bar(3, 'Score__c')).toBe('50%');
     });
@@ -279,8 +279,8 @@ describe('data bars', () => {
         });
         await mount([SCORE_BAR, green, star]);
         const top = cell(3, 'Score__c');
-        expect(top.classList).toContain('rh-fmt_fill-green');
-        expect(top.classList).toContain('rh-fmt_databar');
+        expect(top.classList).toContain('rh-rule_fill-green');
+        expect(top.classList).toContain('rh-rule_databar');
         expect(bar(3, 'Score__c')).toBe('100%');
         expect(icon(3, 'Score__c').iconName).toBe('utility:success');
     });
@@ -297,7 +297,7 @@ describe('data bars', () => {
             await flush();
             const score = cell(1, 'Score__c');
             expect(score.classList).toContain('rh-frozen');
-            expect(score.classList).toContain('rh-fmt_databar');
+            expect(score.classList).toContain('rh-rule_databar');
             expect(score.style.left).toBe('300px'); // after Name and Amount
             expect(score.style.getPropertyValue('--rh-databar')).toBe('10%');
         } finally {
@@ -309,10 +309,10 @@ describe('data bars', () => {
         await mount([SCORE_BAR], { layout: 'cards' });
         // Under the title (Name), a card shows Amount, Score and Stage.
         const value = [...$(`li[data-row-id="${id(2)}"]`).querySelectorAll('.rh-card-value')][1];
-        expect(value.classList).toContain('rh-fmt_databar');
+        expect(value.classList).toContain('rh-rule_databar');
         expect(value.style.getPropertyValue('--rh-databar')).toBe('50%');
         const blank = [...$(`li[data-row-id="${id(4)}"]`).querySelectorAll('.rh-card-value')][1];
-        expect(blank.classList).not.toContain('rh-fmt_databar');
+        expect(blank.classList).not.toContain('rh-rule_databar');
     });
 });
 
@@ -324,39 +324,39 @@ describe('formula rules', () => {
     it('formats the rows whose _rules name the rule, and no others', async () => {
         await mount([AT_RISK]);
         expect(tr(1).classList).toContain('rh-row_bar');
-        expect(tr(1).classList).toContain('rh-fmt_bar-red');
+        expect(tr(1).classList).toContain('rh-rule_bar-red');
         [2, 3, 4].forEach(n => expect(tr(n).classList).not.toContain('rh-row_bar'));
         expect(said(1, 'Name')).toEqual([', At Risk']);
     });
 
     it("formats one cell for a cell rule, and puts a row rule's icon on the first value", async () => {
         await mount([HOT, FLAGGED]);
-        expect(cell(3, 'Stage__c').classList).toContain('rh-fmt_bold');
-        expect(cell(3, 'Name').classList).not.toContain('rh-fmt_bold');
+        expect(cell(3, 'Stage__c').classList).toContain('rh-rule_bold');
+        expect(cell(3, 'Name').classList).not.toContain('rh-rule_bold');
         expect(icon(3, 'Name').iconName).toBe('utility:error');
         expect(icon(3, 'Name').variant).toBe('error');
-        expect(cell(1, 'Stage__c').classList).not.toContain('rh-fmt_bold');
+        expect(cell(1, 'Stage__c').classList).not.toContain('rh-rule_bold');
         expect(icon(1, 'Name')).toBeNull();
     });
 
     it('does not change with an unsaved edit: the server tests the saved record', async () => {
         await mount([AT_RISK], { drafts: { [id(1)]: { Amount__c: '5000' }, [id(2)]: { Amount__c: '-5000' } } });
-        expect(tr(1).classList).toContain('rh-fmt_bar-red');
-        expect(tr(2).classList).not.toContain('rh-fmt_bar-red');
+        expect(tr(1).classList).toContain('rh-rule_bar-red');
+        expect(tr(2).classList).not.toContain('rh-rule_bar-red');
     });
 
     it('follows the rows the server sends back after a save', async () => {
         await mount([AT_RISK]);
         el.config = { ...el.config, rows: ROWS.map(r => ({ ...r, _rules: r.Id === id(2) ? ['At_Risk'] : [] })) };
         await flush();
-        expect(tr(1).classList).not.toContain('rh-fmt_bar-red');
-        expect(tr(2).classList).toContain('rh-fmt_bar-red');
+        expect(tr(1).classList).not.toContain('rh-rule_bar-red');
+        expect(tr(2).classList).toContain('rh-rule_bar-red');
     });
 
     it("formats a card the same way, with a row rule's icon on the card's first value", async () => {
         await mount([AT_RISK, HOT, FLAGGED], { layout: 'cards' });
         const card = $(`li[data-row-id="${id(1)}"]`);
-        expect(card.classList).toContain('rh-fmt_bar-red');
+        expect(card.classList).toContain('rh-rule_bar-red');
         expect($(`li[data-row-id="${id(2)}"]`).classList).not.toContain('rh-card_bar');
         // The first column is the card's title, not a field: the icon goes on
         // the first value under it, Amount, where it can be seen.
@@ -365,7 +365,7 @@ describe('formula rules', () => {
         expect(shown.iconName).toBe('utility:error');
         expect(shown.alternativeText).toBe('Flagged');
         expect($$('li.rh-card lightning-icon.rh-format-icon')).toHaveLength(1);
-        expect(values[2].classList).toContain('rh-fmt_bold'); // Stage, the cell rule
+        expect(values[2].classList).toContain('rh-rule_bold'); // Stage, the cell rule
     });
 
     it("in a card showing every field, keeps the row's icon on the first value under the title", async () => {

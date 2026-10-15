@@ -342,7 +342,7 @@ public with sharing class GridGroupService {
     ) {
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         GridSecurity.requireRead(objectType);
-        GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
+        GridChildTables.Scope scope = GridChildTables.scopeFor(def, parentLink, parentId);
         Result result = new Result();
 
         Map<String, Object> binds = new Map<String, Object>();

@@ -133,11 +133,11 @@ describe('picklists that follow the record type', () => {
             await settle();
             $(el, '.rh-mass-edit').click();
             await settle();
-            const status = $(el, 'c-grid-mass-update').columns.find(c => c.field === 'Status__c');
+            const status = $(el, 'c-grid-update-field').columns.find(c => c.field === 'Status__c');
             return status.options.map(o => o.value);
         };
         expect(await select([ROWS[0].Id, ROWS[2].Id])).toEqual(['New', 'Working', 'Closed']);
-        $(el, 'c-grid-mass-update').dispatchEvent(new CustomEvent('cancel'));
+        $(el, 'c-grid-update-field').dispatchEvent(new CustomEvent('cancel'));
         await settle();
         expect(await select([ROWS[0].Id, ROWS[1].Id])).toEqual(['New']);
     });

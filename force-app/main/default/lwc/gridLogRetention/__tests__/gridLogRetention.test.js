@@ -171,7 +171,7 @@ it('opens the Grid Guide at How long entries are kept, in a new browser tab', as
     const el = await mount();
     const link = $(el, '.rh-retention-help');
     expect(link.textContent).toBe('How long entries are kept ↗');
-    expect(link.getAttribute('href')).toBe('/lightning/n/Rowhouse_Guide?c__page=features&c__section=audit-retention');
+    expect(link.getAttribute('href')).toBe('/lightning/n/Grid_Guide?c__page=features&c__section=audit-retention');
 });
 
 it('saves forever as a blank period', async () => {

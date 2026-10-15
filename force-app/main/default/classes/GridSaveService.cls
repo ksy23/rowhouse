@@ -30,9 +30,9 @@
  *
  * AUDIT TRAIL
  * When the configuration logs changes, the user must be able to write the log
- * before anything is queued (GridAudit.start), and each chunk logs its own
+ * before anything is queued (GridEditLog.start), and each chunk logs its own
  * changes in its own transaction. A chunk then holds at most
- * GridAudit.MAX_ENTRIES changed cells as well as at most CHUNK_SIZE records,
+ * GridEditLog.MAX_ENTRIES changed cells as well as at most CHUNK_SIZE records,
  * so its log fits the transaction's limits (chunksOf).
  */
 public with sharing class GridSaveService {
@@ -52,7 +52,7 @@ public with sharing class GridSaveService {
         }
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         GridSecurity.requireUpdate(objectType);
-        GridAudit.Context audit = GridAudit.start(def); // null unless the grid logs; throws if the user cannot
+        GridEditLog.Context audit = GridEditLog.start(def); // null unless the grid logs; throws if the user cannot
         Set<String> allowed = def.editableFields();
         Set<String> rejected = new Set<String>();
 
@@ -100,7 +100,7 @@ public with sharing class GridSaveService {
         }
         ticket.strippedFields.addAll(stripped);
 
-        Integer cellBudget = audit == null ? null : GridAudit.MAX_ENTRIES;
+        Integer cellBudget = audit == null ? null : GridEditLog.MAX_ENTRIES;
         List<List<SObject>> chunks = chunksOf(records, cellBudget);
         List<List<SObject>> parentChunks = new List<List<SObject>>();
         Integer parentCount = 0;
@@ -451,11 +451,11 @@ public with sharing class GridSaveService {
     }
 
     /** The log context for a chunk of parent records: the same save, their own object. */
-    private static GridAudit.Context auditFor(GridAudit.Context audit, Schema.SObjectType objectType) {
+    private static GridEditLog.Context auditFor(GridEditLog.Context audit, Schema.SObjectType objectType) {
         if (audit == null) {
             return null;
         }
-        GridAudit.Context ctx = new GridAudit.Context();
+        GridEditLog.Context ctx = new GridEditLog.Context();
         ctx.configName = audit.configName;
         ctx.objectName = GridDescribe.apiName(objectType);
         ctx.saveId = audit.saveId;
@@ -474,7 +474,7 @@ public with sharing class GridSaveService {
         List<SObject> chunk = new List<SObject>();
         Integer cells = 0;
         for (SObject r : records) {
-            Integer n = cellBudget == null ? 0 : GridAudit.cellsOf(r);
+            Integer n = cellBudget == null ? 0 : GridEditLog.cellsOf(r);
             if (!chunk.isEmpty() && (chunk.size() >= CHUNK_SIZE || (cellBudget != null && cells + n > cellBudget))) {
                 out.add(chunk);
                 chunk = new List<SObject>();

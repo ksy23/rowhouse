@@ -6,9 +6,9 @@
     <label>Stamp with Apex</label>
     <protected>false</protected>
     <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignments</value></values>
-    <values><field>Action_Type__c</field><value xsi:type="xsd:string">Flow</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">autolaunched_flow</value></values>
     <values><field>Action_Name__c</field><value xsi:type="xsd:string">Stamp_Consignment</value></values>
-    <values><field>Show_In__c</field><value xsi:type="xsd:string">Selection</value></values>
+    <values><field>Show_In__c</field><value xsi:type="xsd:string">selection</value></values>
     <values><field>Confirmation__c</field><value xsi:type="xsd:string">Stamp these records with Apex?</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">30</value></values>
     <values><field>Required_Permission__c</field><value xsi:type="xsd:string">Run_Freight_Actions</value></values>

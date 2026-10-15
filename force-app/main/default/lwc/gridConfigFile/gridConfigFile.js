@@ -104,8 +104,38 @@ export function readGridFile(text) {
             }
             grid[list] = Array.isArray(g[list]) ? g[list] : [];
         });
-        return grid;
+        return withCurrentNames(grid);
     });
+}
+
+/**
+ * Values an earlier beta wrote, as they are named now, so a file exported
+ * before the rename imports as it was: an Action Type, a Show In, a gray
+ * look, and a display rule's on/off (once Active, now Inactive as for every
+ * other entry). Anything else is left for the server to check.
+ */
+const EARLIER_NAMES = {
+    type: { ScreenFlow: 'screen_flow', Flow: 'autolaunched_flow', QuickAction: 'quick_action' },
+    showIn: { Both: 'row_menu_and_selection', Row: 'row_menu', Selection: 'selection' },
+    style: { fill_grey: 'fill_gray', text_grey: 'text_gray' }
+};
+
+export function withCurrentNames(grid) {
+    const renamed = (item, prop) => {
+        if (!item || typeof item !== 'object') return item;
+        const now = EARLIER_NAMES[prop][item[prop]];
+        return now ? { ...item, [prop]: now } : item;
+    };
+    const rules = grid.rules.map(r => {
+        let rule = renamed(r, 'style');
+        if (rule && typeof rule === 'object' && 'active' in rule && !('inactive' in rule)) {
+            const { active, ...rest } = rule;
+            rule = { ...rest, inactive: active === false };
+        }
+        return rule;
+    });
+    const actions = grid.actions.map(a => renamed(renamed(a, 'type'), 'showIn'));
+    return { ...grid, rules, actions };
 }
 
 /** A file's text, read as UTF-8. Throws when it is too large or cannot be read. */

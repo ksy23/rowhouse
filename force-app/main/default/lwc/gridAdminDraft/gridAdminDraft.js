@@ -43,8 +43,8 @@ export const CHILD_TOTALS = Object.freeze([
     { value: 'count', label: 'Count' },
     { value: 'sum', label: 'Sum' },
     { value: 'average', label: 'Average' },
-    { value: 'min', label: 'Lowest' },
-    { value: 'max', label: 'Highest' }
+    { value: 'min', label: 'Min' },
+    { value: 'max', label: 'Max' }
 ]);
 
 export const DATE_UNITS = Object.freeze([
@@ -87,10 +87,10 @@ export const STYLES = Object.freeze([
     { value: 'fill_amber', label: 'Amber fill' },
     { value: 'fill_red', label: 'Red fill' },
     { value: 'fill_purple', label: 'Purple fill' },
-    { value: 'fill_grey', label: 'Gray fill' },
+    { value: 'fill_gray', label: 'Gray fill' },
     { value: 'text_red', label: 'Red text' },
     { value: 'text_green', label: 'Green text' },
-    { value: 'text_grey', label: 'Gray text' },
+    { value: 'text_gray', label: 'Gray text' },
     { value: 'bold', label: 'Bold' },
     { value: 'icon_warning', label: 'Warning icon' },
     { value: 'icon_error', label: 'Error icon' },
@@ -125,15 +125,15 @@ export const APPLY_TO = Object.freeze([
 
 /** What an action runs. Apex runs from an autolaunched flow (GridActions.NO_APEX). */
 export const ACTION_TYPES = Object.freeze([
-    { value: 'ScreenFlow', label: 'Screen flow' },
-    { value: 'Flow', label: 'Autolaunched flow' },
-    { value: 'QuickAction', label: 'Quick action' }
+    { value: 'screen_flow', label: 'Screen flow' },
+    { value: 'autolaunched_flow', label: 'Autolaunched flow' },
+    { value: 'quick_action', label: 'Quick action' }
 ]);
 
 export const SHOW_IN = Object.freeze([
-    { value: 'Both', label: 'Row menu and selection' },
-    { value: 'Row', label: 'Row menu' },
-    { value: 'Selection', label: 'Selection' }
+    { value: 'row_menu_and_selection', label: 'Row menu and selection' },
+    { value: 'row_menu', label: 'Row menu' },
+    { value: 'selection', label: 'Selection' }
 ]);
 
 // What each operator applies to, as GridConfig.requireOperatorFits decides.
@@ -298,7 +298,7 @@ export function newRule() {
         formula: null,
         style: 'fill_green',
         applyTo: 'cell',
-        active: true
+        inactive: false
     };
 }
 
@@ -321,10 +321,10 @@ export function newAction() {
         _key: nextKey('act'),
         name: null,
         label: '',
-        type: 'ScreenFlow',
+        type: 'screen_flow',
         actionName: '',
         inputName: '',
-        showIn: 'Both',
+        showIn: 'row_menu_and_selection',
         confirmation: '',
         requiredPermission: '',
         inactive: false

@@ -128,7 +128,7 @@ const DRAFT = {
             value: '1000',
             style: 'fill_green',
             applyTo: 'row',
-            active: true
+            inactive: false
         }
     ],
     actions: [],
@@ -396,24 +396,28 @@ describe('editing', () => {
         const el = await mount();
         click($(el, '.rh-add-action'));
         await settle();
-        expect($(el, '.rh-action-type').options.map(o => o.value)).toEqual(['ScreenFlow', 'Flow', 'QuickAction']);
-        change($(el, '.rh-action-show'), 'Selection');
+        expect($(el, '.rh-action-type').options.map(o => o.value)).toEqual([
+            'screen_flow',
+            'autolaunched_flow',
+            'quick_action'
+        ]);
+        change($(el, '.rh-action-show'), 'selection');
         change($(el, '.rh-action-confirm'), 'Log the call?');
         await settle();
-        change($(el, '.rh-action-type'), 'QuickAction');
+        change($(el, '.rh-action-type'), 'quick_action');
         await settle();
-        expect($(el, '.rh-action-show').options.map(o => o.value)).toEqual(['Row']);
+        expect($(el, '.rh-action-show').options.map(o => o.value)).toEqual(['row_menu']);
         expect($(el, '.rh-action-input').disabled).toBe(true);
         expect($(el, '.rh-action-confirm').disabled).toBe(true);
         expect($(el, '.rh-action-permission').placeholder).toBe('Anyone');
         await afterCheck();
         expect(lastDraft().actions[0]).toMatchObject({
-            type: 'QuickAction',
-            showIn: 'Row',
+            type: 'quick_action',
+            showIn: 'row_menu',
             inputName: null,
             confirmation: null
         });
-        change($(el, '.rh-action-type'), 'Flow');
+        change($(el, '.rh-action-type'), 'autolaunched_flow');
         await settle();
         expect($(el, '.rh-action-permission').placeholder).toBe('Required');
         expect($(el, '.rh-action-input').disabled).toBe(false);
@@ -565,7 +569,7 @@ describe('help', () => {
         await settle();
         expect(mockGenerateUrl).toHaveBeenCalledWith({
             type: 'standard__navItemPage',
-            attributes: { apiName: 'Rowhouse_Guide' },
+            attributes: { apiName: 'Grid_Guide' },
             state: { c__page: 'configure', c__section: 'rule' }
         });
         expect(open).toHaveBeenCalledWith('/generated?{"c__page":"configure","c__section":"rule"}', '_blank');

@@ -65,10 +65,10 @@ public with sharing class GridActionService {
         }
         GridConfig.Definition def = GridConfig.load(configName);
         GridConfig.Action action = GridActions.find(def, actionName);
-        if (action.type == 'screenflow') {
+        if (action.type == 'screen_flow') {
             throw new GridException(action.label + ' is a screen flow: it runs in the browser, not on the server.');
         }
-        if (action.type != 'flow') {
+        if (action.type != 'autolaunched_flow') {
             throw new GridException(
                 action.label + ' is a quick action: it opens in Salesforce\'s own window, not on the server.'
             );
@@ -112,8 +112,8 @@ public with sharing class GridActionService {
         if (runnable.isEmpty()) {
             return result;
         }
-        GridAudit.Context audit = GridAudit.start(def); // null unless the grid logs; throws if the user cannot
-        Map<Id, String> names = audit == null ? null : GridAudit.namesOf(objectType, runnable);
+        GridEditLog.Context audit = GridEditLog.start(def); // null unless the grid logs; throws if the user cannot
+        Map<Id, String> names = audit == null ? null : GridEditLog.namesOf(objectType, runnable);
         Map<Id, String> failures = interviews(action, runnable);
         for (Id recordId : runnable) {
             if (failures.containsKey(recordId)) {
@@ -122,7 +122,7 @@ public with sharing class GridActionService {
                 result.succeededIds.add(recordId);
             }
         }
-        GridAudit.write(GridAudit.actions(audit, action, result.succeededIds, names)); // throws, and undoes the run, if it cannot
+        GridEditLog.write(GridEditLog.actions(audit, action, result.succeededIds, names)); // throws, and undoes the run, if it cannot
         return result;
     }
 

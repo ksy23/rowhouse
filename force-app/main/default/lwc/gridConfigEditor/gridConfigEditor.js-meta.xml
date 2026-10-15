@@ -3,5 +3,5 @@
     <apiVersion>67.0</apiVersion>
     <!-- Internal: shown by the Grid Admin tab and by a grid's gear. -->
     <isExposed>false</isExposed>
-    <description>Rowhouse grid settings: edits one grid configuration and its columns, display rules, filters, actions and child tables.</description>
+    <description>Rowhouse's grid editor, on the Grid Admin tab and in Grid settings: edits one grid configuration and its columns, display rules, filters, actions and child tables.</description>
 </LightningComponentBundle>

@@ -44,7 +44,7 @@
       <tr><td>Child tables (<i>n</i>)</td><td>One Grid Child Table per row, in the tabs' order</td><td><b>Add child table</b></td></tr>
     </tbody></table></div>
   <figure class="rv" style="margin-top:20px">
-    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Rowhouse_Admin</span></div><div class="stage"><div class="card-m adm">
+    <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Grid_Admin</span></div><div class="stage"><div class="card-m adm">
       <div class="adm-head"><span class="adm-logo"><svg class="i2" viewBox="0 0 32 32" aria-hidden="true"><path d="M2 11.5 16 3.5 30 11.5z" fill="#0F5C45"/><rect x="2" y="14" width="28" height="4" rx="1" fill="#0F5C45"/><rect x="2" y="20" width="28" height="4" rx="1" fill="#B3431F"/><rect x="2" y="26" width="28" height="4" rx="1" fill="#0F5C45"/></svg>ROWHOUSE</span><div><div class="m-title" style="font-weight:400;font-size:17px">Grid Admin</div><div class="m-meta">Build and change the grids your users see, without going into Setup.</div></div><span class="m-btn adm-help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg>Grid Guide</span></div>
       <div class="adm-nav"><span class="on">Grids</span><span>Settings</span></div>
       <div class="adm-ph">
@@ -56,7 +56,7 @@
         <div class="adm-main">
           <div class="m-tabs ad"><span class="on">Grid</span><span>Columns (6)</span><span>Display rules (1)</span><span>Filters (1)</span><span>Actions (0)</span><span>Child tables (0)</span></div>
           <div class="adm-form">
-            <div><span class="adm-fl"><b>*</b> Grid Title</span><span class="adm-in">Account People</span></div>
+            <div><span class="adm-fl"><b>*</b> Grid title</span><span class="adm-in">Account People</span></div>
             <div><span class="adm-fl"><b>*</b> API name</span><span class="adm-in dis">Account_People</span></div>
             <div><span class="adm-fl">Object</span><span class="adm-txt">Contacts (Contact)</span></div>
             <div><span class="adm-fl">Rows per page</span><span class="adm-in">200</span></div>
@@ -87,7 +87,7 @@
   <div class="tbox"><table class="ref wrap1">
     <thead><tr><th>Record</th><th>Setup field</th><th>On the Grid Admin tab</th></tr></thead>
     <tbody>
-      <tr><td rowspan="7">Grid Configuration</td><td>Label · Grid Configuration Name · Object API Name</td><td>Grid Title · API name · Object</td></tr>
+      <tr><td rowspan="7">Grid Configuration</td><td>Label · Grid Configuration Name · Object API Name</td><td>Grid title · API name · Object</td></tr>
       <tr><td>Page Size · Default Sort Field · Default Sort Direction</td><td>Rows per page · Sort by · Sort direction</td></tr>
       <tr><td>Record Page Field</td><td>On a record page, show the records whose</td></tr>
       <tr><td>Frozen Columns · Height (px)</td><td>Frozen columns · Height in pixels</td></tr>
@@ -97,9 +97,9 @@
       <tr><td rowspan="4">Grid Column</td><td>Field API Name · Column Label · Editable · Sortable · Wrap Text · Always Shown · Width (px) · Subtotal · Inactive</td><td>Field · Header · Edit · Sort · Wrap · Always shown · Width · Subtotal · On (the reverse of Inactive)</td></tr>
       <tr><td>Group Level · Group Date Unit · Allow Grouping · Sort Order</td><td>Group (None, 1 (outermost), 2, 3; for a date given a level, a list under it of Day, Week, Month, Quarter, Year, Fiscal quarter or Fiscal year) · <b>Users can group</b>, under Group for a text, email, phone or URL field · the ↑ ↓ arrows</td></tr>
       <tr><td>Formula · Formula Type · Decimal Places</td><td>On a row added with <b>Add formula column</b>: the formula box in the Field column (<i>Such as Amount__c * 0.2</i>), the list under it, and the box beside that (<i>2 places</i>)</td></tr>
-      <tr><td>Child Table · Child Total · Child Field</td><td>On a row added with <b>Add child total column</b>: the list of the grid's child tables in the Field column, and under it what to work out (Count, Sum, Average, Lowest, Highest) and of which field (<i>Records</i> for a count of the records)</td></tr>
-      <tr><td>Grid Display Rule</td><td>Label · Field API Name · Operator · Value · Value To · Compare Field · Formula · Style · Apply To · Active</td><td>Meaning · Field · Condition · Value · the second box (<i>and</i>) · the list under Condition (<i>A value</i>, or <i>Field: …</i>) · Condition <b>Formula is true</b> · Look · Applies to (The cell, The whole row) · On</td></tr>
-      <tr><td>Grid Filter</td><td>Label · Field API Name · Operator · Value · Value To · Inactive</td><td>Name · Field · Condition · Value · the second box (<i>and</i>) · On</td></tr>
+      <tr><td>Child Table · Child Total · Child Field</td><td>On a row added with <b>Add child total column</b>: the list of the grid's child tables in the Field column, and under it what to work out (Count, Sum, Average, Min, Max) and of which field (<i>Records</i> for a count of the records)</td></tr>
+      <tr><td>Grid Display Rule</td><td>Label · Field API Name · Operator · Value · Value To · Compare Field · Formula · Style · Apply To · Inactive</td><td>Meaning · Field · Condition · Value · the second box (<i>and</i>) · the list under Condition (<i>A value</i>, or <i>Field: …</i>) · Condition <b>Formula is true</b> · Look · Applies to (The cell, The whole row) · On (the reverse of Inactive)</td></tr>
+      <tr><td>Grid Filter</td><td>Label · Field API Name · Operator · Value · Value To · Inactive</td><td>Label · Field · Condition · Value · the second box (<i>and</i>) · On</td></tr>
       <tr><td>Grid Action</td><td>Label · Action Type · Action Name · Input Name · Show In · Confirmation · Required Permission · Inactive</td><td>Label · Type · Runs · Input · Offered in · Asks first · Permission · On</td></tr>
       <tr><td>Grid Child Table</td><td>Child Configuration · Relationship Field · Tab Label · Height (px) · Inactive</td><td>Grid · Linked by · Tab label · Height · On</td></tr>
       <tr><td>Grid Column</td><td>Cell Type</td><td>Not offered: set it in Setup</td></tr>
@@ -110,7 +110,7 @@
     <li><b>What you can choose from.</b> The object list shows the objects you can read. A field hidden from you is offered only if you have <b>View Setup and Configuration</b>, as Setup lists it for you; without it, the editor offers only the fields you can read.</li>
     <li><b>Close or Cancel.</b> On the Grid Admin tab, Close and Save sit at the top, beside the grid's name; from the gear, at the bottom. The button beside Save reads <b>Close</b> while nothing has changed and <b>Cancel</b> once something has. Leaving with changes, by that button or by <b>Grid Admin</b> or <b>Grids</b> above the name, asks <i>Discard your changes?</i>, with <b>Keep editing</b> and <b>Discard</b>.</li>
     <li><b>Saving takes a few seconds.</b> It is a deployment, the same as saving in Setup. Saved from the gear, the grid then loads again with the change.</li>
-    <li><b>Nothing is deleted.</b> A saved column, filter, action or child table has an <b>On</b> switch instead (its <b>Inactive</b> field); a display rule's switch is its <b>Active</b> field. An entry added and not yet saved can be removed. A whole grid is archived instead (its <b>Archived</b> field), from its menu on the Grids page, and <b>Delete in Setup</b> there lists its records to delete in Setup (<a href="features.html#admin-rows">Features › Clone, archive and delete a grid</a>).</li>
+    <li><b>Nothing is deleted.</b> A saved column, display rule, filter, action or child table has an <b>On</b> switch instead (its <b>Inactive</b> field). An entry added and not yet saved can be removed. A whole grid is archived instead (its <b>Archived</b> field), from its menu on the Grids page, and <b>Delete in Setup</b> there lists its records to delete in Setup (<a href="features.html#admin-rows">Features › Clone, archive and delete a grid</a>).</li>
     <li><b>Fixed once saved:</b> a grid's API name and its object. For another object, build another grid.</li>
     <li><b>Help as you build.</b> On the Grid Admin tab, the Grid Guide sits beside the editor's tabs and follows them: Columns shows the Grid Column, Display rules the Grid Display Rule, and so on. In a narrower window it moves under the tabs, and a table too wide for the window scrolls sideways. <b>Open ↗</b> opens that record's part of this reference in a new browser tab, so the grid you are building stays as it is. <b>Hide help</b> folds it away, and this browser remembers; <b>Show help</b>, beside Close, brings it back. From the gear, the <b>?</b> beside each tab's introduction opens the same part of this reference. <b>Grid Guide</b>, at the top of the tab, opens Get started in a new browser tab; <b>Get started →</b> on the Grids page opens it in place.</li>
     <li><b>One setting for Rowhouse as a whole.</b> On the tab's <b>Settings</b> page, <b>Grid Edit Log Retention</b> sets how long the audit trail keeps its entries (<a href="features.html#audit-retention">Features › Audit trail</a>). It is the <b>Log Retention (days)</b> field of the <b>Rowhouse Setting</b> record named <span class="v plain">Default</span>, which Setup also shows, but set it on the tab: saving there is what starts or stops the nightly clean-up. A period saved in Setup only, the tab says, is not acted on until it is saved on the tab.</li>
@@ -196,7 +196,7 @@
 <section id="child">
   <div class="sec-head"><span class="sec-num">Record 5 of 6</span><h2>Grid Child Table</h2>
   <p class="sec-sub">One per tab under each row. The tab is a full grid of its own Grid Configuration, limited to the records whose Relationship Field points to that row.</p></div>
-  {{fields:Grid_Child__mdt}}
+  {{fields:Grid_Child_Table__mdt}}
   <ul class="tick" style="margin-top:18px">
     <li><b>Build the child grid first</b>: a Grid Configuration and columns for the child object, like any other grid. It need not be placed on any page.</li>
     <li><b>Three levels at most</b>: a grid, its child tables, and theirs. The third level has no toggle of its own.</li>
@@ -258,7 +258,7 @@
     <div class="sw"><div class="chip" style="background:var(--f-amber)">10/2/2026</div><div class="nm">Amber fill</div></div>
     <div class="sw"><div class="chip" style="background:var(--f-red)">High</div><div class="nm">Red fill</div></div>
     <div class="sw"><div class="chip" style="background:var(--f-purple)">Escalated</div><div class="nm">Purple fill</div></div>
-    <div class="sw"><div class="chip" style="background:var(--f-grey)">Closed</div><div class="nm">Gray fill</div></div>
+    <div class="sw"><div class="chip" style="background:var(--f-gray)">Closed</div><div class="nm">Gray fill</div></div>
     <div class="sw"><div class="chip" style="background:#fff;color:var(--b-red);font-weight:600">9/28/2026</div><div class="nm">Red text</div></div>
     <div class="sw"><div class="chip" style="background:#fff;color:var(--b-green);font-weight:600">+12%</div><div class="nm">Green text</div></div>
     <div class="sw"><div class="chip" style="background:#fff;color:#747474">Inactive</div><div class="nm">Gray text</div></div>
@@ -279,7 +279,7 @@
     <div class="sw"><div class="chip bar" style="--bc:var(--b-amber);--tc:var(--t-amber)">Row · Amber</div><div class="nm">Amber fill, Row</div></div>
     <div class="sw"><div class="chip bar" style="--bc:var(--b-red);--tc:var(--t-red)">Row · Red</div><div class="nm">Red fill, Row</div></div>
     <div class="sw"><div class="chip bar" style="--bc:var(--b-purple);--tc:var(--t-purple)">Row · Purple</div><div class="nm">Purple fill, Row</div></div>
-    <div class="sw"><div class="chip bar" style="--bc:var(--b-grey);--tc:var(--t-grey)">Row · Gray</div><div class="nm">Gray fill, Row</div></div>
+    <div class="sw"><div class="chip bar" style="--bc:var(--b-gray);--tc:var(--t-gray)">Row · Gray</div><div class="nm">Gray fill, Row</div></div>
   </div>
 </section>
 

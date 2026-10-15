@@ -3,7 +3,7 @@
  * grid configuration as records, check a draft of it, and save the draft.
  *
  * WHO
- * Everything here needs the Rowhouse_Admin custom permission (the Rowhouse
+ * Everything here needs the Rowhouse_Grid_Admin custom permission (the Rowhouse
  * Grid Admin permission set). Saving also needs Customize Application, which
  * deploying Custom Metadata needs and a packaged permission set cannot grant,
  * so only the org's real admins can save. Hiding the page and the gear from
@@ -34,7 +34,7 @@
  * outright, or the deploy, are errors here and block the save.
  */
 public with sharing class GridAdmin {
-    public static final String PERMISSION = 'Rowhouse_Admin';
+    public static final String PERMISSION = 'Rowhouse_Grid_Admin';
     /** A Custom Metadata record's name and label: at most 40 characters. */
     public static final Integer MAX_NAME = 40;
     /** What the metadata fields hold: a value, and a formula (Long Text Area). */
@@ -178,7 +178,7 @@ public with sharing class GridAdmin {
         @AuraEnabled
         public String applyTo;
         @AuraEnabled
-        public Boolean active = true;
+        public Boolean inactive = false;
         /** Between's upper end. */
         @AuraEnabled
         public String valueTo;
@@ -300,7 +300,7 @@ public with sharing class GridAdmin {
         // and which grids show each grid as one, for the archive dialog.
         Map<String, Integer> childCounts = new Map<String, Integer>();
         Map<String, List<String>> usedBy = new Map<String, List<String>>();
-        for (Grid_Child__mdt c : Grid_Child__mdt.getAll().values()) {
+        for (Grid_Child_Table__mdt c : Grid_Child_Table__mdt.getAll().values()) {
             if (c.Inactive__c == true) {
                 continue;
             }
@@ -469,7 +469,7 @@ public with sharing class GridAdmin {
             rule.value = r.Value__c;
             rule.style = r.Style__c;
             rule.applyTo = r.Apply_To__c;
-            rule.active = r.Active__c != false;
+            rule.inactive = r.Inactive__c == true;
             rule.valueTo = r.Value_To__c;
             rule.compareField = r.Compare_Field__c;
             rule.formula = r.Formula__c;
@@ -501,8 +501,8 @@ public with sharing class GridAdmin {
             action.inactive = a.Inactive__c == true;
             d.actions.add(action);
         }
-        for (SObject record : inOrder(GridNesting.linksOf(cfg))) {
-            Grid_Child__mdt link = (Grid_Child__mdt) record;
+        for (SObject record : inOrder(GridChildTables.linksOf(cfg))) {
+            Grid_Child_Table__mdt link = (Grid_Child_Table__mdt) record;
             ChildDraft child = new ChildDraft();
             child.name = link.DeveloperName;
             child.childConfig = configNameOf(link.Child_Configuration__c);
@@ -842,12 +842,12 @@ public with sharing class GridAdmin {
             }
             String type = String.isBlank(a.type) ? '' : a.type.trim().toLowerCase();
             String named = String.isBlank(a.label) ? 'Action ' + (i + 1) : 'Action "' + a.label.trim() + '"';
-            String showIn = String.isBlank(a.showIn) ? 'both' : a.showIn.trim().toLowerCase();
+            String showIn = String.isBlank(a.showIn) ? 'row_menu_and_selection' : a.showIn.trim().toLowerCase();
             if (type == 'apex') {
                 result.errors.add(named + ': ' + GridActions.NO_APEX);
-            } else if (type == 'flow' && a.inactive != true && String.isBlank(a.requiredPermission)) {
+            } else if (type == 'autolaunched_flow' && a.inactive != true && String.isBlank(a.requiredPermission)) {
                 result.errors.add(named + ': ' + GridActions.PERMISSION_NEEDED);
-            } else if (type == 'quickaction' && a.inactive != true && showIn == 'selection') {
+            } else if (type == 'quick_action' && a.inactive != true && showIn == 'selection') {
                 result.errors.add(named + ': ' + GridActions.QUICK_ACTION_ON_ROW);
             }
         }
@@ -902,7 +902,7 @@ public with sharing class GridAdmin {
             }
         }
         for (RuleDraft r : d.rules) {
-            String hidden = r.active == true && String.isBlank(r.formula) ? hiddenField(objectType, r.field) : null;
+            String hidden = r.inactive != true && String.isBlank(r.formula) ? hiddenField(objectType, r.field) : null;
             if (hidden != null) {
                 out.add(
                     'Display rule "' +
@@ -1042,7 +1042,7 @@ public with sharing class GridAdmin {
         }
         // Formula display rules count too: every one is worked out for every row.
         for (RuleDraft r : d.rules) {
-            if (String.isNotBlank(r.formula) && r.active != false) {
+            if (String.isNotBlank(r.formula) && r.inactive != true) {
                 formulas++;
             }
         }
@@ -1059,14 +1059,14 @@ public with sharing class GridAdmin {
 
     /** Why a child total column will not build, or null; null too when its child tables cannot be read yet (they have errors of their own). */
     private static String childTotalProblem(Draft d, Schema.SObjectType objectType, ColumnDraft col) {
-        List<Grid_Child__mdt> links;
+        List<Grid_Child_Table__mdt> links;
         try {
             links = childRecords(d);
         } catch (Exception e) {
             return null; // a child table with no grid: said by the child tables' own check
         }
         try {
-            GridNesting.childTotalOf(col.childTable, col.childTotal, col.childField, objectType, links);
+            GridChildTables.childTotalOf(col.childTable, col.childTotal, col.childField, objectType, links);
             return null;
         } catch (GridException e) {
             return e.getMessage();
@@ -1154,8 +1154,8 @@ public with sharing class GridAdmin {
         checkNames(
             'Child table',
             children,
-            Grid_Child__mdt.getAll().values(),
-            Grid_Child__mdt.Grid_Configuration__c,
+            Grid_Child_Table__mdt.getAll().values(),
+            Grid_Child_Table__mdt.Grid_Configuration__c,
             owner,
             result
         );
@@ -1375,7 +1375,7 @@ public with sharing class GridAdmin {
         Grid_Configuration__mdt cfg = configNamed(configName);
         List<Map<String, String>> out = new List<Map<String, String>>();
         List<Grid_Configuration__mdt> configs = Grid_Configuration__mdt.getAll().values();
-        for (Grid_Child__mdt link : Grid_Child__mdt.getAll().values()) {
+        for (Grid_Child_Table__mdt link : Grid_Child_Table__mdt.getAll().values()) {
             if (
                 !GridConfig.belongsTo(link.Child_Configuration__c, cfg) ||
                 GridConfig.belongsTo(link.Grid_Configuration__c, cfg)
@@ -1411,7 +1411,7 @@ public with sharing class GridAdmin {
         for (SObject r : inOrder(GridActions.recordsOf(cfg))) {
             out.add(setupItem(r, null));
         }
-        for (SObject r : inOrder(GridNesting.linksOf(cfg))) {
+        for (SObject r : inOrder(GridChildTables.linksOf(cfg))) {
             out.add(setupItem(r, null));
         }
         out.add(setupItem(cfg, 'The grid itself: delete it last.'));
@@ -1584,24 +1584,27 @@ public with sharing class GridAdmin {
         return out;
     }
 
-    private static List<Grid_Child__mdt> childRecords(Draft d) {
-        List<Grid_Child__mdt> out = new List<Grid_Child__mdt>();
+    private static List<Grid_Child_Table__mdt> childRecords(Draft d) {
+        List<Grid_Child_Table__mdt> out = new List<Grid_Child_Table__mdt>();
         List<String> names = childNames(d);
         for (Integer i = 0; i < d.children.size(); i++) {
             ChildDraft ch = d.children[i];
             Map<String, Object> m = new Map<String, Object>{ 'DeveloperName' => names[i], 'MasterLabel' => names[i] };
             Map<Schema.SObjectField, Object> values = childValues(ch, i);
             for (Schema.SObjectField f : values.keySet()) {
-                if (f != Grid_Child__mdt.Grid_Configuration__c && f != Grid_Child__mdt.Child_Configuration__c) {
+                if (
+                    f != Grid_Child_Table__mdt.Grid_Configuration__c &&
+                    f != Grid_Child_Table__mdt.Child_Configuration__c
+                ) {
                     m.put(GridDescribe.apiName(f), values.get(f));
                 }
             }
             // In memory a metadata relationship holds the record's Id; a deploy names it.
             m.put(
-                GridDescribe.apiName(Grid_Child__mdt.Child_Configuration__c),
+                GridDescribe.apiName(Grid_Child_Table__mdt.Child_Configuration__c),
                 Grid_Configuration__mdt.getInstance(ch.childConfig.trim()).Id
             );
-            out.add((Grid_Child__mdt) JSON.deserialize(JSON.serialize(m), Grid_Child__mdt.class));
+            out.add((Grid_Child_Table__mdt) JSON.deserialize(JSON.serialize(m), Grid_Child_Table__mdt.class));
         }
         return out;
     }
@@ -1662,7 +1665,7 @@ public with sharing class GridAdmin {
             Grid_Display_Rule__mdt.Style__c => trimmed(r.style),
             Grid_Display_Rule__mdt.Apply_To__c => trimmed(r.applyTo),
             Grid_Display_Rule__mdt.Sort_Order__c => sortOrder(index),
-            Grid_Display_Rule__mdt.Active__c => r.active != false,
+            Grid_Display_Rule__mdt.Inactive__c => r.inactive == true,
             Grid_Display_Rule__mdt.Value_To__c => trimmed(r.valueTo),
             Grid_Display_Rule__mdt.Compare_Field__c => trimmed(r.compareField),
             Grid_Display_Rule__mdt.Formula__c => trimmed(r.formula),
@@ -1714,13 +1717,13 @@ public with sharing class GridAdmin {
 
     private static Map<Schema.SObjectField, Object> childValues(ChildDraft ch, Integer index) {
         return new Map<Schema.SObjectField, Object>{
-            Grid_Child__mdt.Child_Configuration__c => trimmed(ch.childConfig),
-            Grid_Child__mdt.Relationship_Field__c => trimmed(ch.relationshipField),
-            Grid_Child__mdt.Tab_Label__c => trimmed(ch.tabLabel),
-            Grid_Child__mdt.Height_Px__c => toDecimal(ch.height),
-            Grid_Child__mdt.Sort_Order__c => sortOrder(index),
-            Grid_Child__mdt.Inactive__c => ch.inactive == true,
-            Grid_Child__mdt.Grid_Configuration__c => null
+            Grid_Child_Table__mdt.Child_Configuration__c => trimmed(ch.childConfig),
+            Grid_Child_Table__mdt.Relationship_Field__c => trimmed(ch.relationshipField),
+            Grid_Child_Table__mdt.Tab_Label__c => trimmed(ch.tabLabel),
+            Grid_Child_Table__mdt.Height_Px__c => toDecimal(ch.height),
+            Grid_Child_Table__mdt.Sort_Order__c => sortOrder(index),
+            Grid_Child_Table__mdt.Inactive__c => ch.inactive == true,
+            Grid_Child_Table__mdt.Grid_Configuration__c => null
         };
     }
 
@@ -1759,8 +1762,10 @@ public with sharing class GridAdmin {
         names = childNames(d);
         for (Integer i = 0; i < d.children.size(); i++) {
             Map<Schema.SObjectField, Object> values = childValues(d.children[i], i);
-            values.put(Grid_Child__mdt.Grid_Configuration__c, configName);
-            out.addMetadata(record(Grid_Child__mdt.SObjectType, names[i], childRecordLabel(d.children[i]), values));
+            values.put(Grid_Child_Table__mdt.Grid_Configuration__c, configName);
+            out.addMetadata(
+                record(Grid_Child_Table__mdt.SObjectType, names[i], childRecordLabel(d.children[i]), values)
+            );
         }
         names = filterNames(d);
         for (Integer i = 0; i < d.filters.size(); i++) {
@@ -1805,7 +1810,9 @@ public with sharing class GridAdmin {
     }
 
     private static String childRecordLabel(ChildDraft ch) {
-        Grid_Child__mdt existing = String.isBlank(ch.name) ? null : Grid_Child__mdt.getInstance(ch.name.trim());
+        Grid_Child_Table__mdt existing = String.isBlank(ch.name)
+            ? null
+            : Grid_Child_Table__mdt.getInstance(ch.name.trim());
         if (existing != null) {
             return existing.MasterLabel;
         }
@@ -1869,7 +1876,7 @@ public with sharing class GridAdmin {
             wanted.add(String.isNotBlank(ch.name) ? ch.name.trim() : null);
             hints.add(String.isNotBlank(ch.tabLabel) ? ch.tabLabel : ch.childConfig);
         }
-        return names(d.config.name, wanted, hints, Grid_Child__mdt.getAll().keySet());
+        return names(d.config.name, wanted, hints, Grid_Child_Table__mdt.getAll().keySet());
     }
 
     /**

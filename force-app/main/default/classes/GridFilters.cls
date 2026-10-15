@@ -269,13 +269,13 @@ public with sharing class GridFilters {
      * Field set to the page's record, as a child table sets its parent.
      * Null when there is none.
      */
-    public static GridNesting.Scope recordScope(GridConfig.Definition def, String recordId) {
+    public static GridChildTables.Scope recordScope(GridConfig.Definition def, String recordId) {
         Condition c = recordCondition(def, recordId);
         if (c == null) {
             return null;
         }
         Schema.SObjectField f = recordField(def);
-        GridNesting.Scope s = new GridNesting.Scope();
+        GridChildTables.Scope s = new GridChildTables.Scope();
         s.field = f;
         s.fieldApiName = GridDescribe.apiName(f);
         s.parentId = Id.valueOf(c.value);

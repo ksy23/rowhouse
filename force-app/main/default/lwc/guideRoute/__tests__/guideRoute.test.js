@@ -40,7 +40,7 @@ describe('guideRef', () => {
     it('carries a package namespace in the tab name and the keys', () => {
         expect(guideRef('rowhouse', 'using', 'keys')).toEqual({
             type: 'standard__navItemPage',
-            attributes: { apiName: 'rowhouse__Rowhouse_Guide' },
+            attributes: { apiName: 'rowhouse__Grid_Guide' },
             state: { rowhouse__page: 'using', rowhouse__section: 'keys' }
         });
     });
@@ -53,10 +53,10 @@ describe('guideRef', () => {
 describe('guideUrl', () => {
     it('is the address guideRef leads to', () => {
         expect(guideUrl('c', 'configure', 'column')).toBe(
-            '/lightning/n/Rowhouse_Guide?c__page=configure&c__section=column'
+            '/lightning/n/Grid_Guide?c__page=configure&c__section=column'
         );
-        expect(guideUrl('c', HOME_PAGE)).toBe('/lightning/n/Rowhouse_Guide');
-        expect(guideUrl('rowhouse', 'using')).toBe('/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=using');
+        expect(guideUrl('c', HOME_PAGE)).toBe('/lightning/n/Grid_Guide');
+        expect(guideUrl('rowhouse', 'using')).toBe('/lightning/n/rowhouse__Grid_Guide?rowhouse__page=using');
     });
 });
 
@@ -104,12 +104,12 @@ describe('openGuide', () => {
     it('opens the page in a new browser tab', async () => {
         const open = jest.spyOn(window, 'open').mockImplementation(() => null);
         const { NavigationMixin } = require('lightning/navigation'); // eslint-disable-line no-undef
-        mockGenerate.mockResolvedValue('/lightning/n/Rowhouse_Guide?c__page=using');
+        mockGenerate.mockResolvedValue('/lightning/n/Grid_Guide?c__page=using');
         const cmp = { [NavigationMixin.GenerateUrl]: mockGenerate };
         const url = await openGuide(cmp, 'c', 'using');
         expect(mockGenerate).toHaveBeenCalledWith(guideRef('c', 'using'));
-        expect(open).toHaveBeenCalledWith('/lightning/n/Rowhouse_Guide?c__page=using', '_blank');
-        expect(url).toBe('/lightning/n/Rowhouse_Guide?c__page=using');
+        expect(open).toHaveBeenCalledWith('/lightning/n/Grid_Guide?c__page=using', '_blank');
+        expect(url).toBe('/lightning/n/Grid_Guide?c__page=using');
         open.mockRestore();
     });
 });

@@ -59,7 +59,7 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Readonly</behavior>
-                <field>Values_Hidden__c</field>
+                <field>Values_Not_Recorded__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>

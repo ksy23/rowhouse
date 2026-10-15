@@ -191,7 +191,7 @@ private class GridOwnerServiceTest {
             ];
         }
         System.assertEquals(1, entries.size(), String.valueOf(entries));
-        System.assertEquals(GridAudit.OP_UPDATE, entries[0].Operation__c);
+        System.assertEquals(GridEditLog.OP_UPDATE, entries[0].Operation__c);
         System.assertEquals('OwnerId', entries[0].Field__c);
         System.assertEquals(String.valueOf(full.Id), entries[0].Old_Value__c);
         System.assertEquals(String.valueOf(peer.Id), entries[0].New_Value__c);
@@ -208,13 +208,13 @@ private class GridOwnerServiceTest {
         System.runAs(full) {
             rec = newRecord('Penobscot Paper, 5 pallets');
             Test.startTest();
-            GridAudit.failWriteForTest = true;
+            GridEditLog.failWriteForTest = true;
             try {
                 GridOwnerService.changeOwner('Consignment_Audit', new List<Id>{ rec.Id }, peer.Id);
             } catch (GridException e) {
                 message = e.getMessage();
             } finally {
-                GridAudit.failWriteForTest = false;
+                GridEditLog.failWriteForTest = false;
             }
             Test.stopTest();
         }

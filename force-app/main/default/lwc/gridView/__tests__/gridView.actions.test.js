@@ -53,7 +53,7 @@ jest.mock('lightning/navigation', () => {
 const NOTE = {
     name: 'Add_Note',
     label: 'Add a note',
-    type: 'screenflow',
+    type: 'screen_flow',
     onRow: true,
     onSelection: true,
     confirmation: null,
@@ -63,7 +63,7 @@ const NOTE = {
 const SEEN = {
     name: 'Mark_Delivered',
     label: 'Mark as delivered',
-    type: 'flow',
+    type: 'autolaunched_flow',
     onRow: true,
     onSelection: true,
     confirmation: null,
@@ -73,7 +73,7 @@ const SEEN = {
 const STAMP = {
     name: 'Rerate',
     label: 'Rerate',
-    type: 'flow',
+    type: 'autolaunched_flow',
     onRow: false,
     onSelection: true,
     confirmation: 'Rerate these consignments?',
@@ -83,7 +83,7 @@ const STAMP = {
 const CALL = {
     name: 'Log_Call',
     label: 'Log a call',
-    type: 'quickaction',
+    type: 'quick_action',
     onRow: true,
     onSelection: false,
     confirmation: null,

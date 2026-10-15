@@ -6,9 +6,9 @@
     <label>Mark as seen</label>
     <protected>false</protected>
     <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignment_Audit</value></values>
-    <values><field>Action_Type__c</field><value xsi:type="xsd:string">Flow</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">autolaunched_flow</value></values>
     <values><field>Action_Name__c</field><value xsi:type="xsd:string">Mark_Consignment_Reviewed</value></values>
-    <values><field>Show_In__c</field><value xsi:type="xsd:string">Both</value></values>
+    <values><field>Show_In__c</field><value xsi:type="xsd:string">row_menu_and_selection</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">10</value></values>
     <values><field>Required_Permission__c</field><value xsi:type="xsd:string">Run_Freight_Actions</value></values>
 </CustomMetadata>

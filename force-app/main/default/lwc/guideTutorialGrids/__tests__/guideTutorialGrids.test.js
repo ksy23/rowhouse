@@ -100,7 +100,7 @@ describe('the drafts', () => {
             value: 'Closed'
         });
         expect(queue.rules[0]).toMatchObject({ field: null, applyTo: 'row', style: 'fill_red' });
-        expect(queue.actions[0]).toMatchObject({ type: 'QuickAction', actionName: 'LogACall', showIn: 'Row' });
+        expect(queue.actions[0]).toMatchObject({ type: 'quick_action', actionName: 'LogACall', showIn: 'row_menu' });
         const [pipeline] = gridsFor('tutorial-pipeline');
         expect(pipeline.config).toMatchObject({ sortField: 'CloseDate', sortDirection: 'asc', frozenColumns: 1 });
         expect(pipeline.rules[1]).toMatchObject({ label: 'Big deal', operator: 'greater_or_equal', value: '250000' });

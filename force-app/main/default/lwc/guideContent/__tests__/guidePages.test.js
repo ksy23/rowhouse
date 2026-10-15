@@ -100,16 +100,16 @@ describe('links between pages', () => {
         const link = pageRoot().querySelector('a[data-page="configure"]');
         // The written address is the managed package's (the project's namespace);
         // a click navigates with the namespace the page runs in.
-        expect(link.getAttribute('href')).toMatch(/^\/lightning\/n\/rowhouse__Rowhouse_Guide\?rowhouse__page=configure/);
+        expect(link.getAttribute('href')).toMatch(/^\/lightning\/n\/rowhouse__Grid_Guide\?rowhouse__page=configure/);
         link.click();
-        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'configure' } });
+        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Grid_Guide' }, state: { c__page: 'configure' } });
     });
 
     it('open at a section when the link names one', async () => {
         await show('welcome');
         const link = pageRoot().querySelector('a[data-page="using"][data-section="keys"]');
         link.click();
-        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Rowhouse_Guide' }, state: { c__page: 'using', c__section: 'keys' } });
+        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__navItemPage', attributes: { apiName: 'Grid_Guide' }, state: { c__page: 'using', c__section: 'keys' } });
     });
 
     it('are left to the browser with Ctrl or Cmd, to open in a new tab', async () => {

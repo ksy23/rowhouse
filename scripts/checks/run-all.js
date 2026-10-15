@@ -210,10 +210,10 @@ files(SRC, p => /staticresources/.test(p) && /\.(js|zip|mjs)$/i.test(p)).forEach
 // Only these components are exposed, each with exactly these @api members.
 // Every @api member of an exposed component is permanent once released, so
 // the count is checked, not just the flag. gridApp takes configName, and
-// recordId, which Lightning sets on a record page. rowhouseAdmin, rowhouseGuide
+// recordId, which Lightning sets on a record page. gridAdmin, gridGuide
 // and rowhouseFlow are exposed only so they can be tabs or the page a
 // screen-flow action runs on (lightning__UrlAddressable), with no @api member.
-const EXPOSED = { gridApp: ['configName', 'recordId'], rowhouseAdmin: [], rowhouseFlow: [], rowhouseGuide: [] };
+const EXPOSED = { gridApp: ['configName', 'recordId'], gridAdmin: [], rowhouseFlow: [], gridGuide: [] };
 files(SRC, p => p.endsWith('.js-meta.xml')).forEach(f => {
     const xml = fs.readFileSync(f, 'utf8');
     const name = path.basename(f, '.js-meta.xml');

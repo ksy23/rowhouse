@@ -125,8 +125,8 @@ force-app/main/default/
     gridApp/          the component an admin places; hosts one gridView
     gridView/         one grid: loads, saves, exports; a child table is one too
     gridTable/        the table: rendering, keyboard, ARIA, windowing, cards
-    gridChildren/     an open row's tabs of child tables
-    gridNest/         child tables: panel rows, heights by level, row offsets
+    gridChildTabs/     an open row's tabs of child tables
+    gridChildTables/         child tables: panel rows, heights by level, row offsets
     gridKeyboard/     keyboard model as pure functions (no DOM)
     gridFormat/       display, rounding, comparison and link-safety rules
     gridCsv/          CSV export
@@ -135,14 +135,14 @@ force-app/main/default/
     gridHistory/      undo and redo of unsaved edits
     gridFields/       lookup names and links, picklist dependencies
     gridDisplayRules/  display rules: which cells a rule colors
-    gridMassUpdate/   the dialog that changes one field on the selected rows
+    gridUpdateField/   the dialog that changes one field on the selected rows
     gridImport/       CSV reading and the import plan: what each row will do
     gridXlsx/         our own .xlsx reader: unzip, inflate, worksheets
     gridImportDialog/ the import dialog: file, preview, batches, result
     gridActionDialog/ an action's dialog: asks before a server action runs
     gridFlowRoute/    hands a screen flow to its own page and back
     rowhouseFlow/     the page a screen-flow action runs on
-    rowhouseGuide/    the Grid Guide tab: the documentation
+    gridGuide/    the Grid Guide tab: the documentation
     guidePage*/       its pages, built from guide/pages; do not edit
     guideContent/     which page to show (built); guideCatalog/ the page list (built)
     guidePageBase/    what every page does: links, sections, copy buttons
@@ -150,7 +150,7 @@ force-app/main/default/
     guideStyles/      the guide's one stylesheet, in Salesforce's look
     gridGroups/       grouping: keys, group rows, subtotals added up
     gridTiming/       benchmark timings, only with diagnostics on
-    rowhouseAdmin/    the Grid Admin tab: every grid, and its editor
+    gridAdmin/    the Grid Admin tab: every grid, and its editor
     gridAdminRowDialog/ a grid's Clone, Archive, Restore and Delete in Setup
     gridConfigEditor/ a grid's settings: columns, rules, actions, child tables
     gridSettings/     the dialog a grid's gear opens
@@ -159,14 +159,14 @@ force-app/main/default/
   classes/            Apex: GridSecurity, GridDescribe, GridDataService,
                       GridConfig, GridSaveService, GridDeleteService,
                       GridImportService, GridGroupService, GridLookup,
-                      GridNesting, GridActions, GridActionService,
-                      GridAudit, GridController, GridAdmin,
+                      GridChildTables, GridActions, GridActionService,
+                      GridEditLog, GridController, GridAdmin,
                       GridAdminController, ...
   objects/            configuration metadata types, the save-results object
                       and the audit log (Grid Edit Log)
   layouts/            their record pages in Setup, every field shown
   permissionsets/     Rowhouse Grid User, Diagnostics and Admin
-  customPermissions/  Rowhouse_Diagnostics, Rowhouse_Admin
+  customPermissions/  Rowhouse_Grid_Diagnostics, Rowhouse_Grid_Admin
   staticresources/    the Rowhouse by Kugamon logo and mark; a tutorial's attendees file
   contentassets/      the Rowhouse app's logo
   applications/       the Rowhouse app: Grid Guide, Grid Admin, Grid Edit Logs

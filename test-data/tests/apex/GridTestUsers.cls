@@ -17,17 +17,17 @@
  *   readOnlyUser() — reads the test records but may not edit, create or delete
  *                   them (Freight_Read_Only); reads the test children but
  *                   not their Amount.
- *   diagnosticsUser() — fullUser() plus Rowhouse_Diagnostics, for the action
+ *   diagnosticsUser() — fullUser() plus Rowhouse_Grid_Diagnostics, for the action
  *                   that requires that custom permission.
- *   noLogUser()   — fullUser()'s test-field access WITHOUT Rowhouse_User, so
+ *   noLogUser()   — fullUser()'s test-field access WITHOUT Rowhouse_Grid_User, so
  *                   it cannot write the audit log.
- *   adminUser()   — a System Administrator with Rowhouse_Admin: builds and
+ *   adminUser()   — a System Administrator with Rowhouse_Grid_Admin: builds and
  *                   saves grid configurations.
- *   adminViewer() — Rowhouse_Admin on a Standard User, without Customize
+ *   adminViewer() — Rowhouse_Grid_Admin on a Standard User, without Customize
  *                   Application: may open the Grid Admin tab, may not save.
- *   limitedAdmin() — Rowhouse_Admin with limitedUser()'s field access, for
+ *   limitedAdmin() — Rowhouse_Grid_Admin with limitedUser()'s field access, for
  *                   what an admin who cannot read a field is told.
- * All but noLogUser() hold Rowhouse_User, the product's own permission set.
+ * All but noLogUser() hold Rowhouse_Grid_User, the product's own permission set.
  * A class that builds its users in @TestSetup finds them again with built(),
  * by the alias each one is built with (LIMITED, FULL, PEER and so on).
  *
@@ -76,33 +76,33 @@ public class GridTestUsers {
     }
 
     public static User limitedUser() {
-        return userWith(LIMITED, 'Silas Thibodeau', new List<String>{ 'Freight_Limited_Access', 'Rowhouse_User' });
+        return userWith(LIMITED, 'Silas Thibodeau', new List<String>{ 'Freight_Limited_Access', 'Rowhouse_Grid_User' });
     }
 
     public static User fullUser() {
-        return userWith(FULL, 'Abigail Coffin', new List<String>{ 'Freight_Full_Access', 'Rowhouse_User' });
+        return userWith(FULL, 'Abigail Coffin', new List<String>{ 'Freight_Full_Access', 'Rowhouse_Grid_User' });
     }
 
     /** A second user with fullUser()'s access, for what one user must not see of another's. */
     public static User peerUser() {
-        return userWith(PEER, 'Nora Pelletier', new List<String>{ 'Freight_Full_Access', 'Rowhouse_User' });
+        return userWith(PEER, 'Nora Pelletier', new List<String>{ 'Freight_Full_Access', 'Rowhouse_Grid_User' });
     }
 
     /** Reads the test records, never edits, creates or deletes them; reads the children but not their Amount. */
     public static User readOnlyUser() {
-        return userWith(READ_ONLY, 'Caleb Lambert', new List<String>{ 'Freight_Read_Only', 'Rowhouse_User' });
+        return userWith(READ_ONLY, 'Caleb Lambert', new List<String>{ 'Freight_Read_Only', 'Rowhouse_Grid_User' });
     }
 
-    /** fullUser() with the Rowhouse_Diagnostics custom permission, which one fixture action requires. */
+    /** fullUser() with the Rowhouse_Grid_Diagnostics custom permission, which one fixture action requires. */
     public static User diagnosticsUser() {
         return userWith(
             DIAGNOSTICS,
             'Ruth Ouellette',
-            new List<String>{ 'Freight_Full_Access', 'Rowhouse_User', 'Rowhouse_Diagnostics' }
+            new List<String>{ 'Freight_Full_Access', 'Rowhouse_Grid_User', 'Rowhouse_Grid_Diagnostics' }
         );
     }
 
-    /** Every test field, but not Rowhouse_User: no access to the audit log. */
+    /** Every test field, but not Rowhouse_Grid_User: no access to the audit log. */
     public static User noLogUser() {
         return userWith(NO_LOG, 'Ezra Gagnon', new List<String>{ 'Freight_Full_Access' });
     }
@@ -116,7 +116,7 @@ public class GridTestUsers {
         return userWith(
             ADMIN,
             'Harriet Hathaway',
-            new List<String>{ 'Freight_Full_Access', 'Rowhouse_User', 'Rowhouse_Admin' },
+            new List<String>{ 'Freight_Full_Access', 'Rowhouse_Grid_User', 'Rowhouse_Grid_Admin' },
             'System Administrator'
         );
     }
@@ -126,7 +126,7 @@ public class GridTestUsers {
         return userWith(
             'rhladm',
             'Mercy Thibault',
-            new List<String>{ 'Freight_Limited_Access', 'Rowhouse_User', 'Rowhouse_Admin' }
+            new List<String>{ 'Freight_Limited_Access', 'Rowhouse_Grid_User', 'Rowhouse_Grid_Admin' }
         );
     }
 
@@ -135,7 +135,7 @@ public class GridTestUsers {
         return userWith(
             ADMIN_VIEWER,
             'Josiah Pratt',
-            new List<String>{ 'Freight_Full_Access', 'Rowhouse_User', 'Rowhouse_Admin' }
+            new List<String>{ 'Freight_Full_Access', 'Rowhouse_Grid_User', 'Rowhouse_Grid_Admin' }
         );
     }
 

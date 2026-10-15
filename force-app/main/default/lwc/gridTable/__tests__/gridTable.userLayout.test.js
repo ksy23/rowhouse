@@ -7,9 +7,9 @@
  * config.userLayout is not config.layout: that older property chooses between
  * the table and cards ('auto' | 'table' | 'cards').
  *
- * The open rows' panels hold real c/gridChildren and c/gridView components
+ * The open rows' panels hold real c/gridChildTabs and c/gridView components
  * whose configuration never arrives (getGridConfig stays pending), as in
- * gridTable.nesting.test.js.
+ * gridTable.childTables.test.js.
  */
 import { createElement } from 'lwc';
 import GridTable from 'c/gridTable';

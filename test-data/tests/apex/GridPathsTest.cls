@@ -120,7 +120,7 @@ private class GridPathsTest {
                 )
             },
             new List<Grid_Display_Rule__mdt>(),
-            new List<Grid_Child__mdt>(),
+            new List<Grid_Child_Table__mdt>(),
             new List<Grid_Action__mdt>()
         );
         System.assertEquals(1, def.columns.size());

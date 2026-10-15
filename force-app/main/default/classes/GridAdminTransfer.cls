@@ -312,7 +312,7 @@ public with sharing class GridAdminTransfer {
         public Set<String> rules = lower(Grid_Display_Rule__mdt.getAll().keySet());
         public Set<String> filters = lower(Grid_Filter__mdt.getAll().keySet());
         public Set<String> actions = lower(Grid_Action__mdt.getAll().keySet());
-        public Set<String> children = lower(Grid_Child__mdt.getAll().keySet());
+        public Set<String> children = lower(Grid_Child_Table__mdt.getAll().keySet());
     }
 
     /** Make one grid's draft ready to save as a new grid, then check it. */

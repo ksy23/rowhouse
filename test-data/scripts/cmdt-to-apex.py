@@ -7,7 +7,7 @@ This prints anonymous Apex that deploys the
 given .md-meta.xml files with Metadata.Operations.enqueueDeployment. A deploy
 replaces each record whole, so every value in the file is sent.
 
-    python3 test-data/scripts/cmdt-to-apex.py test-data/config/Grid_Child.*.md-meta.xml
+    python3 test-data/scripts/cmdt-to-apex.py test-data/config/Grid_Child_Table.*.md-meta.xml
 
 Paste the output into anonymous Apex; it prints
 the deployment job Id. Then check that the records exist with SOQL.
@@ -43,7 +43,7 @@ def apex_value(el):
 
 
 def record(path):
-    # Grid_Child.Consignments_Items.md-meta.xml -> Grid_Child, Consignments_Items
+    # Grid_Child_Table.Consignments_Items.md-meta.xml -> Grid_Child, Consignments_Items
     type_name, dev_name = Path(path).name[:-len('.md-meta.xml')].split('.', 1)
     root = ET.parse(path).getroot()
     label = root.find('md:label', NS).text

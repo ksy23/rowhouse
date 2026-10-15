@@ -23,7 +23,7 @@
  *  - gives every element with an id a data-anchor, which c/guidePageBase
  *    scrolls to (Lightning rewrites ids, so they cannot be looked up);
  *  - turns links between pages (start.html#access) into Grid Guide
- *    addresses, /lightning/n/Rowhouse_Guide?c__page=start&c__section=access,
+ *    addresses, /lightning/n/Grid_Guide?c__page=start&c__section=access,
  *    and a link within the page (#access) into a scroll;
  *  - points links to guide/files at their static resource;
  *  - adds pathLength="1" to drawn paths (class "draw"), so CSS draws them in
@@ -42,7 +42,7 @@ const META = path.join(ROOT, 'force-app', 'main', 'default');
 const API = JSON.parse(fs.readFileSync(path.join(ROOT, 'sfdx-project.json'), 'utf8')).sourceApiVersion;
 const NAMESPACE = JSON.parse(fs.readFileSync(path.join(ROOT, 'sfdx-project.json'), 'utf8')).namespace || '';
 const NS = NAMESPACE || 'c';
-const TAB = (NAMESPACE ? NAMESPACE + '__' : '') + 'Rowhouse_Guide';
+const TAB = (NAMESPACE ? NAMESPACE + '__' : '') + 'Grid_Guide';
 
 /** The order of the pages in the guide's navigation and catalog. */
 const ORDER = [
@@ -134,7 +134,7 @@ const LABEL_ROWS = {
         'Grid Display Rule Name',
         'Unique across all Grid Display Rule records.'
     ],
-    Grid_Child__mdt: [
+    Grid_Child_Table__mdt: [
         "Names the record in Setup. The tab shows Tab Label, or the child configuration's label.",
         'Grid Child Table Name',
         'Unique across all Grid Child Table records.'
@@ -199,7 +199,7 @@ function fieldRows(obj) {
         let tdesc;
         if (type === 'Checkbox') {
             tdesc = 'Checkbox';
-            def = def === 'true' ? 'Ticked' : 'Not ticked';
+            def = def === 'true' ? 'Selected' : 'Not selected';
         } else if (type === 'Picklist') {
             tdesc = 'Picklist';
             const d = values.filter(v => text(v.default) === 'true');

@@ -62,13 +62,13 @@ public with sharing class GridOwnerService {
             r.put('OwnerId', ownerId);
             records.add(r);
         }
-        GridAudit.Context audit = GridAudit.start(def); // null unless the grid logs; throws if the user cannot
-        Map<Id, SObject> before = audit == null ? null : GridAudit.before(objectType, records);
+        GridEditLog.Context audit = GridEditLog.start(def); // null unless the grid logs; throws if the user cannot
+        Map<Id, SObject> before = audit == null ? null : GridEditLog.before(objectType, records);
         Savepoint beforeUpdate = audit == null ? null : Database.setSavepoint();
         List<Database.SaveResult> outcomes = GridSecurity.updateRecords(records);
         if (audit != null) {
             try {
-                GridAudit.write(GridAudit.updates(audit, objectType, records, outcomes, before));
+                GridEditLog.write(GridEditLog.updates(audit, objectType, records, outcomes, before));
             } catch (GridException e) {
                 Database.rollback(beforeUpdate); // no owner stays changed without its entry
                 throw e;

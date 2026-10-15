@@ -18,7 +18,7 @@
  * an operator that means nothing for the field's type, a value that is not a
  * number or a date) is skipped with a warning rather than breaking the grid for
  * everyone, and the warning is shown only to users with the
- * Rowhouse_Diagnostics permission. forUser() drops a rule on a field the user
+ * Rowhouse_Grid_Diagnostics permission. forUser() drops a rule on a field the user
  * cannot read, silently: a colored row would otherwise reveal the value.
  *
  * GROUPING AND SUBTOTALS
@@ -29,7 +29,7 @@
  *
  * CHILD TABLES
  * Grid Child Table records list the tabs of related records under each row;
- * GridNesting checks them, and forUser() drops a tab the user cannot read.
+ * GridChildTables checks them, and forUser() drops a tab the user cannot read.
  *
  * ACTIONS
  * Grid Action records list what users can run on a row or on the selection;
@@ -46,7 +46,7 @@
  * A Grid Column with a Child Table is a child total column: on each row, a
  * sum, average, lowest, highest or count of that child table's records for
  * the row, worked out on the server with the child grid's own filters
- * (GridNesting). One that cannot be built is skipped with a warning;
+ * (GridChildTables). One that cannot be built is skipped with a warning;
  * forUser() drops one whose records or fields the user cannot read.
  *
  * FORMULAS
@@ -120,10 +120,10 @@ public with sharing class GridConfig {
         'fill_amber',
         'fill_red',
         'fill_purple',
-        'fill_grey',
+        'fill_gray',
         'text_red',
         'text_green',
-        'text_grey',
+        'text_gray',
         'bold',
         'icon_warning',
         'icon_error',
@@ -333,7 +333,7 @@ public with sharing class GridConfig {
         @AuraEnabled
         public String totalCurrency;
         /** What a child total column totals. Never sent. */
-        public GridNesting.ChildTotal childTotal;
+        public GridChildTables.ChildTotal childTotal;
         /**
          * What the admin allowed, before any display limitation. This — not
          * `editable` — is the server's HR-6 allow-list: the grid may choose not
@@ -388,7 +388,7 @@ public with sharing class GridConfig {
     /**
      * One tab of related records under each row: the Grid Child Table
      * `name` the browser hands back to ask for its rows, the tab's `label`, and
-     * the child grid's configuration. See GridNesting.
+     * the child grid's configuration. See GridChildTables.
      */
     public class Child {
         @AuraEnabled
@@ -420,7 +420,7 @@ public with sharing class GridConfig {
         public String name;
         @AuraEnabled
         public String label;
-        /** screenflow, flow or quickaction. */
+        /** screen_flow, autolaunched_flow or quick_action: the Action Type value. */
         @AuraEnabled
         public String type;
         /** Offered in each row's menu. */
@@ -690,7 +690,7 @@ public with sharing class GridConfig {
             cfg,
             columnsOf(cfg),
             rulesOf(cfg),
-            GridNesting.linksOf(cfg),
+            GridChildTables.linksOf(cfg),
             GridActions.recordsOf(cfg),
             GridFilters.recordsOf(cfg)
         );
@@ -832,7 +832,7 @@ public with sharing class GridConfig {
         Grid_Configuration__mdt cfg,
         List<Grid_Column__mdt> allColumns,
         List<Grid_Display_Rule__mdt> allRules,
-        List<Grid_Child__mdt> links,
+        List<Grid_Child_Table__mdt> links,
         List<Grid_Action__mdt> actionRecords
     ) {
         return build(cfg, allColumns, allRules, links, actionRecords, new List<Grid_Filter__mdt>());
@@ -843,7 +843,7 @@ public with sharing class GridConfig {
         Grid_Configuration__mdt cfg,
         List<Grid_Column__mdt> allColumns,
         List<Grid_Display_Rule__mdt> allRules,
-        List<Grid_Child__mdt> links,
+        List<Grid_Child_Table__mdt> links,
         List<Grid_Action__mdt> actionRecords,
         List<Grid_Filter__mdt> filterRecords
     ) {
@@ -912,12 +912,12 @@ public with sharing class GridConfig {
         Integer childTotals = 0;
         for (Grid_Column__mdt c : columns) {
             if (String.isNotBlank(c.Child_Table__c)) {
-                if (childTotals >= GridNesting.MAX_CHILD_TOTALS) {
+                if (childTotals >= GridChildTables.MAX_CHILD_TOTALS) {
                     def.warnings.add(
                         'Grid Column ' +
                             c.DeveloperName +
                             ' was skipped: a grid has at most ' +
-                            GridNesting.MAX_CHILD_TOTALS +
+                            GridChildTables.MAX_CHILD_TOTALS +
                             ' child total columns.'
                     );
                     continue;
@@ -993,7 +993,7 @@ public with sharing class GridConfig {
             col.sortable = c.Sortable__c != false && d.isSortable() && !col.encrypted;
             if (col.encrypted) {
                 // In a grid that logs, the log keeps no copy of an encrypted
-                // value (GridAudit), so the admin is told when they set it up.
+                // value (GridEditLog), so the admin is told when they set it up.
                 def.warnings.add(
                     'Grid Column ' +
                         c.DeveloperName +
@@ -1098,7 +1098,7 @@ public with sharing class GridConfig {
         }
         loadGrouping(def, groupDefaults);
         loadDisplayRules(def, allRules, objectType, GridFormulas.MAX_FORMULAS - formulas);
-        def.children = GridNesting.childrenFrom(links, objectType, def.warnings);
+        def.children = GridChildTables.childrenFrom(links, objectType, def.warnings);
         def.actions = GridActions.actionsFrom(actionRecords, objectType, def.warnings);
         return def;
     }
@@ -1169,7 +1169,7 @@ public with sharing class GridConfig {
         }
     }
 
-    /** Active display rules in Sort Order; a rule that does not make sense is skipped with a warning. */
+    /** The display rules that are on, in Sort Order; a rule that does not make sense is skipped with a warning. */
     private static void loadDisplayRules(
         Definition def,
         List<Grid_Display_Rule__mdt> allRules,
@@ -1178,7 +1178,7 @@ public with sharing class GridConfig {
     ) {
         List<Grid_Display_Rule__mdt> rules = new List<Grid_Display_Rule__mdt>();
         for (Grid_Display_Rule__mdt r : allRules) {
-            if (r.Active__c != false) {
+            if (r.Inactive__c != true) {
                 rules.add(r);
             }
         }
@@ -1244,9 +1244,9 @@ public with sharing class GridConfig {
     public static Column childTotalColumn(
         Grid_Column__mdt c,
         Schema.SObjectType objectType,
-        List<Grid_Child__mdt> links
+        List<Grid_Child_Table__mdt> links
     ) {
-        GridNesting.ChildTotal total = GridNesting.childTotalOf(
+        GridChildTables.ChildTotal total = GridChildTables.childTotalOf(
             c.Child_Table__c,
             c.Child_Total__c,
             c.Child_Field__c,
@@ -1254,7 +1254,7 @@ public with sharing class GridConfig {
             links
         );
         Column col = new Column();
-        col.field = GridNesting.TOTAL_PREFIX + c.DeveloperName;
+        col.field = GridChildTables.TOTAL_PREFIX + c.DeveloperName;
         col.label = String.isNotBlank(c.Column_Label__c) ? c.Column_Label__c.trim() : total.defaultLabel;
         col.type = total.type;
         col.scale = total.scale;
@@ -1708,7 +1708,7 @@ public with sharing class GridConfig {
             if (c.isChildTotal == true) {
                 // A child total shows what the child records add up to, so it needs
                 // them, their link to the row and the field totalled readable.
-                if (GridNesting.canTotal(c.childTotal)) {
+                if (GridChildTables.canTotal(c.childTotal)) {
                     visible.add(c);
                 }
                 continue;
@@ -1796,7 +1796,7 @@ public with sharing class GridConfig {
         // as for a column.
         List<Child> children = new List<Child>();
         for (Child c : def.children) {
-            if (GridNesting.canOpen(c)) {
+            if (GridChildTables.canOpen(c)) {
                 children.add(c);
             }
         }

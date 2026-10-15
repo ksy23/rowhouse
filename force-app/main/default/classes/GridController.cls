@@ -4,7 +4,7 @@
  * public, not global (HR-1): Salesforce's documented recommendation for a
  * package's own controllers. The cost, stated in the install guide: a
  * subscriber can grant access to a public controller only through a permission
- * set (Rowhouse_User), never through a profile.
+ * set (Rowhouse_Grid_User), never through a profile.
  *
  * Every method takes a configuration NAME, never a list of fields or an object:
  * the server decides what is read and written from deployable configuration, and
@@ -49,7 +49,7 @@ public with sharing class GridController {
      * "Field__c:month"); rows then come in group order.
      *
      * A child grid passes its tab (parentLink, a Grid Child Table name)
-     * and its parent record; GridNesting checks both and the rows are only the
+     * and its parent record; GridChildTables checks both and the rows are only the
      * parent's. A top-level grid passes neither.
      *
      * filters are the user's column filters, [{ field, operator, value,
@@ -193,7 +193,7 @@ public with sharing class GridController {
             cursorLocator,
             pageSize == null ? def.pageSize : pageSize
         );
-        GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
+        GridChildTables.Scope scope = GridChildTables.scopeFor(def, parentLink, parentId);
         request.underParent(scope);
         request.narrowedBy(GridFilters.forRequest(def, filters, recordId, scope != null));
         request.reading(def.formulaPaths());
@@ -254,7 +254,7 @@ public with sharing class GridController {
     public static Map<String, Object> screenFlow(String configName, String actionName) {
         try {
             for (GridConfig.Action a : GridConfig.forUser(configName).actions) {
-                if (a.name == actionName && a.type == 'screenflow') {
+                if (a.name == actionName && a.type == 'screen_flow') {
                     return new Map<String, Object>{
                         'name' => a.name,
                         'label' => a.label,
@@ -453,7 +453,7 @@ public with sharing class GridController {
         try {
             GridConfig.Definition def = GridConfig.forUser(configName);
             GridRequest request = new GridRequest(def.objectApiName, def.fieldNames(), null, null);
-            GridNesting.Scope scope = GridNesting.scopeFor(def, parentLink, parentId);
+            GridChildTables.Scope scope = GridChildTables.scopeFor(def, parentLink, parentId);
             request.underParent(scope);
             request.narrowedBy(GridFilters.forRequest(def, filters, recordId, scope != null));
             request.withSearch(searchTerm);
@@ -595,7 +595,7 @@ public with sharing class GridController {
     @AuraEnabled
     public static Map<String, Object> countChildren(String configName, List<String> parentIds) {
         try {
-            return GridNesting.countChildren(GridConfig.forUser(configName), parentIds);
+            return GridChildTables.countChildren(GridConfig.forUser(configName), parentIds);
         } catch (Exception e) {
             throw auraError(e);
         }
@@ -678,7 +678,7 @@ public with sharing class GridController {
             addFormulas(page.rows, out, def);
         }
         if (def.hasChildTotals()) {
-            GridNesting.addChildTotals(out, def);
+            GridChildTables.addChildTotals(out, def);
         }
         return out;
     }

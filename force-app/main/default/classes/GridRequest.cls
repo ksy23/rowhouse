@@ -22,7 +22,7 @@ public with sharing class GridRequest {
     public List<String> groupFields = new List<String>();
     /**
      * A child grid's parent: only records whose field points to the
-     * parent. Both come from GridNesting.scopeFor, never from the browser.
+     * parent. Both come from GridChildTables.scopeFor, never from the browser.
      */
     public String parentField;
     public Id parentId;
@@ -84,7 +84,7 @@ public with sharing class GridRequest {
     }
 
     /** Only the records under one parent; null leaves the request as it is. */
-    public GridRequest underParent(GridNesting.Scope scope) {
+    public GridRequest underParent(GridChildTables.Scope scope) {
         if (scope != null) {
             this.parentField = scope.fieldApiName;
             this.parentId = scope.parentId;

@@ -29,8 +29,8 @@
  * run in the browser.
  */
 public with sharing class GridActions {
-    /** The Action Type picklist's values, lower-cased, as the grid names them. */
-    public static final Set<String> TYPES = new Set<String>{ 'screenflow', 'flow', 'quickaction' };
+    /** The Action Type picklist's values, as the grid names them. */
+    public static final Set<String> TYPES = new Set<String>{ 'screen_flow', 'autolaunched_flow', 'quick_action' };
 
     /** Why an autolaunched flow without a Required Permission is not offered. */
     public static final String PERMISSION_NEEDED =
@@ -41,7 +41,7 @@ public with sharing class GridActions {
     public static final String NO_APEX = 'Rowhouse does not run Apex on its own: call the Apex from an autolaunched flow and choose the flow here.';
 
     /** Why a quick action is not offered on the selection. */
-    public static final String QUICK_ACTION_ON_ROW = 'a quick action opens in Salesforce\'s own window, for one row at a time: set Show In to Row.';
+    public static final String QUICK_ACTION_ON_ROW = 'a quick action opens in Salesforce\'s own window, for one row at a time: set Show In to Row menu.';
 
     /** A flow's or class's API name, with an optional namespace: Name, ns__Name. */
     private static final Pattern API_NAME = Pattern.compile('^[A-Za-z][A-Za-z0-9_]{0,254}$');
@@ -127,7 +127,7 @@ public with sharing class GridActions {
         if (a.actionName == null) {
             throw new GridException('it has no Action Name.');
         }
-        if (a.type == 'quickaction') {
+        if (a.type == 'quick_action') {
             requireQuickAction(a.actionName, objectType);
         } else if (!API_NAME.matcher(a.actionName).matches()) {
             throw new GridException('"' + a.actionName + '" is not an API name.');
@@ -136,29 +136,29 @@ public with sharing class GridActions {
         if (input != null && !API_NAME.matcher(input).matches()) {
             throw new GridException('Input Name "' + input + '" is not an API name.');
         }
-        String showIn = String.isBlank(r.Show_In__c) ? 'both' : r.Show_In__c.trim().toLowerCase();
-        if (showIn != 'both' && showIn != 'row' && showIn != 'selection') {
+        String showIn = String.isBlank(r.Show_In__c) ? 'row_menu_and_selection' : r.Show_In__c.trim().toLowerCase();
+        if (showIn != 'row_menu_and_selection' && showIn != 'row_menu' && showIn != 'selection') {
             throw new GridException('unknown Show In "' + r.Show_In__c + '".');
         }
-        if (a.type == 'quickaction' && showIn == 'selection') {
+        if (a.type == 'quick_action' && showIn == 'selection') {
             throw new GridException(QUICK_ACTION_ON_ROW);
         }
         a.onRow = showIn != 'selection';
-        a.onSelection = showIn != 'row' && a.type != 'quickaction'; // a quick action: the row's menu only
+        a.onSelection = showIn != 'row_menu' && a.type != 'quick_action'; // a quick action: the row's menu only
         a.confirmation = String.isBlank(r.Confirmation__c) ? null : r.Confirmation__c.trim();
         String permission = String.isBlank(r.Required_Permission__c) ? null : r.Required_Permission__c.trim();
         if (permission != null && !API_NAME.matcher(permission).matches()) {
             throw new GridException('Required Permission "' + permission + '" is not an API name.');
         }
         a.requiredPermission = permission;
-        if (permission == null && a.type == 'flow') {
+        if (permission == null && a.type == 'autolaunched_flow') {
             throw new GridException(PERMISSION_NEEDED);
         }
-        if (a.type == 'screenflow') {
+        if (a.type == 'screen_flow') {
             // The browser runs a screen flow (lightning-flow), so it needs both.
             a.flowName = a.actionName;
             a.inputName = input == null ? 'recordId' : input;
-        } else if (a.type == 'quickaction') {
+        } else if (a.type == 'quick_action') {
             // The browser opens Salesforce's window for it: Global.Name for a global action.
             a.quickActionName = a.actionName.contains('.') ? a.actionName : 'Global.' + a.actionName;
         } else {

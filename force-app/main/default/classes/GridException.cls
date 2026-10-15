@@ -13,7 +13,7 @@
  */
 public with sharing class GridException extends Exception {
     /** The custom permission that shows troubleshooting detail: the Rowhouse Grid Diagnostics permission set's. */
-    public static final String DIAGNOSTICS = 'Rowhouse_Diagnostics';
+    public static final String DIAGNOSTICS = 'Rowhouse_Grid_Diagnostics';
 
     /** What a user is told when something fails that Rowhouse did not expect. */
     public static final String UNEXPECTED = 'Something went wrong. Try again, and if it keeps happening, ask your Salesforce admin.';

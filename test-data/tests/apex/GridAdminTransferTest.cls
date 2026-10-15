@@ -46,7 +46,7 @@ private class GridAdminTransferTest {
         for (String n : Grid_Action__mdt.getAll().keySet()) {
             out.add(n.toLowerCase());
         }
-        for (String n : Grid_Child__mdt.getAll().keySet()) {
+        for (String n : Grid_Child_Table__mdt.getAll().keySet()) {
             out.add(n.toLowerCase());
         }
         return out;

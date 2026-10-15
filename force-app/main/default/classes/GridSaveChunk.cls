@@ -21,7 +21,7 @@ public with sharing class GridSaveChunk implements Queueable {
     private final Integer chunkCount;
     private final List<SObject> records;
     /** Null unless the grid logs its changes. */
-    private final GridAudit.Context audit;
+    private final GridEditLog.Context audit;
     /** For parent records: holder Id to the row cells it saves, [[rowId, path], ...]; null for the grid's own records. */
     private final Map<Id, List<List<String>>> reportAs;
 
@@ -34,7 +34,7 @@ public with sharing class GridSaveChunk implements Queueable {
         Integer chunkIndex,
         Integer chunkCount,
         List<SObject> records,
-        GridAudit.Context audit
+        GridEditLog.Context audit
     ) {
         this(saveId, chunkIndex, chunkCount, records, audit, null);
     }
@@ -45,7 +45,7 @@ public with sharing class GridSaveChunk implements Queueable {
         Integer chunkIndex,
         Integer chunkCount,
         List<SObject> records,
-        GridAudit.Context audit,
+        GridEditLog.Context audit,
         Map<Id, List<List<String>>> reportAs
     ) {
         this.saveId = saveId;
@@ -73,7 +73,7 @@ public with sharing class GridSaveChunk implements Queueable {
         System.attachFinalizer(new GridSaveFinalizer(saveId, chunkIndex, chunkCount, ids));
 
         Schema.SObjectType objectType = records.isEmpty() ? null : records[0].getSObjectType();
-        Map<Id, SObject> before = audit == null || objectType == null ? null : GridAudit.before(objectType, records);
+        Map<Id, SObject> before = audit == null || objectType == null ? null : GridEditLog.before(objectType, records);
         Boolean logs = audit != null && objectType != null;
         // In a grid that logs, the update and its log entries stand or fall
         // together: a log that cannot be written undoes the update here, rather
@@ -82,7 +82,7 @@ public with sharing class GridSaveChunk implements Queueable {
         List<Database.SaveResult> results = GridSecurity.updateRecords(records); // one DML statement
         if (logs) {
             try {
-                GridAudit.write(GridAudit.updates(audit, objectType, records, results, before));
+                GridEditLog.write(GridEditLog.updates(audit, objectType, records, results, before));
             } catch (GridException e) {
                 Database.rollback(beforeUpdate);
                 throw e;

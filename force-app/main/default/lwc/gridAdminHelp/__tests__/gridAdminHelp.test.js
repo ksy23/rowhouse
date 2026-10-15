@@ -59,7 +59,7 @@ it.each(Object.keys(TITLES))('shows the %s tab its record, and links its part of
     expect($(el, '.rh-help-title').textContent).toBe(TITLES[tab]);
     expect($(el, '.rh-help-list')).not.toBeNull();
     expect($(el, '.rh-help-open').getAttribute('href')).toBe(
-        `/lightning/n/Rowhouse_Guide?c__page=configure&c__section=${SECTIONS[tab]}`
+        `/lightning/n/Grid_Guide?c__page=configure&c__section=${SECTIONS[tab]}`
     );
 });
 
@@ -80,7 +80,7 @@ it('opens the reference in a new browser tab', async () => {
     await settle();
     expect(mockGenerateUrl).toHaveBeenCalledWith({
         type: 'standard__navItemPage',
-        attributes: { apiName: 'Rowhouse_Guide' },
+        attributes: { apiName: 'Grid_Guide' },
         state: { c__page: 'configure', c__section: 'filter' }
     });
     expect(open).toHaveBeenCalledWith('/generated?{"c__page":"configure","c__section":"filter"}', '_blank');

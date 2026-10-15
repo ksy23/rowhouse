@@ -3,7 +3,7 @@
     <div class="rh-page" onclick={handleClick}>
         <header class="rh-phead rh-hero rh-alive" id="main" data-anchor="main">
           <div class="rh-phead-in">
-            <div class="rh-crumbs"><a href="/lightning/n/rowhouse__Rowhouse_Guide" data-page="welcome">Grid Guide</a> / Admin guide</div>
+            <div class="rh-crumbs"><a href="/lightning/n/rowhouse__Grid_Guide" data-page="welcome">Grid Guide</a> / Admin guide</div>
             <span class="rh-aud rh-admin">Admin</span>
             <h1 style="margin-top:14px">Features in depth</h1>
             <p class="rh-dek">How each feature behaves, what it needs switched on, and what it will and will not do, so you can decide what to offer each team.</p>
@@ -128,7 +128,7 @@
             <ul class="rh-tick">
               <li><b>Order matters.</b> For the fill, the text color, bold, the icon and the data bar separately, the rule with the lowest Sort Order wins on a cell.</li>
               <li><b>TODAY is worked out when the grid opens</b>, in the user's time zone, and again on <b>Refresh</b>: a grid left open past midnight needs a Refresh.</li>
-              <li><b>More than a value:</b> Between two values; one field against another of the same record (Amount greater than Budget); or a formula, true or false. An icon goes before the value, a data bar behind a number. See the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure&amp;rowhouse__section=rule" data-page="configure" data-section="rule">configuration reference</a>.</li>
+              <li><b>More than a value:</b> Between two values; one field against another of the same record (Amount greater than Budget); or a formula, true or false. An icon goes before the value, a data bar behind a number. See the <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure&amp;rowhouse__section=rule" data-page="configure" data-section="rule">configuration reference</a>.</li>
             </ul>
           </div>
         </section>
@@ -142,7 +142,7 @@
             <li><b>Read only.</b> A formula column cannot be edited, sorted, grouped, filtered, searched or subtotaled. It is exported with the other columns.</li>
             <li><b>Up to 10 formulas a grid</b>, formula columns and formula display rules together, each up to 3,900 characters.</li>
             <li><b>Hidden stays hidden.</b> A user who cannot read a field the formula uses does not get the column. A formula can also read $User, $Organization and custom settings ($Setup), which no field check covers: put nothing in a grid formula its users should not see.</li>
-            <li><b>A row it cannot work out</b> (a division by zero, say) shows a blank cell. Examples and the rules for lookups and percents are in the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure&amp;rowhouse__section=formulas" data-page="configure" data-section="formulas">configuration reference</a>.</li>
+            <li><b>A row it cannot work out</b> (a division by zero, say) shows a blank cell. Examples and the rules for lookups and percents are in the <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure&amp;rowhouse__section=formulas" data-page="configure" data-section="formulas">configuration reference</a>.</li>
           </ul>
         </section>
 
@@ -237,7 +237,7 @@
                 <li><b>Group Level</b> 1, 2 or 3 on a column opens the grid grouped by it; 1 is the outermost.</li>
                 <li><b>Group Date Unit</b> for a date column: day, week, month, quarter, year, fiscal quarter or fiscal year (month if blank). Weeks start on the user's first day of the week; fiscal periods follow your org's fiscal year, custom fiscal years included.</li>
                 <li><b>Allow Grouping</b> (<i>Users can group</i> on the Grid Admin tab) offers Group by on a text, email, phone or web address column, which the grid does not offer it on by itself.</li>
-                <li><b>Subtotal</b> by the column's type: Sum and Average for numbers, currency and percent; Min and Max for those and dates; Count for most fields (see the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure&amp;rowhouse__section=grouping" data-page="configure" data-section="grouping">table</a>).</li>
+                <li><b>Subtotal</b> by the column's type: Sum and Average for numbers, currency and percent; Min and Max for those and dates; Count for most fields (see the <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure&amp;rowhouse__section=grouping" data-page="configure" data-section="grouping">table</a>).</li>
               </ul>
             </div>
             <div>
@@ -410,7 +410,7 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Feature</span><h2>Grid settings, without Setup</h2>
           <p class="rh-sec-sub">For the people who build grids: the <b>Grid Admin</b> tab lists every grid and builds new ones, and a gear on each grid opens that grid's settings where it is.</p></div>
           <figure class="rh-rv">
-            <div class="rh-screen"><div class="rh-chrome"><i></i><i></i><i></i><span>…/lightning/n/Rowhouse_Admin</span></div><div class="rh-stage"><div class="rh-card-m rh-adm">
+            <div class="rh-screen"><div class="rh-chrome"><i></i><i></i><i></i><span>…/lightning/n/Grid_Admin</span></div><div class="rh-stage"><div class="rh-card-m rh-adm">
               <div class="rh-adm-head"><span class="rh-adm-logo"><svg class="rh-i2" viewBox="0 0 32 32" aria-hidden="true"><path d="M2 11.5 16 3.5 30 11.5z" fill="#0F5C45"/><rect x="2" y="14" width="28" height="4" rx="1" fill="#0F5C45"/><rect x="2" y="20" width="28" height="4" rx="1" fill="#B3431F"/><rect x="2" y="26" width="28" height="4" rx="1" fill="#0F5C45"/></svg>ROWHOUSE</span><div><div class="rh-m-title" style="font-weight:400;font-size:17px">Grid Admin</div><div class="rh-m-meta">Build and change the grids your users see, without going into Setup.</div></div><span class="rh-m-btn rh-adm-help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg>Grid Guide</span></div>
               <div class="rh-adm-nav"><span class="rh-on">Grids</span><span>Settings</span></div>
               <div class="rh-adm-gp">
@@ -438,7 +438,7 @@
                   </div>
                   <div class="rh-adm-lh"><div><span class="rh-adm-gk">Available grids</span><div class="rh-adm-count">8 grids</div></div><span class="rh-adm-tools"><span class="rh-m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search grids</span></span></div>
                   <div class="rh-adm-gt">
-                    <div class="rh-adm-gr rh-hd"><span>Grid Title ↑</span><span class="rh-gcode">API name</span><span>Object</span><span class="rh-gnum">Columns</span><span></span></div>
+                    <div class="rh-adm-gr rh-hd"><span>Grid title ↑</span><span class="rh-gcode">API name</span><span>Object</span><span class="rh-gnum">Columns</span><span></span></div>
                     <div class="rh-adm-gr"><span class="rh-m-link">Account Directory</span><span class="rh-gcode">Account_Directory</span><span>Accounts</span><span class="rh-gnum">4</span><span class="rh-m-rm"></span></div>
                     <div class="rh-adm-gr"><span class="rh-m-link">Account People</span><span class="rh-gcode">Account_People</span><span>Contacts</span><span class="rh-gnum">6</span><span class="rh-m-rm"></span></div>
                     <div class="rh-adm-gr"><span class="rh-m-link">Contact Cleanup</span><span class="rh-gcode">Contact_Cleanup</span><span>Contacts</span><span class="rh-gnum">8</span><span class="rh-m-rm"></span></div>
@@ -458,7 +458,7 @@
               <h4 class="rh-mt0">The Grid Admin tab</h4>
               <ul class="rh-tick">
                 <li>A tab of the <b>Rowhouse</b> app, which the App Launcher shows with the Rowhouse logo. Its header has two pages, <b>Grids</b> and <b>Settings</b>.</li>
-                <li><b>Grids</b> opens with <i>Your grids</i>, <b>New grid</b>, <b>Import Grid</b>, <b>Export</b> and cards that sum up the org: how many grids and objects, how many grids log every change or have child tables, and how long the edit log keeps its entries. Under them, every grid in use, with its Grid Title, API name, object and number of columns; search it by title or API name; <b>Export</b>, beside Import Grid, saves the grids it shows to a file (<a href="#admin-transfer" data-anchor-link="admin-transfer">below</a>). It opens sorted by Grid Title, A to Z: click another heading to sort by that column, and click it again to sort the other way.</li>
+                <li><b>Grids</b> opens with <i>Your grids</i>, <b>New grid</b>, <b>Import Grid</b>, <b>Export</b> and cards that sum up the org: how many grids and objects, how many grids log every change or have child tables, and how long the edit log keeps its entries. Under them, every grid in use, with its Grid title, API name, object and number of columns; search it by title or API name; <b>Export</b>, beside Import Grid, saves the grids it shows to a file (<a href="#admin-transfer" data-anchor-link="admin-transfer">below</a>). It opens sorted by Grid title, A to Z: click another heading to sort by that column, and click it again to sort the other way.</li>
                 <li>The side navigation on the left of the Grids page chooses what the list shows, each with how many: <b>Available grids</b>, the grids in use; <b>Archived grids</b>; and, under <b>By object</b>, the grids in use of one object.</li>
                 <li>Click a grid's title to change it. The grid's name heads the page, with its object and API name and <b>Close</b> and <b>Save</b>; <b>Grid Admin</b> or <b>Grids</b> above the name goes back, asking first if something is unsaved.</li>
                 <li>The <b>▾</b> at the end of each row is the grid's menu: <b>Edit</b>, as its title does; <b>Clone</b>; <b>Export</b>, to a file; and <b>Archive</b>, which takes the grid out of use without deleting it (<a href="#admin-rows" data-anchor-link="admin-rows">below</a>).</li>
@@ -474,7 +474,7 @@
               </ul>
             </div>
           </div>
-          <div class="rh-call" style="margin-top:18px"><span class="rh-k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do Clone, Archive, Restore and Import Grid, which are grayed out without it. Export needs only Rowhouse Grid Admin. Every field and setting is described in the <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure&amp;rowhouse__section=admin" data-page="configure" data-section="admin">configuration reference</a>.</p></div>
+          <div class="rh-call" style="margin-top:18px"><span class="rh-k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do Clone, Archive, Restore and Import Grid, which are grayed out without it. Export needs only Rowhouse Grid Admin. Every field and setting is described in the <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure&amp;rowhouse__section=admin" data-page="configure" data-section="admin">configuration reference</a>.</p></div>
 
           <h3 id="admin-rows" data-anchor="admin-rows" style="margin-top:26px">Clone, archive and delete a grid</h3>
           <p>Each is in the grid's menu, the <span class="rh-ui">▾</span> at the end of its row on the Grid Admin tab's <span class="rh-ui">Grids</span> page. Clone, Archive and Restore are saved like any change to a grid, in a few seconds; while they are, a spinner takes the dialog's place (<i>Archiving. This takes a few seconds.</i>).</p>
@@ -505,7 +505,7 @@
           <ul class="rh-tick">
             <li><b>Then put each grid on a page.</b> A file holds no Lightning page: add the Rowhouse Grid component to a page and enter the grid's API name. An action needs its flow or quick action in the org, as it does when you add it by hand.</li>
             <li><b>Checked like a save.</b> Every grid in a file is checked as a grid saved on this tab is, so a file can do nothing you could not do by building the grid here. A file's filter values are in it as you typed them: share it as you would the grid's settings.</li>
-            <li><b>Between a sandbox and its production org,</b> a change set or a deployment works too, and keeps the grids on your release path (<a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=start&amp;rowhouse__section=move" data-page="start" data-section="move">Moving grids between orgs</a>).</li>
+            <li><b>Between a sandbox and its production org,</b> a change set or a deployment works too, and keeps the grids on your release path (<a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=start&amp;rowhouse__section=move" data-page="start" data-section="move">Moving grids between orgs</a>).</li>
           </ul>
         </section>
 
@@ -571,8 +571,8 @@
           <details class="rh-faq"><summary>The grid shows an error naming a Grid Filter</summary><div class="rh-a"><p>That filter cannot work: its field was renamed or deleted, the user cannot read it, or its value no longer fits. Fix or switch off the filter on the Grid Admin tab's Filters tab.</p></div></details>
           <details class="rh-faq"><summary>The grid is too tall or too short on the page</summary><div class="rh-a"><p>With Height (px) blank, the grid fills the window from its top edge down. Beside other components, set a Height on the Grid Configuration.</p></div></details>
           <div class="rh-next">
-            <a href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=configure" data-page="configure"><small>Back</small><b>← Configuration reference</b></a>
-            <a class="rh-fwd" href="/lightning/n/rowhouse__Rowhouse_Guide?rowhouse__page=using" data-page="using"><small>Next</small><b>User guide →</b></a>
+            <a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=configure" data-page="configure"><small>Back</small><b>← Configuration reference</b></a>
+            <a class="rh-fwd" href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=using" data-page="using"><small>Next</small><b>User guide →</b></a>
           </div>
         </section>
 

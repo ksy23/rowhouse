@@ -2,7 +2,7 @@
  * The richer display rules: Between, two fields, formula rules, icons
  * and data bars, and how they sit beside the fills and text colors.
  */
-import { compileRules, formatsFor, legendFor } from 'c/gridDisplayRules';
+import { compileRules, formatsFor, displayKeyFor } from 'c/gridDisplayRules';
 
 const CONTEXT = { today: '2026-09-28', timeZone: 'America/New_York', userId: '005000000000001AAA' };
 const FIELDS = ['Name', 'Amount', 'Budget', 'Due'];
@@ -56,7 +56,7 @@ describe('two fields', () => {
     it('compares a field with another of the same row', () => {
         const over = rule({ operator: 'greater_than' });
         expect(formatsFor(over, rowOf({ Amount: '120', Budget: '100' }), FIELDS).cells).toEqual({
-            Amount: 'rh-fmt_text-red'
+            Amount: 'rh-rule_text-red'
         });
         expect(formatsFor(over, rowOf({ Amount: '80', Budget: '100' }), FIELDS)).toBeNull();
         const same = rule({ operator: 'equals' });
@@ -86,7 +86,7 @@ describe('two fields', () => {
             }
         ]);
         expect(formatsFor(late, rowOf({ Due: '2026-09-01', Closed: '2026-09-15' }), FIELDS).cells.Due).toBe(
-            'rh-fmt_fill-red'
+            'rh-rule_fill-red'
         );
         expect(formatsFor(late, rowOf({ Due: '2026-09-30', Closed: '2026-09-15' }), FIELDS)).toBeNull();
     });
@@ -167,14 +167,14 @@ describe('formula rules', () => {
 
     it('meets the rows the server says meet it (_rules), whatever the cell shows', () => {
         const f = formatsFor(rules, rowOf({ Amount: '1', _rules: ['Big_Deal'] }), FIELDS);
-        expect(f.cells).toEqual({ Amount: 'rh-fmt_fill-green' });
+        expect(f.cells).toEqual({ Amount: 'rh-rule_fill-green' });
         expect(f.labels).toEqual({ Amount: 'Big deal' });
         expect(formatsFor(rules, rowOf({ Amount: '1' }), FIELDS)).toBeNull();
     });
 
     it('may color the whole row, with no field', () => {
         const f = formatsFor(rules, rowOf({ _rules: ['Risky'] }), FIELDS);
-        expect(f.bar).toBe('rh-fmt_bar-amber');
+        expect(f.bar).toBe('rh-rule_bar-amber');
         expect(f.rowLabels).toEqual(['Risky']);
     });
 });
@@ -236,7 +236,7 @@ describe('icons and data bars', () => {
         const f = formatsFor(rules, rowOf({ Amount: '-5' }), FIELDS);
         expect(f.icons).toEqual({ Amount: { name: 'utility:warning', variant: 'warning', label: 'Negative' } });
         expect(f.bars).toEqual({ Amount: true });
-        expect(f.cells).toEqual({ Amount: 'rh-fmt_fill-red' });
+        expect(f.cells).toEqual({ Amount: 'rh-rule_fill-red' });
         expect(f.labels).toEqual({ Amount: 'Credit balance' });
     });
 
@@ -272,15 +272,15 @@ describe('icons and data bars', () => {
 
 describe('the Display Key', () => {
     it('lists icons with their icon, bars as bars, and formula rules', () => {
-        const legend = legendFor([
+        const legend = displayKeyFor([
             { name: 'Neg', label: 'Negative', field: 'Amount', style: 'icon_error', applyTo: 'cell' },
             { name: 'Size', label: 'Size', field: 'Amount', style: 'data_bar', applyTo: 'cell' },
             { name: 'Big', label: 'Big deal', isFormula: true, field: null, style: 'fill_green', applyTo: 'row' }
         ]);
         expect(legend.map(l => [l.label, l.kind, l.icon, l.variant, l.cls, l.bar, l.row])).toEqual([
             ['Negative', 'icon', 'utility:error', 'error', null, null, false],
-            ['Size', 'databar', null, null, 'rh-fmt_databar', null, false],
-            ['Big deal', 'fill', null, null, null, 'rh-fmt_bar-green', true]
+            ['Size', 'databar', null, null, 'rh-rule_databar', null, false],
+            ['Big deal', 'fill', null, null, null, 'rh-rule_bar-green', true]
         ]);
     });
 });

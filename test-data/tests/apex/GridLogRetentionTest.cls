@@ -40,7 +40,7 @@ private class GridLogRetentionTest {
         for (Integer i = 0; i < count; i++) {
             out.add(
                 new Grid_Edit_Log__c(
-                    Operation__c = 'Update',
+                    Operation__c = 'update',
                     Grid_Configuration__c = 'Consignments',
                     Object__c = 'Consignment__c',
                     Record_Name__c = 'Kennebec Lumber, ' + (i + 10) + ' bundles',
@@ -159,14 +159,14 @@ private class GridLogRetentionTest {
             System.assertEquals(3, cleanup.removed);
             System.assertEquals(0, cleanup.notRemoved);
             Set<Id> left = new Map<Id, Grid_Edit_Log__c>(
-                    [SELECT Id FROM Grid_Edit_Log__c WHERE Operation__c = 'Update']
+                    [SELECT Id FROM Grid_Edit_Log__c WHERE Operation__c = 'update']
                 )
                 .keySet();
             System.assertEquals(new Set<Id>{ all[3].Id, all[4].Id }, left, 'Only the entries newer than a year stay.');
             Grid_Edit_Log__c note = [
                 SELECT Record_Name__c, New_Value__c, Object__c
                 FROM Grid_Edit_Log__c
-                WHERE Operation__c = 'Cleanup'
+                WHERE Operation__c = 'cleanup'
             ];
             System.assertEquals('3 entries removed', note.New_Value__c);
             System.assert(note.Record_Name__c.startsWith('Entries older than 1 year (before '), note.Record_Name__c);
@@ -181,8 +181,8 @@ private class GridLogRetentionTest {
             GridLogCleanup cleanup = new GridLogCleanup(90);
             System.assertEquals(false, cleanup.step());
             System.assertEquals(0, cleanup.removed);
-            System.assertEquals(0, kept('Cleanup'), 'No note when nothing was removed.');
-            System.assertEquals(2, kept('Update'));
+            System.assertEquals(0, kept('cleanup'), 'No note when nothing was removed.');
+            System.assertEquals(2, kept('update'));
         }
     }
 
@@ -196,10 +196,10 @@ private class GridLogRetentionTest {
             System.assertEquals(true, cleanup.step());
             System.assertEquals(false, cleanup.step(), 'One left: the last step.');
             System.assertEquals(5, cleanup.removed);
-            System.assertEquals(1, kept('Update'), 'The new entry stays.');
+            System.assertEquals(1, kept('update'), 'The new entry stays.');
             System.assertEquals(
                 '5 entries removed',
-                [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'Cleanup'].New_Value__c,
+                [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'cleanup'].New_Value__c,
                 'One note for the whole night, from the last step.'
             );
         }
@@ -214,10 +214,10 @@ private class GridLogRetentionTest {
             GridLogCleanup cleanup = new GridLogCleanup(90);
             cleanup.execute(null);
             System.assertEquals(2, cleanup.removed);
-            System.assertEquals(3, kept('Update'), 'Two old entries went; the other two wait for the next night.');
+            System.assertEquals(3, kept('update'), 'Two old entries went; the other two wait for the next night.');
             System.assertEquals(
                 '2 entries removed; more remain for the next night',
-                [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'Cleanup'].New_Value__c
+                [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'cleanup'].New_Value__c
             );
         }
     }
@@ -234,8 +234,8 @@ private class GridLogRetentionTest {
             System.assertEquals(0, cleanup.removed);
         }
         System.runAs(GridTestUsers.adminUser()) {
-            System.assertEquals(2, kept('Update'), 'Nothing was removed.');
-            Grid_Edit_Log__c note = [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'Cleanup'];
+            System.assertEquals(2, kept('update'), 'Nothing was removed.');
+            Grid_Edit_Log__c note = [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'cleanup'];
             System.assert(note.New_Value__c.contains('none could be'), note.New_Value__c);
         }
     }
@@ -252,8 +252,8 @@ private class GridLogRetentionTest {
             System.assertEquals(0, cleanup.removed);
         }
         System.runAs(GridTestUsers.adminUser()) {
-            System.assertEquals(2, kept('Update'), 'Nothing was removed.');
-            Grid_Edit_Log__c note = [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'Cleanup'];
+            System.assertEquals(2, kept('update'), 'Nothing was removed.');
+            Grid_Edit_Log__c note = [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'cleanup'];
             System.assertEquals(GridLogCleanup.NOT_AN_ADMIN, note.New_Value__c);
         }
     }
@@ -286,10 +286,10 @@ private class GridLogRetentionTest {
             Test.startTest();
             new GridLogSchedule().execute(new Night()); // as the scheduler runs it at 2 AM
             Test.stopTest(); // runs the clean-up it started
-            System.assertEquals(1, kept('Update'), 'The two old entries were removed.');
+            System.assertEquals(1, kept('update'), 'The two old entries were removed.');
             System.assertEquals(
                 '2 entries removed',
-                [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'Cleanup'].New_Value__c
+                [SELECT New_Value__c FROM Grid_Edit_Log__c WHERE Operation__c = 'cleanup'].New_Value__c
             );
         }
     }

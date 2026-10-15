@@ -17,7 +17,7 @@
         <logoVersion>1</logoVersion>
         <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
     </brand>
-    <defaultLandingTab>Rowhouse_Guide</defaultLandingTab>
+    <defaultLandingTab>Grid_Guide</defaultLandingTab>
     <description>Learn Rowhouse by Kugamon on the Grid Guide tab. Grid admins also build and change grids on the Grid Admin tab and read the audit trail on Grid Edit Logs.</description>
     <formFactors>Large</formFactors>
     <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
@@ -25,8 +25,8 @@
     <label>Rowhouse</label>
     <navType>Standard</navType>
     <setupExperience>all</setupExperience>
-    <tabs>Rowhouse_Guide</tabs>
-    <tabs>Rowhouse_Admin</tabs>
+    <tabs>Grid_Guide</tabs>
+    <tabs>Grid_Admin</tabs>
     <tabs>Grid_Edit_Log__c</tabs>
     <uiType>Lightning</uiType>
 </CustomApplication>

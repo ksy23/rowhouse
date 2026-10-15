@@ -19,7 +19,7 @@ Open an issue with:
 3. **The browser** and its version.
 4. **The grid:** the Grid Configuration's columns and settings, and roughly
    how many rows.
-5. **Diagnostic lines, if you can.** Assign the `Rowhouse_Diagnostics`
+5. **Diagnostic lines, if you can.** Assign the `Rowhouse_Grid_Diagnostics`
    permission set to the affected user, reproduce the problem, then copy the
    lines that start with `[rowhouse]` from the browser console. They carry
    timings and counts, never record data.

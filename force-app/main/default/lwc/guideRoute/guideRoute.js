@@ -4,7 +4,7 @@
  * build them the same way.
  *
  * An address names a page and, optionally, a section of it:
- *   /lightning/n/Rowhouse_Guide?c__page=configure&c__section=column
+ *   /lightning/n/Grid_Guide?c__page=configure&c__section=column
  * State keys carry the package's namespace (c__ unmanaged, rowhouse__
  * managed), as Lightning requires, and so does the tab's API name when there
  * is one. Welcome is the page with no c__page at all.
@@ -13,7 +13,7 @@ import { NavigationMixin } from 'lightning/navigation';
 import { PAGES, pageOf } from 'c/guideCatalog';
 
 /** The Grid Guide tab's API name, without its namespace. */
-export const GUIDE_TAB = 'Rowhouse_Guide';
+export const GUIDE_TAB = 'Grid_Guide';
 /** The page the tab opens on. */
 export const HOME_PAGE = 'welcome';
 

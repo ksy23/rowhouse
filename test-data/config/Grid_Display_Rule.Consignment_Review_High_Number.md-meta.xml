@@ -9,5 +9,5 @@
     <values><field>Style__c</field><value xsi:type="xsd:string">icon_warning</value></values>
     <values><field>Apply_To__c</field><value xsi:type="xsd:string">row</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">30</value></values>
-    <values><field>Active__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Inactive__c</field><value xsi:type="xsd:boolean">false</value></values>
 </CustomMetadata>

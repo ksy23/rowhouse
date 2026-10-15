@@ -31,7 +31,7 @@
                 <label>Purple fill</label>
             </value>
             <value>
-                <fullName>fill_grey</fullName>
+                <fullName>fill_gray</fullName>
                 <default>false</default>
                 <label>Gray fill</label>
             </value>
@@ -46,7 +46,7 @@
                 <label>Green text</label>
             </value>
             <value>
-                <fullName>text_grey</fullName>
+                <fullName>text_gray</fullName>
                 <default>false</default>
                 <label>Gray text</label>
             </value>

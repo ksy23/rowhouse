@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Values_Not_Recorded__c</fullName>
+    <label>Values Not Recorded</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Checked when the field is encrypted, with Shield Platform Encryption or as a Classic encrypted text field, so its old and new values were not recorded.</description>
+    <inlineHelpText>Checked when the field is encrypted, so its values were not recorded.</inlineHelpText>
+</CustomField>

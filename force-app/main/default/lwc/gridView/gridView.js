@@ -59,7 +59,7 @@
  *
  * MASS UPDATE AND MASS DELETE
  * Row selection is on when the grid has an editable column or allows mass
- * delete. "Update field" opens c/gridMassUpdate; its value becomes unsaved
+ * delete. "Update field" opens c/gridUpdateField; its value becomes unsaved
  * edits on the selected rows, one undo step, exactly like a paste, and is
  * written only by Save, through the same server checks. "Delete" asks first
  * (c/gridDeleteDialog), then sends the selected Ids in batches of DELETE_BATCH;
@@ -209,7 +209,7 @@
  * it (parentLink): every parent row's tab opens the same way.
  *
  * TELEMETRY
- * With the Rowhouse_Diagnostics custom permission, each load and save writes one
+ * With the Rowhouse_Grid_Diagnostics custom permission, each load and save writes one
  * structured line to the browser console: timings, row counts, server CPU. It is
  * off for everyone else, and it never includes record data. The same permission
  * turns on the User Timing measures the published benchmark reads (c/gridTiming).
@@ -235,7 +235,7 @@ import countChildren from '@salesforce/apex/GridController.countChildren';
 import runAction from '@salesforce/apex/GridController.runAction';
 import saveLayout from '@salesforce/apex/GridController.saveLayout';
 import resetLayout from '@salesforce/apex/GridController.resetLayout';
-import { legendFor, dateIn } from 'c/gridDisplayRules';
+import { displayKeyFor, dateIn } from 'c/gridDisplayRules';
 import { normalizeGrouping, sameGrouping, levelParam, rollUp } from 'c/gridGroups';
 import {
     applyEdit,
@@ -270,9 +270,9 @@ import {
     describe as describeStep,
     withoutRecords
 } from 'c/gridHistory';
-import { massChanges } from 'c/gridMassUpdate';
+import { massChanges } from 'c/gridUpdateField';
 import { sharedOptions } from 'c/gridFields';
-import { childTableHeight } from 'c/gridNest';
+import { childTableHeight } from 'c/gridChildTables';
 import { readChoice, shownColumns, chooseColumns, sameChoice, searchHint } from 'c/gridColumns';
 import {
     namespaceOf,
@@ -321,7 +321,7 @@ export const ROW_DELETE = '__delete';
 export const ROW_OWNER = '__owner';
 /** A top-level grid, its child tables and theirs. */
 export const MAX_LEVELS = 3;
-/** Rows one countChildren call takes (GridNesting.MAX_COUNT_PARENTS). */
+/** Rows one countChildren call takes (GridChildTables.MAX_COUNT_PARENTS). */
 export const COUNT_BATCH = 2000;
 /** px: below this the toolbar's actions fold into one menu, as the table turns to cards. */
 export const NARROW_WIDTH = 480;
@@ -527,9 +527,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
     /** The toolbar folds into a menu: set from this component's own width. */
     narrow = false;
     deleteOpen = false;
-    legendOpen = false;
+    displayKeyOpen = false;
     /** While the Display Key opens or closes: what its button's spinner says; '' otherwise. */
-    legendBusy = '';
+    displayKeyBusy = '';
     warningsOpen = false;
     /** An action is running on the server: editing and other actions wait. */
     acting = false;
@@ -1449,11 +1449,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 label: this.chartsOpen ? 'Hide charts' : 'Charts',
                 disabled: false
             });
-        if (this.hasLegend)
+        if (this.hasDisplayKey)
             items.push({
-                key: 'legend',
-                value: 'legend',
-                label: this.legendOpen ? 'Hide Display Key' : 'Display Key',
+                key: 'displayKey',
+                value: 'displayKey',
+                label: this.displayKeyOpen ? 'Hide Display Key' : 'Display Key',
                 disabled: false
             });
         if (this.canResetLayout) items.push({ key: 'reset', value: 'reset', label: 'Reset layout', disabled: false });
@@ -1470,7 +1470,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         else if (value === 'new') this.handleNew();
         else if (value === 'import') this.handleImportOpen();
         else if (value === 'export') this.handleExport();
-        else if (value === 'legend') this.handleLegendToggle();
+        else if (value === 'displayKey') this.handleDisplayKeyToggle();
         else if (value === 'charts') this.handleChartsToggle();
         else if (value === 'settings') this.handleSettingsOpen();
         else if (value === 'reset') this.handleResetLayout();
@@ -1537,23 +1537,23 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     // ---- the Display Key
 
-    get legend() {
+    get displayKey() {
         const d = this.definition;
-        return d ? legendFor(d.displayRules || []) : [];
+        return d ? displayKeyFor(d.displayRules || []) : [];
     }
 
-    get hasLegend() {
-        return this.legend.length > 0;
+    get hasDisplayKey() {
+        return this.displayKey.length > 0;
     }
 
-    get legendItems() {
-        return this.legend.map(l => ({
+    get displayKeyItems() {
+        return this.displayKey.map(l => ({
             ...l,
             swatchCls: [
-                'rh-legend-swatch',
-                l.bar ? 'rh-legend-swatch_bar ' + l.bar : 'rh-legend-swatch_cell',
+                'rh-display-key-swatch',
+                l.bar ? 'rh-display-key-swatch_bar ' + l.bar : 'rh-display-key-swatch_cell',
                 l.bar ? '' : l.cls,
-                l.kind === 'databar' ? 'rh-legend-swatch_databar' : ''
+                l.kind === 'databar' ? 'rh-display-key-swatch_databar' : ''
             ]
                 .filter(Boolean)
                 .join(' '),
@@ -1563,8 +1563,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
         }));
     }
 
-    get legendExpanded() {
-        return String(this.legendOpen);
+    get displayKeyExpanded() {
+        return String(this.displayKeyOpen);
     }
 
     /**
@@ -1573,13 +1573,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * is drawn, then the key opens or closes, and the spinner goes once that
      * has been drawn. A click while it works is ignored, not a second toggle.
      */
-    handleLegendToggle() {
-        if (this.legendBusy) return;
-        this.legendBusy = this.legendOpen ? 'Closing the Display Key' : 'Opening the Display Key';
+    handleDisplayKeyToggle() {
+        if (this.displayKeyBusy) return;
+        this.displayKeyBusy = this.displayKeyOpen ? 'Closing the Display Key' : 'Opening the Display Key';
         afterNextPaint(() => {
-            this.legendOpen = !this.legendOpen;
+            this.displayKeyOpen = !this.displayKeyOpen;
             afterNextPaint(() => {
-                this.legendBusy = '';
+                this.displayKeyBusy = '';
             });
         });
     }
@@ -1674,7 +1674,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     /**
      * Configuration problems that did not stop the grid, such as a skipped
      * display rule. The server sends them only to users with the
-     * Rowhouse_Diagnostics permission; this checks again.
+     * Rowhouse_Grid_Diagnostics permission; this checks again.
      */
     get configWarnings() {
         const w = this.diagnostics && this.definition && this.definition.warnings;
@@ -2921,7 +2921,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /**
      * Give a column one value on these rows, as unsaved edits: one undo step,
-     * with each row's own checks (c/gridMassUpdate massChanges). Says what
+     * with each row's own checks (c/gridUpdateField massChanges). Says what
      * changed, and warns when a row kept its value or a dependent value was
      * cleared. Returns whether anything was tried.
      */
@@ -3401,11 +3401,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
      */
     startAction(action, ids, source) {
         if (this.saving || this.deleting || this.acting || this.actionDialog) return;
-        if (action.type === 'screenflow') {
+        if (action.type === 'screen_flow') {
             this.openScreenFlow(action, ids, source);
             return;
         }
-        if (action.type === 'quickaction') {
+        if (action.type === 'quick_action') {
             if (ids.length === 1) this.openQuickAction(action, ids[0]);
             return;
         }
@@ -3432,7 +3432,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (!sent || !ref || doneToken(ref, this.namespace) !== sent.token) return;
         // The flow this grid sent the user to is back: read its rows again.
         this._flow.sent = null;
-        this.telemetry('action', { kind: 'screenflow', records: sent.ids.length });
+        this.telemetry('action', { kind: 'screen_flow', records: sent.ids.length });
         this.announce(`${sent.action.label}: back from the flow. Reading its rows again.`);
         this.refreshAfterAction(sent.ids);
     }
@@ -3498,7 +3498,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             return;
         }
         this.watchQuickAction(action, recordId);
-        this.telemetry('action', { kind: 'quickaction', records: 1 });
+        this.telemetry('action', { kind: 'quick_action', records: 1 });
         this[NavigationMixin.Navigate]({ type: 'standard__webPage', attributes: { url } });
     }
 
@@ -3760,7 +3760,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
     telemetry(event, data) {
         if (!this.diagnostics) return;
         const entry = { source: 'rowhouse', event, grid: this._configName, at: new Date().toISOString(), ...data };
-        // Structured telemetry, only with the Rowhouse_Diagnostics permission.
+        // Structured telemetry, only with the Rowhouse_Grid_Diagnostics permission.
         console.info('[rowhouse]', JSON.stringify(entry));
     }
 }

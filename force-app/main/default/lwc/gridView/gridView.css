@@ -240,20 +240,20 @@
  * moved, so its dots sat half its height above the button's middle (measured
  * in Lightning Experience). Down by half its own height.
  */
-.rh-legend-spinner {
+.rh-display-key-spinner {
     transform: translateY(50%);
 }
 
 /*
  * The Display Key: a small sample of each look. The colors are
  * gridTable.css's, repeated because each component's styles are its own;
- * gridView.legend.test.js checks the two stay the same.
+ * gridView.displayKey.test.js checks the two stay the same.
  */
-.rh-legend ul {
+.rh-display-key ul {
     list-style: none;
 }
 
-.rh-legend-swatch {
+.rh-display-key-swatch {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -266,32 +266,32 @@
 }
 
 /* A row rule's sample: the row's tint, with its bar at the left edge. */
-.rh-legend-swatch_bar {
+.rh-display-key-swatch_bar {
     box-shadow: inset 4px 0 0 var(--rh-bar-color);
     background-color: var(--rh-tint-color);
 }
 
-.rh-fmt_bar-green {
+.rh-rule_bar-green {
     --rh-bar-color: var(--slds-g-color-palette-green-60, #3ba755);
     --rh-tint-color: var(--slds-g-color-palette-green-95, rgb(235, 247, 230));
 }
 
-.rh-fmt_bar-amber {
+.rh-rule_bar-amber {
     --rh-bar-color: var(--slds-g-color-palette-yellow-70, #e4a201);
     --rh-tint-color: var(--slds-g-color-palette-orange-95, rgb(255, 241, 234));
 }
 
-.rh-fmt_bar-red {
+.rh-rule_bar-red {
     --rh-bar-color: var(--slds-g-color-palette-red-60, #fe5c4c);
     --rh-tint-color: var(--slds-g-color-palette-red-95, rgb(254, 241, 238));
 }
 
-.rh-fmt_bar-purple {
+.rh-rule_bar-purple {
     --rh-bar-color: var(--slds-g-color-palette-purple-60, #ad7bee);
     --rh-tint-color: var(--slds-g-color-palette-purple-95, rgb(246, 242, 251));
 }
 
-.rh-fmt_bar-grey {
+.rh-rule_bar-gray {
     --rh-bar-color: var(--slds-g-color-palette-neutral-60, #939393);
     --rh-tint-color: color-mix(
         in srgb,
@@ -300,51 +300,51 @@
     );
 }
 
-.rh-legend .rh-fmt_fill-green {
+.rh-display-key .rh-rule_fill-green {
     background-color: var(--slds-g-color-palette-green-90, rgb(205, 239, 196));
 }
 
-.rh-legend .rh-fmt_fill-amber {
+.rh-display-key .rh-rule_fill-amber {
     background-color: var(--slds-g-color-palette-yellow-90, rgb(249, 227, 182));
 }
 
-.rh-legend .rh-fmt_fill-red {
+.rh-display-key .rh-rule_fill-red {
     background-color: var(--slds-g-color-palette-red-90, rgb(254, 222, 216));
 }
 
-.rh-legend .rh-fmt_fill-purple {
+.rh-display-key .rh-rule_fill-purple {
     background-color: var(--slds-g-color-palette-purple-90, rgb(236, 225, 249));
 }
 
-.rh-legend .rh-fmt_fill-grey {
+.rh-display-key .rh-rule_fill-gray {
     background-color: var(--slds-g-color-palette-neutral-90, rgb(229, 229, 229));
 }
 
-.rh-legend .rh-fmt_text-red {
+.rh-display-key .rh-rule_text-red {
     color: var(--slds-g-color-palette-red-40, rgb(186, 5, 23));
 }
 
-.rh-legend .rh-fmt_text-green {
+.rh-display-key .rh-rule_text-green {
     color: var(--slds-g-color-palette-green-40, rgb(57, 101, 71));
 }
 
-.rh-legend .rh-fmt_text-grey {
+.rh-display-key .rh-rule_text-gray {
     color: var(--slds-g-color-palette-neutral-40, rgb(92, 92, 92));
 }
 
-.rh-legend .rh-fmt_bold {
+.rh-display-key .rh-rule_bold {
     font-weight: var(--slds-g-font-weight-bold, 700);
 }
 
 /*
  * A data bar's sample: the table's bar, drawn to 60% of the sample.
- * The bar's declarations are the table's own (gridView.legend.test.js).
+ * The bar's declarations are the table's own (gridView.displayKey.test.js).
  */
-.rh-legend-swatch_databar {
+.rh-display-key-swatch_databar {
     --rh-databar: 60%;
 }
 
-.rh-legend .rh-fmt_databar {
+.rh-display-key .rh-rule_databar {
     background-image: linear-gradient(
         to right,
         var(--slds-g-color-palette-teal-90, rgb(172, 243, 228)) var(--rh-databar, 0%),
