@@ -198,7 +198,7 @@ private class GridAdminTest {
             GridConfig.Definition def = GridConfig.build(
                 GridAdmin.configRecord(d),
                 GridAdmin.columnRecords(d),
-                new List<Grid_Format_Rule__mdt>(),
+                new List<Grid_Display_Rule__mdt>(),
                 new List<Grid_Child__mdt>(),
                 new List<Grid_Action__mdt>()
             );
@@ -407,7 +407,7 @@ private class GridAdminTest {
             System.assertEquals(false, valueOf(amount, 'Always_Shown__c'), 'Unticked unless the admin ticks it.');
             System.assertEquals(false, valueOf(amount, 'Allow_Grouping__c'), 'Unticked unless the admin ticks it.');
 
-            Metadata.CustomMetadata rule = sent.get('Grid_Format_Rule__mdt.Open_Consignments_Big_amount');
+            Metadata.CustomMetadata rule = sent.get('Grid_Display_Rule__mdt.Open_Consignments_Big_amount');
             System.assertEquals('Big amount', rule.label);
             System.assertEquals(true, valueOf(rule, 'Active__c'));
             Metadata.CustomMetadata action = sent.get('Grid_Action__mdt.Open_Consignments_Add_a_note');
@@ -728,7 +728,7 @@ private class GridAdminTest {
             System.assertNotEquals(null, savedFx, String.valueOf(sent.keySet()));
             System.assertEquals('Pieces__c * 2', valueOf(savedFx, 'Formula__c'));
             System.assertEquals(null, valueOf(savedFx, 'Field_API_Name__c'), 'A formula column has no field.');
-            System.assertEquals('9', valueOf(sent.get('Grid_Format_Rule__mdt.New_Settings_Mid'), 'Value_To__c'));
+            System.assertEquals('9', valueOf(sent.get('Grid_Display_Rule__mdt.New_Settings_Mid'), 'Value_To__c'));
         }
     }
 

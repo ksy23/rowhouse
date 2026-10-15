@@ -703,7 +703,7 @@ public with sharing class GridController {
                 }
             }
             List<String> matched = new List<String>();
-            for (GridConfig.FormatRule r : def.formatRules) {
+            for (GridConfig.DisplayRule r : def.displayRules) {
                 Object meets = r.formula == null ? null : GridFormulas.evaluate(r.formula.instance, row);
                 if (meets instanceof Boolean && (Boolean) meets) {
                     matched.add(r.name);

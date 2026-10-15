@@ -25,7 +25,7 @@ import summarizeGroups from '@salesforce/apex/GridController.summarizeGroups';
 import countChildren from '@salesforce/apex/GridController.countChildren';
 import { toCsv, downloadCsv } from 'c/gridCsv';
 import { REFUSED_BY_PERMISSION } from 'c/gridEditState';
-import { dateIn } from 'c/gridFormatRules';
+import { dateIn } from 'c/gridDisplayRules';
 
 jest.mock('@salesforce/apex/GridController.getGridConfig', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.openGrid', () => ({ default: jest.fn() }), { virtual: true });
@@ -1184,21 +1184,21 @@ describe('conditional formatting', () => {
         }
     ];
 
-    it('hands the configuration’s format rules to the table', async () => {
-        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, formatRules: RULES }, diagnostics: false });
+    it('hands the configuration’s display rules to the table', async () => {
+        getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, displayRules: RULES }, diagnostics: false });
         const el = mount();
         await settle();
-        expect(tableConfig(el).formatRules).toEqual(RULES);
+        expect(tableConfig(el).displayRules).toEqual(RULES);
     });
 
     it('hands an empty list when the configuration has none', async () => {
         const el = mount();
         await settle();
-        expect(tableConfig(el).formatRules).toEqual([]);
+        expect(tableConfig(el).displayRules).toEqual([]);
     });
 
     it('shows configuration warnings to diagnostics users only', async () => {
-        const warnings = ['Format rule Heavy_Freight was skipped: Value "heavy" is not a number.'];
+        const warnings = ['Display rule Heavy_Freight was skipped: Value "heavy" is not a number.'];
         getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, warnings }, diagnostics: true });
         let el = mount();
         await settle();
@@ -2174,7 +2174,7 @@ describe('list view details', () => {
         // on Jest's fake clock, which fakes frames too (16ms each).
         const paint = () => jest.advanceTimersByTimeAsync(20);
         const mountWithRules = async () => {
-            getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, formatRules: RULES }, diagnostics: false });
+            getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, displayRules: RULES }, diagnostics: false });
             const el = mount();
             await settle();
             return el;
@@ -2231,13 +2231,13 @@ describe('list view details', () => {
             expect(spinner(el)).toBeNull();
         });
 
-        it('is offered only with format rules, and says what each color means', async () => {
+        it('is offered only with display rules, and says what each color means', async () => {
             let el = mount();
             await settle();
             expect($(el, '.rh-legend-toggle')).toBeNull();
             el.remove();
 
-            getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, formatRules: RULES }, diagnostics: false });
+            getGridConfig.mockResolvedValue({ definition: { ...DEFINITION, displayRules: RULES }, diagnostics: false });
             el = mount();
             await settle();
             const toggle = $(el, '.rh-legend-toggle');

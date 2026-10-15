@@ -235,7 +235,7 @@ import countChildren from '@salesforce/apex/GridController.countChildren';
 import runAction from '@salesforce/apex/GridController.runAction';
 import saveLayout from '@salesforce/apex/GridController.saveLayout';
 import resetLayout from '@salesforce/apex/GridController.resetLayout';
-import { legendFor, dateIn } from 'c/gridFormatRules';
+import { legendFor, dateIn } from 'c/gridDisplayRules';
 import { normalizeGrouping, sameGrouping, levelParam, rollUp } from 'c/gridGroups';
 import {
     applyEdit,
@@ -1201,7 +1201,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             // A filtered lookup is edited on the row's record with Salesforce's own lookup.
             objectApiName: d.objectApiName || null,
             // Conditional formats, checked on the server.
-            formatRules: d.formatRules || [],
+            displayRules: d.displayRules || [],
             // The day TODAY stands for; null for the day the rules were first read.
             formatToday: this.formatToday,
             // Grouping, and the server's counts and subtotals.
@@ -1539,7 +1539,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     get legend() {
         const d = this.definition;
-        return d ? legendFor(d.formatRules || []) : [];
+        return d ? legendFor(d.displayRules || []) : [];
     }
 
     get hasLegend() {
@@ -1673,7 +1673,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /**
      * Configuration problems that did not stop the grid, such as a skipped
-     * format rule. The server sends them only to users with the
+     * display rule. The server sends them only to users with the
      * Rowhouse_Diagnostics permission; this checks again.
      */
     get configWarnings() {

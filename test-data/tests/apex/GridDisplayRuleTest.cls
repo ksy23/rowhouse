@@ -1,29 +1,29 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
- * Conditional formatting rules: how a Grid_Format_Rule__mdt record is
+ * Conditional formatting rules: how a Grid_Display_Rule__mdt record is
  * checked and normalised, which rules a grid loads, and which a user gets.
  *
  * Rules are built in memory for the checks, so each case states its own
  * record; the loading tests use the fixture rules in test-data/config.
  */
 @IsTest
-private class GridFormatRuleTest {
+private class GridDisplayRuleTest {
     private static final Schema.SObjectType TEST_RECORD = Consignment__c.SObjectType;
 
     /** A row rule, so the field need not be a column; the cell cases pass 'cell'. */
-    private static Grid_Format_Rule__mdt rule(String field, String operator, String value, String style) {
+    private static Grid_Display_Rule__mdt rule(String field, String operator, String value, String style) {
         return rule(field, operator, value, style, 'row');
     }
 
     /** Custom metadata fields cannot be assigned in Apex, so each variant is built whole. */
-    private static Grid_Format_Rule__mdt rule(
+    private static Grid_Display_Rule__mdt rule(
         String field,
         String operator,
         String value,
         String style,
         String applyTo
     ) {
-        return new Grid_Format_Rule__mdt(
+        return new Grid_Display_Rule__mdt(
             DeveloperName = 'Rule_' + field.replace('__c', ''),
             Field_API_Name__c = field,
             Operator__c = operator,
@@ -34,11 +34,11 @@ private class GridFormatRuleTest {
         );
     }
 
-    private static GridConfig.FormatRule check(Grid_Format_Rule__mdt r) {
-        return GridConfig.formatRule(r, TEST_RECORD, new Map<String, GridConfig.Column>());
+    private static GridConfig.DisplayRule check(Grid_Display_Rule__mdt r) {
+        return GridConfig.displayRule(r, TEST_RECORD, new Map<String, GridConfig.Column>());
     }
 
-    private static String refusal(Grid_Format_Rule__mdt r) {
+    private static String refusal(Grid_Display_Rule__mdt r) {
         try {
             check(r);
         } catch (GridException e) {
@@ -137,7 +137,7 @@ private class GridFormatRuleTest {
             GridConfig.Column col = new GridConfig.Column();
             col.field = 'Consignee__c';
             col.type = 'email';
-            GridConfig.FormatRule r = GridConfig.formatRule(
+            GridConfig.DisplayRule r = GridConfig.displayRule(
                 rule('Consignee__c', 'contains', '@', 'bold', 'cell'),
                 TEST_RECORD,
                 new Map<String, GridConfig.Column>{ 'consignee__c' => col }
@@ -168,7 +168,7 @@ private class GridFormatRuleTest {
         System.runAs(GridTestUsers.fullUser()) {
             GridConfig.Definition def = GridConfig.load('Consignments');
             List<String> names = new List<String>();
-            for (GridConfig.FormatRule r : def.formatRules) {
+            for (GridConfig.DisplayRule r : def.displayRules) {
                 names.add(r.name);
             }
             System.assertEquals(
@@ -182,12 +182,12 @@ private class GridFormatRuleTest {
                 names,
                 'Active rules only, lowest Sort Order first; Switched_Off is inactive.'
             );
-            System.assertEquals('row', def.formatRules[3].applyTo);
-            System.assertEquals('Express', def.formatRules[3].value);
-            System.assertEquals('fill_purple', def.formatRules[3].style);
+            System.assertEquals('row', def.displayRules[3].applyTo);
+            System.assertEquals('Express', def.displayRules[3].value);
+            System.assertEquals('fill_purple', def.displayRules[3].style);
             System.assertEquals(
                 'Express service',
-                def.formatRules[3].label,
+                def.displayRules[3].label,
                 'The rule\'s Label: what the legend says.'
             );
             System.assertEquals(new List<String>(), def.warnings);
@@ -217,13 +217,13 @@ private class GridFormatRuleTest {
         Set<String> full = new Set<String>();
         Set<String> limited = new Set<String>();
         System.runAs(GridTestUsers.fullUser()) {
-            for (GridConfig.FormatRule r : GridConfig.forUser('Consignments').formatRules) {
+            for (GridConfig.DisplayRule r : GridConfig.forUser('Consignments').displayRules) {
                 full.add(r.field);
             }
         }
         System.runAs(GridTestUsers.limitedUser()) {
             GridConfig.Definition def = GridConfig.forUser('Consignments');
-            for (GridConfig.FormatRule r : def.formatRules) {
+            for (GridConfig.DisplayRule r : def.displayRules) {
                 limited.add(r.field);
             }
             System.assert(!def.fieldNames().contains('Fuel_Surcharge__c'));

@@ -1,7 +1,7 @@
 /**
  * Conditional formatting in the table: the classes each cell takes,
  * following unsaved edits, in the table and in cards. What each rule means is
- * tested in c/gridFormatRules; the colors were checked in Lightning Experience.
+ * tested in c/gridDisplayRules; the colors were checked in Lightning Experience.
  */
 import { createElement } from 'lwc';
 import GridTable from 'c/gridTable';
@@ -76,7 +76,7 @@ describe('conditional formatting in the table', () => {
     const cell = (i, field) => el.shadowRoot.querySelector(`td[data-row-id="${ROWS[i].Id}"][data-field="${field}"]`);
     const mount = async extra => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
-        el.config = { columns: COLUMNS, rows: ROWS, formatRules: RULES, ...extra };
+        el.config = { columns: COLUMNS, rows: ROWS, displayRules: RULES, ...extra };
         document.body.appendChild(el);
         await flush();
     };
@@ -127,7 +127,7 @@ describe('conditional formatting in the table', () => {
         el.config = {
             columns: COLUMNS,
             rows: ROWS,
-            formatRules: RULES,
+            displayRules: RULES,
             drafts: { [ROWS[1].Id]: { Service_Level__c: 'Express' } }
         };
         await flush();
@@ -136,7 +136,7 @@ describe('conditional formatting in the table', () => {
         expect(cell(1, 'Service_Level__c').className).not.toMatch(/rh-fmt_/);
         // Saved, the value is the record's own and the cell takes its format.
         const saved = ROWS.map(r => (r.Id === ROWS[0].Id ? { ...r, Freight_Charge__c: '2500' } : r));
-        el.config = { columns: COLUMNS, rows: saved, formatRules: RULES, drafts: {} };
+        el.config = { columns: COLUMNS, rows: saved, displayRules: RULES, drafts: {} };
         await flush();
         expect(cell(0, 'Freight_Charge__c').classList).toContain('rh-fmt_fill-green');
     });
@@ -148,9 +148,9 @@ describe('conditional formatting in the table', () => {
     });
 
     it('formats nothing without rules, and leaves the selection column alone', async () => {
-        await mount({ formatRules: undefined });
+        await mount({ displayRules: undefined });
         expect(el.shadowRoot.querySelectorAll('td[class*="rh-fmt_"]')).toHaveLength(0);
-        el.config = { columns: COLUMNS, rows: ROWS, formatRules: RULES, selection: 'multi' };
+        el.config = { columns: COLUMNS, rows: ROWS, displayRules: RULES, selection: 'multi' };
         await flush();
         expect(
             el.shadowRoot.querySelector(`td[data-row-id="${ROWS[2].Id}"][data-field="__select"]`).className

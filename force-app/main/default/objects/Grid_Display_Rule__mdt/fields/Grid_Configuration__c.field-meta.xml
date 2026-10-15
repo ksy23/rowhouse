@@ -6,8 +6,8 @@
     <label>Grid Configuration</label>
     <type>MetadataRelationship</type>
     <referenceTo>Grid_Configuration__mdt</referenceTo>
-    <relationshipLabel>Grid Format Rules</relationshipLabel>
-    <relationshipName>Grid_Format_Rules</relationshipName>
+    <relationshipLabel>Grid Display Rules</relationshipLabel>
+    <relationshipName>Grid_Display_Rules</relationshipName>
     <required>false</required>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

@@ -6,7 +6,7 @@
  * or both. Each is checked here against what can be checked without running
  * it: a known type, a well-formed name and input, and for an object's quick
  * action, the grid's own object. One an admin got wrong is left out with a
- * warning, as for format rules and child tables. Whether the flow or quick
+ * warning, as for display rules and child tables. Whether the flow or quick
  * action exists is not asked here: a describe for every action on every page
  * load is not free, and running one that is not there says so.
  *

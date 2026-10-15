@@ -2,7 +2,7 @@
  * Conditional formatting rules: what each operator means for each type,
  * and which classes a cell ends up with when several rules match.
  */
-import { compileRules, formatsFor, legendFor, resolveDate, dateIn, STYLES } from 'c/gridFormatRules';
+import { compileRules, formatsFor, legendFor, resolveDate, dateIn, STYLES } from 'c/gridDisplayRules';
 
 const CONTEXT = { today: '2026-09-28', timeZone: 'America/New_York', userId: '005000000000001AAA' };
 const one = (rule, value) =>

@@ -103,7 +103,7 @@ To build a grid in Setup instead:
 
 1. Create a **Grid Configuration** custom metadata record (the object, page
    size, default sort and, if you want them, frozen columns and a height), and
-   a **Grid Column** record for each column. Add **Grid Format Rule** records
+   a **Grid Column** record for each column. Add **Grid Display Rule** records
    for display rules, **Grid Filter** records for conditions every row must
    meet, **Grid Action** records for actions and **Grid Child Table** records
    for child tables. The Grid Guide's Configuration reference describes every
@@ -134,7 +134,7 @@ force-app/main/default/
     gridClipboard/    what copy writes and paste reads, per column type
     gridHistory/      undo and redo of unsaved edits
     gridFields/       lookup names and links, picklist dependencies
-    gridFormatRules/  display rules: which cells a rule colors
+    gridDisplayRules/  display rules: which cells a rule colors
     gridMassUpdate/   the dialog that changes one field on the selected rows
     gridImport/       CSV reading and the import plan: what each row will do
     gridXlsx/         our own .xlsx reader: unzip, inflate, worksheets

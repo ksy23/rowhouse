@@ -91,7 +91,7 @@ private class GridConfigTest {
                     Sort_Order__c = 10
                 )
             },
-            new List<Grid_Format_Rule__mdt>(),
+            new List<Grid_Display_Rule__mdt>(),
             new List<Grid_Child__mdt>(),
             new List<Grid_Action__mdt>()
         );

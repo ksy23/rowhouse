@@ -2,7 +2,7 @@
  * The richer display rules: Between, two fields, formula rules, icons
  * and data bars, and how they sit beside the fills and text colors.
  */
-import { compileRules, formatsFor, legendFor } from 'c/gridFormatRules';
+import { compileRules, formatsFor, legendFor } from 'c/gridDisplayRules';
 
 const CONTEXT = { today: '2026-09-28', timeZone: 'America/New_York', userId: '005000000000001AAA' };
 const FIELDS = ['Name', 'Amount', 'Budget', 'Due'];

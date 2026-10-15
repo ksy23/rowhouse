@@ -12,8 +12,8 @@
  *   forUser() — what the running user may actually see and edit: unreadable
  *               columns removed, editability narrowed by field-level security.
  *
- * FORMAT RULES
- * Conditional formatting comes from Grid_Format_Rule__mdt records. Each rule is
+ * DISPLAY RULES
+ * Conditional formatting comes from Grid_Display_Rule__mdt records. Each rule is
  * checked here against the schema. A rule an admin got wrong (an unknown field,
  * an operator that means nothing for the field's type, a value that is not a
  * number or a date) is skipped with a warning rather than breaking the grid for
@@ -112,7 +112,7 @@ public with sharing class GridConfig {
     };
 
     /**
-     * The looks a format rule may give; the grid maps each to one class.
+     * The looks a display rule may give; the grid maps each to one class.
      * There is no blue fill: a blue row would look selected.
      */
     public static final Set<String> FORMAT_STYLES = new Set<String>{
@@ -351,7 +351,7 @@ public with sharing class GridConfig {
      * date is ISO or TODAY with an offset in days, a time is HH:MM:SS, a lookup
      * is an 18-character Id or $User.
      */
-    public class FormatRule {
+    public class DisplayRule {
         @AuraEnabled
         public String name;
         /** What the rule means, in the admin's words: its Label. The grid shows it in the legend. */
@@ -535,7 +535,7 @@ public with sharing class GridConfig {
         public List<Column> columns = new List<Column>();
         /** Conditional formats, in the order they apply. */
         @AuraEnabled
-        public List<FormatRule> formatRules = new List<FormatRule>();
+        public List<DisplayRule> displayRules = new List<DisplayRule>();
         /**
          * The grouping the grid opens with, outermost first:
          * [{ field, unit }], unit being day, month, quarter or year for a date
@@ -549,7 +549,7 @@ public with sharing class GridConfig {
         /** Actions users can run on a row or the selection, in order; forUser() drops what the user may not run. */
         @AuraEnabled
         public List<Action> actions = new List<Action>();
-        /** Configuration problems that did not stop the grid, such as a skipped format rule. */
+        /** Configuration problems that did not stop the grid, such as a skipped display rule. */
         @AuraEnabled
         public List<String> warnings = new List<String>();
         /** The admin's filters, in words for the grid to show; every one holds. */
@@ -596,7 +596,7 @@ public with sharing class GridConfig {
                     out.add(c.dependentOn);
                 }
             }
-            for (FormatRule r : formatRules) {
+            for (DisplayRule r : displayRules) {
                 // A formula rule's field is only the cell it colors; a
                 // two-field rule reads its other field too.
                 if (r.field != null && r.isFormula != true && seen.add(r.field.toLowerCase())) {
@@ -622,7 +622,7 @@ public with sharing class GridConfig {
                     }
                 }
             }
-            for (FormatRule r : formatRules) {
+            for (DisplayRule r : displayRules) {
                 if (r.formula != null) {
                     for (String p : r.formula.paths) {
                         if (seen.add(p.toLowerCase())) {
@@ -651,7 +651,7 @@ public with sharing class GridConfig {
                     return true;
                 }
             }
-            for (FormatRule r : formatRules) {
+            for (DisplayRule r : displayRules) {
                 if (r.formula != null) {
                     return true;
                 }
@@ -780,11 +780,11 @@ public with sharing class GridConfig {
         return names;
     }
 
-    /** Every Grid Format Rule of a configuration, active or not, in no particular order. */
-    public static List<Grid_Format_Rule__mdt> rulesOf(Grid_Configuration__mdt cfg) {
-        List<Grid_Format_Rule__mdt> out = new List<Grid_Format_Rule__mdt>();
+    /** Every Grid Display Rule of a configuration, active or not, in no particular order. */
+    public static List<Grid_Display_Rule__mdt> rulesOf(Grid_Configuration__mdt cfg) {
+        List<Grid_Display_Rule__mdt> out = new List<Grid_Display_Rule__mdt>();
         Set<Id> longFormulas = new Set<Id>();
-        for (Grid_Format_Rule__mdt r : Grid_Format_Rule__mdt.getAll().values()) {
+        for (Grid_Display_Rule__mdt r : Grid_Display_Rule__mdt.getAll().values()) {
             if (belongsTo(r.Grid_Configuration__c, cfg)) {
                 out.add(r);
                 if (r.Formula__c != null && r.Formula__c.length() >= CACHED_TEXT_LIMIT) {
@@ -793,14 +793,14 @@ public with sharing class GridConfig {
             }
         }
         if (!longFormulas.isEmpty()) {
-            Map<Id, Grid_Format_Rule__mdt> whole = new Map<Id, Grid_Format_Rule__mdt>();
+            Map<Id, Grid_Display_Rule__mdt> whole = new Map<Id, Grid_Display_Rule__mdt>();
             try {
                 whole.putAll(
-                    (List<Grid_Format_Rule__mdt>) GridSecurity.query(
+                    (List<Grid_Display_Rule__mdt>) GridSecurity.query(
                         'SELECT Id, ' +
-                            GridDescribe.apiName(Grid_Format_Rule__mdt.Formula__c) +
+                            GridDescribe.apiName(Grid_Display_Rule__mdt.Formula__c) +
                             ' FROM ' +
-                            GridDescribe.apiName(Grid_Format_Rule__mdt.SObjectType) +
+                            GridDescribe.apiName(Grid_Display_Rule__mdt.SObjectType) +
                             ' WHERE Id IN :ids',
                         new Map<String, Object>{ 'ids' => longFormulas }
                     )
@@ -812,7 +812,7 @@ public with sharing class GridConfig {
             for (Integer i = 0; i < out.size(); i++) {
                 if (whole.containsKey(out[i].Id)) {
                     // getAll()'s records are read-only: the whole formula goes on a copy.
-                    Grid_Format_Rule__mdt copy = out[i].clone(true, true, true, true);
+                    Grid_Display_Rule__mdt copy = out[i].clone(true, true, true, true);
                     copy.Formula__c = whole.get(out[i].Id).Formula__c;
                     out[i] = copy;
                 }
@@ -831,7 +831,7 @@ public with sharing class GridConfig {
     public static Definition build(
         Grid_Configuration__mdt cfg,
         List<Grid_Column__mdt> allColumns,
-        List<Grid_Format_Rule__mdt> allRules,
+        List<Grid_Display_Rule__mdt> allRules,
         List<Grid_Child__mdt> links,
         List<Grid_Action__mdt> actionRecords
     ) {
@@ -842,7 +842,7 @@ public with sharing class GridConfig {
     public static Definition build(
         Grid_Configuration__mdt cfg,
         List<Grid_Column__mdt> allColumns,
-        List<Grid_Format_Rule__mdt> allRules,
+        List<Grid_Display_Rule__mdt> allRules,
         List<Grid_Child__mdt> links,
         List<Grid_Action__mdt> actionRecords,
         List<Grid_Filter__mdt> filterRecords
@@ -1097,7 +1097,7 @@ public with sharing class GridConfig {
             def.columns.add(col);
         }
         loadGrouping(def, groupDefaults);
-        loadFormatRules(def, allRules, objectType, GridFormulas.MAX_FORMULAS - formulas);
+        loadDisplayRules(def, allRules, objectType, GridFormulas.MAX_FORMULAS - formulas);
         def.children = GridNesting.childrenFrom(links, objectType, def.warnings);
         def.actions = GridActions.actionsFrom(actionRecords, objectType, def.warnings);
         return def;
@@ -1169,15 +1169,15 @@ public with sharing class GridConfig {
         }
     }
 
-    /** Active format rules in Sort Order; a rule that does not make sense is skipped with a warning. */
-    private static void loadFormatRules(
+    /** Active display rules in Sort Order; a rule that does not make sense is skipped with a warning. */
+    private static void loadDisplayRules(
         Definition def,
-        List<Grid_Format_Rule__mdt> allRules,
+        List<Grid_Display_Rule__mdt> allRules,
         Schema.SObjectType objectType,
         Integer formulaBudget
     ) {
-        List<Grid_Format_Rule__mdt> rules = new List<Grid_Format_Rule__mdt>();
-        for (Grid_Format_Rule__mdt r : allRules) {
+        List<Grid_Display_Rule__mdt> rules = new List<Grid_Display_Rule__mdt>();
+        for (Grid_Display_Rule__mdt r : allRules) {
             if (r.Active__c != false) {
                 rules.add(r);
             }
@@ -1188,18 +1188,18 @@ public with sharing class GridConfig {
             byField.put(c.field.toLowerCase(), c);
         }
         Integer budget = formulaBudget;
-        for (Grid_Format_Rule__mdt r : rules) {
+        for (Grid_Display_Rule__mdt r : rules) {
             try {
                 if (String.isNotBlank(r.Formula__c) && budget <= 0) {
                     throw new GridException('a grid has at most ' + GridFormulas.MAX_FORMULAS + ' formulas.');
                 }
-                FormatRule rule = formatRule(r, objectType, byField);
+                DisplayRule rule = displayRule(r, objectType, byField);
                 if (rule.formula != null) {
                     budget--;
                 }
-                def.formatRules.add(rule);
+                def.displayRules.add(rule);
             } catch (GridException e) {
-                def.warnings.add('Format rule ' + r.DeveloperName + ' was skipped: ' + e.getMessage());
+                def.warnings.add('Display rule ' + r.DeveloperName + ' was skipped: ' + e.getMessage());
             }
         }
     }
@@ -1285,16 +1285,16 @@ public with sharing class GridConfig {
     }
 
     /**
-     * One format rule, checked against the schema and normalised. Throws a
+     * One display rule, checked against the schema and normalised. Throws a
      * GridException whose message says what is wrong, in an admin's terms.
      */
     @TestVisible
-    private static FormatRule formatRule(
-        Grid_Format_Rule__mdt r,
+    private static DisplayRule displayRule(
+        Grid_Display_Rule__mdt r,
         Schema.SObjectType objectType,
         Map<String, Column> columnsByField
     ) {
-        FormatRule rule = new FormatRule();
+        DisplayRule rule = new DisplayRule();
         rule.name = r.DeveloperName;
         rule.label = String.isNotBlank(r.MasterLabel) ? r.MasterLabel : r.DeveloperName;
         rule.style = String.isBlank(r.Style__c) ? null : r.Style__c.trim().toLowerCase();
@@ -1345,7 +1345,7 @@ public with sharing class GridConfig {
     }
 
     /** A data bar needs a number in a cell; the other styles fit anything. */
-    private static void requireStyleFits(FormatRule rule, Schema.DescribeFieldResult d) {
+    private static void requireStyleFits(DisplayRule rule, Schema.DescribeFieldResult d) {
         if (rule.style != 'data_bar') {
             return;
         }
@@ -1365,8 +1365,8 @@ public with sharing class GridConfig {
      * greater and less than for numbers, dates and times.
      */
     private static void compareWith(
-        FormatRule rule,
-        Grid_Format_Rule__mdt r,
+        DisplayRule rule,
+        Grid_Display_Rule__mdt r,
         Schema.SObjectType objectType,
         Schema.DescribeFieldResult d
     ) {
@@ -1414,9 +1414,9 @@ public with sharing class GridConfig {
      * object. Field names the cell it colors; with Apply To Row it may be
      * blank. Operator and Value are not used.
      */
-    private static FormatRule formulaRule(
-        FormatRule rule,
-        Grid_Format_Rule__mdt r,
+    private static DisplayRule formulaRule(
+        DisplayRule rule,
+        Grid_Display_Rule__mdt r,
         Schema.SObjectType objectType,
         Map<String, Column> columnsByField
     ) {
@@ -1452,13 +1452,13 @@ public with sharing class GridConfig {
         return rule;
     }
 
-    private static void requireOperatorFits(FormatRule rule, Schema.DescribeFieldResult d) {
+    private static void requireOperatorFits(DisplayRule rule, Schema.DescribeFieldResult d) {
         requireFits(rule.operator, rule.type, d.getLabel());
     }
 
     /**
      * Does the operator mean something for a field of this type? Throws, in an
-     * admin's terms, when it does not. Format rules and filters alike.
+     * admin's terms, when it does not. Display rules and filters alike.
      */
     public static void requireFits(String op, String type, String fieldLabel) {
         if (!OPERATORS.contains(op)) {
@@ -1484,13 +1484,13 @@ public with sharing class GridConfig {
     }
 
     /** The rule's value, checked for the field's type and normalised; null for the blank tests. */
-    private static String ruleValue(FormatRule rule, Schema.DescribeFieldResult d, String raw) {
+    private static String ruleValue(DisplayRule rule, Schema.DescribeFieldResult d, String raw) {
         return conditionValue(rule.operator, rule.type, d, raw);
     }
 
     /**
      * A condition's value, checked for the field's type and normalised; null
-     * for the blank tests. Format rules and filters alike.
+     * for the blank tests. Display rules and filters alike.
      */
     public static String conditionValue(String operator, String type, Schema.DescribeFieldResult d, String raw) {
         if (operator == 'is_blank' || operator == 'is_not_blank') {
@@ -1773,8 +1773,8 @@ public with sharing class GridConfig {
         for (Column c : visible) {
             shown.add(c.field.toLowerCase());
         }
-        List<FormatRule> readable = new List<FormatRule>();
-        for (FormatRule r : def.formatRules) {
+        List<DisplayRule> readable = new List<DisplayRule>();
+        for (DisplayRule r : def.displayRules) {
             Boolean ok;
             if (r.isFormula == true) {
                 ok =
@@ -1791,7 +1791,7 @@ public with sharing class GridConfig {
                 readable.add(r);
             }
         }
-        def.formatRules = readable;
+        def.displayRules = readable;
         // A tab of records the user cannot read is not offered, silently,
         // as for a column.
         List<Child> children = new List<Child>();
@@ -1846,8 +1846,8 @@ public with sharing class GridConfig {
         }
     }
 
-    private class RulesInOrder implements Comparator<Grid_Format_Rule__mdt> {
-        public Integer compare(Grid_Format_Rule__mdt a, Grid_Format_Rule__mdt b) {
+    private class RulesInOrder implements Comparator<Grid_Display_Rule__mdt> {
+        public Integer compare(Grid_Display_Rule__mdt a, Grid_Display_Rule__mdt b) {
             Decimal x = a.Sort_Order__c == null ? 9999 : a.Sort_Order__c;
             Decimal y = b.Sort_Order__c == null ? 9999 : b.Sort_Order__c;
             if (x != y) {

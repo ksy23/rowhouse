@@ -160,7 +160,7 @@ public with sharing class GridAdmin {
         public String childField;
     }
 
-    /** A Grid Format Rule. The list's order is the order the rules apply in. */
+    /** A Grid Display Rule. The list's order is the order the rules apply in. */
     public class RuleDraft {
         @AuraEnabled
         public String name;
@@ -460,7 +460,7 @@ public with sharing class GridAdmin {
             d.columns.add(col);
         }
         for (SObject record : inOrder(GridConfig.rulesOf(cfg))) {
-            Grid_Format_Rule__mdt r = (Grid_Format_Rule__mdt) record;
+            Grid_Display_Rule__mdt r = (Grid_Display_Rule__mdt) record;
             RuleDraft rule = new RuleDraft();
             rule.name = r.DeveloperName;
             rule.label = r.MasterLabel;
@@ -1130,8 +1130,8 @@ public with sharing class GridAdmin {
         checkNames(
             'Display rule',
             rules,
-            Grid_Format_Rule__mdt.getAll().values(),
-            Grid_Format_Rule__mdt.Grid_Configuration__c,
+            Grid_Display_Rule__mdt.getAll().values(),
+            Grid_Display_Rule__mdt.Grid_Configuration__c,
             owner,
             result
         );
@@ -1418,7 +1418,7 @@ public with sharing class GridAdmin {
         return out;
     }
 
-    /** One record, with its type as Setup names it (Grid Format Rule for a display rule). */
+    /** One record, with its type as Setup names it (Grid Display Rule, Grid Column and so on). */
     private static Map<String, String> setupItem(SObject record, String note) {
         return new Map<String, String>{
             'kind' => record.getSObjectType().getDescribe(SObjectDescribeOptions.DEFERRED).getLabel(),
@@ -1527,8 +1527,8 @@ public with sharing class GridAdmin {
         return out;
     }
 
-    private static List<Grid_Format_Rule__mdt> ruleRecords(Draft d) {
-        List<Grid_Format_Rule__mdt> out = new List<Grid_Format_Rule__mdt>();
+    private static List<Grid_Display_Rule__mdt> ruleRecords(Draft d) {
+        List<Grid_Display_Rule__mdt> out = new List<Grid_Display_Rule__mdt>();
         List<String> names = ruleNames(d);
         for (Integer i = 0; i < d.rules.size(); i++) {
             Map<String, Object> m = new Map<String, Object>{
@@ -1537,11 +1537,11 @@ public with sharing class GridAdmin {
             };
             Map<Schema.SObjectField, Object> values = ruleValues(d.rules[i], i);
             for (Schema.SObjectField f : values.keySet()) {
-                if (f != Grid_Format_Rule__mdt.Grid_Configuration__c) {
+                if (f != Grid_Display_Rule__mdt.Grid_Configuration__c) {
                     m.put(GridDescribe.apiName(f), values.get(f));
                 }
             }
-            out.add((Grid_Format_Rule__mdt) JSON.deserialize(JSON.serialize(m), Grid_Format_Rule__mdt.class));
+            out.add((Grid_Display_Rule__mdt) JSON.deserialize(JSON.serialize(m), Grid_Display_Rule__mdt.class));
         }
         return out;
     }
@@ -1656,17 +1656,17 @@ public with sharing class GridAdmin {
 
     private static Map<Schema.SObjectField, Object> ruleValues(RuleDraft r, Integer index) {
         return new Map<Schema.SObjectField, Object>{
-            Grid_Format_Rule__mdt.Field_API_Name__c => trimmed(r.field),
-            Grid_Format_Rule__mdt.Operator__c => trimmed(r.operator),
-            Grid_Format_Rule__mdt.Value__c => trimmed(r.value),
-            Grid_Format_Rule__mdt.Style__c => trimmed(r.style),
-            Grid_Format_Rule__mdt.Apply_To__c => trimmed(r.applyTo),
-            Grid_Format_Rule__mdt.Sort_Order__c => sortOrder(index),
-            Grid_Format_Rule__mdt.Active__c => r.active != false,
-            Grid_Format_Rule__mdt.Value_To__c => trimmed(r.valueTo),
-            Grid_Format_Rule__mdt.Compare_Field__c => trimmed(r.compareField),
-            Grid_Format_Rule__mdt.Formula__c => trimmed(r.formula),
-            Grid_Format_Rule__mdt.Grid_Configuration__c => null
+            Grid_Display_Rule__mdt.Field_API_Name__c => trimmed(r.field),
+            Grid_Display_Rule__mdt.Operator__c => trimmed(r.operator),
+            Grid_Display_Rule__mdt.Value__c => trimmed(r.value),
+            Grid_Display_Rule__mdt.Style__c => trimmed(r.style),
+            Grid_Display_Rule__mdt.Apply_To__c => trimmed(r.applyTo),
+            Grid_Display_Rule__mdt.Sort_Order__c => sortOrder(index),
+            Grid_Display_Rule__mdt.Active__c => r.active != false,
+            Grid_Display_Rule__mdt.Value_To__c => trimmed(r.valueTo),
+            Grid_Display_Rule__mdt.Compare_Field__c => trimmed(r.compareField),
+            Grid_Display_Rule__mdt.Formula__c => trimmed(r.formula),
+            Grid_Display_Rule__mdt.Grid_Configuration__c => null
         };
     }
 
@@ -1747,8 +1747,8 @@ public with sharing class GridAdmin {
         names = ruleNames(d);
         for (Integer i = 0; i < d.rules.size(); i++) {
             Map<Schema.SObjectField, Object> values = ruleValues(d.rules[i], i);
-            values.put(Grid_Format_Rule__mdt.Grid_Configuration__c, configName);
-            out.addMetadata(record(Grid_Format_Rule__mdt.SObjectType, names[i], d.rules[i].label.trim(), values));
+            values.put(Grid_Display_Rule__mdt.Grid_Configuration__c, configName);
+            out.addMetadata(record(Grid_Display_Rule__mdt.SObjectType, names[i], d.rules[i].label.trim(), values));
         }
         names = actionNames(d);
         for (Integer i = 0; i < d.actions.size(); i++) {
@@ -1839,7 +1839,7 @@ public with sharing class GridAdmin {
             wanted.add(String.isNotBlank(r.name) ? r.name.trim() : null);
             hints.add(r.label);
         }
-        return names(d.config.name, wanted, hints, Grid_Format_Rule__mdt.getAll().keySet());
+        return names(d.config.name, wanted, hints, Grid_Display_Rule__mdt.getAll().keySet());
     }
 
     private static List<String> actionNames(Draft d) {

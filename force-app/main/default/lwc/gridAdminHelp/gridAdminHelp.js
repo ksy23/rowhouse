@@ -30,7 +30,7 @@ export const SECTIONS = Object.freeze({
 const TITLES = Object.freeze({
     grid: 'Grid Configuration',
     columns: 'Grid Column',
-    rules: 'Grid Format Rule',
+    rules: 'Grid Display Rule',
     filters: 'Grid Filter',
     actions: 'Grid Action',
     children: 'Grid Child Table'

@@ -1,5 +1,5 @@
 /**
- * gridFormatRules — conditional formatting, as plain functions: no DOM,
+ * gridDisplayRules — conditional formatting, as plain functions: no DOM,
  * no events, no state (HR-25).
  *
  * The server sends the rules already checked and normalised (GridConfig), in
@@ -26,7 +26,7 @@
  *
  * LABELS
  * Color alone does not say what it means (WCAG 1.4.1). Each rule carries its
- * label (the Grid Format Rule's Label); a cell's labels are those of the rules
+ * label (the Grid Display Rule's Label); a cell's labels are those of the rules
  * that formatted it, and a row's those of the row rules that did.
  *
  * NO BLUE

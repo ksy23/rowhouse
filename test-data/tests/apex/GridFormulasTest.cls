@@ -52,7 +52,7 @@ private class GridFormulasTest {
         );
     }
 
-    private static GridConfig.Definition build(List<Grid_Column__mdt> columns, List<Grid_Format_Rule__mdt> rules) {
+    private static GridConfig.Definition build(List<Grid_Column__mdt> columns, List<Grid_Display_Rule__mdt> rules) {
         return GridConfig.build(
             cfg(),
             columns,
@@ -85,7 +85,7 @@ private class GridFormulasTest {
                     formula('Fx_Account', 'Shipper name', 'Shipper__r.Name', 'text', 30),
                     formula('Fx_Ratio', 'Weight per piece', 'Weight__c / Pieces__c', 'number', 40)
                 },
-                new List<Grid_Format_Rule__mdt>()
+                new List<Grid_Display_Rule__mdt>()
             );
             System.assertEquals(new List<String>(), def.warnings);
             GridConfig.Column doubled = def.columns[1];
@@ -144,7 +144,7 @@ private class GridFormulasTest {
                     column('Name', 10),
                     formula('Fx_Share', 'Share', 'Pieces__c / 16', 'percent', 20)
                 },
-                new List<Grid_Format_Rule__mdt>()
+                new List<Grid_Display_Rule__mdt>()
             );
             Map<String, Map<String, Object>> rows = rowsOf(def);
             System.assertEquals(
@@ -166,7 +166,7 @@ private class GridFormulasTest {
                     formula('Fx_No_Label', null, 'Pieces__c', 'number', 30),
                     formula('Fx_No_Type', 'Piece count', 'Pieces__c', 'color', 40)
                 },
-                new List<Grid_Format_Rule__mdt>()
+                new List<Grid_Display_Rule__mdt>()
             );
             System.assertEquals(1, def.columns.size());
             String warnings = String.join(def.warnings, ' | ');
@@ -183,7 +183,7 @@ private class GridFormulasTest {
             for (Integer i = 0; i <= GridFormulas.MAX_FORMULAS; i++) {
                 columns.add(formula('Fx_' + i, 'Pieces plus ' + i, 'Pieces__c + ' + i, 'number', 10 + i));
             }
-            GridConfig.Definition def = build(columns, new List<Grid_Format_Rule__mdt>());
+            GridConfig.Definition def = build(columns, new List<Grid_Display_Rule__mdt>());
             System.assertEquals(GridFormulas.MAX_FORMULAS + 1, def.columns.size());
             System.assert(
                 String.join(def.warnings, ' ').contains('at most ' + GridFormulas.MAX_FORMULAS + ' formulas')
@@ -194,7 +194,7 @@ private class GridFormulasTest {
     @IsTest
     static void aFormulaRuleMarksTheRowsItMeets() {
         System.runAs(GridTestUsers.fullUser()) {
-            Grid_Format_Rule__mdt r = new Grid_Format_Rule__mdt(
+            Grid_Display_Rule__mdt r = new Grid_Display_Rule__mdt(
                 DeveloperName = 'Fx_Rule',
                 MasterLabel = 'Large consignment',
                 Field_API_Name__c = 'Name',
@@ -205,10 +205,10 @@ private class GridFormulasTest {
             );
             GridConfig.Definition def = build(
                 new List<Grid_Column__mdt>{ column('Name', 10) },
-                new List<Grid_Format_Rule__mdt>{ r }
+                new List<Grid_Display_Rule__mdt>{ r }
             );
-            System.assertEquals(1, def.formatRules.size(), String.valueOf(def.warnings));
-            GridConfig.FormatRule rule = def.formatRules[0];
+            System.assertEquals(1, def.displayRules.size(), String.valueOf(def.warnings));
+            GridConfig.DisplayRule rule = def.displayRules[0];
             System.assert(rule.isFormula, 'Tested on the server.');
             System.assertEquals('Name', rule.field, 'Its Field is the cell it colors.');
             Map<String, Map<String, Object>> rows = rowsOf(def);
@@ -224,8 +224,8 @@ private class GridFormulasTest {
     static void newRuleOptionsAreChecked() {
         Map<String, GridConfig.Column> noColumns = new Map<String, GridConfig.Column>();
         // Between
-        GridConfig.FormatRule between = GridConfig.formatRule(
-            new Grid_Format_Rule__mdt(
+        GridConfig.DisplayRule between = GridConfig.displayRule(
+            new Grid_Display_Rule__mdt(
                 DeveloperName = 'Pieces_Between',
                 Field_API_Name__c = 'Pieces__c',
                 Operator__c = 'between',
@@ -239,8 +239,8 @@ private class GridFormulasTest {
         );
         System.assertEquals('9', between.valueTo);
         // Two fields
-        GridConfig.FormatRule two = GridConfig.formatRule(
-            new Grid_Format_Rule__mdt(
+        GridConfig.DisplayRule two = GridConfig.displayRule(
+            new Grid_Display_Rule__mdt(
                 DeveloperName = 'Pieces_Over_Charge',
                 Field_API_Name__c = 'Pieces__c',
                 Operator__c = 'greater_than',
@@ -256,8 +256,8 @@ private class GridFormulasTest {
         // Refusals, in an admin's terms.
         List<String> refusals = new List<String>();
         for (
-            Grid_Format_Rule__mdt bad : new List<Grid_Format_Rule__mdt>{
-                new Grid_Format_Rule__mdt(
+            Grid_Display_Rule__mdt bad : new List<Grid_Display_Rule__mdt>{
+                new Grid_Display_Rule__mdt(
                     DeveloperName = 'Pieces_Between_No_End',
                     Field_API_Name__c = 'Pieces__c',
                     Operator__c = 'between',
@@ -265,7 +265,7 @@ private class GridFormulasTest {
                     Style__c = 'bold',
                     Apply_To__c = 'row'
                 ),
-                new Grid_Format_Rule__mdt(
+                new Grid_Display_Rule__mdt(
                     DeveloperName = 'Pieces_Equal_Consignee',
                     Field_API_Name__c = 'Pieces__c',
                     Operator__c = 'equals',
@@ -273,14 +273,14 @@ private class GridFormulasTest {
                     Style__c = 'bold',
                     Apply_To__c = 'row'
                 ),
-                new Grid_Format_Rule__mdt(
+                new Grid_Display_Rule__mdt(
                     DeveloperName = 'Consignee_Data_Bar',
                     Field_API_Name__c = 'Consignee__c',
                     Operator__c = 'is_not_blank',
                     Style__c = 'data_bar',
                     Apply_To__c = 'row'
                 ),
-                new Grid_Format_Rule__mdt(
+                new Grid_Display_Rule__mdt(
                     DeveloperName = 'Pieces_Value_And_Charge',
                     Field_API_Name__c = 'Pieces__c',
                     Operator__c = 'equals',
@@ -289,7 +289,7 @@ private class GridFormulasTest {
                     Style__c = 'bold',
                     Apply_To__c = 'row'
                 ),
-                new Grid_Format_Rule__mdt(
+                new Grid_Display_Rule__mdt(
                     DeveloperName = 'Every_Row_Bold',
                     Formula__c = 'true',
                     Style__c = 'bold',
@@ -298,7 +298,7 @@ private class GridFormulasTest {
             }
         ) {
             try {
-                GridConfig.formatRule(bad, TEST_RECORD, noColumns);
+                GridConfig.displayRule(bad, TEST_RECORD, noColumns);
                 refusals.add('accepted');
             } catch (GridException e) {
                 refusals.add(e.getMessage());

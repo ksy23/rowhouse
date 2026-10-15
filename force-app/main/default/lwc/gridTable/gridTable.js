@@ -30,7 +30,7 @@
  *                  does (the configuration's Show Row Numbers)
  *     refNames:    { [recordId]: name } for lookup and owner cells
  *     configName:  the grid configuration, which lookup editors search through
- *     formatRules: conditional formats from the server, in order
+ *     displayRules: conditional formats from the server, in order
  *     formatToday: the day TODAY stands for in them (YYYY-MM-DD), or null
  *                  for the day they were first read
  *     grouping:    [{ field, unit }] the grouping, outermost first
@@ -139,8 +139,8 @@
  * makes invalid, in the same undo step. A stored invalid pairing is shown as
  * stored until then (TC-038).
  *
- * CONDITIONAL FORMATTING (c/gridFormatRules)
- * Each rendered row is tested against the configuration's format rules, using
+ * CONDITIONAL FORMATTING (c/gridDisplayRules)
+ * Each rendered row is tested against the configuration's display rules, using
  * the values the cells show (unsaved edits included), and each cell takes the
  * classes of the rules it matches: a fill, a text color, bold. The colors
  * are rh- classes on SLDS palette hooks. A cell with an unsaved edit or an
@@ -276,7 +276,7 @@ import {
     isAllowedForRecordType
 } from 'c/gridFields';
 import findLookupNames from '@salesforce/apex/GridController.findLookupNames';
-import { compileRules, formatsFor } from 'c/gridFormatRules';
+import { compileRules, formatsFor } from 'c/gridDisplayRules';
 import {
     normalizeGrouping,
     normalizeOrder,
@@ -1715,25 +1715,25 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     }
 
     /**
-     * The format rules as tests, compiled once per rules array and day. TODAY
+     * The display rules as tests, compiled once per rules array and day. TODAY
      * is fixed when they compile, so a new formatToday (a Refresh) compiles
      * them again; without one, they take the day they were first read.
      */
-    get formatRules() {
-        const rules = this._config.formatRules;
+    get displayRules() {
+        const rules = this._config.displayRules;
         const today = this._config.formatToday || null;
         const m = this._memo;
-        if (!m.formatRules || m.formatSource !== rules || m.formatToday !== today) {
+        if (!m.displayRules || m.formatSource !== rules || m.formatToday !== today) {
             m.formatSource = rules;
             m.formatToday = today;
-            m.formatRules = compileRules(rules, today ? { today } : {});
+            m.displayRules = compileRules(rules, today ? { today } : {});
         }
-        return m.formatRules;
+        return m.displayRules;
     }
 
-    /** How one row is formatted (c/gridFormatRules formatsFor), or null. */
+    /** How one row is formatted (c/gridDisplayRules formatsFor), or null. */
     rowFormats(row, id, drafts, fields) {
-        const rules = this.formatRules;
+        const rules = this.displayRules;
         return rules.length ? formatsFor(rules, f => this.currentValue(row, id, f, drafts), fields) : null;
     }
 
@@ -4542,9 +4542,9 @@ export default class GridTable extends NavigationMixin(LightningElement) {
      */
     get barScales() {
         const m = this._memo;
-        const deps = [this._config.rows, this._config.drafts, this.formatRules];
+        const deps = [this._config.rows, this._config.drafts, this.displayRules];
         if (m.barDeps && m.barDeps.every((d, i) => d === deps[i])) return m.barScales;
-        const fields = [...new Set(this.formatRules.filter(r => r.kind === 'databar' && r.field).map(r => r.field))];
+        const fields = [...new Set(this.displayRules.filter(r => r.kind === 'databar' && r.field).map(r => r.field))];
         const out = {};
         if (fields.length) {
             const rows = Array.isArray(this._config.rows) ? this._config.rows : [];

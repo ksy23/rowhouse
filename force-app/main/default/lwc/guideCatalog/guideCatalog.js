@@ -39,7 +39,7 @@ export const PAGES = [
     {
         "id": "configure",
         "title": "Configuration reference",
-        "desc": "Every field of the six Rowhouse configuration records: Grid Configuration, Grid Column, Grid Format Rule, Grid Filter, Grid Child Table and Grid Action, with value formats, styles and what happens when a setting is wrong.",
+        "desc": "Every field of the six Rowhouse configuration records: Grid Configuration, Grid Column, Grid Display Rule, Grid Filter, Grid Child Table and Grid Action, with value formats, styles and what happens when a setting is wrong.",
         "section": "configure",
         "audience": "admin",
         "anchors": [

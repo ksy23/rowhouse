@@ -68,7 +68,7 @@ const DEFINITION = {
             scale: 2
         }
     ],
-    formatRules: RULES
+    displayRules: RULES
 };
 
 const settle = async () => {

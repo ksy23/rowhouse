@@ -1,9 +1,9 @@
 /**
  * The Display Key's samples repeat gridTable's format colors, because
  * each component's styles are its own. This keeps the two the same: every
- * look c/gridFormatRules can give has a sample, in the table's color.
+ * look c/gridDisplayRules can give has a sample, in the table's color.
  */
-import { STYLES } from 'c/gridFormatRules';
+import { STYLES } from 'c/gridDisplayRules';
 
 /* global require, __dirname -- Jest runs in Node, where the test reads the stylesheets. */
 const fs = require('fs');

@@ -48,7 +48,7 @@ afterEach(() => {
 const TITLES = {
     grid: 'Grid Configuration',
     columns: 'Grid Column',
-    rules: 'Grid Format Rule',
+    rules: 'Grid Display Rule',
     filters: 'Grid Filter',
     actions: 'Grid Action',
     children: 'Grid Child Table'
@@ -67,7 +67,7 @@ it('follows the tab as it changes, and takes an unknown tab as Grid', async () =
     const el = await mount('columns');
     el.tab = 'rules';
     await settle();
-    expect($(el, '.rh-help-title').textContent).toBe('Grid Format Rule');
+    expect($(el, '.rh-help-title').textContent).toBe('Grid Display Rule');
     el.tab = 'nonsense';
     await settle();
     expect($(el, '.rh-help-title').textContent).toBe('Grid Configuration');

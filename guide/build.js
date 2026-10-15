@@ -129,10 +129,10 @@ const LABEL_ROWS = {
         'Grid Column Name',
         'Unique across all Grid Column records.'
     ],
-    Grid_Format_Rule__mdt: [
+    Grid_Display_Rule__mdt: [
         "What the color means, in your words. Users see it in the Display Key, in the cell's tooltip, and screen readers read it.",
-        'Grid Format Rule Name',
-        'Unique across all Grid Format Rule records.'
+        'Grid Display Rule Name',
+        'Unique across all Grid Display Rule records.'
     ],
     Grid_Child__mdt: [
         "Names the record in Setup. The tab shows Tab Label, or the child configuration's label.",

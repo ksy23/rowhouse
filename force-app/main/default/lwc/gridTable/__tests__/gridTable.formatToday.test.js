@@ -28,7 +28,7 @@ describe('TODAY in display rules', () => {
     const dateCell = () => el.shadowRoot.querySelector(`td[data-row-id="${ROWS[0].Id}"][data-field="CloseDate"]`);
     const mount = async (formatToday, rows = ROWS) => {
         el = createElement('rowhouse-grid-table', { is: GridTable });
-        el.config = { columns: COLUMNS, rows, formatRules: [OVERDUE], formatToday };
+        el.config = { columns: COLUMNS, rows, displayRules: [OVERDUE], formatToday };
         document.body.appendChild(el);
         await flush();
     };
@@ -43,8 +43,8 @@ describe('TODAY in display rules', () => {
 
     it('works the rules out again when the day moves on, with the same rules', async () => {
         await mount('2026-10-07');
-        const rules = el.config.formatRules;
-        el.config = { ...el.config, formatRules: rules, formatToday: '2026-10-08' };
+        const rules = el.config.displayRules;
+        el.config = { ...el.config, displayRules: rules, formatToday: '2026-10-08' };
         await flush();
         expect(dateCell().classList).toContain('rh-fmt_text-red');
     });

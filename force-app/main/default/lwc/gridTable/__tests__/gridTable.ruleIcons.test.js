@@ -2,7 +2,7 @@
  * Richer display rules in the table and in cards: an icon before a
  * value, a data bar behind a number, and formula rules, which the server tests
  * for the saved record and names in each row's `_rules`. What each rule
- * matches is tested in c/gridFormatRules; here, what the table draws.
+ * matches is tested in c/gridDisplayRules; here, what the table draws.
  */
 import { createElement } from 'lwc';
 import GridTable from 'c/gridTable';
@@ -56,9 +56,9 @@ const BIG = rule('Big_deal', {
 const SCORE_BAR = rule('Score_bar', { field: 'Score__c', type: 'number', operator: 'is_not_blank', style: 'data_bar' });
 
 let el;
-const mount = async (formatRules, extra = {}) => {
+const mount = async (displayRules, extra = {}) => {
     el = createElement('rowhouse-grid-table', { is: GridTable });
-    el.config = { columns: COLUMNS, rows: ROWS, formatRules, ...extra };
+    el.config = { columns: COLUMNS, rows: ROWS, displayRules, ...extra };
     document.body.appendChild(el);
     await flush();
 };

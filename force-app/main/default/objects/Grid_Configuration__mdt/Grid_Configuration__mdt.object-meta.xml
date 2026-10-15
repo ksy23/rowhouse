@@ -2,6 +2,6 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Grid Configuration</label>
     <pluralLabel>Grid Configurations</pluralLabel>
-    <description>One Rowhouse grid: the object it shows and what users can do with it. Its columns, actions, format rules and child tables are records that point to it. To place the grid on a page, add the Rowhouse Grid component in Lightning App Builder and enter this record's API name.</description>
+    <description>One Rowhouse grid: the object it shows and what users can do with it. Its columns, actions, display rules and child tables are records that point to it. To place the grid on a page, add the Rowhouse Grid component in Lightning App Builder and enter this record's API name.</description>
     <visibility>Public</visibility>
 </CustomObject>

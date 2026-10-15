@@ -50,7 +50,7 @@
           <div class="rh-frame rh-rv">
             <svg class="rh-dia" viewBox="0 0 920 330" role="img" aria-labelledby="mT mD">
               <title id="mT" data-anchor="mT">The six kinds of configuration record</title>
-              <desc id="mD" data-anchor="mD">A Grid Configuration in the center. Grid Columns, Grid Format Rules, Grid Filters, Grid Actions and Grid Child Tables each point to it through their Grid Configuration field. A Grid Child Table also points to a second Grid Configuration, the one shown in its tab.</desc>
+              <desc id="mD" data-anchor="mD">A Grid Configuration in the center. Grid Columns, Grid Display Rules, Grid Filters, Grid Actions and Grid Child Tables each point to it through their Grid Configuration field. A Grid Child Table also points to a second Grid Configuration, the one shown in its tab.</desc>
               <path class="rh-wire" d="M250,47 C330,47 330,165 380,165"/>
               <path class="rh-wire rh-plum" d="M250,115 C330,115 330,165 380,165"/>
               <path class="rh-wire rh-teal" d="M250,183 C330,183 330,165 380,165"/>
@@ -58,7 +58,7 @@
               <path class="rh-wire rh-gold" d="M670,165 H560"/>
               <path class="rh-wire rh-gold" d="M760,205 V265 H560 C520,265 500,250 500,215"/>
               <g class="rh-node rh-s"><rect x="30" y="20" width="220" height="54" rx="10"/><text class="rh-b" x="48" y="43">Grid Column</text><text class="rh-s" x="48" y="62">one per column · required</text></g>
-              <g class="rh-node rh-p"><rect x="30" y="88" width="220" height="54" rx="10"/><text class="rh-b" x="48" y="111">Grid Format Rule</text><text class="rh-s" x="48" y="130">one per display rule · optional</text></g>
+              <g class="rh-node rh-p"><rect x="30" y="88" width="220" height="54" rx="10"/><text class="rh-b" x="48" y="111">Grid Display Rule</text><text class="rh-s" x="48" y="130">one per display rule · optional</text></g>
               <g class="rh-node rh-t"><rect x="30" y="156" width="220" height="54" rx="10"/><text class="rh-b" x="48" y="179">Grid Filter</text><text class="rh-s" x="48" y="198">one per condition · optional</text></g>
               <g class="rh-node rh-r"><rect x="30" y="224" width="220" height="54" rx="10"/><text class="rh-b" x="48" y="247">Grid Action</text><text class="rh-s" x="48" y="266">one per action · optional</text></g>
               <g class="rh-node rh-a rh-pop"><rect x="380" y="110" width="180" height="110" rx="12"/><text class="rh-k" x="398" y="134">The grid</text><text class="rh-b" x="398" y="160" style="font-size:16px">Grid</text><text class="rh-b" x="398" y="180" style="font-size:16px">Configuration</text><text class="rh-s" x="398" y="202">one per grid · required</text></g>
@@ -78,7 +78,7 @@
               <tbody>
                 <tr><td>Grid Configuration</td><td class="rh-d">1 per grid</td><td>The object, the sort it opens with, how many rows the first page loads, its height, frozen columns, the lookup that ties it to a record page, and what users may do: edit, export, import, delete, and whether every change is logged.</td></tr>
                 <tr><td>Grid Column</td><td class="rh-d">1 per column</td><td>The field, or a formula the grid works out; the order, whether it can be edited, sorted or wrapped, its width, and grouping and subtotal settings.</td></tr>
-                <tr><td>Grid Format Rule</td><td class="rh-d">0 or more</td><td>A test (a value, a range, another field, or a formula) and a look: a fill, a text color, bold, an icon or a data bar, on a cell, or a bar on the whole row.</td></tr>
+                <tr><td>Grid Display Rule</td><td class="rh-d">0 or more</td><td>A test (a value, a range, another field, or a formula) and a look: a fill, a text color, bold, an icon or a data bar, on a cell, or a bar on the whole row.</td></tr>
                 <tr><td>Grid Filter</td><td class="rh-d">0 or more</td><td>A condition every record in the grid must meet. Users see it as a locked chip and cannot remove it.</td></tr>
                 <tr><td>Grid Child Table</td><td class="rh-d">0 or more</td><td>A tab of related records under each row, shown with another Grid Configuration.</td></tr>
                 <tr><td>Grid Action</td><td class="rh-d">0 or more</td><td>A flow or quick action users can run on a row, or a flow they run on the selected rows.</td></tr>

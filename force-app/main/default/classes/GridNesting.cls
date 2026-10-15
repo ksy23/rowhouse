@@ -10,7 +10,7 @@
  *   childrenFrom()  — the tabs a configuration lists, each checked against the
  *                     schema. A tab an admin got wrong (no such configuration,
  *                     a field that is not a lookup to the parent's object) is
- *                     left out with a warning, as for format rules.
+ *                     left out with a warning, as for display rules.
  *   scopeFor()      — the parent filter for a request from a child grid. The
  *                     browser names the tab and the parent record; nothing
  *                     else about the filter comes from the browser (HR-6). The

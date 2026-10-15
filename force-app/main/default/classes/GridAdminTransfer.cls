@@ -309,7 +309,7 @@ public with sharing class GridAdminTransfer {
     /** Record API names that are taken: this org's, and those the import has given out so far. */
     private class Taken {
         public Set<String> columns = lower(Grid_Column__mdt.getAll().keySet());
-        public Set<String> rules = lower(Grid_Format_Rule__mdt.getAll().keySet());
+        public Set<String> rules = lower(Grid_Display_Rule__mdt.getAll().keySet());
         public Set<String> filters = lower(Grid_Filter__mdt.getAll().keySet());
         public Set<String> actions = lower(Grid_Action__mdt.getAll().keySet());
         public Set<String> children = lower(Grid_Child__mdt.getAll().keySet());

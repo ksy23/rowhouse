@@ -42,7 +42,7 @@
     </customMetadataTypeAccesses>
     <customMetadataTypeAccesses>
         <enabled>true</enabled>
-        <name>Grid_Format_Rule__mdt</name>
+        <name>Grid_Display_Rule__mdt</name>
     </customMetadataTypeAccesses>
     <fieldPermissions>
         <editable>true</editable>
