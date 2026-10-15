@@ -25,8 +25,10 @@ the release notes unless you would rather stay anonymous.
 
 ## Supported versions
 
-Rowhouse has not been released yet. Once it is, security fixes go into the
-latest released version of the managed package.
+Security fixes go into the latest released version of the managed package.
+To get them, install or upgrade from that version's link in
+[CHANGELOG.md](CHANGELOG.md); an upgrade keeps your grids. The latest version
+is 1.0, Winter 2027.
 
 ## How Rowhouse protects data
 
@@ -47,5 +49,20 @@ latest released version of the managed package.
   Admin** as well, and Customize Application.
 - **Diagnostics carry no record data.** The optional diagnostic lines hold
   timings and counts only.
-- **Exports are safe to open.** CSV exports and copied cells neutralise
+- **Exports are safe to open.** CSV exports and copied cells neutralize
   values that a spreadsheet would run as a formula.
+
+## How the code is checked
+
+- **Salesforce Code Analyzer** runs on every push with the AppExchange and
+  security rules, and the build fails on any finding. A finding that is not a
+  real problem is suppressed as narrowly as possible, with the reason, in
+  [`code-analyzer.yml`](code-analyzer.yml). Its path-based field-security
+  check (Graph Engine) runs on each release.
+- **The project's hard rules** (for example: no `global` Apex, no callouts,
+  every access check through `GridSecurity`) are enforced by automated checks
+  on every push; [CONTRIBUTING.md](CONTRIBUTING.md) lists them.
+- **Access tests run as a restricted user**, not as an administrator, so a
+  missing object, field or sharing check fails a test.
+- **Dependencies** are watched by Dependabot. None of them ships in the
+  package: they are the build and test tools.
