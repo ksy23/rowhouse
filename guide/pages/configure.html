@@ -121,22 +121,22 @@
   <div class="sec-head"><span class="sec-num">Overview</span><h2>How the records connect</h2>
   <p class="sec-sub">Every record except the Grid Configuration has a <b>Grid Configuration</b> field that says which grid it belongs to. Create the Grid Configuration first, then the rest in any order. Where to find them: the Grid Admin tab, or Setup › Custom Metadata Types › <i>type</i> › Manage Records.</p></div>
   <div class="frame rv">
-    <svg class="dia" viewBox="0 0 900 310" role="img" aria-labelledby="erT erD">
+    <svg class="dia" viewBox="0 -40 900 384" role="img" aria-labelledby="erT erD">
       <title id="erT">Configuration records and their links</title>
       <desc id="erD">Grid Configuration has many Grid Columns, many Grid Display Rules, many Grid Filters, many Grid Actions and many Grid Child Tables. Each Grid Child Table also names a Child Configuration, which is another Grid Configuration.</desc>
       <path class="draw" d="M330,125 C380,125 380,280 420,280" fill="none" stroke="var(--sky-mid)" stroke-width="2"/>
       <path class="draw" d="M330,125 H420" fill="none" stroke="var(--sky-mid)" stroke-width="2"/>
       <path class="draw" d="M330,125 C380,125 380,40 420,40" fill="none" stroke="var(--plum-mid)" stroke-width="2"/>
       <path class="draw" d="M330,125 C380,125 380,210 420,210" fill="none" stroke="var(--rose-mid)" stroke-width="2"/>
-      <path class="draw" d="M150,160 V215 H600 C700,215 700,160 740,160" fill="none" stroke="var(--gold-mid)" stroke-width="2"/>
-      <path class="draw" d="M150,90 V30 H660 C700,30 700,90 740,90" fill="none" stroke="var(--gold-mid)" stroke-width="2" stroke-dasharray="5 5"/>
-      <g class="node a"><rect x="40" y="90" width="290" height="70" rx="12"/><text class="b" x="60" y="118" style="font-size:16px">Grid Configuration</text><text class="s" x="60" y="140">Object API Name · sort · height · what users may do</text></g>
+      <path class="draw" d="M150,160 V318 Q150,330 162,330 H803 Q815,330 815,318 V180" fill="none" stroke="var(--gold-mid)" stroke-width="2"/>
+      <path d="M150,90 V-2 Q150,-14 162,-14 H803 Q815,-14 815,-2 V70" fill="none" stroke="var(--gold-mid)" stroke-width="2" stroke-dasharray="5 5"/>
+      <g class="node a"><rect x="20" y="90" width="310" height="70" rx="12"/><text class="b" x="40" y="118" style="font-size:16px">Grid Configuration</text><text class="s" x="40" y="140">Object API Name · sort · height · what users may do</text></g>
       <g class="node s"><rect x="420" y="100" width="230" height="50" rx="10"/><text class="b" x="438" y="122">Grid Column</text><text class="s" x="438" y="140">Field API Name · Editable · Sort Order</text></g>
       <g class="node p"><rect x="420" y="15" width="230" height="50" rx="10"/><text class="b" x="438" y="37">Grid Display Rule</text><text class="s" x="438" y="55">Field · Operator · Value · Style</text></g>
       <g class="node r"><rect x="420" y="185" width="230" height="50" rx="10"/><text class="b" x="438" y="207">Grid Action</text><text class="s" x="438" y="225">Action Type · Action Name · Show In</text></g>
       <g class="node s"><rect x="420" y="255" width="230" height="50" rx="10"/><text class="b" x="438" y="277">Grid Filter</text><text class="s" x="438" y="295">Field · Operator · Value</text></g>
       <g class="node g"><rect x="740" y="70" width="150" height="110" rx="10"/><text class="b" x="756" y="96">Grid Child</text><text class="b" x="756" y="114">Table</text><text class="s" x="756" y="136">Grid Configuration</text><text class="s" x="756" y="152">Child Configuration</text><text class="s" x="756" y="168">Relationship Field</text></g>
-      <text class="s" x="380" y="24" style="fill:var(--gold)">the child grid (dashed)</text>
+      <text class="s" x="164" y="-22" style="fill:var(--gold)">the child grid (dashed)</text>
     </svg>
   </div>
 </section>
