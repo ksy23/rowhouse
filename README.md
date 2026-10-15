@@ -230,7 +230,7 @@ in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-GNU Affero General Public License v3.0 (AGPL-3.0); see [LICENSE](LICENSE)
+GNU Affero General Public License v3.0 only (AGPL-3.0-only); see [LICENSE](LICENSE)
 and [NOTICE](NOTICE). Installing the package and using it in your org asks
 nothing of you. Change it freely too; if you distribute a changed version, or
 a work based on Rowhouse, it must be under the AGPL-3.0 as well, with its

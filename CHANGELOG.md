@@ -5,7 +5,7 @@ Each release is a version of the Rowhouse Grid managed package (namespace
 
 ## Unreleased
 
-- **License:** the GNU Affero General Public License v3.0 (AGPL-3.0), from
+- **License:** the GNU Affero General Public License v3.0 only (AGPL-3.0-only), from
   15 October 2026, replacing the Mozilla Public License 2.0. The next package
   version is the first under it; 1.0 stays under MPL-2.0. See NOTICE.
 
