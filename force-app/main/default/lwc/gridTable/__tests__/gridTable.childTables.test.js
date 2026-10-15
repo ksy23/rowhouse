@@ -307,6 +307,24 @@ describe('panel details', () => {
         expect(panel.style.getPropertyValue('--rh-panel-indent')).toBe(`${32 + 12}px`); // the checkbox column, then to the toggle's middle
     });
 
+    it("keeps the panel inside the grid's width, so an open row never scrolls it sideways", async () => {
+        // Found in Lightning Experience: the panel was as wide as the grid
+        // less its indent, and began after the table's left border: 1px over.
+        const widthSpy = jest.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(function width() {
+            return this.hasAttribute('data-scroller') ? 1000 : 0;
+        });
+        try {
+            await mount({ selection: 'multi' });
+            await frame(); // the width is measured after the render (HR-20)
+            await flush();
+            await open(id(1));
+            const panel = detailCell(id(1)).querySelector('.rh-detail-panel');
+            expect(panel.style.width).toBe(`${1000 - (32 + 12) - 2}px`); // less the indent and the table's two borders
+        } finally {
+            widthSpy.mockRestore();
+        }
+    });
+
     it("passes a child table's new count up, with the row it belongs to", async () => {
         await mount({ childCounts: COUNTS });
         const heard = [];

@@ -239,6 +239,87 @@ describe('column widths after a resize', () => {
         });
     });
 
+    describe('with a frozen column, the columns follow the grid when its width changes', () => {
+        // Found in Lightning Experience: frozen columns pin the widths, and
+        // they stayed pinned when Charts opened or closed, or a row's panel
+        // brought a scrollbar: a gap at the right, or a sideways scroll.
+        const frame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+        // The width is measured, the columns share it out, then they are pinned: a frame each (HR-20).
+        const settle = async () => {
+            await flush();
+            await frame();
+            await flush();
+            await frame();
+            await flush();
+            await frame();
+            await flush();
+        };
+        const TWO = [
+            { field: 'Name', label: 'Name', type: 'text', width: 220 },
+            { field: 'Freight_Charge__c', label: 'Freight Charge', type: 'currency', width: 140 }
+        ];
+        let room;
+        let widthSpy;
+        beforeEach(() => {
+            room = 1000;
+            widthSpy = jest.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(function width() {
+                return this.hasAttribute('data-scroller') ? room : 0;
+            });
+            // A header cell is as wide as it is drawn (JSDOM has no layout of its own).
+            spy.mockImplementation(function rect() {
+                const width = parseFloat(this.style.width) || 0;
+                return { width, height: 33, top: 0, left: 0, right: width, bottom: 33, x: 0, y: 0 };
+            });
+        });
+        afterEach(() => widthSpy.mockRestore());
+
+        const mountFrozen = async () => {
+            const el = createElement('rowhouse-grid-table', { is: GridTable });
+            el.config = { columns: TWO, rows: seedRows.slice(0, 2), selection: 'multi', frozenColumns: 1 };
+            document.body.appendChild(el);
+            await settle();
+            return el;
+        };
+        const resizeTo = async px => {
+            room = px;
+            window.dispatchEvent(new CustomEvent('resize')); // JSDOM has no ResizeObserver: the fallback (HR-23)
+            await settle();
+        };
+        const drawn = el =>
+            [...el.shadowRoot.querySelectorAll('thead th[data-field]')].reduce(
+                (sum, cell) => sum + parseInt(cell.style.width, 10),
+                0
+            );
+
+        it('shares out the new room and pins it again, the frozen column still frozen', async () => {
+            const el = await mountFrozen();
+            expect(el.shadowRoot.querySelector('table').style.width).not.toBe(''); // pinned for the frozen column
+            await resizeTo(700); // Charts opens
+            expect(drawn(el) + 2).toBeLessThanOrEqual(700); // no sideways scroll
+            expect(drawn(el) + 2).toBeGreaterThanOrEqual(697);
+            expect(el.shadowRoot.querySelector('table').style.width).toBe(drawn(el) + 'px');
+            expect(th(el, 'Name').classList).toContain('rh-frozen');
+            await resizeTo(1400); // and closes
+            expect(drawn(el) + 2).toBeLessThanOrEqual(1400);
+            expect(drawn(el) + 2).toBeGreaterThanOrEqual(1397); // no gap at the right
+            expect(th(el, 'Name').classList).toContain('rh-frozen');
+        });
+
+        it('keeps a width the user chose', async () => {
+            const el = await mountFrozen();
+            const handle = th(el, 'Name').querySelector('.slds-resizable__handle');
+            handle.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true, clientX: 500 }));
+            window.dispatchEvent(new MouseEvent('pointermove', { clientX: 400 }));
+            window.dispatchEvent(new MouseEvent('pointerup', {}));
+            await flush();
+            const chosen = th(el, 'Name').style.width;
+            const amount = th(el, 'Freight_Charge__c').style.width;
+            await resizeTo(1400);
+            expect(th(el, 'Name').style.width).toBe(chosen);
+            expect(th(el, 'Freight_Charge__c').style.width).toBe(amount);
+        });
+    });
+
     describe('the resize guide lines', () => {
         // Found in Lightning Experience: SLDS draws each column's
         // guide line 100vh tall, so a two-row grid scrolled into empty space.

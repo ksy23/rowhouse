@@ -2458,7 +2458,11 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         // The panel starts under the row's toggle, with a bar down its left
         // edge that ties it to its row.
         const indent = this.panelIndent;
-        const width = this.viewWidth ? `;width:${Math.max(0, this.viewWidth - indent)}px` : '';
+        // As wide as the grid shows, less the indent and the table's borders:
+        // the cell starts after the left border, so a panel as wide as the
+        // grid ran 1px past it and the grid scrolled sideways by that pixel
+        // (found in Lightning Experience).
+        const width = this.viewWidth ? `;width:${Math.max(0, this.viewWidth - indent - TABLE_BORDERS)}px` : '';
         const counts = this.childCountsOf(d.rowId);
         return {
             key: id, // detailId(record Id): record-derived and stable (HR-19)
@@ -3500,12 +3504,26 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         });
     }
 
-    /** The scroller's visible width (see viewWidth). Never from renderedCallback (HR-20). */
+    /**
+     * The scroller's visible width (see viewWidth). Never from renderedCallback (HR-20).
+     *
+     * Widths pinned only so that frozen columns have offsets (no width the
+     * user chose) are let go when the width changes: the columns share out
+     * the new room, and renderedCallback pins them again. Found in Lightning
+     * Experience: with a frozen column, closing Charts left a gap at the
+     * right, and opening it, or a row's panel bringing a scrollbar, made the
+     * grid scroll sideways.
+     */
     measureView() {
         if (this.isCards) return;
         const scroller = this.template.querySelector('[data-scroller]');
         const width = scroller ? scroller.clientWidth : 0;
-        if (width && width !== this.viewWidth) this.viewWidth = width;
+        if (!width || width === this.viewWidth) return;
+        if (this.widthsPinned && !this._layout.userResized) {
+            this.widths = {};
+            this.widthsPinned = false;
+        }
+        this.viewWidth = width;
     }
 
     /**
