@@ -11,7 +11,7 @@ twenty-nine hard rules the project is built on.
   approach can be agreed before you spend time on it.
 - **Sign off every commit** with the Developer Certificate of Origin
   (`git commit -s`). The sign-off says you wrote the change or have the right
-  to submit it under the project's licence, the Mozilla Public License 2.0.
+  to submit it under the project's licence, the GNU Affero General Public License v3.0.
   There is no CLA.
 - **Read the hard rules below.** A pull request that breaks one is not merged,
   whatever the feature. If a rule is wrong, argue it in an issue: rules change

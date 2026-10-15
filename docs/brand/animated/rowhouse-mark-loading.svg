@@ -7,7 +7,7 @@
        2. It honours prefers-reduced-motion and stops entirely.
      Self-contained: internal CSS only, so it animates as <img>, as a CSS
      background, inline, or in an <object>.
-     (c) Kugamon LLC. The mark is a trademark; the software is MPL-2.0. -->
+     (c) Kugamon LLC. The mark is a trademark; the software is AGPL-3.0. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t d">
   <title id="t">Rowhouse</title>
   <desc id="d">The Rowhouse mark with its three rows fading in sequence, as an indeterminate loading indicator.</desc>

@@ -5,7 +5,7 @@ _The grid Salesforce should have shipped._
 [Website](https://rowhouse.app) | [Contributing](CONTRIBUTING.md) | [Support](SUPPORT.md) | [Security](SECURITY.md)
 
 [![verify](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-MPL%202.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-AGPL%203.0-blue.svg)](LICENSE)
 
 A free, open-source data grid for Salesforce, built as a Lightning Web
 Component. Users edit records in place with spreadsheet keys, group and total
@@ -230,11 +230,15 @@ in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-Mozilla Public License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Use,
-change and build on Rowhouse freely, in open or closed products. If you
-distribute a changed copy of one of Rowhouse's own files, share that file's
-source under the same license; files you write yourself stay yours. The name
-is covered by the [trademark policy](TRADEMARKS.md).
+GNU Affero General Public License v3.0 (AGPL-3.0); see [LICENSE](LICENSE)
+and [NOTICE](NOTICE). Installing the package and using it in your org asks
+nothing of you. Change it freely too; if you distribute a changed version, or
+a work based on Rowhouse, it must be under the AGPL-3.0 as well, with its
+source; and if you let people use a changed version over a network, offer
+them its source (section 13 of the license). Source published here before
+15 October 2026 was licensed under the Mozilla Public License 2.0, and copies
+received under it keep those terms. The name is covered by the
+[trademark policy](TRADEMARKS.md).
 
 Rowhouse by Kugamon is an independent open-source project. It is not affiliated with,
 endorsed by or sponsored by Salesforce, Inc. Salesforce, Lightning and

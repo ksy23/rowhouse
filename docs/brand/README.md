@@ -197,6 +197,6 @@ leave it running on every page.
 
 ## Trademark
 
-The software is MPL-2.0. **The mark and the name are not.** MPL 2.0 §2.3
-explicitly withholds trademark rights. See `TRADEMARKS.md` in the repository for what a
+The software is AGPL-3.0. **The mark and the name are not.** The NOTICE
+file declines trademark rights under AGPL-3.0 §7(e). See `TRADEMARKS.md` in the repository for what a
 fork may and may not call itself.

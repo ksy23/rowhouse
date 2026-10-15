@@ -1,9 +1,22 @@
 Rowhouse
 Copyright 2026 Kugamon LLC
 
-This product is licensed under the Mozilla Public License, version 2.0 (see
-LICENSE, or https://mozilla.org/MPL/2.0/). "Rowhouse" and the Rowhouse logo
-are trademarks of Kugamon LLC; see TRADEMARKS.md.
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, version 3 (see LICENSE, or
+https://www.gnu.org/licenses/agpl-3.0.html).
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+details.
+
+Additional term, under section 7(e) of the license: no rights are granted under
+trademark law to use the names "Rowhouse" and "Rowhouse by Kugamon" or the
+Rowhouse logo, which are trademarks of Kugamon LLC; see TRADEMARKS.md.
+
+Source published here before 15 October 2026 was licensed under the Mozilla
+Public License 2.0. Copies received under that license keep its terms.
 
 Rowhouse contains no third-party code. Its markup follows the class names and
 structure of the Salesforce Lightning Design System, which Salesforce provides

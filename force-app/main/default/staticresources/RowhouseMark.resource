@@ -4,7 +4,7 @@
      The middle bar is the row being edited.
      Geometry is fixed; do not redraw. 32-unit grid; roof x2-30 apex y3.5
      eaves y11.5; bars x2 w28 h4 r1 at y14, y20, y26.
-     (c) Kugamon LLC. The mark is a trademark; the software is MPL-2.0. -->
+     (c) Kugamon LLC. The mark is a trademark; the software is AGPL-3.0. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t d">
   <title id="t">Rowhouse</title>
   <desc id="d">A gabled roof above three horizontal bars, like rows in a table. The middle bar is picked out in a contrasting color, standing for the row currently being edited.</desc>

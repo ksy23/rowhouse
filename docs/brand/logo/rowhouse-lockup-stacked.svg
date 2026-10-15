@@ -7,7 +7,7 @@
      Wordmark: Montserrat Regular (400), all caps, tracked. Live text, with
      textLength set to Montserrat's own width so the lockup holds its
      proportions even where the font is missing. Outline it for print.
-     (c) Kugamon LLC. The mark is a trademark; the software is MPL-2.0. -->
+     (c) Kugamon LLC. The mark is a trademark; the software is AGPL-3.0. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 123 55" role="img" aria-labelledby="t d">
   <title id="t">Rowhouse</title>
   <desc id="d">A gabled roof above three horizontal bars, like rows in a table. The middle bar is picked out in a contrasting color, standing for the row currently being edited. Beneath it, the word ROWHOUSE.</desc>
