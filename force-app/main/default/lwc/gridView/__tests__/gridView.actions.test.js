@@ -1,11 +1,12 @@
 /**
  * Grid actions in the grid: what the table and the selection bar are
  * offered, when the dialog asks first, how a server action runs in batches and
- * reports what failed, how a screen flow is handed to its own page,
- * and that the rows an action touched are read again.
+ * reports what failed, how a screen flow is handed to its own page, how a
+ * quick action opens in Salesforce's own window, and that the rows an action
+ * touched are read again.
  */
 import { createElement } from 'lwc';
-import GridView, { ACTION_BATCH, MAX_ACTION_BUTTONS } from 'c/gridView';
+import GridView, { ACTION_BATCH, MAX_ACTION_BUTTONS, QUICK_POLL_MS, QUICK_OPEN_WAIT_MS } from 'c/gridView';
 import getGridConfig from '@salesforce/apex/GridController.getGridConfig';
 import openGrid from '@salesforce/apex/GridController.openGrid';
 import { openGridFrom } from './openGridFrom';
@@ -72,7 +73,7 @@ const SEEN = {
 const STAMP = {
     name: 'Rerate',
     label: 'Rerate',
-    type: 'apex',
+    type: 'flow',
     onRow: false,
     onSelection: true,
     confirmation: 'Rerate these consignments?',
@@ -87,7 +88,8 @@ const CALL = {
     onSelection: false,
     confirmation: null,
     flowName: null,
-    inputName: null
+    inputName: null,
+    quickActionName: 'Global.LogACall'
 };
 
 const DEFINITION = {
@@ -569,5 +571,114 @@ describe('a screen flow, on its own page', () => {
         await settle();
         expect(dialog(el)).toMatchObject({ label: 'Rerate', question: 'Rerate these consignments?', count: 1 });
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+});
+
+describe("a quick action, in Salesforce's own window", () => {
+    const GRID_PAGE = '/lightning/n/Freight_Desk';
+    const go = path => window.history.pushState({}, '', path);
+    const tick = async ms => {
+        jest.advanceTimersByTime(ms);
+        await settle();
+    };
+
+    beforeEach(() => go(GRID_PAGE));
+    afterEach(() => go('/'));
+
+    it('opens the window over this page, on the row, without asking first or calling the server', async () => {
+        const el = mount();
+        await settle();
+        rowAction(el, 'Log_Call', row(2).Id);
+        await settle();
+        expect(dialog(el)).toBeNull();
+        expect(runAction).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith({
+            type: 'standard__webPage',
+            attributes: {
+                url:
+                    '/lightning/action/quick/Global.LogACall?objectApiName&context=RECORD_DETAIL' +
+                    `&recordId=${row(2).Id}&backgroundContext=%2Flightning%2Fn%2FFreight_Desk`
+            }
+        });
+    });
+
+    it('reads the row again once the window has opened and closed, and only then', async () => {
+        const el = mount();
+        await settle();
+        rowAction(el, 'Log_Call', row(2).Id);
+        await settle();
+        go(`/lightning/action/quick/Global.LogACall`);
+        await tick(QUICK_POLL_MS);
+        await tick(QUICK_POLL_MS * 5);
+        expect(fetchRowsById).not.toHaveBeenCalled(); // still open
+        go(GRID_PAGE); // Save or Cancel: Lightning comes back to this page
+        await tick(QUICK_POLL_MS);
+        expect(fetchRowsById).toHaveBeenCalledTimes(1);
+        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Consignments', recordIds: [row(2).Id] });
+        expect(tableConfig(el).rows.map(r => r.Consignee__c)).toEqual([
+            'Wachusett Paper',
+            'Quabbin Supply',
+            'Wachusett Paper'
+        ]);
+        await tick(QUICK_POLL_MS * 5);
+        expect(fetchRowsById).toHaveBeenCalledTimes(1); // it stopped watching
+    });
+
+    it('stops watching for a window that never opened', async () => {
+        const el = mount();
+        await settle();
+        rowAction(el, 'Log_Call', row(2).Id);
+        await settle();
+        await tick(QUICK_OPEN_WAIT_MS + QUICK_POLL_MS);
+        go(`/lightning/action/quick/Global.LogACall`);
+        await tick(QUICK_POLL_MS);
+        go(GRID_PAGE);
+        await tick(QUICK_POLL_MS);
+        expect(fetchRowsById).not.toHaveBeenCalled();
+    });
+
+    it("does not open over that row's unsaved changes, and says why", async () => {
+        const el = mount();
+        await settle();
+        table(el).dispatchEvent(
+            new CustomEvent('cellchange', {
+                detail: {
+                    recordId: row(2).Id,
+                    field: 'Consignee__c',
+                    value: 'Berkshire Mills',
+                    originalValue: 'Wachusett Paper'
+                }
+            })
+        );
+        await settle();
+        rowAction(el, 'Log_Call', row(2).Id);
+        await settle();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(toasts).toEqual([
+            {
+                title: 'Log a call',
+                message: 'Save or cancel your changes to this row first: Log a call works on the saved record.',
+                variant: 'warning'
+            }
+        ]);
+        rowAction(el, 'Log_Call', row(1).Id); // another row's window opens
+        await settle();
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('says so where Salesforce does not open quick actions', async () => {
+        go('/s/freight-desk');
+        const el = mount();
+        await settle();
+        rowAction(el, 'Log_Call', row(2).Id);
+        await settle();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(toasts).toEqual([
+            {
+                title: 'Log a call',
+                message: "Log a call can't open here: Salesforce opens quick actions in Lightning Experience.",
+                variant: 'error'
+            }
+        ]);
     });
 });

@@ -285,10 +285,10 @@ private class GridAdminTest {
     }
 
     @IsTest
-    static void aFlowOrApexActionCannotBeSavedWithoutARequiredPermission() {
+    static void anAutolaunchedFlowCannotBeSavedWithoutARequiredPermission() {
         System.runAs(GridTestUsers.adminUser()) {
             GridAdmin.Draft d = newDraft('Open_Consignments');
-            for (String type : new List<String>{ 'Flow', 'Apex', 'QuickAction', 'ScreenFlow' }) {
+            for (String type : new List<String>{ 'Flow', 'QuickAction', 'ScreenFlow' }) {
                 GridAdmin.ActionDraft a = new GridAdmin.ActionDraft();
                 a.label = 'Reroute ' + type;
                 a.type = type;
@@ -304,16 +304,45 @@ private class GridAdminTest {
             d.actions.add(off);
             GridAdmin.Check result = GridAdmin.check(d);
             System.assertEquals(
-                new List<String>{
-                    'Action "Reroute Flow": ' + GridActions.PERMISSION_NEEDED,
-                    'Action "Reroute Apex": ' + GridActions.PERMISSION_NEEDED
-                },
+                new List<String>{ 'Action "Reroute Flow": ' + GridActions.PERMISSION_NEEDED },
                 result.errors,
                 'A quick action, a screen flow and an action switched off may leave it blank.'
             );
             d.actions[0].requiredPermission = 'Run_Freight_Actions';
-            d.actions[1].requiredPermission = 'Run_Freight_Actions';
             System.assertEquals(new List<String>(), GridAdmin.check(d).errors);
+        }
+    }
+
+    @IsTest
+    static void anApexActionOrAQuickActionOnTheSelectionCannotBeSaved() {
+        System.runAs(GridTestUsers.adminUser()) {
+            GridAdmin.Draft d = newDraft('Open_Consignments');
+            GridAdmin.ActionDraft apex = new GridAdmin.ActionDraft();
+            apex.label = 'Stamp';
+            apex.type = 'Apex'; // from an imported grid: Grid Admin does not offer the type
+            apex.actionName = 'ConsignmentStampAction';
+            apex.requiredPermission = 'Run_Freight_Actions';
+            d.actions.add(apex);
+            GridAdmin.ActionDraft call = new GridAdmin.ActionDraft();
+            call.label = 'Log a call';
+            call.type = 'QuickAction';
+            call.actionName = 'LogACall';
+            call.showIn = 'Selection';
+            d.actions.add(call);
+            System.assertEquals(
+                new List<String>{
+                    'Action "Stamp": ' + GridActions.NO_APEX,
+                    'Action "Log a call": ' + GridActions.QUICK_ACTION_ON_ROW
+                },
+                GridAdmin.check(d).errors
+            );
+            call.showIn = 'Both';
+            d.actions = new List<GridAdmin.ActionDraft>{ call };
+            System.assertEquals(
+                new List<String>(),
+                GridAdmin.check(d).errors,
+                'Both: a quick action is offered in the row menu only.'
+            );
         }
     }
 
@@ -332,8 +361,8 @@ private class GridAdminTest {
             d.rules.add(r);
             GridAdmin.ActionDraft a = new GridAdmin.ActionDraft();
             a.label = 'Add a note';
-            a.type = 'Apex';
-            a.actionName = 'AddDeliveryNoteAction';
+            a.type = 'Flow';
+            a.actionName = 'Mark_Consignment_Reviewed';
             a.showIn = 'Both';
             a.requiredPermission = 'Run_Freight_Actions';
             d.actions.add(a);

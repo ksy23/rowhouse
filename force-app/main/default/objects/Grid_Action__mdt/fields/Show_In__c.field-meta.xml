@@ -4,8 +4,8 @@
     <label>Show In</label>
     <type>Picklist</type>
     <required>false</required>
-    <description>Where the action is offered: each row's menu, the bar that appears when rows are selected, or both. Blank means both.</description>
-    <inlineHelpText>Where users find the action: each row's menu, the bar shown when rows are selected, or both.</inlineHelpText>
+    <description>Where the action is offered: each row's menu, the bar that appears when rows are selected, or both. Blank means both. A quick action is offered in each row's menu only.</description>
+    <inlineHelpText>Where users find the action: each row's menu, the bar shown when rows are selected, or both. A quick action: each row's menu only.</inlineHelpText>
     <valueSet>
         <restricted>true</restricted>
         <valueSetDefinition>

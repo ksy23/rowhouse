@@ -856,7 +856,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         const list = this.draft.actions;
         return list.map((a, i) => {
             const name = a.label || `action ${i + 1}`;
-            const screen = a.type === 'ScreenFlow';
+            const quick = a.type === 'QuickAction';
             return {
                 key: a._key,
                 label: a.label || '',
@@ -865,23 +865,22 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 typeLabel: `Type of ${name}`,
                 actionName: a.actionName || '',
                 actionNameLabel: `What ${name} runs`,
-                actionNameHint:
-                    a.type === 'QuickAction'
-                        ? 'Object.ActionName, or a global action'
-                        : a.type === 'Apex'
-                          ? 'Apex class name'
-                          : 'Flow API name',
+                actionNameHint: quick ? 'Object.ActionName, or a global action' : 'Flow API name',
                 inputName: a.inputName || '',
                 inputLabel: `Input of ${name}`,
-                inputHint: screen ? 'recordId' : 'Found automatically',
-                showIn: a.showIn || 'Both',
+                inputHint: quick ? 'Not used' : 'recordId',
+                // Salesforce's window takes no input and asks its own question.
+                quick,
+                showIn: quick ? 'Row' : a.showIn || 'Both',
                 showInLabel: `Where ${name} is offered`,
+                showInOptions: quick ? SHOW_IN.filter(o => o.value === 'Row') : SHOW_IN,
                 confirmation: a.confirmation || '',
                 confirmationLabel: `Question before ${name} runs`,
+                confirmationHint: a.type === 'Flow' ? 'Nothing' : 'Not used',
                 requiredPermission: a.requiredPermission || '',
                 permissionLabel: `Custom permission ${name} needs`,
-                // An autolaunched flow or Apex action must name one (GridActions.PERMISSION_NEEDED).
-                permissionHint: a.type === 'Flow' || a.type === 'Apex' ? 'Required' : 'Anyone',
+                // An autolaunched flow must name one (GridActions.PERMISSION_NEEDED).
+                permissionHint: a.type === 'Flow' ? 'Required' : 'Anyone',
                 on: !a.inactive,
                 onLabel: `Offer ${name}`,
                 rowClass: a.inactive ? 'rh-entry rh-entry_off' : 'rh-entry',
@@ -897,10 +896,6 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
 
     get actionTypeOptions() {
         return ACTION_TYPES;
-    }
-
-    get showInOptions() {
-        return SHOW_IN;
     }
 
     // ---- child tables
@@ -1131,6 +1126,12 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             if ((list === 'rules' || list === 'filters') && prop === 'operator' && changed.operator !== 'between')
                 changed.valueTo = '';
             if (list === 'columns' && prop === 'formulaType' && !NUMBER_RESULTS.has(next)) changed.decimalPlaces = null;
+            // A quick action opens Salesforce's window for one row: the row menu only, no input, no question.
+            if (list === 'actions' && prop === 'type' && next === 'QuickAction') {
+                changed.showIn = 'Row';
+                changed.inputName = '';
+                changed.confirmation = '';
+            }
             // A new kind of total keeps its field only where the field fits it.
             if (list === 'columns' && prop === 'childTotal' && changed.childField) {
                 const child = this.savedChildren.find(ch => ch.name === changed.childTable);

@@ -5,7 +5,7 @@
     <type>Text</type>
     <length>255</length>
     <required>false</required>
-    <description>A question to ask before the action runs, such as "Send the renewal quote?". If blank, an action on selected rows still asks and names them; one on a single row runs at once unless the row has unsaved changes. Screen flows never ask.</description>
-    <inlineHelpText>Optional question shown before the action runs, such as "Send the renewal quote?". Leave blank to use the standard confirmation.</inlineHelpText>
+    <description>A question to ask before an autolaunched flow runs, such as "Send the renewal quote?". If blank, a run on selected rows still asks and names them; one on a single row runs at once unless the row has unsaved changes.</description>
+    <inlineHelpText>Optional question shown before an autolaunched flow runs, such as "Send the renewal quote?". Leave blank to use the standard confirmation.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

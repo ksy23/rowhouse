@@ -29,6 +29,16 @@
  * page of one of BACK_TYPES is ever a way back, wherever it was read from
  * (safeBack): never a web address, so a crafted link cannot send the user to
  * another site.
+ *
+ * QUICK ACTIONS
+ * A quick action opens in Salesforce's own window, over the grid's page, at
+ * the address Lightning itself shows for one (quickActionUrl): the action as
+ * Object.Name or Global.Name, the record, and the grid's page as the
+ * background to come back to. Salesforce's window applies the user's own
+ * access. The page underneath stays as it was and is not told when the window
+ * closes; only the address changes, to QUICK_PATH and back (measured), so the
+ * grid watches it (isQuickActionPath). Not in documentation: what Lightning
+ * shows, measured.
  */
 
 import LOGO_URL from '@salesforce/resourceUrl/RowhouseLogo';
@@ -258,4 +268,29 @@ export function flowInputs(action, run) {
     return run.on === 'selection'
         ? [{ name: 'ids', type: 'String', value: run.ids }]
         : [{ name: action.inputName || 'recordId', type: 'String', value: run.ids[0] }];
+}
+
+/** Where Lightning shows a quick action's window. */
+export const QUICK_PATH = '/lightning/action/quick/';
+
+const QUICK_NAME_RE = /^[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*$/;
+
+/**
+ * The address of a quick action's window on one record, over the page at
+ * `back` (its path and query); null when any part is not what it should be,
+ * or the page is not one of Lightning Experience's (where the window opens).
+ */
+export function quickActionUrl(name, recordId, back) {
+    const page = String(back || '');
+    if (!QUICK_NAME_RE.test(String(name || '')) || !ID_RE.test(String(recordId || ''))) return null;
+    if (!page.startsWith('/lightning/') || isQuickActionPath(page)) return null;
+    return (
+        `${QUICK_PATH}${name}?objectApiName&context=RECORD_DETAIL&recordId=${recordId}` +
+        `&backgroundContext=${encodeURIComponent(page)}`
+    );
+}
+
+/** Is this address a quick action's window? */
+export function isQuickActionPath(path) {
+    return String(path || '').startsWith(QUICK_PATH);
 }

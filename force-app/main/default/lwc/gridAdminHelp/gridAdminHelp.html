@@ -158,25 +158,29 @@
                     Opens on a page of its own, as the user, then comes back to the grid. It gets the row's Id in
                     recordId, or the selected rows' Ids in ids.
                 </dd>
-                <dt>Type: anything else</dt>
+                <dt>Type: an autolaunched flow</dt>
                 <dd>
-                    An autolaunched flow, an invocable Apex action or a quick action runs on the server, 50 records per
-                    call.
+                    Runs on the server, one interview per record, 50 records per call. To run Apex, call it from an
+                    autolaunched flow.
+                </dd>
+                <dt>Type: a quick action</dt>
+                <dd>
+                    Opens in Salesforce's own window over the grid, for one row, then the row is read again. It's
+                    offered in each row's menu only.
                 </dd>
                 <dt>Offered in</dt>
                 <dd>Each row's menu, the selection bar, or both.</dd>
                 <dt>Permission</dt>
                 <dd>
                     A custom permission's API name: your own, or another package's with its prefix. Only users who
-                    hold it see and run the action. Required for an autolaunched flow or Apex action.
+                    hold it see and run the action. Required for an autolaunched flow.
                 </dd>
             </dl>
             <div class="rh-call rh-call_warn">
                 <span class="rh-call-k">Access</span>
                 <p>
-                    Rowhouse doesn't check access to the flow or class itself, and an autolaunched flow runs in system
-                    context by default. So an autolaunched flow or Apex action runs only for the people who hold its
-                    Required Permission.
+                    Rowhouse doesn't check access to the flow itself, and an autolaunched flow runs in system context
+                    by default. So an autolaunched flow runs only for the people who hold its Required Permission.
                 </p>
             </div>
         </template>

@@ -18,7 +18,10 @@ import {
     forget,
     withDone,
     doneToken,
-    flowInputs
+    flowInputs,
+    QUICK_PATH,
+    quickActionUrl,
+    isQuickActionPath
 } from 'c/gridFlowRoute';
 
 const id = n => 'a01' + String(n).padStart(15, '0');
@@ -411,5 +414,37 @@ describe("the flow's inputs", () => {
         expect(flowInputs({ inputName: 'consignmentId' }, { on: 'selection', ids: [id(1), id(2)] })).toEqual([
             { name: 'ids', type: 'String', value: [id(1), id(2)] }
         ]);
+    });
+});
+
+describe("a quick action opens in Salesforce's own window", () => {
+    const REC = '001000000000001AAA';
+
+    it("at the address Lightning shows, over the grid's page", () => {
+        expect(quickActionUrl('Global.LogACall', REC, '/lightning/n/Freight_Desk?c__tab=Open')).toBe(
+            '/lightning/action/quick/Global.LogACall?objectApiName&context=RECORD_DETAIL&recordId=001000000000001AAA' +
+                '&backgroundContext=%2Flightning%2Fn%2FFreight_Desk%3Fc__tab%3DOpen'
+        );
+        expect(quickActionUrl('Account.Flag_For_Review', REC, '/lightning/r/Account/001000000000001AAA/view')).toBe(
+            '/lightning/action/quick/Account.Flag_For_Review?objectApiName&context=RECORD_DETAIL' +
+                '&recordId=001000000000001AAA&backgroundContext=%2Flightning%2Fr%2FAccount%2F001000000000001AAA%2Fview'
+        );
+    });
+
+    it('not with a name, a record or a page that is not what it should be', () => {
+        expect(quickActionUrl('LogACall', REC, '/lightning/n/Freight_Desk')).toBeNull(); // Global. is the grid's to add
+        expect(quickActionUrl('Global.Log a call', REC, '/lightning/n/Freight_Desk')).toBeNull();
+        expect(quickActionUrl('Global.LogACall?x=1', REC, '/lightning/n/Freight_Desk')).toBeNull();
+        expect(quickActionUrl('Global.LogACall', 'Wachusett', '/lightning/n/Freight_Desk')).toBeNull();
+        expect(quickActionUrl('Global.LogACall', REC, '/s/freight-desk')).toBeNull(); // a site: no window there
+        expect(quickActionUrl('Global.LogACall', REC, 'https://granite-coast-login.net/lightning/')).toBeNull();
+        expect(quickActionUrl('Global.LogACall', REC, `${QUICK_PATH}Global.NewTask`)).toBeNull();
+        expect(quickActionUrl(undefined, undefined, undefined)).toBeNull();
+    });
+
+    it('and the grid knows the window by its address', () => {
+        expect(isQuickActionPath('/lightning/action/quick/Global.LogACall')).toBe(true);
+        expect(isQuickActionPath('/lightning/n/Freight_Desk')).toBe(false);
+        expect(isQuickActionPath(undefined)).toBe(false);
     });
 });

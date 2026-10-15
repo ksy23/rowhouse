@@ -6,8 +6,9 @@
     <label>Stamp (diagnostics only)</label>
     <protected>false</protected>
     <values><field>Grid_Configuration__c</field><value xsi:type="xsd:string">Consignments</value></values>
-    <values><field>Action_Type__c</field><value xsi:type="xsd:string">Apex</value></values>
-    <values><field>Action_Name__c</field><value xsi:type="xsd:string">ConsignmentStampAction</value></values>
+    <values><field>Action_Type__c</field><value xsi:type="xsd:string">Flow</value></values>
+    <values><field>Action_Name__c</field><value xsi:type="xsd:string">Stamp_Consignment</value></values>
     <values><field>Required_Permission__c</field><value xsi:type="xsd:string">Rowhouse_Diagnostics</value></values>
+    <values><field>Show_In__c</field><value xsi:type="xsd:string">Row</value></values>
     <values><field>Sort_Order__c</field><value xsi:type="xsd:double">50</value></values>
 </CustomMetadata>

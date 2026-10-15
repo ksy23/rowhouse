@@ -123,10 +123,10 @@ export const APPLY_TO = Object.freeze([
     { value: 'row', label: 'The whole row' }
 ]);
 
+/** What an action runs. Apex runs from an autolaunched flow (GridActions.NO_APEX). */
 export const ACTION_TYPES = Object.freeze([
     { value: 'ScreenFlow', label: 'Screen flow' },
     { value: 'Flow', label: 'Autolaunched flow' },
-    { value: 'Apex', label: 'Invocable Apex action' },
     { value: 'QuickAction', label: 'Quick action' }
 ]);
 

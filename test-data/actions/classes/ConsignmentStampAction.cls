@@ -1,10 +1,10 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
- * Data for grid actions, never packaged: an invocable Apex action the
- * Consignments grid runs on its rows. It stamps each record's Consignee,
- * then throws if one of the records is the one held at customs. One exception fails
- * the whole call and the platform undoes its work,
- * which is what GridActionService's one-by-one retry is for.
+ * Data for grid actions, never packaged: an invocable Apex action that the
+ * autolaunched flow Stamp_Consignment runs, as an admin runs Apex from a grid.
+ * It stamps each record's Consignee, then throws if one of the records is the
+ * one held at customs. The exception fails that record's flow interview,
+ * whose work Rowhouse undoes.
  */
 public with sharing class ConsignmentStampAction {
     public static final String STAMP = 'Portland Terminal Receiving';

@@ -841,12 +841,14 @@ public with sharing class GridAdmin {
                 result.errors.add('Action "' + a.label.trim() + '": its label is ' + MAX_NAME + ' characters at most.');
             }
             String type = String.isBlank(a.type) ? '' : a.type.trim().toLowerCase();
-            if ((type == 'flow' || type == 'apex') && a.inactive != true && String.isBlank(a.requiredPermission)) {
-                result.errors.add(
-                    (String.isBlank(a.label) ? 'Action ' + (i + 1) : 'Action "' + a.label.trim() + '"') +
-                        ': ' +
-                        GridActions.PERMISSION_NEEDED
-                );
+            String named = String.isBlank(a.label) ? 'Action ' + (i + 1) : 'Action "' + a.label.trim() + '"';
+            String showIn = String.isBlank(a.showIn) ? 'both' : a.showIn.trim().toLowerCase();
+            if (type == 'apex') {
+                result.errors.add(named + ': ' + GridActions.NO_APEX);
+            } else if (type == 'flow' && a.inactive != true && String.isBlank(a.requiredPermission)) {
+                result.errors.add(named + ': ' + GridActions.PERMISSION_NEEDED);
+            } else if (type == 'quickaction' && a.inactive != true && showIn == 'selection') {
+                result.errors.add(named + ': ' + GridActions.QUICK_ACTION_ON_ROW);
             }
         }
         for (Integer i = 0; i < d.children.size(); i++) {

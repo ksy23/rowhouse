@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Stamp</name>
+        <label>Stamp for Portland receiving</label>
+        <locationX>176</locationX>
+        <locationY>158</locationY>
+        <actionName>ConsignmentStampAction</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>recordIds</name>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <apiVersion>62.0</apiVersion>
+    <description>DEVELOPMENT ONLY. Data for Rowhouse grid actions, never packaged: runs the invocable Apex action ConsignmentStampAction on one consignment, as an admin runs Apex from a grid. The Apex fails on the consignment held at customs, for the error path.</description>
+    <interviewLabel>Stamp consignment {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Stamp consignment</label>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Stamp</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>

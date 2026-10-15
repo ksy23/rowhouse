@@ -1,13 +1,13 @@
 /**
  * DEVELOPMENT ONLY. Never packaged.
- * Grid actions: what a grid offers, what the server refuses, and how
- * each kind runs and fails. The fixture actions are on Consignments (a screen
- * flow, an autolaunched flow, invocable Apex, a quick action, and one that
- * needs Rowhouse_Diagnostics; the flow and Apex ones need Run_Freight_Actions,
- * which Freight Full Access grants); Consignments_By_Mode carries four that
- * cannot work, so their warnings are tested. The flow and the Apex action
- * they run are test data (test-data/actions): both fail on a record named
- * "Held at customs, Calais".
+ * Grid actions: what a grid offers, what the server refuses, and how an
+ * autolaunched flow runs and fails. The fixture actions are on Consignments (a
+ * screen flow, an autolaunched flow, a flow that runs Apex, a quick action, and
+ * one that needs Rowhouse_Diagnostics); the autolaunched flows need
+ * Run_Freight_Actions, which Freight Full Access grants. Consignments_By_Mode
+ * carries five that cannot work, so their warnings are tested. The flows and
+ * the Apex action they run are test data (test-data/actions): they fail on a
+ * record named "Held at customs, Calais".
  */
 @IsTest
 private class GridActionServiceTest {
@@ -99,12 +99,19 @@ private class GridActionServiceTest {
             System.assertEquals('Mark_Consignment_Reviewed', seen.actionName, 'The server keeps it.');
 
             GridConfig.Action stamp = a.get('Consignments_Stamp');
+            System.assertEquals('flow', stamp.type, 'Apex runs from an autolaunched flow.');
             System.assert(!stamp.onRow && stamp.onSelection, 'Show In Selection.');
             System.assertEquals('Stamp these records with Apex?', stamp.confirmation);
 
             GridConfig.Action call = a.get('Consignments_Log_Call');
             System.assertEquals('quickaction', call.type);
             System.assert(call.onRow && !call.onSelection, 'Show In Row.');
+            System.assertEquals(
+                'Global.LogACall',
+                call.quickActionName,
+                'The browser opens Salesforce\'s window for it, so it is told which; a global action\'s name is Global.'
+            );
+            System.assertEquals(null, seen.quickActionName);
         }
     }
 
@@ -172,11 +179,39 @@ private class GridActionServiceTest {
                 ),
                 warnings
             );
+            System.assert(
+                warnings.contains(
+                    'Grid Action Consignments_By_Mode_Call_On_Selection was skipped: ' + GridActions.QUICK_ACTION_ON_ROW
+                ),
+                warnings
+            );
         }
     }
 
     @IsTest
-    static void offersAFlowOrApexActionOnlyToThoseWhoHoldItsPermission() {
+    static void skipsAnApexActionAndSaysToRunItFromAFlow() {
+        Grid_Action__mdt r = new Grid_Action__mdt(
+            DeveloperName = 'Consignments_Rerate',
+            MasterLabel = 'Rerate',
+            Action_Type__c = 'Apex',
+            Action_Name__c = 'ConsignmentStampAction',
+            Required_Permission__c = 'Run_Freight_Actions'
+        );
+        List<String> warnings = new List<String>();
+        List<GridConfig.Action> out = GridActions.actionsFrom(
+            new List<Grid_Action__mdt>{ r },
+            Consignment__c.SObjectType,
+            warnings
+        );
+        System.assert(out.isEmpty());
+        System.assertEquals(
+            new List<String>{ 'Grid Action Consignments_Rerate was skipped: ' + GridActions.NO_APEX },
+            warnings
+        );
+    }
+
+    @IsTest
+    static void offersAnAutolaunchedFlowOnlyToThoseWhoHoldItsPermission() {
         User reader = GridTestUsers.readOnlyUser(); // reads consignments; does not hold Run_Freight_Actions
         List<Consignment__c> recs;
         System.runAs(GridTestUsers.fullUser()) {
@@ -190,7 +225,7 @@ private class GridActionServiceTest {
             System.assertEquals(
                 new List<String>{ 'Consignments_Add_Note', 'Consignments_Log_Call' },
                 names,
-                'A screen flow and a quick action may name no permission; the flow and the Apex actions name ' +
+                'A screen flow and a quick action may name no permission; the autolaunched flows name ' +
                 'Run_Freight_Actions, which this user does not hold.'
             );
             System.assertEquals(
@@ -235,7 +270,7 @@ private class GridActionServiceTest {
     }
 
     @IsTest
-    static void runsApexAgainOneRecordAtATimeWhenOneRecordFailsTheCall() {
+    static void runsApexThroughAFlowAndUndoesTheRecordWhoseApexThrows() {
         System.runAs(GridTestUsers.fullUser()) {
             List<Consignment__c> recs = newRecords(
                 new List<String>{ 'Paper rolls, Augusta', FAIL_ME, 'Paper rolls, Worcester' }
@@ -246,57 +281,44 @@ private class GridActionServiceTest {
             System.assertEquals(
                 new List<Id>{ recs[0].Id, recs[2].Id },
                 result.succeededIds,
-                'The records that were not the problem run on their own.'
+                'The records that were not the problem are stamped.'
             );
             System.assertEquals(1, result.errors.size(), String.valueOf(result.errors));
             System.assertEquals(recs[1].Id, result.errors[0].recordId);
-            System.assert(
-                result.errors[0].message.contains(FAIL_ME),
-                'The Apex exception\'s message: ' + result.errors[0].message
-            );
+            System.assert(String.isNotBlank(result.errors[0].message));
+            System.assert(!result.errors[0].message.contains('  '), 'No doubled spaces: ' + result.errors[0].message);
             Map<Id, String> texts = textsOf(recs);
             System.assertEquals(ConsignmentStampAction.STAMP, texts.get(recs[0].Id));
             System.assertEquals(ConsignmentStampAction.STAMP, texts.get(recs[2].Id));
-            System.assertEquals('Wachusett Paper', texts.get(recs[1].Id), 'The failed call\'s work is undone.');
-        }
-    }
-
-    @IsTest
-    static void runsAllTheRecordsOfAnApexCallInOneGoWhenNoneFails() {
-        System.runAs(GridTestUsers.fullUser()) {
-            List<Consignment__c> recs = newRecords(
-                new List<String>{ 'Paper rolls, Augusta', 'Paper rolls, Worcester' }
+            System.assertEquals(
+                'Wachusett Paper',
+                texts.get(recs[1].Id),
+                'The Apex stamped it before it threw; that is undone.'
             );
-            Test.startTest();
-            GridActionService.Result result = GridActionService.run('Consignments', 'Consignments_Stamp', idsOf(recs));
-            Integer queries = Limits.getQueries();
-            Test.stopTest();
-            System.assertEquals(idsOf(recs), result.succeededIds);
-            System.assert(result.errors.isEmpty(), String.valueOf(result.errors));
-            System.assert(queries <= 3, 'One call for both records, not one each: ' + queries + ' queries.');
         }
     }
 
     @IsTest
-    static void runsAQuickActionOnARow() {
+    static void runsAnotherInterviewOnlyWhileThereIsRoomForTwiceTheLast() {
+        System.assert(GridActionService.roomForTwice(new List<Integer>{ 0, 0, 0 }), 'A fresh transaction has room.');
+        System.assert(
+            !GridActionService.roomForTwice(new List<Integer>{ Limits.getLimitQueries(), 0, 0 }),
+            'Not when the last interview used half the queries or more.'
+        );
+        System.assert(
+            !GridActionService.roomForTwice(new List<Integer>{ 0, Limits.getLimitDmlStatements(), 0 }),
+            'Nor half the DML statements.'
+        );
+        System.assert(GridActionService.NOT_REACHED.startsWith('Not run:'));
+    }
+
+    @IsTest
+    static void aQuickActionIsNotRunOnTheServer() {
         System.runAs(GridTestUsers.fullUser()) {
             List<Consignment__c> recs = newRecords(new List<String>{ 'Missed pickup, Lewiston' });
-            Integer tasksBefore = [SELECT COUNT() FROM Task];
-            Test.startTest();
-            GridActionService.Result result = GridActionService.run(
-                'Consignments',
-                'Consignments_Log_Call',
-                idsOf(recs)
-            );
-            Test.stopTest();
-            System.assertEquals(idsOf(recs), result.succeededIds, String.valueOf(result.errors));
-            System.assertEquals(tasksBefore + 1, [SELECT COUNT() FROM Task], 'Log a Call logs one call.');
-            // Related to the row: the platform reports success even when it cannot
-            // relate the Task, on an object that does not allow activities.
             System.assertEquals(
-                1,
-                [SELECT COUNT() FROM Task WHERE WhatId = :recs[0].Id],
-                'The call is logged against the row it was run on.'
+                'Log a call is a quick action: it opens in Salesforce\'s own window, not on the server.',
+                refusal('Consignments_Log_Call', idsOf(recs))
             );
         }
     }
@@ -305,6 +327,14 @@ private class GridActionServiceTest {
 
     @IsTest
     static void refusesWhatTheGridDoesNotOffer() {
+        User diagnostics = GridTestUsers.diagnosticsUser();
+        System.runAs(diagnostics) {
+            List<Consignment__c> two = newRecords(new List<String>{ 'Shingles, Keene', 'Shingles, Dover' });
+            System.assert(
+                refusal('Consignments_Diagnostics_Only', idsOf(two)).contains('runs on one row at a time'),
+                'An action shown only in the row menu runs on one record.'
+            );
+        }
         System.runAs(GridTestUsers.fullUser()) {
             List<Consignment__c> recs = newRecords(new List<String>{ 'Shingles, Concord', 'Shingles, Nashua' });
             List<Id> one = new List<Id>{ recs[0].Id };
@@ -315,10 +345,6 @@ private class GridActionServiceTest {
             System.assert(
                 refusal('Consignments_Add_Note', one).contains('runs in the browser'),
                 'A screen flow runs in the browser.'
-            );
-            System.assert(
-                refusal('Consignments_Log_Call', idsOf(recs)).contains('runs on one row at a time'),
-                'An action shown only in the row menu runs on one record.'
             );
             System.assert(
                 refusal('Consignments_Mark_Seen', new List<Id>{ recs[0].Id, UserInfo.getUserId() })
@@ -382,164 +408,30 @@ private class GridActionServiceTest {
     }
 
     @IsTest
-    static void aFlowRunsAsAFlowInterviewAndApexAndQuickActionsAreTriedEachWay() {
-        // From the installed package Invocable.Action finds none of the org's own
-        // actions, while Flow.Interview runs its flows (measured).
-        GridConfig.Action flow = new GridConfig.Action();
-        flow.type = 'flow';
-        flow.actionName = 'Mark_Consignment_Reviewed';
-        List<GridActionService.Way> ways = GridActionService.waysFor(flow);
-        System.assertEquals(1, ways.size(), 'A flow runs one way.');
-        System.assertEquals('interview', ways[0].how);
-        System.assertEquals(false, ways[0].withNamespace);
-        flow.actionName = 'cargo_ops__Mark_Reviewed';
-        ways = GridActionService.waysFor(flow);
-        System.assertEquals('cargo_ops', ways[0].namespace, 'Another package\'s flow: its namespace.');
-        System.assertEquals('Mark_Reviewed', ways[0].name, 'Then its own name.');
-        GridConfig.Action apex = new GridConfig.Action();
-        apex.type = 'apex';
-        apex.actionName = 'ConsignmentStampAction';
-        ways = GridActionService.waysFor(apex);
-        System.assertEquals('as written', ways[0].label, 'First as written.');
-        System.assert(howsOf(ways).contains('callable'));
-        GridConfig.Action call = new GridConfig.Action();
-        call.type = 'quickaction';
-        call.actionName = 'LogACall';
-        System.assert(howsOf(GridActionService.waysFor(call)).contains('quickaction'));
-    }
-
-    private static Set<String> howsOf(List<GridActionService.Way> ways) {
-        Set<String> out = new Set<String>();
-        for (GridActionService.Way w : ways) {
-            out.add(w.how);
-        }
-        return out;
-    }
-
-    private static GridActionService.Way wayOf(GridConfig.Action action, String how, Boolean withNamespace) {
-        for (GridActionService.Way w : GridActionService.waysFor(action)) {
-            if (w.how == how && w.withNamespace == withNamespace) {
-                return w;
-            }
-        }
-        return null;
+    static void looksForAnInstalledPackagesFlowInItsNamespace() {
+        System.assertEquals(
+            new List<String>{ null, 'Mark_Consignment_Reviewed' },
+            GridActionService.namespaceAndName('Mark_Consignment_Reviewed'),
+            'The org\'s own flow, by its plain name.'
+        );
+        System.assertEquals(
+            new List<String>{ 'cargo_ops', 'Mark_Reviewed' },
+            GridActionService.namespaceAndName('cargo_ops__Mark_Reviewed'),
+            'Another package\'s flow: its namespace, then its own name.'
+        );
     }
 
     @IsTest
-    static void aFlowInterviewRunsEachRecordAndAQuickActionIsFoundThroughQuickAction() {
+    static void saysSoOnEveryRowWhenTheFlowIsNotThere() {
         System.runAs(GridTestUsers.fullUser()) {
-            List<Consignment__c> recs = newRecords(new List<String>{ 'Paper rolls, Augusta', FAIL_ME });
+            List<Consignment__c> recs = newRecords(new List<String>{ 'Paper rolls, Worcester', 'Paper rolls, Lowell' });
             GridConfig.Action flow = new GridConfig.Action();
-            flow.type = 'flow';
-            flow.actionName = 'Mark_Consignment_Reviewed';
-            GridActionService.Outcome ran = GridActionService.runWay(
-                wayOf(flow, 'interview', false),
-                flow,
-                'recordId',
-                idsOf(recs)
-            );
-            System.assert(ran.found, ran.note);
-            System.assertEquals(
-                new Set<Id>{ recs[1].Id },
-                ran.failures.keySet(),
-                'An interview that fails, fails alone.'
-            );
-            Map<Id, String> texts = textsOf(recs);
-            System.assertEquals('Reviewed by dispatch', texts.get(recs[0].Id));
-            System.assertEquals('Wachusett Paper', texts.get(recs[1].Id), 'The failed interview\'s work is undone.');
-
-            GridConfig.Action call = new GridConfig.Action();
-            call.type = 'quickaction';
-            call.actionName = 'LogACall';
-            GridActionService.Outcome logged = GridActionService.runWay(
-                wayOf(call, 'quickaction', false),
-                call,
-                'contextId',
-                new List<Id>{ recs[0].Id }
-            );
-            if (String.isBlank(GridDescribe.NAMESPACE)) {
-                System.assert(logged.found, 'QuickAction finds Log a Call: ' + logged.note);
-            }
-        }
-    }
-
-    @IsTest
-    static void aDiagnosticsUserSeesWhatEachWayDidAndNothingIsKept() {
-        System.runAs(GridTestUsers.diagnosticsUser()) {
-            List<Consignment__c> recs = newRecords(new List<String>{ 'Bonded cargo, Portland' });
-            Integer tasksBefore = [SELECT COUNT() FROM Task];
-            GridConfig.Action call = new GridConfig.Action();
-            call.type = 'quickaction';
-            call.actionName = 'LogACall';
-            GridActionService.Outcome o = GridActionService.probe(
-                call,
-                'contextId',
-                idsOf(recs),
-                GridActionService.waysFor(call),
-                new List<String>{ 'as written: not tried' }
-            );
-            String report = o.failures.get(recs[0].Id);
-            System.assert(o.probe);
-            System.assert(report.startsWith('Probe, nothing kept. as written: not tried | '), report);
-            System.assert(report.contains('QuickAction: '), report);
-            System.assertEquals(tasksBefore, [SELECT COUNT() FROM Task], 'The probe undoes every run.');
-
-            GridConfig.Action apex = new GridConfig.Action();
-            apex.type = 'apex';
-            apex.actionName = 'ConsignmentStampAction';
-            report = GridActionService.probe(
-                    apex,
-                    'recordIds',
-                    idsOf(recs),
-                    GridActionService.waysFor(apex),
-                    new List<String>()
-                )
-                .failures.get(recs[0].Id);
-            System.assert(report.contains('Callable'), report);
-            System.assertEquals('Wachusett Paper', textsOf(recs).get(recs[0].Id), 'Nothing is kept.');
-        }
-    }
-
-    @IsTest
-    static void saysWhatEachWayWasToldWhenNoneFindsTheAction() {
-        System.runAs(GridTestUsers.fullUser()) {
-            List<Consignment__c> recs = newRecords(new List<String>{ 'Paper rolls, Worcester' });
-            GridConfig.Action flow = new GridConfig.Action();
+            flow.name = 'Consignments_Rerate';
             flow.type = 'flow';
             flow.actionName = 'Rerate_Consignment';
-            GridActionService.Outcome o = GridActionService.runFirstFound(flow, 'recordId', idsOf(recs));
-            String message = o.failures.get(recs[0].Id);
-            System.assert(message.startsWith('Salesforce did not find Rerate_Consignment (interview: '), message);
-        }
-    }
-
-    @IsTest
-    static void findsTheApexInputOrSaysWhatIsMissing() {
-        System.runAs(GridTestUsers.fullUser()) {
-            GridConfig.Action apex = new GridConfig.Action();
-            apex.name = 'Consignments_Stamp';
-            apex.type = 'apex';
-            apex.actionName = 'ConsignmentStampAction';
-            System.assertEquals('recordIds', GridActionService.inputFor(apex), 'The action\'s one input, by describe.');
-            apex.serverInput = 'consignmentIds';
-            System.assertEquals('consignmentIds', GridActionService.inputFor(apex), 'An Input Name wins.');
-            apex.serverInput = null;
-            apex.actionName = 'ConsignmentRerateAction';
-            try {
-                GridActionService.inputFor(apex);
-                System.assert(false, 'A class that is not there must be named in the error.');
-            } catch (GridException e) {
-                System.assert(
-                    e.getMessage().contains('There is no invocable Apex action named "ConsignmentRerateAction"'),
-                    e.getMessage()
-                );
-            }
-            GridConfig.Action flow = new GridConfig.Action();
-            flow.type = 'flow';
-            System.assertEquals('recordId', GridActionService.inputFor(flow));
-            flow.type = 'quickaction';
-            System.assertEquals('contextId', GridActionService.inputFor(flow));
-            System.assert(GridActionService.roomToRetry(), 'A fresh transaction has room to retry.');
+            Map<Id, String> failures = GridActionService.interviews(flow, idsOf(recs));
+            String missing = 'There is no autolaunched flow named "Rerate_Consignment" (Grid Action Consignments_Rerate).';
+            System.assertEquals(new Map<Id, String>{ recs[0].Id => missing, recs[1].Id => missing }, failures);
         }
     }
 

@@ -391,6 +391,33 @@ describe('editing', () => {
         expect(options.map(o => o.label)).toEqual(['Deal (Deal__c)', 'Parent Deal (Parent_Deal__c)']);
         expect(options.map(o => o.value)).toEqual(['Deal__c', 'Parent_Deal__c']);
     });
+
+    it('makes a quick action a row action that takes no input and asks nothing of its own', async () => {
+        const el = await mount();
+        click($(el, '.rh-add-action'));
+        await settle();
+        expect($(el, '.rh-action-type').options.map(o => o.value)).toEqual(['ScreenFlow', 'Flow', 'QuickAction']);
+        change($(el, '.rh-action-show'), 'Selection');
+        change($(el, '.rh-action-confirm'), 'Log the call?');
+        await settle();
+        change($(el, '.rh-action-type'), 'QuickAction');
+        await settle();
+        expect($(el, '.rh-action-show').options.map(o => o.value)).toEqual(['Row']);
+        expect($(el, '.rh-action-input').disabled).toBe(true);
+        expect($(el, '.rh-action-confirm').disabled).toBe(true);
+        expect($(el, '.rh-action-permission').placeholder).toBe('Anyone');
+        await afterCheck();
+        expect(lastDraft().actions[0]).toMatchObject({
+            type: 'QuickAction',
+            showIn: 'Row',
+            inputName: null,
+            confirmation: null
+        });
+        change($(el, '.rh-action-type'), 'Flow');
+        await settle();
+        expect($(el, '.rh-action-permission').placeholder).toBe('Required');
+        expect($(el, '.rh-action-input').disabled).toBe(false);
+    });
 });
 
 describe('saving', () => {

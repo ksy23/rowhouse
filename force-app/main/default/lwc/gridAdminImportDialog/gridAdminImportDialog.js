@@ -252,7 +252,7 @@ export default class GridAdminImportDialog extends LightningElement {
     }
 
     get afterText() {
-        return "Grids come without the pages that show them: add the Rowhouse Grid component to a page and enter the grid's API name. An action needs its flow, Apex class or quick action in this org.";
+        return "Grids come without the pages that show them: add the Rowhouse Grid component to a page and enter the grid's API name. An action needs its flow or quick action in this org.";
     }
 
     get importLabel() {

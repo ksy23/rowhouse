@@ -1218,8 +1218,8 @@
                                 onclick={handleHelp}
                             ></lightning-button-icon>
                             <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">
-                                What users can run on a row, or on the rows they select: a flow, an Apex action or a
-                                quick action. The label is what the menu item says.
+                                What users can run on a row, or on the rows they select: a flow or a quick action. To
+                                run Apex, call it from an autolaunched flow. The label is what the menu item says.
                             </p>
                             <template lwc:if={hasActions}>
                                 <div class="rh-editor-table-wrap">
@@ -1315,6 +1315,7 @@
                                                             label={a.inputLabel}
                                                             variant="label-hidden"
                                                             placeholder={a.inputHint}
+                                                            disabled={a.quick}
                                                             value={a.inputName}
                                                             data-list="actions"
                                                             data-key={a.key}
@@ -1327,7 +1328,7 @@
                                                             class="rh-action-show"
                                                             label={a.showInLabel}
                                                             variant="label-hidden"
-                                                            options={showInOptions}
+                                                            options={a.showInOptions}
                                                             value={a.showIn}
                                                             data-list="actions"
                                                             data-key={a.key}
@@ -1340,7 +1341,8 @@
                                                             class="rh-action-confirm"
                                                             label={a.confirmationLabel}
                                                             variant="label-hidden"
-                                                            placeholder="Nothing"
+                                                            placeholder={a.confirmationHint}
+                                                            disabled={a.quick}
                                                             value={a.confirmation}
                                                             data-list="actions"
                                                             data-key={a.key}

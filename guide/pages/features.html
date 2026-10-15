@@ -300,23 +300,23 @@
 </section>
 
 <section id="actions">
-  <div class="sec-head"><span class="sec-num">Feature</span><h2>Actions: flows, Apex and quick actions</h2>
+  <div class="sec-head"><span class="sec-num">Feature</span><h2>Actions: flows and quick actions</h2>
   <p class="sec-sub">Each Grid Action adds an item to every row's menu, a button to the bar that appears when rows are selected, or both. Use them for the work an edit cannot do: escalate, send, log a call, recalculate.</p></div>
   <div class="tiles rv-stagger">
     <div class="tile"><div class="ic">{{ic:page}}</div><h4>Screen flow</h4><p>Opens on a page of its own, then comes back to the grid. One row: its Id in <code>recordId</code>. Selected rows: a text collection named <code>ids</code>, as list views pass them.</p></div>
     <div class="tile sky"><div class="ic">{{ic:bolt}}</div><h4>Autolaunched flow</h4><p>Runs on the server, one interview per record, with the record's Id in <code>recordId</code>.</p></div>
-    <div class="tile plum"><div class="ic">{{ic:gear}}</div><h4>Invocable Apex</h4><p>Runs on the server with each record's Id. If one record throws, the others are run again one by one, while Salesforce's limits leave room, so they can still succeed; a record not run again keeps the error.</p></div>
-    <div class="tile gold"><div class="ic">{{ic:check}}</div><h4>Quick action</h4><p>A global action such as LogACall, or one of the grid's object as Object.ActionName. It must suit the grid's object.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:gear}}</div><h4>Apex, through a flow</h4><p>Call an invocable Apex action from an autolaunched flow, and choose the flow. If the Apex fails for one record, that record's work is undone and the others still run.</p></div>
+    <div class="tile gold"><div class="ic">{{ic:check}}</div><h4>Quick action</h4><p>Opens in Salesforce's own window over the grid, on one row; then the row is read again. A global action such as LogACall, or one of the grid's object as Object.ActionName.</p></div>
   </div>
   <div class="split" style="margin-top:22px">
     <ul class="tick">
       <li id="row-menu"><b>Before your actions</b>, every row's menu has Edit, Delete and Change Owner, as a list view's does. <b>Edit</b> and <b>Change Owner</b> are there in a grid that edits cells (<b>Allow Inline Edit</b>), for users who may edit the object; Change Owner only on an object with owners. <b>Delete</b> is there where <b>Allow Mass Delete</b> is on, for users who may delete. Edit opens Salesforce's own edit form; Change Owner saves at once, and a grid that logs logs it.</li>
-      <li><b>Asking first.</b> An action on selected rows always asks, naming the first five rows. An action on one row runs at once unless you wrote a Confirmation, or the row has unsaved changes. A screen flow never asks: its own page opens, unless the grid has unsaved changes, which you save or cancel first.</li>
+      <li><b>Asking first.</b> An action on selected rows always asks, naming the first five rows. An action on one row runs at once unless you wrote a Confirmation, or the row has unsaved changes. A screen flow never asks: its own page opens, unless the grid has unsaved changes, which you save or cancel first. Nor does a quick action: Salesforce's window opens, unless that row has unsaved changes.</li>
       <li><b>Afterwards</b> the rows are read again, with counts and subtotals. A record the action could not run on shows the reason on its row; a message says how many succeeded and failed. The selection stays, ready for the next action.</li>
     </ul>
     <ul class="tick">
       <li><b>Buttons, or one menu.</b> With up to three selection actions, each is a button; with four or more, they are all in one Actions menu.</li>
-      <li id="action-permission"><b>Who can run it.</b> An autolaunched flow or Apex action needs a <b>Required Permission</b>: it runs with the access the flow or class gives it, which can be more than the user's own. Create a custom permission (Setup, Custom Permissions), add it to a permission set the right people hold, and enter its API name. A screen flow or quick action may have one too, to limit who sees it.</li>
+      <li id="action-permission"><b>Who can run it.</b> An autolaunched flow needs a <b>Required Permission</b>: it runs with the access the flow gives it, which can be more than the user's own. Create a custom permission (Setup, Custom Permissions), add it to a permission set the right people hold, and enter its API name. A screen flow or quick action may have one too, to limit who sees it.</li>
       <li><b>A screen flow from a link.</b> Its page starts the flow at once when a grid in the same browser tab sent it. Opened any other way, from a link or a reload, it names the action and its rows and asks first: <b>Cancel</b> or <b>Run</b>. It only ever goes back to a Salesforce page.</li>
       <li><b>Large selections</b> run 50 records per call, one call after another.</li>
     </ul>
@@ -501,7 +501,7 @@
     <li><b>Click <span class="ui">Import 3 grids</span></b>; the number is how many can be imported. They are saved one after the other, child grids first, a few seconds each, while a spinner says which one it is on (<i>Importing … (2 of 3)</i>); keep the window open until it is done. <i>Grids imported</i> names them, and they are under <span class="ui">Available grids</span>. If one cannot be saved, the dialog says why, and the grids before it stay imported.</li>
   </ol>
   <ul class="tick">
-    <li><b>Then put each grid on a page.</b> A file holds no Lightning page: add the Rowhouse Grid component to a page and enter the grid's API name. An action needs its flow, Apex class or quick action in the org, as it does when you add it by hand.</li>
+    <li><b>Then put each grid on a page.</b> A file holds no Lightning page: add the Rowhouse Grid component to a page and enter the grid's API name. An action needs its flow or quick action in the org, as it does when you add it by hand.</li>
     <li><b>Checked like a save.</b> Every grid in a file is checked as a grid saved on this tab is, so a file can do nothing you could not do by building the grid here. A file's filter values are in it as you typed them: share it as you would the grid's settings.</li>
     <li><b>Between a sandbox and its production org,</b> a change set or a deployment works too, and keeps the grids on your release path (<a href="start.html#move">Moving grids between orgs</a>).</li>
   </ul>

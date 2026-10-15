@@ -408,19 +408,19 @@ public with sharing class GridConfig {
     }
 
     /**
-     * One action users can run from the grid: a screen flow, an
-     * autolaunched flow, an invocable Apex action or a quick action. `name` is
-     * the Grid Action's DeveloperName, which the browser hands back to run it;
-     * what it runs stays here. A screen flow runs in the browser, so for one
-     * of those the browser is told the flow and its input (flowName,
-     * inputName); for the others it is told neither.
+     * One action users can run from the grid: a screen flow, an autolaunched
+     * flow or a quick action. `name` is the Grid Action's DeveloperName, which
+     * the browser hands back to run it. A screen flow and a quick action run in
+     * the browser, so the browser is told the flow and its input (flowName,
+     * inputName) or the quick action (quickActionName); for an autolaunched
+     * flow it is told neither.
      */
     public class Action {
         @AuraEnabled
         public String name;
         @AuraEnabled
         public String label;
-        /** screenflow, flow, apex or quickaction. */
+        /** screenflow, flow or quickaction. */
         @AuraEnabled
         public String type;
         /** Offered in each row's menu. */
@@ -438,7 +438,10 @@ public with sharing class GridConfig {
         /** A screen flow's input for one record's Id; null for the other types. */
         @AuraEnabled
         public String inputName;
-        /** What runs on the server: a flow, class or quick action name. Never sent. */
+        /** A quick action's name for Salesforce's window: Object.Name, or Global.Name; null for the other types. */
+        @AuraEnabled
+        public String quickActionName;
+        /** The Grid Action's Action Name: the flow's or the quick action's. Never sent. */
         public String actionName;
         /** The input the server fills with the record Id; blank finds it (GridActionService). Never sent. */
         public String serverInput;

@@ -4,8 +4,8 @@
     <label>Action Type</label>
     <type>Picklist</type>
     <required>false</required>
-    <description>What kind of action this is. A screen flow opens on a page of its own, then returns to the grid. Autolaunched flows, Apex actions and quick actions run on the server for each record, 50 records per call, with the permissions they are built with.</description>
-    <inlineHelpText>A screen flow opens on a page of its own. Autolaunched flows, Apex actions and quick actions run on the server for each record.</inlineHelpText>
+    <description>What kind of action this is. A screen flow opens on a page of its own and a quick action in Salesforce's own window; both return to the grid. An autolaunched flow runs on the server for each record, 50 records per call.</description>
+    <inlineHelpText>A screen flow opens on a page of its own and a quick action in Salesforce's window. An autolaunched flow runs on the server for each record. To run Apex, call it from an autolaunched flow.</inlineHelpText>
     <valueSet>
         <restricted>true</restricted>
         <valueSetDefinition>
@@ -19,11 +19,6 @@
                 <fullName>Flow</fullName>
                 <default>false</default>
                 <label>Autolaunched flow</label>
-            </value>
-            <value>
-                <fullName>Apex</fullName>
-                <default>false</default>
-                <label>Invocable Apex action</label>
             </value>
             <value>
                 <fullName>QuickAction</fullName>

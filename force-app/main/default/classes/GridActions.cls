@@ -1,36 +1,47 @@
 /**
  * GridActions — the actions a grid offers on a row or on the selection.
  *
- * A Grid Action record names a screen flow, an autolaunched flow, an invocable
- * Apex action or a quick action, and where the grid offers it: each row's
- * menu, the selection bar, or both. Each is checked here against what can be
- * checked without running it: a known type, a well-formed name and input, and
- * for an object's quick action, the grid's own object. One an admin got wrong
- * is left out with a warning, as for format rules and child tables.
- * Whether the flow, class or quick action exists is not asked here: a
- * describe for every action on every page load is not free, and the platform
- * answers "Action name not found" when one is run.
+ * A Grid Action record names a screen flow, an autolaunched flow or a quick
+ * action, and where the grid offers it: each row's menu, the selection bar,
+ * or both. Each is checked here against what can be checked without running
+ * it: a known type, a well-formed name and input, and for an object's quick
+ * action, the grid's own object. One an admin got wrong is left out with a
+ * warning, as for format rules and child tables. Whether the flow or quick
+ * action exists is not asked here: a describe for every action on every page
+ * load is not free, and running one that is not there says so.
  *
- * An autolaunched flow or an Apex action must name a Required Permission.
- * Started from Apex, it runs with the access the flow or class gives it: the
- * platform does not check the user's access to it, and a flow in its default
- * mode ran in system context, writing a field the user could not edit
- * (measured). So one without a permission is skipped, and only users who hold
- * the permission the admin chose see it or can run it. A screen flow runs in
- * the browser under the user's own access, and a quick action through
- * Salesforce's own; for those the permission is optional.
+ * Invocable Apex is not a type of its own. From the installed package Apex
+ * cannot reach the org's own Apex classes or quick actions at all (measured):
+ * an admin runs Apex from an autolaunched flow. A quick action opens in
+ * Salesforce's own window, in the browser, one row at a time; so it is
+ * offered in each row's menu only.
  *
- * GridActionService runs the server's kinds; a screen flow runs in the
- * browser, in lightning-flow.
+ * An autolaunched flow must name a Required Permission. Started from Apex, it
+ * runs with the access the flow gives it: the platform does not check the
+ * user's access to it, and a flow in its default mode ran in system context,
+ * writing a field the user could not edit (measured). So one without a
+ * permission is skipped, and only users who hold the permission the admin
+ * chose see it or can run it. A screen flow runs in the browser under the
+ * user's own access, and a quick action in Salesforce's own window; for those
+ * the permission is optional.
+ *
+ * GridActionService runs autolaunched flows; screen flows and quick actions
+ * run in the browser.
  */
 public with sharing class GridActions {
     /** The Action Type picklist's values, lower-cased, as the grid names them. */
-    public static final Set<String> TYPES = new Set<String>{ 'screenflow', 'flow', 'apex', 'quickaction' };
+    public static final Set<String> TYPES = new Set<String>{ 'screenflow', 'flow', 'quickaction' };
 
-    /** Why an autolaunched flow or Apex action without a Required Permission is not offered. */
+    /** Why an autolaunched flow without a Required Permission is not offered. */
     public static final String PERMISSION_NEEDED =
-        'an autolaunched flow or Apex action needs a Required Permission: it runs with the access the flow ' +
-        'or class gives it, which can be more than the user\'s own.';
+        'an autolaunched flow needs a Required Permission: it runs with the access the flow gives it, ' +
+        'which can be more than the user\'s own.';
+
+    /** Why an Apex action is not offered. */
+    public static final String NO_APEX = 'Rowhouse does not run Apex on its own: call the Apex from an autolaunched flow and choose the flow here.';
+
+    /** Why a quick action is not offered on the selection. */
+    public static final String QUICK_ACTION_ON_ROW = 'a quick action opens in Salesforce\'s own window, for one row at a time: set Show In to Row.';
 
     /** A flow's or class's API name, with an optional namespace: Name, ns__Name. */
     private static final Pattern API_NAME = Pattern.compile('^[A-Za-z][A-Za-z0-9_]{0,254}$');
@@ -106,6 +117,9 @@ public with sharing class GridActions {
             throw new GridException('it has no Action Type.');
         }
         a.type = r.Action_Type__c.trim().toLowerCase();
+        if (a.type == 'apex') {
+            throw new GridException(NO_APEX);
+        }
         if (!TYPES.contains(a.type)) {
             throw new GridException('unknown Action Type "' + r.Action_Type__c + '".');
         }
@@ -126,21 +140,27 @@ public with sharing class GridActions {
         if (showIn != 'both' && showIn != 'row' && showIn != 'selection') {
             throw new GridException('unknown Show In "' + r.Show_In__c + '".');
         }
+        if (a.type == 'quickaction' && showIn == 'selection') {
+            throw new GridException(QUICK_ACTION_ON_ROW);
+        }
         a.onRow = showIn != 'selection';
-        a.onSelection = showIn != 'row';
+        a.onSelection = showIn != 'row' && a.type != 'quickaction'; // a quick action: the row's menu only
         a.confirmation = String.isBlank(r.Confirmation__c) ? null : r.Confirmation__c.trim();
         String permission = String.isBlank(r.Required_Permission__c) ? null : r.Required_Permission__c.trim();
         if (permission != null && !API_NAME.matcher(permission).matches()) {
             throw new GridException('Required Permission "' + permission + '" is not an API name.');
         }
         a.requiredPermission = permission;
-        if (permission == null && (a.type == 'flow' || a.type == 'apex')) {
+        if (permission == null && a.type == 'flow') {
             throw new GridException(PERMISSION_NEEDED);
         }
         if (a.type == 'screenflow') {
             // The browser runs a screen flow (lightning-flow), so it needs both.
             a.flowName = a.actionName;
             a.inputName = input == null ? 'recordId' : input;
+        } else if (a.type == 'quickaction') {
+            // The browser opens Salesforce's window for it: Global.Name for a global action.
+            a.quickActionName = a.actionName.contains('.') ? a.actionName : 'Global.' + a.actionName;
         } else {
             a.serverInput = input;
         }

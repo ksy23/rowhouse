@@ -103,7 +103,7 @@
 
         <section id="action" data-anchor="action">
           <div class="rh-sec-head"><span class="rh-sec-num">Build it · admin</span><h2>4. A Log a Call action</h2>
-          <p class="rh-sec-sub">Log a Call is a global quick action that every org has. Run on a case, it records a completed call on that case's activity timeline.</p></div>
+          <p class="rh-sec-sub">Log a Call is a global quick action that every org has. From a case's row it opens Salesforce's Log a Call window, and the call it saves goes on that case's activity timeline, marked completed.</p></div>
           <ol class="rh-tut">
             <li><b>Open Grid Action records.</b> In <span class="rh-ui">Custom Metadata Types</span>, beside <span class="rh-ui">Grid Action</span>, click <span class="rh-ui">Manage Records</span>, then <span class="rh-ui">New</span>.</li>
             <li><b>Fill in:</b>
@@ -151,7 +151,9 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Use it · Kevin</span><h2>7. Log a call from the row</h2></div>
           <ol class="rh-tut">
             <li><b>Run the action.</b> On any case, click the ▾ at the right end of its row and choose <span class="rh-ui">Log a call</span>.
-              <div class="rh-check">A message: "Log a call: done on 1 record."</div></li>
+              <div class="rh-check">Salesforce's <i>Log a Call</i> window opens over the grid, with the case in <span class="rh-ui">Related To</span>.</div></li>
+            <li><b>Save it.</b> Click <span class="rh-ui">Save</span>.
+              <div class="rh-check">The window closes and you are back on Home.</div></li>
             <li><b>Check it.</b> Click the case's number to open the case (<kbd>Cmd</kbd>-click or <kbd>Ctrl</kbd>-click opens it in a new browser tab). The call is on its activity timeline, marked completed.</li>
           </ol>
         </section>

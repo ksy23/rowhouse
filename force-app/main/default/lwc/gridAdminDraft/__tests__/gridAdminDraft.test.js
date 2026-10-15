@@ -60,7 +60,7 @@ describe('API names', () => {
 
 describe('picklist values', () => {
     it("are the Custom Metadata fields' own values", () => {
-        expect(values(ACTION_TYPES)).toEqual(['ScreenFlow', 'Flow', 'Apex', 'QuickAction']);
+        expect(values(ACTION_TYPES)).toEqual(['ScreenFlow', 'Flow', 'QuickAction']);
         expect(values(SHOW_IN)).toEqual(['Both', 'Row', 'Selection']);
         expect(values(STYLES)).not.toContain('fill_blue');
         expect(values(OPERATORS)).toHaveLength(12); // Between included

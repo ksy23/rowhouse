@@ -138,11 +138,16 @@
  *   unless the action names another), or the selected Ids as the text
  *   collection `ids`. Not over unsaved changes, which leaving the page could
  *   lose. When it comes back, the rows it ran on are read again.
- * - An autolaunched flow, an Apex action or a quick action runs on the server
- *   (GridController.runAction), ACTION_BATCH records per call, one call after
- *   another. The dialog asks first for a selection, for an action with its own
- *   question, and for a row with unsaved changes (the action sees the saved
- *   record). Records it could not run on keep a row error saying why.
+ * - A quick action opens in Salesforce's own window over this page, on one
+ *   row (c/gridFlowRoute quickActionUrl). Not over that row's unsaved changes:
+ *   the window works on the saved record. Nothing tells the page when the
+ *   window closes, so the grid watches the address (QUICK_POLL_MS), then reads
+ *   the row again.
+ * - An autolaunched flow runs on the server (GridController.runAction),
+ *   ACTION_BATCH records per call, one call after another. The dialog asks
+ *   first for a selection, for an action with its own question, and for a
+ *   row with unsaved changes (the flow sees the saved record). Records it
+ *   could not run on keep a row error saying why.
  * Afterwards the rows it ran on are read again, since the action may have
  * changed them; counts and subtotals are fetched again. The selection stays,
  * so another action can run on the same rows.
@@ -268,7 +273,15 @@ import { massChanges } from 'c/gridMassUpdate';
 import { sharedOptions } from 'c/gridFields';
 import { childTableHeight } from 'c/gridNest';
 import { readChoice, shownColumns, chooseColumns, sameChoice, searchHint } from 'c/gridColumns';
-import { namespaceOf, newToken, backRef, flowPageRef, doneToken } from 'c/gridFlowRoute';
+import {
+    namespaceOf,
+    newToken,
+    backRef,
+    flowPageRef,
+    doneToken,
+    quickActionUrl,
+    isQuickActionPath
+} from 'c/gridFlowRoute';
 import { openGuide } from 'c/guideRoute';
 import { normalizeChart, defaultChart, chartParam, groupByColumns } from 'c/gridCharts';
 
@@ -295,6 +308,10 @@ export const MATCH_SLICE = 2000;
 export const MAX_DELETE_ALL = 50000;
 /** Records per action call (GridActionService.MAX_IDS). */
 export const ACTION_BATCH = 50;
+/** ms between looks at the address while a quick action's window is open. */
+export const QUICK_POLL_MS = 400;
+/** ms a quick action's window has to open before the grid stops watching for it. */
+export const QUICK_OPEN_WAIT_MS = 15000;
 /** Selection actions shown as buttons; more than this and they are one menu. */
 export const MAX_ACTION_BUTTONS = 3;
 /** The row menu's own items, before the grid's actions: no Grid Action's name starts with "_". */
@@ -321,6 +338,15 @@ export const MENU_CHROME = 12;
 export const MAX_FROZEN = 5;
 const NO_CHILDREN = [];
 const NO_FILTERS = [];
+
+/** This page's address, path and query; blank where it cannot be read. */
+const currentAddress = () => {
+    try {
+        return window.location.pathname + window.location.search;
+    } catch {
+        return '';
+    }
+};
 
 const delay = ms =>
     new Promise(resolve => {
@@ -581,6 +607,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * flow it sent the user to: { token, action, ids }, until it comes back.
      */
     _flow = { page: null, sent: null };
+    /** Quick actions: the window this grid opened ({ action, recordId }), and the timer that watches for it to close. */
+    _quick = { sent: null, timer: null };
     /**
      * The layout being kept: the table's part as it last reported it,
      * the timer of the next save, what was last kept, the key of the layout
@@ -697,6 +725,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this._runtime.chartToken++;
         this._runtime.countToken++;
         clearTimeout(this._runtime.searchTimer);
+        this.stopWatchingQuickAction();
         this.keepLayoutNow(); // a change still waiting is kept, not lost
         if (this._layout.observer) this._layout.observer.disconnect();
         if (this._layout.onResize) window.removeEventListener('resize', this._layout.onResize);
@@ -3364,14 +3393,19 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     /**
-     * A screen flow opens on its own page. A server action asks first
-     * for a selection, when the admin gave it a question, or when a row has
-     * unsaved changes; otherwise it runs at once.
+     * A screen flow opens on its own page, a quick action in Salesforce's
+     * window. An autolaunched flow asks first for a selection, when the admin
+     * gave it a question, or when a row has unsaved changes; otherwise it runs
+     * at once.
      */
     startAction(action, ids, source) {
         if (this.saving || this.deleting || this.acting || this.actionDialog) return;
         if (action.type === 'screenflow') {
             this.openScreenFlow(action, ids, source);
+            return;
+        }
+        if (action.type === 'quickaction') {
+            if (ids.length === 1) this.openQuickAction(action, ids[0]);
             return;
         }
         this._pendingAction = { action, ids, source };
@@ -3439,6 +3473,63 @@ export default class GridView extends NavigationMixin(LightningElement) {
         }
         this._flow.sent = { token, action, ids };
         this[NavigationMixin.Navigate](ref);
+    }
+
+    /**
+     * Open the quick action's own window over this page, on one row. Not over
+     * that row's unsaved changes: the window works on the saved record.
+     */
+    openQuickAction(action, recordId) {
+        const toast = (message, variant) => {
+            this.announce(message);
+            this.dispatchEvent(new ShowToastEvent({ title: action.label, message, variant }));
+        };
+        if (this.drafts[recordId]) {
+            toast(
+                `Save or cancel your changes to this row first: ${action.label} works on the saved record.`,
+                'warning'
+            );
+            return;
+        }
+        const url = quickActionUrl(action.quickActionName, recordId, currentAddress());
+        if (!url) {
+            toast(`${action.label} can't open here: Salesforce opens quick actions in Lightning Experience.`, 'error');
+            return;
+        }
+        this.watchQuickAction(action, recordId);
+        this.telemetry('action', { kind: 'quickaction', records: 1 });
+        this[NavigationMixin.Navigate]({ type: 'standard__webPage', attributes: { url } });
+    }
+
+    /**
+     * Watch the address: once the window has opened and closed (Save or
+     * Cancel), read the row again. A window that never opens is not waited
+     * for after QUICK_OPEN_WAIT_MS.
+     */
+    watchQuickAction(action, recordId) {
+        this.stopWatchingQuickAction();
+        const started = now();
+        let opened = false;
+        // eslint-disable-next-line @lwc/lwc/no-async-operation -- nothing tells the page when Salesforce's window closes
+        const timer = setInterval(() => {
+            if (isQuickActionPath(currentAddress())) {
+                opened = true;
+                return;
+            }
+            if (opened) {
+                this.stopWatchingQuickAction();
+                this.announce(`${action.label}: closed. Reading the row again.`);
+                this.refreshAfterAction([recordId]);
+            } else if (now() - started > QUICK_OPEN_WAIT_MS) {
+                this.stopWatchingQuickAction();
+            }
+        }, QUICK_POLL_MS);
+        this._quick = { sent: { action, recordId }, timer };
+    }
+
+    stopWatchingQuickAction() {
+        if (this._quick.timer) clearInterval(this._quick.timer);
+        this._quick = { sent: null, timer: null };
     }
 
     /** The first rows' names, for a dialog: the name column's, as the grid shows them. */

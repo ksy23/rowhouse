@@ -5,7 +5,7 @@
     <type>Text</type>
     <length>80</length>
     <required>false</required>
-    <description>The API name of a custom permission: your own, or another package's with its prefix. Required for an autolaunched flow or Apex action, which runs with the access the flow or class gives it. Only users who hold it see and can run the action.</description>
-    <inlineHelpText>API name of a custom permission, your own or another package's with its prefix. Required for an autolaunched flow or Apex action; optional otherwise. Only users with it see and can run this action.</inlineHelpText>
+    <description>The API name of a custom permission: your own, or another package's with its prefix. Required for an autolaunched flow, which runs with the access the flow gives it. Only users who hold it see and can run the action.</description>
+    <inlineHelpText>API name of a custom permission, your own or another package's with its prefix. Required for an autolaunched flow; optional otherwise. Only users with it see and can run this action.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>
