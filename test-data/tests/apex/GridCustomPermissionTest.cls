@@ -44,8 +44,8 @@ private class GridCustomPermissionTest {
     /**
      * Through a permission set group, with and without the permission muted,
      * the read of the user's assignments says what FeatureManagement says.
-     * Measured in a Developer Edition org on 14 October 2026: both true for the
-     * open group, both false for the muted one. In some orgs a group assigned
+     * Measured in a Developer Edition org: both true for the open group, both
+     * false for the muted one. In some orgs a group assigned
      * inside a test does not take effect at once, and then both say false, so
      * the test compares the two rather than expecting true.
      */

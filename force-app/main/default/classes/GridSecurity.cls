@@ -152,7 +152,7 @@ public with sharing class GridSecurity {
      * FeatureManagement answers for Rowhouse's own permissions and for another
      * package's, named with its prefix. From the installed package it does not
      * see the org's own custom permissions: it said false for one the user held
-     * (measured, 14 Oct 2026). So for a name it does not find, other than
+     * (measured in an installed org). So for a name it does not find, other than
      * Rowhouse's own, the user's active permission set assignments are read in
      * user mode (grantedByAssignment).
      */
