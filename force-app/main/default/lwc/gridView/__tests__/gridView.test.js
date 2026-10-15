@@ -2179,34 +2179,33 @@ describe('list view details', () => {
             await settle();
             return el;
         };
-        const spinner = el => $(el, '.rh-display-key-toggle .rh-display-key-spinner');
+        const spinner = el => $(el, '.rh-display-key-wrap .rh-display-key-cover .rh-display-key-spinner');
 
-        it('shows a spinner in the button while the key opens, then the key, then the icon again', async () => {
+        it('covers the icon with a spinner while the key opens, then shows the key and the switch on', async () => {
             const el = await mountWithRules();
             const toggle = $(el, '.rh-display-key-toggle');
             expect(spinner(el)).toBeNull();
-            expect(toggle.querySelector('lightning-icon')).not.toBeNull();
+            expect(toggle.selected).toBe(false);
 
             toggle.click();
             await settle();
-            // The spinner first, in place of the icon; the key not yet.
+            // The spinner first, over the icon; the key not yet.
             expect(spinner(el).getAttribute('role')).toBe('status');
-            expect(spinner(el).classList).toContain('slds-spinner_inline');
             expect(spinner(el).textContent.trim()).toBe('Opening the Display Key');
-            expect(toggle.querySelector('lightning-icon')).toBeNull();
+            expect($(el, '.rh-display-key-toggle')).toBe(toggle); // the switch stays, so nothing moves
             expect($(el, '.rh-display-key')).toBeNull();
 
             await paint();
             await settle();
             // The key, with the spinner still there until the key has been drawn.
             expect($(el, '.rh-display-key')).not.toBeNull();
-            expect(toggle.getAttribute('aria-expanded')).toBe('true');
+            expect(toggle.selected).toBe(true);
             expect(spinner(el)).not.toBeNull();
 
             await paint();
             await settle();
             expect(spinner(el)).toBeNull();
-            expect(toggle.querySelector('lightning-icon')).not.toBeNull();
+            expect($(el, '.rh-display-key-cover')).toBeNull();
         });
 
         it('says it is closing when it closes, and ignores a second click while it works', async () => {
@@ -2227,8 +2226,26 @@ describe('list view details', () => {
             await paint();
             await settle();
             expect($(el, '.rh-display-key')).toBeNull();
-            expect(toggle.getAttribute('aria-expanded')).toBe('false');
+            expect(toggle.selected).toBe(false);
             expect(spinner(el)).toBeNull();
+        });
+
+        it('is an icon switch named Display Key, right after Charts', async () => {
+            const columns = [{ ...DEFINITION.columns[0], groupable: true }, DEFINITION.columns[1]];
+            getGridConfig.mockResolvedValue({
+                definition: { ...DEFINITION, columns, displayRules: RULES },
+                diagnostics: false
+            });
+            const el = mount();
+            await settle();
+            const toggle = $(el, '.rh-display-key-toggle');
+            expect(toggle.tagName.toLowerCase()).toBe('lightning-button-icon-stateful');
+            expect(toggle.iconName).toBe('utility:color_swatch');
+            expect(toggle.alternativeText).toBe('Display Key');
+            expect(toggle.tooltip).toBe('Display Key');
+            expect(toggle.textContent.trim()).toBe('');
+            const charts = $(el, '.rh-charts');
+            expect(charts.nextElementSibling).toBe($(el, '.rh-display-key-wrap'));
         });
 
         it('is offered only with display rules, and says what each color means', async () => {
@@ -2241,13 +2258,13 @@ describe('list view details', () => {
             el = mount();
             await settle();
             const toggle = $(el, '.rh-display-key-toggle');
-            expect(toggle.textContent.trim()).toBe('Display Key');
-            expect(toggle.getAttribute('aria-expanded')).toBe('false');
+            expect(toggle.alternativeText).toBe('Display Key');
+            expect(toggle.selected).toBe(false);
             expect($(el, '.rh-display-key')).toBeNull();
             toggle.click();
             await paint();
             await settle();
-            expect(toggle.getAttribute('aria-expanded')).toBe('true');
+            expect(toggle.selected).toBe(true);
             expect($(el, '.rh-display-key').getAttribute('aria-label')).toBe('Display Key');
             const items = [...el.shadowRoot.querySelectorAll('.rh-display-key li')];
             expect(items.map(li => li.textContent)).toEqual(['AaOverdue: Red text, Cell', 'AaLarge load: Purple, Row']);

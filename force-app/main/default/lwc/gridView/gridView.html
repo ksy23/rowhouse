@@ -72,29 +72,6 @@
                     <span class="slds-assistive-text rh-search-hint-spoken" aria-live="polite">{searchHint}</span>
                 </div>
                 <template lwc:if={wideToolbar}>
-                    <template lwc:if={hasDisplayKey}>
-                        <!-- A native button: aria-expanded and aria-controls stay in this shadow root. -->
-                        <button
-                            class="slds-button slds-button_neutral slds-m-left_x-small rh-display-key-toggle"
-                            aria-expanded={displayKeyExpanded}
-                            aria-controls="display-key"
-                            onclick={handleDisplayKeyToggle}
-                        >
-                            <!-- While the key opens or closes, SLDS's inline spinner stands in for the
-                                 icon: the same 16px, so the button keeps its width. Spans, as a button
-                                 may hold only phrasing content. -->
-                            <template lwc:if={displayKeyBusy}>
-                                <span role="status" class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-spinner_inline slds-m-right_x-small rh-display-key-spinner">
-                                    <span class="slds-assistive-text">{displayKeyBusy}</span>
-                                    <span class="slds-spinner__dot-a"></span>
-                                    <span class="slds-spinner__dot-b"></span>
-                                </span>
-                            </template>
-                            <template lwc:else>
-                                <lightning-icon icon-name="utility:color_swatch" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                            </template>Display Key
-                        </button>
-                    </template>
                     <!-- Each icon button: Salesforce's tooltip at once, and the same words as the
                          browser's hover text after a moment, as a list view's toolbar has them. -->
                     <lightning-button-icon
@@ -128,6 +105,31 @@
                             selected={chartsOpen}
                             onclick={handleChartsToggle}
                         ></lightning-button-icon-stateful>
+                    </template>
+                    <template lwc:if={hasDisplayKey}>
+                        <!-- The Display Key beside Charts: both open a panel, so both are icon switches,
+                             blue while open. While the key opens or closes, SLDS's spinner covers the
+                             icon on a disc of the button's own size, so nothing moves. -->
+                        <span class="slds-m-left_x-small rh-display-key-wrap">
+                            <lightning-button-icon-stateful
+                                class="rh-display-key-toggle"
+                                icon-name="utility:color_swatch"
+                                alternative-text="Display Key"
+                                title="Display Key"
+                                tooltip="Display Key"
+                                selected={displayKeyOpen}
+                                onclick={handleDisplayKeyToggle}
+                            ></lightning-button-icon-stateful>
+                            <template lwc:if={displayKeyBusy}>
+                                <span class="rh-display-key-cover">
+                                    <span role="status" class="slds-spinner slds-spinner_brand slds-spinner_x-small rh-display-key-spinner">
+                                        <span class="slds-assistive-text">{displayKeyBusy}</span>
+                                        <span class="slds-spinner__dot-a"></span>
+                                        <span class="slds-spinner__dot-b"></span>
+                                    </span>
+                                </span>
+                            </template>
+                        </span>
                     </template>
                     <template lwc:if={canResetLayout}>
                         <!-- This user's layout is kept: put back the admin's. -->

@@ -113,7 +113,7 @@
  * - An empty list says why and what to do: clear the search, or import.
  *   While the first rows load, grey placeholder rows stand where they will be,
  *   instead of a spinner.
- * - With display rules, a Display Key button shows what each color, icon and bar means.
+ * - With display rules, a Display Key switch (a swatch icon beside Charts) shows what each color, icon and bar means.
  * - Configuration warnings (diagnostics only) are one line until opened.
  * - Child tables: how many related records each row has comes from
  *   GridController.countChildren after the rows load, and a child grid tells
@@ -1561,10 +1561,6 @@ export default class GridView extends NavigationMixin(LightningElement) {
             hasIcon: Boolean(l.icon),
             where: l.row ? 'Row' : 'Cell'
         }));
-    }
-
-    get displayKeyExpanded() {
-        return String(this.displayKeyOpen);
     }
 
     /**

@@ -235,13 +235,20 @@
 }
 
 /*
- * The Display Key button's spinner, while the key opens or closes. SLDS draws a spinner's dots round the middle of its
- * TOP edge, and centres a normal spinner by moving it; the inline one is not
- * moved, so its dots sat half its height above the button's middle (measured
- * in Lightning Experience). Down by half its own height.
+ * The Display Key's switch, beside Charts. While the key opens or closes, a
+ * disc the size of the button inside its border covers the icon, and SLDS's
+ * spinner, which centres itself in the nearest positioned box, sits in it.
  */
-.rh-display-key-spinner {
-    transform: translateY(50%);
+.rh-display-key-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.rh-display-key-cover {
+    position: absolute;
+    inset: 1px;
+    border-radius: 50%;
+    background: var(--slds-g-color-neutral-base-100, #fff);
 }
 
 /*
