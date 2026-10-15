@@ -142,7 +142,8 @@
  *   row (c/gridFlowRoute quickActionUrl). Not over that row's unsaved changes:
  *   the window works on the saved record. Nothing tells the page when the
  *   window closes, so the grid watches the address (QUICK_POLL_MS), then reads
- *   the row again.
+ *   the row again; after QUICK_OPEN_WAIT_MS it reads it anyway (a hidden
+ *   tab's slowed timers can miss the window).
  * - An autolaunched flow runs on the server (GridController.runAction),
  *   ACTION_BATCH records per call, one call after another. The dialog asks
  *   first for a selection, for an action with its own question, and for a
@@ -310,7 +311,7 @@ export const MAX_DELETE_ALL = 50000;
 export const ACTION_BATCH = 50;
 /** ms between looks at the address while a quick action's window is open. */
 export const QUICK_POLL_MS = 400;
-/** ms a quick action's window has to open before the grid stops watching for it. */
+/** ms after which the grid stops watching for a quick action's window and reads the row again. */
 export const QUICK_OPEN_WAIT_MS = 15000;
 /** Selection actions shown as buttons; more than this and they are one menu. */
 export const MAX_ACTION_BUTTONS = 3;
@@ -3503,8 +3504,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /**
      * Watch the address: once the window has opened and closed (Save or
-     * Cancel), read the row again. A window that never opens is not waited
-     * for after QUICK_OPEN_WAIT_MS.
+     * Cancel), read the row again. A hidden tab's timers are slowed to as
+     * little as once a minute (measured), so a check may come too late to
+     * see the window at all: after QUICK_OPEN_WAIT_MS the row is read again
+     * anyway, once.
      */
     watchQuickAction(action, recordId) {
         this.stopWatchingQuickAction();
@@ -3516,13 +3519,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 opened = true;
                 return;
             }
-            if (opened) {
-                this.stopWatchingQuickAction();
-                this.announce(`${action.label}: closed. Reading the row again.`);
-                this.refreshAfterAction([recordId]);
-            } else if (now() - started > QUICK_OPEN_WAIT_MS) {
-                this.stopWatchingQuickAction();
-            }
+            if (!opened && now() - started < QUICK_OPEN_WAIT_MS) return; // not open yet
+            this.stopWatchingQuickAction();
+            this.announce(
+                opened ? `${action.label}: closed. Reading the row again.` : `${action.label}: reading the row again.`
+            );
+            this.refreshAfterAction([recordId]);
         }, QUICK_POLL_MS);
         this._quick = { sent: { action, recordId }, timer };
     }

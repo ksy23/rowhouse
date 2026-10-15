@@ -624,17 +624,21 @@ describe("a quick action, in Salesforce's own window", () => {
         expect(fetchRowsById).toHaveBeenCalledTimes(1); // it stopped watching
     });
 
-    it('stops watching for a window that never opened', async () => {
+    it("reads the row once anyway when the checks came too late to see the window (a hidden tab's slowed timers)", async () => {
         const el = mount();
         await settle();
         rowAction(el, 'Log_Call', row(2).Id);
         await settle();
-        await tick(QUICK_OPEN_WAIT_MS + QUICK_POLL_MS);
+        await tick(QUICK_POLL_MS);
+        expect(fetchRowsById).not.toHaveBeenCalled(); // not open yet, as far as the grid can tell
+        await tick(QUICK_OPEN_WAIT_MS);
+        expect(fetchRowsById).toHaveBeenCalledTimes(1);
+        expect(fetchRowsById).toHaveBeenCalledWith({ configName: 'Consignments', recordIds: [row(2).Id] });
         go(`/lightning/action/quick/Global.LogACall`);
         await tick(QUICK_POLL_MS);
         go(GRID_PAGE);
-        await tick(QUICK_POLL_MS);
-        expect(fetchRowsById).not.toHaveBeenCalled();
+        await tick(QUICK_POLL_MS * 5);
+        expect(fetchRowsById).toHaveBeenCalledTimes(1); // it stopped watching
     });
 
     it("does not open over that row's unsaved changes, and says why", async () => {
