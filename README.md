@@ -16,10 +16,32 @@ in Lightning Experience, in the browsers Salesforce supports.
 
 ![A Rowhouse grid of opportunities: edit cells in place, each change waiting in the Save bar with Undo, Redo, Cancel and Save; group by Stage for counts and subtotals; open a chart beside the grid](docs/images/rowhouse-tour.gif)
 
-> **Status: in development, not installable yet.** When it is released,
-> Rowhouse installs as a managed package, linked from
-> [rowhouse.app](https://rowhouse.app), and later from AppExchange once
-> Salesforce approves it. Nothing here is a release.
+## Install
+
+Rowhouse 1.0, **Winter 2027**, is a managed package (namespace `rowhouse`,
+package version ID `04tUK000000TSovYAG`).
+
+- **Production or Developer Edition org:**
+  [install Rowhouse](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TSovYAG)
+- **Sandbox:**
+  [install Rowhouse in a sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TSovYAG)
+- **Salesforce CLI:**
+  `sf package install --package 04tUK000000TSovYAG --target-org <your org> --wait 20`
+
+Then assign the **Rowhouse Grid Admin** permission set to whoever builds grids
+and **Rowhouse Grid User** to everyone who uses them, and open the **Rowhouse**
+app from the App Launcher: its Grid Guide tab walks you through your first
+grid ([Placing a grid](#placing-a-grid), below).
+
+- **Upgrading:** each new version is installed the same way, from its link in
+  [CHANGELOG.md](CHANGELOG.md). It upgrades Rowhouse in place and keeps your
+  grids.
+- **In a production org**, until Rowhouse has passed Salesforce's security
+  review: if saving a grid says Salesforce did not let Rowhouse save it, turn
+  on **Deploy Metadata from Non-Certified Package Versions via Apex** (in
+  Setup, type Apex Settings in the Quick Find box). Saving a grid, the Grid
+  Guide's Build buttons and Import Grid write Custom Metadata from Apex, which
+  Salesforce allows such a package only with this setting.
 
 ## What it does
 
@@ -193,6 +215,7 @@ in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 - The Grid Guide, inside Salesforce (the Grid Guide tab); its pages are in
   [`guide/pages`](guide/pages). Change a page, then run `npm run guide`.
+- [CHANGELOG.md](CHANGELOG.md): each release, with its install links.
 - [CONTRIBUTING.md](CONTRIBUTING.md): set-up, what a change must include, and
   the twenty-nine hard rules.
 - [SUPPORT.md](SUPPORT.md): how to get help and report a bug.
