@@ -3,21 +3,23 @@
 Each release is a version of the Rowhouse Grid managed package (namespace
 `rowhouse`). Install or upgrade from its links; an upgrade keeps your grids.
 
-## Unreleased
+## 1.1 — Winter 2027 (15 October 2026)
 
+The version to install. It upgrades 1.0 in place and keeps your grids.
+
+- **Package version:** 1.1.0.1, ID `04tUK000000TU7ZYAW`
+- **Install:**
+  [production or Developer Edition](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TU7ZYAW)
+  ·
+  [sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TU7ZYAW)
+  · `sf package install --package 04tUK000000TU7ZYAW --target-org <your org> --wait 20`
 - **License:** the GNU Affero General Public License v3.0 (AGPL-3.0). See
   NOTICE.
 
 ## 1.0 — Winter 2027 (15 October 2026)
 
-The first release.
-
-- **Package version:** 1.0.0.2, ID `04tUK000000TSovYAG`
-- **Install:**
-  [production or Developer Edition](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TSovYAG)
-  ·
-  [sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TSovYAG)
-  · `sf package install --package 04tUK000000TSovYAG --target-org <your org> --wait 20`
+The first release, package version 1.0.0.2. Replaced by 1.1: install 1.1
+instead.
 
 What it includes is in the README's [What it does](README.md#what-it-does):
 inline editing with every common field type, spreadsheet keys, undo and redo;
