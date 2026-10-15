@@ -4,7 +4,7 @@
     <label>Show Row Numbers</label>
     <type>Checkbox</type>
     <defaultValue>true</defaultValue>
-    <description>Checked: the rows are numbered down the grid's left edge, as a list view numbers them: 1, 2, 3 in the order shown. Uncheck to hide the numbers, for example on a narrow grid on a record page.</description>
-    <inlineHelpText>Uncheck to hide the row numbers down the grid's left edge.</inlineHelpText>
+    <description>Selected: the rows are numbered down the grid's left edge, as a list view numbers them: 1, 2, 3 in the order shown. Deselect to hide the numbers, for example on a narrow grid on a record page.</description>
+    <inlineHelpText>Deselect to hide the row numbers down the grid's left edge.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

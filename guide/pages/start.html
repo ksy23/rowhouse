@@ -29,7 +29,7 @@
   <div class="sec-head"><span class="sec-num">01</span><h2>What you need</h2></div>
   <div class="prose">
     <ul class="tick">
-      <li><b>Lightning Experience.</b> Rowhouse is a Lightning web component. It is placed on App, Record and Home pages; it does not run in Salesforce Classic, in Experience Cloud sites, or in the Salesforce mobile app's own list views.</li>
+      <li><b>Lightning Experience.</b> Rowhouse is a Lightning web component. It is placed on App, Record and Home pages; it does not run in Salesforce Classic or in Experience Cloud sites, and it has not yet been tested in the Salesforce mobile app.</li>
       <li><b>Permission to customize the application.</b> Grids are described by Custom Metadata records. You build them on the <b>Grid Admin</b> tab, or record by record in Setup; saving either way needs the Customize Application permission, which Salesforce admins have. Placing a grid on a page needs the usual permissions for Lightning App Builder.</li>
       <li><b>Rowhouse installed in the org.</b> If you are reading this on the Grid Guide tab, it is.</li>
       <li id="not-certified"><b>In a production org, until Rowhouse has passed Salesforce's security review:</b> if saving a grid says <i>Salesforce did not let Rowhouse save it</i>, turn on <b>Deploy Metadata from Non-Certified Package Versions via Apex</b> (in Setup, type <span class="ui">Apex Settings</span> in the Quick Find box). Saving a grid, the guide's Build buttons and Import Grid write Custom Metadata from Apex, which Salesforce allows such a package only with this setting.</li>
@@ -74,9 +74,9 @@
     <table class="ref">
       <thead><tr><th>Record</th><th>How many</th><th>What it holds</th></tr></thead>
       <tbody>
-        <tr><td>Grid Configuration</td><td class="d">1 per grid</td><td>The object, the sort it opens with, how many rows the first page loads, its height, frozen columns, the lookup that ties it to a record page, and what users may do: edit, export, import, delete, and whether every change is logged.</td></tr>
+        <tr><td>Grid Configuration</td><td class="d">1 per grid</td><td>The object, the sort it opens with, how many rows the first page loads, its height, frozen columns, the lookup that ties it to a record page, and what users may do: edit, add records with New, export, import, delete, and whether every change is logged; and whether rows are numbered.</td></tr>
         <tr><td>Grid Column</td><td class="d">1 per column</td><td>The field, or a formula the grid works out; the order, whether it can be edited, sorted or wrapped, its width, and grouping and subtotal settings.</td></tr>
-        <tr><td>Grid Display Rule</td><td class="d">0 or more</td><td>A test (a value, a range, another field, or a formula) and a look: a fill, a text color, bold, an icon or a data bar, on a cell, or a bar on the whole row.</td></tr>
+        <tr><td>Grid Display Rule</td><td class="d">0 or more</td><td>A test (a value, a range, another field, or a formula) and a look: a fill, a text color, bold, an icon or a data bar, on a cell, or a tint and a bar on the whole row.</td></tr>
         <tr><td>Grid Filter</td><td class="d">0 or more</td><td>A condition every record in the grid must meet. Users see it as a locked chip and cannot remove it.</td></tr>
         <tr><td>Grid Child Table</td><td class="d">0 or more</td><td>A tab of related records under each row, shown with another Grid Configuration.</td></tr>
         <tr><td>Grid Action</td><td class="d">0 or more</td><td>A flow or quick action users can run on a row, or a flow they run on the selected rows.</td></tr>
@@ -90,7 +90,7 @@
   <div class="sec-head"><span class="sec-num">03</span><h2>Give people access</h2>
     <p class="sec-sub">Rowhouse ships three permission sets. None gives access to your records: what a user sees and changes in a grid is exactly what their profile, permission sets and sharing already allow.</p></div>
   <div class="split rv-stagger">
-    <div class="tile" style="--c:var(--accent)"><div class="ic">{{ic:users}}</div><h4>Rowhouse Grid User · required</h4><p>Assign it to everyone who uses a grid, admins included. It lets them open grids, save changes, write to the audit log, keep their own layout of each grid, and read this guide in the <b>Rowhouse</b> app (its <b>Grid Guide</b> tab, the only one they see there, also opened by the <b>?</b> on each grid). A profile cannot grant this access; it has to be the permission set.</p></div>
+    <div class="tile" style="--c:var(--accent)"><div class="ic">{{ic:users}}</div><h4>Rowhouse Grid User · required</h4><p>Assign it to everyone who uses a grid, admins included. It lets them open grids, save changes, write to the audit log, keep their own layout of each grid, and read this guide in the <b>Rowhouse</b> app (its <b>Grid Guide</b> tab, the only one they see there, also opened by <b>Help</b> (?) on each grid). A profile cannot grant this access; it has to be the permission set.</p></div>
     <div class="tile gold"><div class="ic">{{ic:gauge}}</div><h4>Rowhouse Grid Diagnostics · optional</h4><p>Shows troubleshooting information: configuration warnings above each grid, and load and save timings in the browser console. Assign it while you investigate a problem, then remove it.</p></div>
     <div class="tile plum"><div class="ic">{{ic:layers}}</div><h4>Rowhouse Grid Admin · for whoever builds grids</h4><p>Adds the <b>Grid Admin</b> and <b>Grid Edit Logs</b> tabs to the <b>Rowhouse</b> app, beside its <b>Grid Guide</b>, and the gear to each grid, where grids are built and changed, and includes what Rowhouse Grid Diagnostics shows. It also shows the guide's pages for admins: this one, Configure and Features. Assign it with Rowhouse Grid User. Saving a grid also needs Customize Application.</p></div>
   </div>
@@ -161,16 +161,16 @@
 <section id="where">
   <div class="sec-head"><span class="sec-num">05</span><h2>Where to put a grid</h2></div>
   <div class="tiles rv-stagger">
-    <div class="tile"><div class="ic">{{ic:page}}</div><h4>App page: the usual home</h4><p>A grid on its own App page, added to an app as a tab, fills the window from its top edge to the bottom of the screen. Leave Height (px) empty for this.</p></div>
-    <div class="tile sky"><div class="ic">{{ic:grid}}</div><h4>Home page</h4><p>Beside other components, set <b>Height (px)</b> on the Grid Configuration (for example 420), or the grid pushes the rest of the page down a full window.</p></div>
-    <div class="tile plum"><div class="ic">{{ic:layers}}</div><h4>Record page</h4><p>With a Height set. Give the grid a <b>Record Page Field</b> and it shows only that record's related rows; without one it shows its whole list. See <a href="tutorial-contacts.html">Contacts on an account page</a>.</p></div>
+    <div class="tile"><div class="ic">{{ic:page}}</div><h4>App page: the usual home</h4><p>A grid on its own App page, added to an app as a tab, fills the window from its top edge to the bottom of the screen. Leave <b>Height in pixels</b> (Height (px) in Setup) empty for this.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:grid}}</div><h4>Home page</h4><p>Beside other components, set <b>Height in pixels</b> (Height (px) in Setup) (for example 420), or the grid pushes the rest of the page down a full window.</p></div>
+    <div class="tile plum"><div class="ic">{{ic:layers}}</div><h4>Record page</h4><p>With a Height set. Choose a lookup in <b>On a record page, show the records whose</b> (Record Page Field in Setup), and it shows only that record's related rows; without one it shows its whole list. See <a href="tutorial-contacts.html">Contacts on an account page</a>.</p></div>
   </div>
 </section>
 
 <section id="move">
   <div class="sec-head"><span class="sec-num">06</span><h2>Moving grids between orgs</h2></div>
   <div class="prose">
-    <p><b>To any org, with a file.</b> On the Grid Admin tab, <b>Export</b> a grid from its <b>▾</b> menu, or the grids the list shows with the Export button beside Import Grid; in the other org, click <b>Import Grid</b> and choose the file. The dialog shows what importing does before anything is saved, and a grid that org already has is never changed. This is the quick way to set up a demo or trial org, or an org a change set cannot reach. See <a href="features.html#admin-transfer">Export and import grids</a>.</p>
+    <p><b>To any org, with a file.</b> On the Grid Admin tab, <b>Export</b> a grid from its <b>▾</b> menu, or the grids the list shows with <b>Export N grids</b> beside <b>Import Grid</b>; in the other org, click <b>Import Grid</b> and choose the file. The dialog shows what importing does before anything is saved, and a grid that org already has is never changed. This is the quick way to set up a demo or trial org, or an org a change set cannot reach. See <a href="features.html#admin-transfer">Export and import grids</a>.</p>
     <p><b>From a sandbox to its production org, on your release path.</b> Grid Configurations and everything that points to them are Custom Metadata records. Build a grid in a sandbox, then add its records to an outbound change set (they are listed under <b>Custom Metadata Type</b> records by type) or include them in your deployment. Deploy the Grid Configuration with its columns, rules, filters, child tables and actions together, since they point to it.</p>
     <p>The page that shows the grid is a Lightning page, which deploys the same way as any other; a grid file holds no page.</p>
   </div>
@@ -183,7 +183,7 @@
     <li><b>In Setup, start each record's name with the grid's name</b>, as in <span class="v plain">Account_Directory_Phone</span>. Records of all grids share one list in Setup, and names must be unique across all of them. The Grid Admin tab names them that way itself.</li>
     <li><b>Use API names, without a namespace prefix</b>: <span class="v plain">OwnerId</span>, not <span class="v plain">Owner</span>; <span class="v plain">My_Field__c</span>, not its label.</li>
     <li><b>Give yourself Rowhouse Grid Diagnostics while you build</b> (Rowhouse Grid Admin includes it). A setting that cannot work (a misspelled field, a subtotal that does not fit) is skipped, not fatal, and the warning shows above the grid only to people with that permission set. On the Grid Admin tab the same warnings show under the editor as you change things.</li>
-    <li><b>Change a grid where it is.</b> With Rowhouse Grid Admin, a gear beside a grid's Refresh button opens that grid's settings; save, and the grid loads again with the change.</li>
+    <li><b>Change a grid where it is.</b> With Rowhouse Grid Admin, the gear in a grid's toolbar, <b>Grid settings</b>, just before Help, opens that grid's settings; save, and the grid loads again with the change.</li>
     <li><b>Lookups show names.</b> A lookup column, such as AccountId or OwnerId, shows the related record's name as a link and is edited by searching.</li>
   </ul>
   <div class="next">

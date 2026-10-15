@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Allow_CSV_Export__c</fullName>
     <description>Lets users export the grid's rows to a CSV file.</description>
-    <inlineHelpText>Check to show the Export button, which downloads the grid's rows as a CSV file.</inlineHelpText>
+    <inlineHelpText>Select to show the Export button, which downloads the grid's rows as a CSV file.</inlineHelpText>
     <label>Allow CSV Export</label>
     <type>Checkbox</type>
     <defaultValue>true</defaultValue>

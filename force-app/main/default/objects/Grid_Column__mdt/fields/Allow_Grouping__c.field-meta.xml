@@ -4,7 +4,7 @@
     <label>Allow Grouping</label>
     <type>Checkbox</type>
     <defaultValue>false</defaultValue>
-    <description>Lets users group by this column from its menu, without the grid opening grouped by it. Picklist, checkbox, lookup, owner, date and date/time columns are offered for grouping anyway; check this for others whose values repeat, such as a text column of regions. Numbers, long text and multi-select picklists cannot be grouped.</description>
-    <inlineHelpText>Check to offer "Group by" in this column's menu, for a text column whose values repeat. Picklists, checkboxes, lookups, owners and dates are offered anyway.</inlineHelpText>
+    <description>Lets users group by this column from its menu, without the grid opening grouped by it. Picklist, checkbox, lookup, owner, date and date/time columns are offered for grouping anyway; select this for others whose values repeat, such as a text column of regions. Numbers, long text and multi-select picklists cannot be grouped.</description>
+    <inlineHelpText>Select to offer "Group by" in this column's menu, for a text column whose values repeat. Picklists, checkboxes, lookups, owners and dates are offered anyway.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

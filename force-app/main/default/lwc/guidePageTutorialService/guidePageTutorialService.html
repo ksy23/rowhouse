@@ -16,8 +16,8 @@
             <a href="#goal" data-anchor-link="goal">What you will build</a>
             <a href="#config" data-anchor-link="config">1. The configuration</a>
             <a href="#columns" data-anchor-link="columns">2. Eight columns</a>
-            <a href="#rules" data-anchor-link="rules">3. Three rules</a>
-            <a href="#action" data-anchor-link="action">4. A Log a Call action</a>
+            <a href="#rules" data-anchor-link="rules">3. Three display rules</a>
+            <a href="#action" data-anchor-link="action">4. A Log a call action</a>
             <a href="#page" data-anchor-link="page">5. The Home page</a>
             <span class="rh-s-k">Use it · Kevin</span>
             <a href="#triage" data-anchor-link="triage">6. Triage the queue</a>
@@ -43,10 +43,10 @@
                   <tr><td class="rh-rn">4</td><td class="rh-cb"><span class="rh-mcb"></span></td><td class="rh-lnk">00001038</td><td>Invoice shows the wrong tax rate</td><td>Working</td><td>Low</td><td>Email</td><td>9/30/2026, 4:40 PM</td><td class="rh-c"><span class="rh-m-rm"></span></td></tr>
                 </tbody></table>
             </div></div></div>
-            <figcaption>New cases are tinted amber with an amber bar, high priority is red, escalated cases are bold, and each row's menu has Log a call.</figcaption>
+            <figcaption>New cases are tinted amber with an amber bar, high priority is red, escalated cases are bold, and each row's menu has Log a call. Two of its columns, Account and Owner, are left out here.</figcaption>
           </figure>
           <div class="rh-call"><span class="rh-k">You need</span><p>The Rowhouse Grid User permission set, permission to customize the application and to edit the Home page, and some cases. Our org has a few dozen, a dozen of them open.</p></div>
-          <div class="rh-call"><span class="rh-k">Skip the build</span><p>To go straight to using the grid, the button below builds <b>Service Triage</b> as steps 1 to 4 leave it, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#page" data-anchor-link="page">step 5</a>, which puts it on the Home page. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-service"></c-guide-build-grid></div>
+          <div class="rh-call"><span class="rh-k">Skip the build</span><p>To go straight to using the grid, click the button below, then <b>Build</b> in the dialog: it builds <b>Service Triage</b> as steps 1 to 4 leave it, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#page" data-anchor-link="page">step 5</a>, which puts it on the Home page. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-service"></c-guide-build-grid></div>
         </section>
 
         <section id="config" data-anchor="config">
@@ -87,7 +87,7 @@
         </section>
 
         <section id="rules" data-anchor="rules">
-          <div class="rh-sec-head"><span class="rh-sec-num">Build it · admin</span><h2>3. Three rules</h2></div>
+          <div class="rh-sec-head"><span class="rh-sec-num">Build it · admin</span><h2>3. Three display rules</h2></div>
           <ol class="rh-tut">
             <li><b>Create these Grid Display Rule records</b> (Custom Metadata Types › Grid Display Rule › Manage Records › New). In each, type the Label, then replace the <span class="rh-ui">Grid Display Rule Name</span> that fills in with the name in the table. Type <span class="rh-v">Service Triage</span> in <span class="rh-ui">Grid Configuration</span> and leave <span class="rh-ui">Inactive</span> deselected:
               <div class="rh-tbox" style="margin-top:12px"><table class="rh-ref">
@@ -102,7 +102,7 @@
         </section>
 
         <section id="action" data-anchor="action">
-          <div class="rh-sec-head"><span class="rh-sec-num">Build it · admin</span><h2>4. A Log a Call action</h2>
+          <div class="rh-sec-head"><span class="rh-sec-num">Build it · admin</span><h2>4. A Log a call action</h2>
           <p class="rh-sec-sub">Log a Call is a global quick action that every org has. From a case's row it opens Salesforce's Log a Call window, and the call it saves goes on that case's activity timeline, marked completed.</p></div>
           <ol class="rh-tut">
             <li><b>Open Grid Action records.</b> In <span class="rh-ui">Custom Metadata Types</span>, beside <span class="rh-ui">Grid Action</span>, click <span class="rh-ui">Manage Records</span>, then <span class="rh-ui">New</span>.</li>

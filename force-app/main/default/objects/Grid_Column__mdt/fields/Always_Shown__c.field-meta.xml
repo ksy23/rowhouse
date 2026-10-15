@@ -5,6 +5,6 @@
     <type>Checkbox</type>
     <defaultValue>false</defaultValue>
     <description>Keeps this column on screen for every user. Users can hide, show and move the other columns from Choose columns, a column's menu or by dragging its header; they can still move this one, but not hide it.</description>
-    <inlineHelpText>Check so users cannot hide this column. They can still move it.</inlineHelpText>
+    <inlineHelpText>Select so users cannot hide this column. They can still move it.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

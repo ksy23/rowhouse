@@ -47,7 +47,7 @@
               <circle r="4.5" class="rh-dot rh-teal"><animateMotion dur="1.6s" repeatCount="indefinite" path="M620,85 H680"/></circle>
             </svg>
           </div>
-          <div class="rh-call"><span class="rh-k">Skip the build</span><p>To go straight to using the grid, the button below builds <b>Contact Cleanup</b> as steps 1 and 2 leave it, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#page" data-anchor-link="page">step 3</a>, which puts it on a page. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-cleanup"></c-guide-build-grid></div>
+          <div class="rh-call"><span class="rh-k">Skip the build</span><p>To go straight to using the grid, click the button below, then <b>Build</b> in the dialog: it builds <b>Contact Cleanup</b> as steps 1 and 2 leave it, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#page" data-anchor-link="page">step 3</a>, which puts it on a page. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-cleanup"></c-guide-build-grid></div>
         </section>
 
         <section id="config" data-anchor="config">
@@ -104,7 +104,7 @@
             <li><b>Find the app.</b> Click the App Launcher (the nine dots at the top left) and type <span class="rh-v rh-plain">Rowhouse</span>. The <span class="rh-ui">Rowhouse</span> app is listed under <span class="rh-ui">Apps</span>, with the Rowhouse logo.
               <div class="rh-check">Its navigation bar has three tabs: <b>Grid Guide</b>, <b>Grid Admin</b> and <b>Grid Edit Logs</b>. Nothing to set up; you come back here in step 8.</div></li>
           </ol>
-          <div class="rh-call rh-w"><span class="rh-k">For your compliance team</span><p>Users read their own log entries; anyone else reads one only as your org's sharing allows. To let an auditor read everyone's, create a permission set of your own with <b>View All</b> on Grid Edit Log, and the <b>Grid Edit Logs</b> tab set to Visible, and assign it to them. Rowhouse does not ship one, so reading the whole log is always a deliberate grant. Whoever reads an entry sees its old and new values, even of a field hidden from them, so keep the readers few (<a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=features&amp;rowhouse__section=audit-readers" data-page="features" data-section="audit-readers">Features › Audit trail</a>).</p></div>
+          <div class="rh-call rh-w"><span class="rh-k">For your compliance team</span><p>Users read their own log entries; anyone else reads one only as your org's sharing allows. To let an auditor read everyone's, create a permission set of your own with <b>View All</b> on Grid Edit Log, and the <b>Grid Edit Logs</b> tab set to Visible, and assign it to them. Rowhouse does not ship one, so reading the whole log is always a deliberate grant. Whoever reads an entry sees its old and new values, even of a field hidden from them (an encrypted field's excepted: the log never records them), so keep the readers few (<a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=features&amp;rowhouse__section=audit-readers" data-page="features" data-section="audit-readers">Features › Audit trail</a>).</p></div>
         </section>
 
         <section id="tidy" data-anchor="tidy">
@@ -112,17 +112,17 @@
           <ol class="rh-tut">
             <li><b>Open the grid.</b> In the Sales app, click <span class="rh-ui">Contact Cleanup</span> (under <span class="rh-ui">More</span> if it is not in the bar).</li>
             <li><b>Find the messy titles.</b> Click the <span class="rh-ui">Title</span> header to sort by title, then look down the column for titles typed in lower case. (Sorting ignores case, so they sit among the others.)</li>
-            <li><b>Fix one by typing.</b> Click a lower-case title (we use <i>vp sales</i>, Molly Fitzgerald's) and just start typing <span class="rh-v">VP, Sales</span>. Your first letter replaces the old value. Press <kbd>Enter</kbd>.</li>
+            <li><b>Fix one by typing.</b> Click a lower-case title (we use <i>vp sales</i>, Molly Fitzgerald's; a new Developer Edition org has none, so first change one contact's title to <span class="rh-v">vp sales</span> and save) and just start typing <span class="rh-v">VP, Sales</span>. Your first letter replaces the old value. Press <kbd>Enter</kbd>.</li>
             <li><b>Fix another.</b> Do the same for a second one (we change <i>head of it</i> to <span class="rh-v">Head of IT</span>).</li>
             <li><b>Fix an account's industry.</b> Edge Communications is in telecoms, but its industry says Electronics. On any of its contacts' rows (we use Rose Gonzalez's), click <span class="rh-ui">Account: Industry</span>, press <kbd>Enter</kbd>, choose <span class="rh-ui">Telecommunications</span> and press <kbd>Enter</kbd>.
-              <div class="rh-check"><b>Telecommunications</b>, in yellow, on every Edge Communications row, Margaret Doucette's and Sean Forbes's too: it is the account's industry, so it changed once for all of them. The Save bar counts it as one change.</div></li>
+              <div class="rh-check"><b>Telecommunications</b>, in yellow, on every Edge Communications row, Sean Forbes's too: it is the account's industry, so it changed once for all of them. The Save bar counts it as one change.</div></li>
           </ol>
         </section>
 
         <section id="many" data-anchor="many">
           <div class="rh-sec-head"><span class="rh-sec-num">Use it · Caleb</span><h2>6. Update many at once</h2></div>
           <ol class="rh-tut">
-            <li><b>Select the contacts from the partner event.</b> Select the checkboxes of the contacts with no Lead Source that came from a partner (we select Molly Fitzgerald, Ethan Hale and Walter Chandler).</li>
+            <li><b>Select the contacts from the partner event.</b> Select the checkboxes of the contacts with no Lead Source that came from a partner (we select Molly Fitzgerald, Ethan Hale and Walter Chandler; any contacts with no Lead Source will do, such as Pat Stumuller in a new Developer Edition org).</li>
             <li><b>Set their lead source.</b> In the bar over the grid, click <span class="rh-ui">Update field</span>. Choose <span class="rh-ui">Lead Source</span>, choose <span class="rh-ui">Partner Referral</span>, and click <span class="rh-ui">Apply</span>.</li>
             <li><b>Save.</b> Click <span class="rh-ui">Save</span> on the Save bar, then <span class="rh-ui">Clear</span> in the selection bar.
               <div class="rh-check">The changes are saved, and each changed value now has a log entry with its value before and after.</div></li>
@@ -146,7 +146,7 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Use it · Caleb</span><h2>8. Read the log</h2></div>
           <ol class="rh-tut">
             <li><b>Open it.</b> Click the App Launcher (the nine dots), type <span class="rh-v rh-plain">Rowhouse</span>, click <span class="rh-ui">Rowhouse</span>, then the <span class="rh-ui">Grid Edit Logs</span> tab. Choose the <span class="rh-ui">All</span> list view.</li>
-            <li><b>Read the columns.</b> The <span class="rh-ui">All</span> view shows each entry's <span class="rh-ui">Created Date</span>, <span class="rh-ui">Created By</span>, <span class="rh-ui">Operation</span>, <span class="rh-ui">Record Name</span>, <span class="rh-ui">Field Label</span>, <span class="rh-ui">Old Value</span>, <span class="rh-ui">New Value</span> and <span class="rh-ui">Save Id</span>.
+            <li><b>Read the columns.</b> The <span class="rh-ui">All</span> view shows each entry's <span class="rh-ui">Entry</span> number, <span class="rh-ui">Created Date</span>, <span class="rh-ui">Created By</span>, <span class="rh-ui">Operation</span>, <span class="rh-ui">Record Name</span>, <span class="rh-ui">Field Label</span>, <span class="rh-ui">Old Value</span>, <span class="rh-ui">New Value</span> and <span class="rh-ui">Save Id</span>.
               <div class="rh-check">Six <b>Update</b> entries from your one save, sharing one Save Id: two for the titles you fixed, with the old and new value; one for the industry, named <b>Edge Communications</b> because it is the account that changed, from Electronics to Telecommunications; and three for Lead Source. Then three <b>Create</b> entries for the imported attendees, named after them, sharing the import's Save Id.</div></li>
           </ol>
         </section>

@@ -5,6 +5,6 @@
     <type>Checkbox</type>
     <defaultValue>false</defaultValue>
     <description>Shows this column's text on up to three lines instead of cutting it off at one. Users can switch it from the column menu; the grid keeps each user's choice until they click Reset layout.</description>
-    <inlineHelpText>Check to show long text on up to three lines instead of one.</inlineHelpText>
+    <inlineHelpText>Select to show long text on up to three lines instead of one.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

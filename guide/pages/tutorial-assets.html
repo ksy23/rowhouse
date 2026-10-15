@@ -62,7 +62,7 @@
     </div></div></div>
     <figcaption>Grand Hotels &amp; Resorts Ltd opened, on a day in October: two generators, the earliest warranty end on the account's row, an expired warranty in red and one ending within 90 days in amber.</figcaption>
   </figure>
-  <div class="call"><span class="k">Skip the build</span><p>To go straight to using the grid, the button below builds <b>Account Assets</b> and <b>Installed Base</b> as steps 1 to 3 leave them, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#pages">step 4</a>, which puts them on pages. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-assets"></c-guide-build-grid></div>
+  <div class="call"><span class="k">Skip the build</span><p>To go straight to using the grid, click the button below, then <b>Build</b> in the dialog: it builds <b>Account Assets</b> and <b>Installed Base</b> as steps 1 to 3 leave them, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#pages">step 4</a>, which puts them on pages. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-assets"></c-guide-build-grid></div>
 </section>
 
 <section id="assets">
@@ -127,10 +127,10 @@
       </tbody></table>
       <div class="check why">The same grid as on the account page, so its columns, colors and New come with it.</div></li>
     <li><b>Save.</b> Click <span class="ui">Save</span>: <span class="ui">Columns (3)</span>, <span class="ui">Child tables (1)</span>.</li>
-    <li><b>Count each account's assets.</b> Click <span class="ui">Columns (3)</span>, then <span class="ui">Add child total column</span>. In the list that says <i>Choose a child table</i>, choose <span class="v">Assets (Installed_Base_Assets)</span>. Leave <span class="ui">Count</span> as it is and the Header empty: the column is headed <b>Assets</b>.</li>
+    <li><b>Count each account's assets.</b> Click <span class="ui">Columns (3)</span>, then <span class="ui">Add child total column</span>. The child table list already says <span class="v">Assets (Installed_Base_Assets)</span>, the grid's only one. Leave <span class="ui">Count</span> as it is and the Header empty: the column is headed <b>Assets</b>.</li>
     <li><b>Show the earliest warranty end.</b> Click <span class="ui">Add child total column</span> again:
       <table class="fields"><tbody>
-        <tr><td>Field column: the list that says <i>Choose a child table</i></td><td><span class="v">Assets (Installed_Base_Assets)</span></td></tr>
+        <tr><td>Field column: the top list, the child table</td><td><span class="v">Assets (Installed_Base_Assets)</span> <span class="note">already chosen</span></td></tr>
         <tr><td>The list under it</td><td><span class="v">Min</span></td></tr>
         <tr><td>The list beside it, <i>Choose a field</i></td><td><span class="v">Usage End Date (UsageEndDate)</span></td></tr>
         <tr><td>Header</td><td><span class="v">Earliest warranty end</span><button class="copy" data-copy="Earliest warranty end">Copy</button></td></tr>
@@ -161,7 +161,7 @@
         <tr><td>Status</td><td><span class="v">Installed</span></td></tr>
         <tr><td>Warranty ends</td><td>in the calendar, click <span class="ui">Next Month</span> once, then the <span class="v">15</span></td></tr>
       </tbody></table>
-      <div class="check">The Save bar says "1 new record", and the row's cells are yellow: unsaved.</div></li>
+      <div class="check">The Save bar says "1 new record, 5 unsaved changes", and the row's cells are yellow: unsaved.</div></li>
     <li><b>Add the second.</b> Click <span class="ui">New</span> again, and fill in the new row:
       <table class="fields"><tbody>
         <tr><td>Asset Name</td><td><span class="v">Kitchen generator</span><button class="copy" data-copy="Kitchen generator">Copy</button></td></tr>

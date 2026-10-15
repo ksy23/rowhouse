@@ -61,9 +61,9 @@
   </figure>
   <ol class="tut" style="columns:2;column-gap:36px">
     <li style="break-inside:avoid"><b>The grid's icon and title.</b> Your admin names each grid.</li>
-    <li style="break-inside:avoid"><b>How many records</b>, the sort, and when it was loaded.</li>
+    <li style="break-inside:avoid"><b>How many records</b>, whether they are filtered, the sort, and when they were loaded.</li>
     <li style="break-inside:avoid"><b>Search</b> the list as you type.</li>
-    <li style="break-inside:avoid"><b>Refresh</b>; <b>Choose columns</b>; <b>Charts</b>; <b>Display Key</b> (a swatch, blue while the key is open, like Charts) when the grid has display rules; <b>New</b>, <b>Import</b> and <b>Export</b> when your admin allows them; <b>Reset layout</b> once your layout is kept; for the people who manage grids, a gear that opens the grid's settings; and <b>?</b>, which opens this guide. Point at an icon and its name shows, as on a list view's icons.</li>
+    <li style="break-inside:avoid"><b>Refresh</b>; <b>Choose columns</b>; <b>Charts</b> when the grid has a column it can group by; <b>Display Key</b> (a swatch, blue while the key is open, like Charts) when the grid has display rules; <b>Reset layout</b> once your layout is kept; for the people who manage grids, a gear that opens the grid's settings; <b>Help</b> (?), which opens this guide; then <b>New</b>, <b>Import</b> and <b>Export</b> when your admin allows them. Point at an icon and its name shows, as on a list view's icons.</li>
     <li style="break-inside:avoid"><b>Column headers.</b> Click to sort; the ▾ opens a menu.</li>
     <li style="break-inside:avoid"><b>Checkboxes</b> select rows, to change or act on many at once.</li>
     <li style="break-inside:avoid"><b>The focused cell</b>, with a blue ring. A pencil means you can edit it; yellow means an unsaved change.</li>
@@ -72,9 +72,9 @@
   </ol>
   <p class="note">Colors on cells, icons before values, bars behind numbers and a row's light tint, with its bar at the left edge, come from your admin's rules. Click <b>Display Key</b>, the swatch icon in the toolbar, to see what each one means.</p>
   <p class="note">Chips under the title, after <b>Filtered by</b>, are the filters in force. One with a lock was set by your admin and stays; yours have an ✕.</p>
-  <p class="note">The <b>?</b> at the end of the icons opens this User guide in a new browser tab, so nothing you have not saved is lost. On a narrow page it is <b>Help</b> in the grid's menu.</p>
-  <p class="note">A gear beside <b>Refresh</b> means you build grids (the Rowhouse Grid Admin permission set): it opens this grid's settings. See the <a href="configure.html#admin">configuration reference</a>.</p>
-  <p class="note">While the grid loads, a thin blue bar sweeps along its top edge and the count line says <b>Loading…</b>. When the grid first opens, gray bars stand where its name, icon and rows will be. The blue bar shows again whenever the grid fetches rows from Salesforce: after a Refresh, a search, or a sort on a grid with more than 10,000 records.</p>
+  <p class="note"><b>Help</b> (?), at the end of the icons, opens this User guide in a new browser tab, so nothing you have not saved is lost. On a narrow page it is <b>Help</b> in the grid's menu.</p>
+  <p class="note">A gear just before <b>Help</b>, <b>Grid settings</b>, means you build grids (the Rowhouse Grid Admin permission set): it opens this grid's settings. See the <a href="configure.html#admin">configuration reference</a>.</p>
+  <p class="note">While the grid loads, a thin blue bar sweeps along its top edge and the count line says <b>Loading…</b>. When the grid first opens, gray bars stand where its name, icon and rows will be. The blue bar shows again whenever the grid fetches rows from Salesforce: after a Refresh, a search, a filter, or a sort on a grid with more than 10,000 records.</p>
 </section>
 
 <section id="find">
@@ -91,7 +91,7 @@
     </div>
     <div>
       <h4 class="mt0">Big lists</h4>
-      <p>The grid loads the first 10,000 records straight away, so sorting them is instant. Past that, more load as you scroll toward the end, 2,000 at a time, up to 100,000; a <b>Load more</b> button below the grid does the same. In a list that big, sorting asks Salesforce for the records in the new order, which takes a few seconds. Salesforce orders them by the first column you sorted; a tie-breaker then orders the rows that are loaded. When more than 100,000 records match, the count above the grid says how many (<i>10,000 of 110,000 items</i>) and a search or filter brings the rest within reach.</p>
+      <p>The grid loads the first 10,000 records straight away, so sorting them is instant. Past that, more load as you scroll toward the end, 2,000 at a time, up to 100,000; a <b>Load more rows</b> button below the grid does the same. In a list that big, sorting asks Salesforce for the records in the new order, which takes a few seconds. Salesforce orders them by the first column you sorted; a tie-breaker then orders the rows that are loaded. When more than 100,000 records match, the count above the grid says how many (<i>10,000 of 110,000 items</i>) and a search or filter brings the rest within reach.</p>
       <div class="lims" style="grid-template-columns:1fr">
         <div class="lim"><span class="t">Loaded when the grid opens</span><span class="n">10,000 rows</span><div class="meter"><i style="--w:10%"></i></div></div>
         <div class="lim sky"><span class="t">Reachable by scrolling</span><span class="n">100,000 rows</span><div class="meter"><i style="--w:100%"></i></div></div>
@@ -205,7 +205,7 @@
       <h4 class="mt0">Headers and rows</h4>
       <div class="kbrow"><span>Sort by the column</span><span class="keys"><kbd>Space</kbd> on its header</span></div>
       <div class="kbrow"><span>Add it to the sort</span><span class="keys"><kbd>Shift</kbd>+<kbd>Space</kbd></span></div>
-      <div class="kbrow"><span>Select or unselect the row</span><span class="keys"><kbd>Space</kbd> on a cell</span></div>
+      <div class="kbrow"><span>Select or deselect the row</span><span class="keys"><kbd>Space</kbd> on a cell</span></div>
       <div class="kbrow"><span>Open a row's actions</span><span class="keys"><kbd>End</kbd>, then <kbd>Enter</kbd></span></div>
       <div class="kbrow"><span>Open or close related records</span><span class="keys"><kbd>Enter</kbd> on the toggle</span></div>
     </div>
@@ -249,11 +249,11 @@
     <figcaption>Select rows (or press Space on them): a bar floats over the top of the grid with what you can do to all of them. Here, <b>Update field</b>; Delete and your admin's actions join it when the grid has them.</figcaption>
   </figure>
   <ul class="tick">
-    <li><b>Update field</b> sets one column to one value on every selected row. A picklist offers the values every selected row's record type allows. The changes wait as unsaved edits; check them, then <b>Save</b>.</li>
-    <li id="bulk-edit"><b>Or edit a cell of one of them.</b> With two or more rows selected, the editor on a selected row has a box under it, <b>Update 3 selected items</b>, unchecked. Select it, then keep the change, and every selected row gets the value, as Update field gives it; or press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (<kbd>⌘</kbd>+<kbd>Enter</kbd> on a Mac) to do the same without the box. In a long text editor, <kbd>Ctrl</kbd>+<kbd>Enter</kbd> keeps the text in its own cell, so use the box there. One <b>Undo</b> takes back the whole change.</li>
+    <li><b>Update field</b> sets one column to one value on every selected row: in <b>Change 3 selected rows</b>, choose the <b>Field</b>, enter the value and click <b>Apply</b>. A picklist offers the values every selected row's record type allows. The changes wait as unsaved edits; check them, then <b>Save</b>.</li>
+    <li id="bulk-edit"><b>Or edit a cell of one of them.</b> With two or more rows selected, the editor on a selected row has a box under it, <b>Update 3 selected items</b>, not selected. Select it, then keep the change, and every selected row gets the value, as Update field gives it; or press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (<kbd>⌘</kbd>+<kbd>Enter</kbd> on a Mac) to do the same without the box. In a long text editor, <kbd>Ctrl</kbd>+<kbd>Enter</kbd> keeps the text in its own cell, so use the box there. One <b>Undo</b> takes back the whole change.</li>
     <li><b>Delete</b>, when your admin allows it, asks first, naming the rows. Deleted records go to the Recycle Bin, and a bar under the grid's header offers <b>Undo</b>, which puts them back.</li>
     <li><b>Actions</b> your admin added for selections show as buttons, or in an Actions menu.</li>
-    <li><b>Select all</b> (the box in the header) takes up to 10,000 rows in the current order. When more records match than are loaded, the bar offers <b>Select all N matching records</b>: Delete then deletes every record the search and filters match. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more, so if a large delete was a mistake, click Undo straight away. <b>Clear</b> unselects everything. A search or a reload clears the selection, and a save keeps it. A sort keeps it too when every matching record is loaded; when more match, a sort, a filter or a change of grouping loads the rows again and clears it.</li>
+    <li><b>Select all</b> (the box in the header) takes up to 10,000 rows in the current order. When every loaded row is selected and more records match, up to 50,000, a grid that allows Delete offers <b>Select all N matching records</b>: Delete then deletes every record the search and filters match, while Update field and actions still work on the loaded rows. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more, so if a large delete was a mistake, click Undo straight away. <b>Clear</b> deselects everything. A search or a reload clears the selection, and a save keeps it. A sort keeps it too when every matching record is loaded; when more match, a sort, a filter or a change of grouping loads the rows again and clears it.</li>
   </ul>
 </section>
 
@@ -287,8 +287,8 @@
           <tbody>
             <tr><td class="rn">1</td><td class="lnk">Pyramid Emergency Generators</td><td>Prospecting</td><td class="r">$100,000.00</td></tr>
             <tr><td class="rn">2</td><td class="lnk">Dickenson Mobile Generators</td><td>Qualification</td><td class="r">$15,000.00</td></tr>
-            <tr><td class="rn">3</td><td class="lnk">United Oil Plant Standby Generators</td><td>Needs Analysis</td><td class="r">$675,000.00</td></tr>
-            <tr><td class="rn">4</td><td class="lnk">Grand Hotels Guest Portable Generators</td><td>Value Proposition</td><td class="r">$250,000.00</td></tr>
+            <tr><td class="rn">3</td><td class="lnk">United Oil Plant Standby Generators</td><td>Needs Analysis</td><td class="r f-green">$675,000.00</td></tr>
+            <tr><td class="rn">4</td><td class="lnk">Grand Hotels Guest Portable Generators</td><td>Value Proposition</td><td class="r f-green">$250,000.00</td></tr>
             <tr><td class="rn">5</td><td class="lnk">Express Logistics Portable Truck Generators</td><td>Value Proposition</td><td class="r">$80,000.00</td></tr>
             <tr><td class="rn">6</td><td class="lnk">GenePoint Lab Generators</td><td>Id. Decision Makers</td><td class="r">$60,000.00</td></tr>
           </tbody>
@@ -325,7 +325,7 @@
     <li><b>Each tab is a grid of its own</b>, with its own columns, sort, editing and Save bar. Its changes are saved separately from the main grid's.</li>
     <li><b>From the keyboard:</b> <kbd>Enter</kbd> on the toggle opens the row; arrow down to the panel and press <kbd>Enter</kbd> to go into the tab's grid; <kbd>Esc</kbd> comes back out.</li>
     <li><b>Importing into a tab</b> links every new record to the row automatically.</li>
-    <li><b>Open every row at once</b> with the button in the toggle column's header; it closes them again.</li>
+    <li><b>Open every row at once</b> with the button in the toggle column's header (up to the first 200 rows with related records); it closes them again.</li>
   </ul>
 </section>
 
@@ -356,9 +356,9 @@
       <h4 class="mt0">Import</h4>
       <ol class="steps">
         <li><b>Save or cancel</b> any changes first.</li>
-        <li><b>Click Import</b> and drop in a CSV or Excel (.xlsx) file. The first row must name the columns, as the grid does. <b>Download a template with this grid's columns</b> gives you a file with the right headers.</li>
+        <li><b>Click Import</b> and drop in a CSV or Excel (.xlsx) file. (Import shows only on a grid your admin set up both for new records and for editing cells.) The first row must name the columns, as the grid does. <b>Download a template with this grid's columns</b> gives you a file with the right headers.</li>
         <li><b>Check the rows</b>: how many records will be updated, how many created, and any rows held back, with the reason. For a workbook, choose the <b>Sheet</b>. Under <b>Columns</b>, change what a file column is imported as, or choose <b>(Not imported)</b>.</li>
-        <li><b>Click Import.</b> When it is done, <b>Undo import</b> puts back what it changed, until you close the dialog. Close it and the grid reloads with your changes.</li>
+        <li><b>Click Import N rows.</b> When it is done, <b>Undo import</b> puts back what it changed, until you close the dialog. Close it and the grid reloads with your changes.</li>
       </ol>
       <p class="note">A row with an Id updates that record; a row without one creates a new record, if you can create records of that kind. With an External Id column in the file, <b>Match records by</b> can match by it instead. An empty cell clears the field; to leave a field alone, leave its column out. A lookup column can hold record Ids or names: a name is looked up in Salesforce, and a name two records share is held back with the reason.</p>
     </div>
@@ -398,21 +398,23 @@
     <li>Hiding changes only what you see. Search still looks in hidden columns, a sort, filter or grouping on one stays in force, and <b>Export</b> writes the columns you see, in your order.</li>
   </ul>
   <h3>Your layout is kept</h3>
-  <p>The columns you chose and their order, the widths you set, the columns you froze, Wrap or Clip, your sort, your grouping and the rows whose related records you opened are kept in Salesforce for you, a couple of seconds after each change, and the grid opens that way next time, on any computer. Your filters are not kept. To go back to how your admin set the grid up, click <b>Reset layout</b> (the ↶ button beside Refresh; in a narrow space, in the menu beside the search). It shows only once something is kept. A tab of related records keeps a layout of its own, the same under every row.</p>
+  <p>The columns you chose and their order, the widths you set, the columns you froze, Wrap or Clip, your sort, your grouping, the rows whose related records you opened, and your chart and whether it is open are kept in Salesforce for you, a couple of seconds after each change, and the grid opens that way next time, on any computer. Your filters are not kept. To go back to how your admin set the grid up, click <b>Reset layout</b> (the ↶ button after Charts and the Display Key; in a narrow space, in the menu beside the search). It shows only once something is kept. A tab of related records keeps a layout of its own, the same under every row.</p>
 </section>
 
 <section id="phone">
   <div class="sec-head"><span class="sec-num">More</span><h2>On a phone or in a narrow space</h2></div>
   <div class="split" style="align-items:center">
     <div class="phone" aria-hidden="true">
-      <div class="pc"><b>00001026</b><span>Subject</span><i>Generator GC1060 trips on start</i><span>Status</span><i class="tap">New</i><span>Priority</span><i>High</i><em>Show all fields (5 more)</em></div>
-      <div class="pc"><b>00001027</b><span>Subject</span><i>Invoice shows wrong tax rate</i><span>Status</span><i>Working</i><span>Priority</span><i>Medium</i><em>Show all fields (5 more)</em></div>
-      <div class="m-pill" style="opacity:1;position:sticky;bottom:6px;margin-top:6px;transform:none;left:auto;display:block"><span class="ms">1 unsaved change</span><span class="mb">Cancel</span><span class="mb p">Save</span></div>
+      <div class="pc"><b>00001026</b><span>Subject</span><i>Generator GC1060 trips on start-up</i><span>Account</span><i>Edge Communications</i><span>Status</span><i class="tap">New</i><em>Show all fields (4 more)</em></div>
+      <div class="pc"><b>00001027</b><span>Subject</span><i>Portal login loops back to sign-in</i><span>Account</span><i>Grand Hotels &amp; Resorts Ltd</i><span>Status</span><i>Working</i><em>Show all fields (4 more)</em></div>
+      <div class="m-pill" style="opacity:1;position:sticky;bottom:6px;margin-top:6px;transform:none;left:auto;display:block"><span class="ms">1 unsaved change</span><span class="mb">Undo</span><span class="mb">Redo</span><span class="mb">Cancel</span><span class="mb p">Save</span></div>
     </div>
     <ul class="tick">
       <li><b>Below 480 pixels wide</b> each record becomes a card: its title and three fields, with <b>Show all fields</b> for the rest.</li>
       <li><b>Tap a value</b> to edit it. The Save bar stays at the bottom of the screen.</li>
       <li><b>Cards come 50 at a time</b>, with <b>Show more</b>; sorting is a menu at the top.</li>
+      <li><b>The toolbar's buttons fold into one menu</b>, <b>List actions</b>, beside the search, as they do in a tab of related records.</li>
+      <li><b>Each card</b> has its checkbox and its actions menu beside the title, and <b>Show related records</b> when it has any. Ranges, paste, changing the grouping, Hide column and frozen columns are for the table only.</li>
     </ul>
   </div>
 </section>

@@ -13,7 +13,7 @@
     <span class="s-k">Build it · admin</span>
     <a href="#goal">What you will build</a>
     <a href="#grid">1. The grid</a>
-    <a href="#rules">2. A filter and three rules</a>
+    <a href="#rules">2. A filter and three display rules</a>
     <a href="#action">3. Log a call</a>
     <a href="#page">4. The page</a>
     <span class="s-k">Use it · Jenna</span>
@@ -34,21 +34,21 @@
     <div class="screen"><div class="chrome"><i></i><i></i><i></i><span>…/lightning/n/Lead_Queue</span></div><div class="stage"><div class="card-m">
       <div class="m-head"><div class="m-ico lead"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg></div><div><div class="m-title">Lead Queue</div><div class="m-meta">15 items • Filtered • Sorted by LastName • Updated a few seconds ago</div></div><div class="m-tools"><div class="m-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Search this list…</div><div class="m-ibtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></div><div class="m-ibtn" title="Choose columns"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/></svg></div><div class="m-ibtn" title="Charts"><svg viewBox="0 0 24 24"><path d="M11 3.5a8.5 8.5 0 1 0 9.5 9.5H11z"/><path d="M14 2.5a7.5 7.5 0 0 1 7.5 7.5H14z"/></svg></div><div class="m-ibtn" title="Display Key"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7"/></svg></div><div class="m-ibtn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></div><div class="m-btn">New</div><div class="m-btn"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Export</div></div></div>
       <div class="m-chips">Filtered by <span class="m-chip lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Status does not contain Closed</span></div>
-      <table class="mt"><colgroup><col style="width:5%"><col style="width:4%"><col style="width:14%"><col style="width:20%"><col style="width:16%"><col style="width:15%"><col style="width:8%"><col style="width:11%"><col style="width:7%"></colgroup>
-        <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Full Name</th><th class="dd">Company</th><th class="dd">Title</th><th class="dd">Status</th><th class="dd">Rating</th><th class="dd">Lead Source</th><th class="dd">Owner</th></tr></thead>
+      <table class="mt"><colgroup><col style="width:5%"><col style="width:4%"><col style="width:14%"><col style="width:15%"><col style="width:16%"><col style="width:15%"><col style="width:8%"><col style="width:11%"><col style="width:7%"><col style="width:5%"></colgroup>
+        <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Full Name</th><th class="dd">Company</th><th class="dd">Title</th><th class="dd">Status</th><th class="dd">Rating</th><th class="dd">Lead Source</th><th class="dd">Owner</th><th></th></tr></thead>
         <tbody>
-          <tr><td class="rn">1</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Kristen Akin</td><td>Aethna Home Products</td><td>Director, Warehouse Mgmt</td><td>Working - Contacted</td><td></td><td>Partner Referral</td><td class="lnk">Jenna Rossi</td></tr>
-          <tr><td class="rn">2</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Betty Bair</td><td>American Banking Corp.</td><td>VP, Administration</td><td>Working - Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td></tr>
-          <tr><td class="rn">3</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Bertha Boxer</td><td>Farmers Coop. of Florida</td><td>Director of Vendor Relations</td><td>Working - Contacted</td><td><svg class="m-ia" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Hot</td><td>Web</td><td class="lnk">Jenna Rossi</td></tr>
-          <tr><td class="rn">4</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Mike Braund</td><td>Metropolitan Health Services</td><td>VP, Technology</td><td>Open - Not Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td></tr>
-          <tr><td class="rn">5</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Shelly Brownell</td><td>Western Telecommunications Corp.</td><td>SVP, Technology</td><td>Working - Contacted</td><td></td><td>Partner Referral</td><td class="lnk">Jenna Rossi</td></tr>
-          <tr class="bar red"><td class="rn">6</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Phyllis Cotton</td><td>Abbott Insurance</td><td>CFO</td><td>Open - Not Contacted</td><td><svg class="m-ia" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Hot</td><td>Web</td><td class="lnk">Jenna Rossi</td></tr>
-          <tr><td class="rn">7</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Sandra Eberhard</td><td>Highland Manufacturing Ltd.</td><td>VP, Production</td><td>Working - Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td></tr>
+          <tr><td class="rn">1</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Kristen Akin</td><td>Aethna Home Products</td><td>Director, Warehouse Mgmt</td><td>Working - Contacted</td><td></td><td>Partner Referral</td><td class="lnk">Jenna Rossi</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr><td class="rn">2</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Betty Bair</td><td>American Banking Corp.</td><td>VP, Administration</td><td>Working - Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr><td class="rn">3</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Bertha Boxer</td><td>Farmers Coop. of Florida</td><td>Director of Vendor Relations</td><td>Working - Contacted</td><td><svg class="m-ia" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Hot</td><td>Web</td><td class="lnk">Jenna Rossi</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr><td class="rn">4</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Mike Braund</td><td>Metropolitan Health Services</td><td>VP, Technology</td><td>Open - Not Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr><td class="rn">5</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Shelly Brownell</td><td>Western Telecommunications Corp.</td><td>SVP, Technology</td><td>Working - Contacted</td><td></td><td>Partner Referral</td><td class="lnk">Jenna Rossi</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr class="bar red"><td class="rn">6</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Phyllis Cotton</td><td>Abbott Insurance</td><td>CFO</td><td>Open - Not Contacted</td><td><svg class="m-ia" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Hot</td><td>Web</td><td class="lnk">Jenna Rossi</td><td class="c"><span class="m-rm"></span></td></tr>
+          <tr><td class="rn">7</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Sandra Eberhard</td><td>Highland Manufacturing Ltd.</td><td>VP, Production</td><td>Working - Contacted</td><td></td><td>Purchased List</td><td class="lnk">Jenna Rossi</td><td class="c"><span class="m-rm"></span></td></tr>
         </tbody></table>
     </div></div></div>
     <figcaption>Phyllis Cotton is rated Hot and nobody has called her yet, so her row is tinted red with a red bar at its left edge. Bertha Boxer is Hot too, but already contacted: only the arrow. Closed leads are left out.</figcaption>
   </figure>
-  <div class="call"><span class="k">Skip the build</span><p>To go straight to using the grid, the button below builds <b>Lead Queue</b> as steps 1 to 3 leave it, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#page">step 4</a>, which puts it on a page. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-leads"></c-guide-build-grid></div>
+  <div class="call"><span class="k">Skip the build</span><p>To go straight to using the grid, click the button below, then <b>Build</b> in the dialog: it builds <b>Lead Queue</b> as steps 1 to 3 leave it, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#page">step 4</a>, which puts it on a page. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-leads"></c-guide-build-grid></div>
 </section>
 
 <section id="grid">
@@ -79,7 +79,7 @@
 </section>
 
 <section id="rules">
-  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. A filter and three rules</h2></div>
+  <div class="sec-head"><span class="sec-num">Build it · admin</span><h2>2. A filter and three display rules</h2></div>
   <ol class="tut">
     <li><b>Leave out closed leads.</b> Click <span class="ui">Filters (0)</span>, then <span class="ui">Add filter</span>:
       <table class="fields"><tbody>
@@ -149,7 +149,7 @@
   <div class="sec-head"><span class="sec-num">Use it · Jenna</span><h2>6. Rate a lead</h2>
   <p class="sec-sub">Phyllis Cotton, the CFO of Abbott Insurance, asked for pricing on the website last night.</p></div>
   <ol class="tut">
-    <li><b>Rate her Hot.</b> Double-click Phyllis Cotton's <span class="ui">Rating</span> cell and choose <span class="v">Hot</span>.
+    <li><b>Rate her Hot.</b> Double-click Phyllis Cotton's <span class="ui">Rating</span> cell, choose <span class="v">Hot</span> and press <kbd>Enter</kbd>.
       <div class="check">The cell is yellow, an unsaved change, and the Save bar says "1 unsaved change".</div></li>
     <li><b>Save.</b> Click <span class="ui">Save</span> in the bar at the bottom.
       <div class="check">"Saved 1 record." An arrow comes before Hot, and Phyllis Cotton's row turns red, with a red bar at its left edge: Hot, and still Open - Not Contacted. A formula rule tests the saved record, so the red comes with Save.</div></li>
@@ -163,7 +163,7 @@
       <div class="check">Salesforce's <i>Log a Call</i> window opens over the grid, with Phyllis Cotton filled in.</div></li>
     <li><b>Save it.</b> Type what you talked about in <span class="ui">Comments</span> if you like, and click <span class="ui">Save</span>.
       <div class="check">The window closes and you are back at the queue. The call is on her activity timeline, marked completed.</div></li>
-    <li><b>Mark her contacted.</b> Double-click her <span class="ui">Status</span> cell, choose <span class="v">Working - Contacted</span>, and click <span class="ui">Save</span> in the bar at the bottom.
+    <li><b>Mark her contacted.</b> Double-click her <span class="ui">Status</span> cell, choose <span class="v">Working - Contacted</span>, press <kbd>Enter</kbd>, and click <span class="ui">Save</span> in the bar at the bottom.
       <div class="check">The red goes; the arrow stays. She is still hot, but no longer waiting.</div></li>
   </ol>
 </section>

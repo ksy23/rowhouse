@@ -42,12 +42,14 @@
     <div class="lim"><span class="t">Columns one user can filter by at once</span><span class="n" data-count="10">10</span><div class="meter"><i style="--w:10%"></i></div></div>
     <div class="lim sky"><span class="t">Formulas in one grid, columns and rules together</span><span class="n" data-count="10">10</span><div class="meter"><i style="--w:10%"></i></div></div>
     <div class="lim plum"><span class="t">Child total columns in one grid</span><span class="n" data-count="5">5</span><div class="meter"><i style="--w:5%"></i></div></div>
-    <div class="lim gold"><span class="t">Rows opened at once with the toggle column's button</span><span class="n" data-count="200">200</span><div class="meter"><i style="--w:20%"></i></div></div>
+    <div class="lim gold"><span class="t">Rows opened at once with Show related records for every row</span><span class="n" data-count="200">200</span><div class="meter"><i style="--w:20%"></i></div></div>
     <div class="lim rose"><span class="t">Records one Delete of every match takes</span><span class="n" data-count="50000">50,000</span><div class="meter"><i style="--w:50%"></i></div></div>
     <div class="lim teal"><span class="t">An Excel sheet in an import, unpacked · cells</span><span class="n">100 MB · 10 million</span><div class="meter"><i style="--w:100%"></i></div></div>
   </div>
   <ul class="tick" style="margin-top:20px">
     <li><b>Wrapped text</b> shows up to three lines. <b>Height (px)</b> is at least 160, on a grid and on a child table. A filled grid is at least 240 pixels tall.</li>
+    <li><b>A chart</b> names the nine largest groups and puts the rest in Other, or shows a date's last 24 periods and the ones before as Earlier; one chart per user per grid.</li>
+    <li><b>A grid file</b> (Export and Import Grid on the Grid Admin tab) holds up to 50 grids, child grids included, and 2 MB.</li>
     <li><b>Undo import</b> works until the import dialog closes. It deletes only records you created in the last day.</li>
     <li><b>More than 100,000 matching records</b>: the grid opens as usual and shows how many match (<i>10,000 of 110,000 items</i>); it scrolls through the first 100,000, and a search or filter reaches the rest. Counts, group counts and subtotals cover every match. Tested with 110,000 records.</li>
     <li><b>Subtotals</b> are exact over every matching record. Over 45,000 records they are worked out in slices that the browser adds up; sums beyond about 15 significant digits are rounded by Salesforce.</li>
@@ -148,18 +150,21 @@
     <tbody>
       <tr><td>API name</td><td>The name Salesforce uses for an object or field in code and settings, such as <code>Opportunity</code>, <code>CloseDate</code> or <code>My_Field__c</code>. Shown in Object Manager under Field Name.</td></tr>
       <tr><td>Grid Configuration</td><td>The record that describes one grid, built on the Grid Admin tab or in Setup. Its API name goes into the Rowhouse Grid component.</td></tr>
-      <tr><td>Grid Admin tab</td><td>Where grids are listed, built, changed, cloned and archived without Setup, on its Grids page, and Rowhouse's own settings are made, on its Settings page. The gear on a grid opens the same editor for that grid.</td></tr>
+      <tr><td>Grid Admin tab</td><td>Where grids are listed, built, changed, cloned, exported, imported and archived without Setup, on its Grids page, and Rowhouse's own settings are made, on its Settings page. The gear on a grid opens the same editor for that grid.</td></tr>
       <tr><td>Archived grid</td><td>A grid taken out of use from its menu on the Grid Admin tab, without deleting it: listed under Archived grids in the Grids page's side navigation, refused by the pages that show it, and restored from there. Deleting it for good is done in Setup.</td></tr>
-      <tr><td>Grid Guide tab</td><td>This guide. Everyone with Rowhouse Grid User can open it in the Rowhouse app, from the App Launcher or from the <b>?</b> on a grid; its pages for admins show to Rowhouse Grid Admin.</td></tr>
+      <tr><td>Grid Guide tab</td><td>This guide. Everyone with Rowhouse Grid User can open it in the Rowhouse app, from the App Launcher or from <b>Help</b> (?) on a grid; its pages for admins show to Rowhouse Grid Admin.</td></tr>
       <tr><td>Rowhouse app</td><td>The Lightning app, with the Rowhouse logo, that holds the Grid Guide (where it opens), Grid Admin and Grid Edit Logs tabs. Rowhouse Grid User shows it with the Grid Guide only; Rowhouse Grid Admin adds the other two.</td></tr>
       <tr><td>Rowhouse Grid</td><td>The Lightning component you drag onto a page in Lightning App Builder.</td></tr>
       <tr><td>Unsaved edit</td><td>A change shown in its cell, shaded yellow, not yet saved to Salesforce.</td></tr>
       <tr><td>Save bar</td><td>The light-blue bar that floats at the bottom of the grid while something is unsaved: the count of unsaved changes, and under it Undo, Redo, Cancel and Save.</td></tr>
       <tr><td>Range</td><td>A rectangle of cells selected with Shift, for copy, paste, fill down and clear.</td></tr>
       <tr><td>Row number</td><td>A row's place in the list, 1, 2, 3 down the grid's left edge, as in a list view. Not a record number: sorting or searching numbers the rows again. A row with errors shows its error icon just before it.</td></tr>
-      <tr><td>Selected rows</td><td>Rows selected in the checkbox column, for Update field, Delete and actions.</td></tr>
+      <tr><td>Selected rows</td><td>Rows selected in the checkbox column, for Update field, Delete and actions, and an edit to every selected row (<b>Update N selected items</b>).</td></tr>
+      <tr><td>Row menu</td><td>The ▾ at a row's end: Edit, Delete and Change Owner, as on a list view, then the admin's actions.</td></tr>
+      <tr><td>Charts</td><td>The toolbar's chart icon, which opens a chart of every matching record beside the grid.</td></tr>
       <tr><td>New row</td><td>A row that <b>New</b> adds at the top of the grid, marked New where a row number goes. It is not a record until Save creates it; Undo or Cancel takes it away.</td></tr>
       <tr><td>Display rule</td><td>A highlight (a color, bold, an icon or a data bar) that shows when a field meets a test or a formula is true, explained in the Display Key.</td></tr>
+      <tr><td>Display Key</td><td>The swatch icon in a grid's toolbar, after Charts where the grid has them, that opens a key of what each display rule's look means.</td></tr>
       <tr><td>Grid Filter</td><td>A condition every row of a grid must meet, set by the admin, shown to users as a locked chip.</td></tr>
       <tr><td>Formula column</td><td>A column the grid works out from other fields, in the syntax of a formula field. Read-only.</td></tr>
       <tr><td>Field of a related record</td><td>A column for a field of the record a lookup points to, such as <code>Account.Industry</code> on a contact, headed <b>Account: Industry</b>. Changing it changes that record, on every row that shares it.</td></tr>

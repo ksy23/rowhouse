@@ -5,6 +5,6 @@
     <type>Checkbox</type>
     <defaultValue>false</defaultValue>
     <description>Lets users delete the rows they select, or one row from its menu, after confirming. Deleted records go to the Recycle Bin. Users also need delete access to the object and to each record.</description>
-    <inlineHelpText>Check to let users delete selected rows, or a row from its menu. Deleted records go to the Recycle Bin.</inlineHelpText>
+    <inlineHelpText>Select to let users delete selected rows, or a row from its menu. Deleted records go to the Recycle Bin.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

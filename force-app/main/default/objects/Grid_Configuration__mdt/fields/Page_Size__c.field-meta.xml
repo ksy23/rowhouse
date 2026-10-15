@@ -6,7 +6,7 @@
     <precision>4</precision>
     <scale>0</scale>
     <required>false</required>
-    <description>How many rows the first page loads, from 1 to 2,000. Default 200. Later pages load 2,000 rows at a time as the user scrolls.</description>
+    <description>How many rows the first page loads, from 1 to 2,000. Default 200. Then 2,000 rows at a time load, up to 10,000 as the grid opens and more as the user scrolls, up to 100,000.</description>
     <inlineHelpText>Rows the first page loads, from 1 to 2,000. Leave blank for 200.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

@@ -5,7 +5,7 @@
       <div>
         <span class="eyebrow">Grid Guide</span>
         <h1>Edit Salesforce records like a spreadsheet.<span class="alt">Set it up without code.</span></h1>
-        <p class="dek">Rowhouse puts an editable grid on any Lightning page. Admins build each grid on the Grid Admin tab, or in Setup. Users get spreadsheet keys, copy and paste, undo, grouping with subtotals, related records under each row, imports and one-click actions, all inside Salesforce's own security.</p>
+        <p class="dek">Rowhouse puts an editable grid on any Lightning page. Admins build each grid on the Grid Admin tab, or in Setup. Users get spreadsheet keys, copy and paste, undo, grouping with subtotals, charts, related records under each row, imports and one-click actions, all inside Salesforce's own security.</p>
         <div class="cta">
           <a class="btn" href="start.html">I set up Salesforce <span class="arr">→</span></a>
           <a class="btn" href="using.html" style="background:var(--sky);border-color:var(--sky)">I use the grid <span class="arr">→</span></a>
@@ -68,7 +68,7 @@
       <span class="aud admin">Admin</span>
       <h3>Set up a grid</h3>
       <p>Build a grid on the Grid Admin tab (or as a handful of records in Setup), give people access, and drop the Rowhouse Grid component on a page.</p>
-      <ul><li>Your first grid in ten minutes</li><li>Every setting, explained</li><li>Formatting, grouping, child tables, actions</li><li>Security, audit trail, troubleshooting</li></ul>
+      <ul><li>Your first grid in ten minutes</li><li>Every setting, explained</li><li>Display rules, grouping, child tables, actions</li><li>Security, audit trail, troubleshooting</li></ul>
       <span class="go">Admin guide →</span>
     </a>
     <a class="path u" href="using.html">
@@ -141,17 +141,18 @@
     <a class="tile plum" href="using.html#sheet"><div class="ic">{{ic:copy}}</div><h4>Copy, paste, fill, undo</h4><p>Select a range, paste up to 10,000 cells from Excel or Google Sheets, fill down, and undo up to 100 steps.</p></a>
     <a class="tile gold" href="using.html#new"><div class="ic">{{ic:plus}}</div><h4>Add records</h4><p>New adds a row at the top of the grid to fill in and save with your other changes, or opens Salesforce's New form when a record needs more.</p></a>
     <a class="tile rose" href="features.html#related-fields"><div class="ic">{{ic:link}}</div><h4>Fields of related records</h4><p>A contact's account industry or a case's account phone, beside the record's own fields and edited the same way.</p></a>
-    <a class="tile teal" href="features.html#format"><div class="ic">{{ic:palette}}</div><h4>Conditional formatting</h4><p>Fills, colored text, bold, icons and data bars, on a value, a range, two fields or a formula, with a Display Key that says what each one means.</p></a>
+    <a class="tile teal" href="features.html#format"><div class="ic">{{ic:palette}}</div><h4>Display rules</h4><p>Conditional formatting: fills, colored text, bold, icons and data bars, on a value, a range, two fields or a formula, with a Display Key that says what each one means.</p></a>
     <a class="tile clay" href="features.html#formula"><div class="ic">{{ic:formula}}</div><h4>Formula columns</h4><p>Values the grid works out from other fields, in the syntax of a formula field: days on file, a weighted amount.</p></a>
     <a class="tile" href="features.html#filters"><div class="ic">{{ic:search}}</div><h4>Filters</h4><p>The admin's, which stay, and each user's own from a column's menu. Counts, totals and exports follow them.</p></a>
-    <a class="tile sky" href="features.html#group"><div class="ic">{{ic:layers}}</div><h4>Grouping and subtotals</h4><p>Up to three levels, dates by day, week, month, quarter, year or fiscal period, with sums and averages over every matching record.</p></a>
-    <a class="tile plum" href="features.html#child"><div class="ic">{{ic:tree}}</div><h4>Related records under rows</h4><p>Open a row to see its contacts, cases or deals in tabs. Each tab is a full grid of its own.</p></a>
+    <a class="tile sky" href="using.html#group"><div class="ic">{{ic:layers}}</div><h4>Grouping and subtotals</h4><p>Up to three levels, dates by day, week, month, quarter, year or fiscal period, with sums, averages, counts, Min and Max over every matching record.</p></a>
+    <a class="tile gold" href="using.html#charts"><div class="ic">{{ic:gauge}}</div><h4>Charts</h4><p>Bars or a donut of every matching record beside the grid, counted, summed or averaged by a column, as a list view's.</p></a>
+    <a class="tile plum" href="using.html#related"><div class="ic">{{ic:tree}}</div><h4>Related records under rows</h4><p>Open a row to see its contacts, cases or deals in tabs. Each tab is a full grid of its own.</p></a>
     <a class="tile gold" href="features.html#recordpage"><div class="ic">{{ic:page}}</div><h4>On a record page</h4><p>On an account's page, a grid of that account's contacts or deals: a related list you can edit in place.</p></a>
     <a class="tile rose" href="using.html#columns"><div class="ic">{{ic:eye}}</div><h4>Your own layout</h4><p>Hide, move, resize and freeze columns, sort and group: the grid opens the same way next time, on any computer.</p></a>
-    <a class="tile teal" href="features.html#actions"><div class="ic">{{ic:bolt}}</div><h4>Actions</h4><p>Run a screen flow or an autolaunched flow on one row or on many, or open a quick action on a row.</p></a>
-    <a class="tile clay" href="features.html#import"><div class="ic">{{ic:upload}}</div><h4>Import and export</h4><p>Bring in a CSV or Excel file with a preview first; export what you see to CSV.</p></a>
-    <a class="tile" href="using.html#select"><div class="ic">{{ic:check}}</div><h4>Change many at once</h4><p>Select rows, then update one field on all of them, delete them, or run an action.</p></a>
-    <a class="tile sky" href="features.html#audit"><div class="ic">{{ic:history}}</div><h4>Audit trail</h4><p>Optionally log every change: who, when, which field, the value before and after.</p></a>
+    <a class="tile teal" href="using.html#actions"><div class="ic">{{ic:bolt}}</div><h4>Actions</h4><p>Run a screen flow or an autolaunched flow on one row or on many, or open a quick action on a row.</p></a>
+    <a class="tile clay" href="using.html#io"><div class="ic">{{ic:upload}}</div><h4>Import and export</h4><p>Bring in a CSV or Excel file with a preview first; export what you see to CSV.</p></a>
+    <a class="tile" href="using.html#select"><div class="ic">{{ic:check}}</div><h4>Change many at once</h4><p>Select rows, then edit a cell for all of them, update one field, delete them, or run an action. Each row's menu also has Edit, Delete and Change Owner.</p></a>
+    <a class="tile sky" href="features.html#audit"><div class="ic">{{ic:history}}</div><h4>Audit trail</h4><p>Optionally log every change made in the grid: who, when, which field, the value before and after (for an encrypted field, without its values).</p></a>
     <a class="tile plum" href="features.html#security"><div class="ic">{{ic:shield}}</div><h4>Salesforce security, always</h4><p>Users see and change only what their profile, permission sets and sharing allow.</p></a>
     <a class="tile gold" href="using.html#phone"><div class="ic">{{ic:phone}}</div><h4>Phones and narrow spaces</h4><p>Below 480 pixels wide the grid becomes a list of record cards, tap to edit.</p></a>
     <a class="tile rose" href="using.html#find"><div class="ic">{{ic:gauge}}</div><h4>Big lists</h4><p>The first 10,000 records open at once, and more load as you scroll, up to 100,000. Counts, subtotals and filters cover every matching record.</p></a>
@@ -203,14 +204,14 @@
     <a class="path t" href="tutorial-accounts.html"><span class="aud both">Account management</span><h3>Key accounts, with their people and deals</h3><p>Open any account to see its contacts and opportunities in tabs, and edit them in place.</p><span class="go">Start →</span></a>
     <a class="path" href="tutorial-pipeline.html"><span class="aud both">Sales operations</span><h3>The weekly pipeline review</h3><p>Opportunities grouped by stage with a sum of amounts, overdue close dates in red and big deals in green. Fix deals in place, without opening one.</p><span class="go">Start →</span></a>
     <a class="path t" href="tutorial-assets.html"><span class="aud both">Service contracts</span><h3>The installed base</h3><p>Each customer's assets on its page and as a tab under every account, new assets added as rows, and warranties ending within 90 days in amber.</p><span class="go">Start →</span></a>
-    <a class="path u" href="tutorial-service.html"><span class="aud both">Customer service</span><h3>The morning triage</h3><p>New cases flagged on the row, high priority in red, a Log a Call action, a batch of new cases moved to Working at once, and a case added in the grid.</p><span class="go">Start →</span></a>
+    <a class="path u" href="tutorial-service.html"><span class="aud both">Customer service</span><h3>The morning triage</h3><p>New cases flagged on the row, high priority in red, a Log a call action, a batch of new cases moved to Working at once, and a case added in the grid.</p><span class="go">Start →</span></a>
   </div>
 </section>
 
 <section id="here">
   <div class="call rv">
     <span class="k">Where to find this guide</span>
-    <p>This is the <b>Grid Guide</b> tab. Everyone with the Rowhouse Grid User permission set can open it: in the <b>Rowhouse</b> app, which opens on it (click the App Launcher, type <span class="v plain">Rowhouse</span>, and click Rowhouse under Apps), from the App Launcher's search (<span class="v plain">Grid Guide</span>, under Items), or from the <b>?</b> button on any grid, which opens the <a href="using.html">User guide</a> in a new browser tab. People who build grids also have the Grid Admin and Grid Edit Logs tabs in the app. On the Grid Admin tab, the <b>Grid Guide</b> button opens Get started, and while a grid is open the guide's part about the open tab sits beside it, with <b>Open ↗</b> for the whole of it. The pages for admins (Get started, Configure and Features) show only to the Rowhouse Grid Admin permission set. Once you scroll past the guide's sections at the top, a round arrow, <b>Back to top</b>, sits at the bottom right of the page; click it to go back up to them.</p>
+    <p>This is the <b>Grid Guide</b> tab. Everyone with the Rowhouse Grid User permission set can open it: in the <b>Rowhouse</b> app, which opens on it (click the App Launcher, type <span class="v plain">Rowhouse</span>, and click Rowhouse under Apps), from the App Launcher's search (<span class="v plain">Grid Guide</span>, under Items), or from the <b>Help</b> button (?) on any grid, which opens the <a href="using.html">User guide</a> in a new browser tab. People who build grids also have the Grid Admin and Grid Edit Logs tabs in the app. On the Grid Admin tab, the <b>Grid Guide</b> button opens Get started, and while a grid is open the guide's part about the open tab sits beside it, with <b>Open ↗</b> for the whole of it. The pages for admins (Get started, Configure and Features) show only to the Rowhouse Grid Admin permission set. Once you scroll past the guide's sections at the top, a round arrow, <b>Back to top</b>, sits at the bottom right of the page; click it to go back up to them.</p>
   </div>
 </section>
 

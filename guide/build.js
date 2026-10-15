@@ -145,7 +145,7 @@ const LABEL_ROWS = {
         'Unique across all Grid Action records. Also what the audit log records.'
     ],
     Grid_Filter__mdt: [
-        'Names the filter in Setup and on the Grid Admin tab (its Name, which the tab fills in from the field and condition when left blank). Users never see it: the grid shows the condition itself, such as "Email is not blank".',
+        'Names the filter in Setup and on the Grid Admin tab, where its column is headed Label; left blank there, it is made from the field and condition. Users never see it: the grid shows the condition itself, such as "Email is not blank".',
         'Grid Filter Name',
         'Unique across all Grid Filter records.'
     ]

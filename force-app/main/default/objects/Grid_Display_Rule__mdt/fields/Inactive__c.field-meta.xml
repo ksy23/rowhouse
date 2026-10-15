@@ -4,7 +4,7 @@
     <label>Inactive</label>
     <type>Checkbox</type>
     <defaultValue>false</defaultValue>
-    <description>Check to turn the rule off without deleting it. The Grid Admin tab turns rules off this way, since it cannot delete Custom Metadata records.</description>
-    <inlineHelpText>Check to turn the rule off without deleting it.</inlineHelpText>
+    <description>Select to turn the rule off without deleting it. The Grid Admin tab turns rules off this way, since it cannot delete Custom Metadata records.</description>
+    <inlineHelpText>Select to turn the rule off without deleting it.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

@@ -4,7 +4,7 @@
     <label>Inactive</label>
     <type>Checkbox</type>
     <defaultValue>false</defaultValue>
-    <description>Check to turn the child table off without deleting it. The Grid Admin tab turns child tables off this way, since it cannot delete Custom Metadata records. A record that does not mention this field stays on.</description>
-    <inlineHelpText>Check to turn the child table off without deleting it.</inlineHelpText>
+    <description>Select to turn the child table off without deleting it. The Grid Admin tab turns child tables off this way, since it cannot delete Custom Metadata records. A record that does not mention this field stays on.</description>
+    <inlineHelpText>Select to turn the child table off without deleting it.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

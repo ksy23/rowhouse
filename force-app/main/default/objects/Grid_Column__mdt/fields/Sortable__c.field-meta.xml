@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Sortable__c</fullName>
     <description>Lets users sort the grid by this column. Fields that Salesforce cannot sort, such as long text, are never sortable.</description>
-    <inlineHelpText>Check to let users sort by this column.</inlineHelpText>
+    <inlineHelpText>Select to let users sort by this column.</inlineHelpText>
     <label>Sortable</label>
     <type>Checkbox</type>
     <defaultValue>true</defaultValue>

@@ -4,7 +4,7 @@
     <label>Allow Import</label>
     <type>Checkbox</type>
     <defaultValue>false</defaultValue>
-    <description>Lets users import a CSV or Excel file. Rows with a record Id update that record; rows without one create a new record, so Allow New Records must be checked too. Only the grid's editable columns are written; users need edit or create access to the object.</description>
-    <inlineHelpText>Check to let users import a CSV or Excel file to update or create records. Needs Allow New Records checked too.</inlineHelpText>
+    <description>Lets users import a CSV or Excel file. Rows with a record Id update that record; rows without one create a new record, so Allow New Records must be selected too. Only the grid's editable columns are written; users need edit or create access to the object.</description>
+    <inlineHelpText>Select to let users import a CSV or Excel file to update or create records. Needs Allow New Records selected too.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

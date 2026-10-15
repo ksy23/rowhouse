@@ -12,13 +12,14 @@
   <aside class="side" aria-label="On this page">
     <span class="s-k">Features</span>
     <a href="#save">Editing and saving</a>
-    <a href="#format">Conditional formatting</a>
+    <a href="#format">Display rules</a>
     <a href="#formula">Formula columns</a>
     <a href="#filters">Filters</a>
     <a href="#recordpage">On a record page</a>
     <a href="#layout">Each user's layout</a>
     <a href="#numbers">Row numbers</a>
     <a href="#group">Grouping and subtotals</a>
+    <a href="#charts">Charts</a>
     <a href="#currency">More than one currency</a>
     <a href="#child">Child tables</a>
     <a href="#actions">Actions</a>
@@ -101,7 +102,7 @@
 </section>
 
 <section id="format">
-  <div class="sec-head"><span class="sec-num">Feature</span><h2>Conditional formatting</h2>
+  <div class="sec-head"><span class="sec-num">Feature</span><h2>Display rules</h2>
   <p class="sec-sub">Each Grid Display Rule tests a field (against a value, a range or another field) or a formula and, when the test is met, highlights the cell in that field's column, or the whole row: a fill, a text color, bold, an icon or a data bar. Rules run in the browser against the values the row shows, so once an edit is kept, the row's other colors follow it before anything is saved; the edited cell stays shaded as unsaved until Save. Formula rules run on the server, for the saved record.</p></div>
   <figure class="rv">
     <div class="screen"><div class="stage"><div class="card-m">
@@ -110,12 +111,12 @@
         <thead><tr><th class="rn"></th><th class="cb"><span class="mcb"></span></th><th class="dd">Opportunity</th><th class="dd">Stage</th><th class="r dd">Amount</th><th class="r dd">Probability</th><th class="dd">Close Date <span class="srt">↑</span></th></tr></thead>
         <tbody>
           <tr><td class="rn">1</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Dickenson Mobile Generators</td><td>Qualification</td><td class="r">$15,000.00</td><td class="r db" style="--w:11%">10%</td><td class="t-red">9/25/2026</td></tr>
-          <tr class="bar"><td class="rn">2</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Pyramid Emergency Generators</td><td>Prospecting</td><td class="r">$100,000.00</td><td class="r db" style="--w:11%">10%</td><td class="f-amber">10/2/2026</td></tr>
-          <tr><td class="rn">3</td><td class="cb"><span class="mcb"></span></td><td class="lnk">United Oil Installations</td><td>Negotiation/Review</td><td class="r f-green">$270,000.00</td><td class="r db" style="--w:100%">90%</td><td>10/20/2026</td></tr>
+          <tr><td class="rn">2</td><td class="cb"><span class="mcb"></span></td><td class="lnk">Pyramid Emergency Generators</td><td>Prospecting</td><td class="r">$100,000.00</td><td class="r db" style="--w:11%">10%</td><td class="f-amber">10/2/2026</td></tr>
+          <tr class="bar"><td class="rn">3</td><td class="cb"><span class="mcb"></span></td><td class="lnk">United Oil Installations</td><td>Negotiation/Review</td><td class="r f-green">$270,000.00</td><td class="r db" style="--w:100%">90%</td><td>10/20/2026</td></tr>
           <tr><td class="rn">4</td><td class="cb"><span class="mcb"></span></td><td class="lnk">United Oil Plant Standby Generators</td><td>Needs Analysis</td><td class="r f-green">$675,000.00</td><td class="r db" style="--w:22%">20%</td><td>12/15/2026</td></tr>
         </tbody></table>
     </div></div></div>
-    <figcaption>Five rules: Close Date before TODAY (red text), Close Date between TODAY and TODAY+7 (amber fill), Amount at least 250000 (green fill), Stage equals Prospecting applied to the Row (a purple tint and bar), and a data bar on Probability. The rule's Label explains each in the Display Key.</figcaption>
+    <figcaption>Five rules: Close Date before TODAY (red text), Close Date between TODAY and TODAY+7 (amber fill), Amount at least 250000 (green fill), Stage equals Negotiation/Review applied to the whole row (a purple tint and bar), and a data bar on Probability. Each rule's <b>Meaning</b> (its Label in Setup) explains it in the Display Key.</figcaption>
   </figure>
   <div class="split">
     <ul class="tick">
@@ -185,14 +186,14 @@
 
 <section id="layout">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Each user's layout</h2>
-  <p class="sec-sub">Columns, widths, frozen columns, Wrap or Clip, sort, grouping and open rows are kept for each user and grid in a private record, so the grid opens as they left it, on any computer.</p></div>
+  <p class="sec-sub">Columns, widths, frozen columns, Wrap or Clip, sort, grouping (with its group order and percentages), open rows, and the chart and whether it is open are kept for each user and grid in a private record, so the grid opens as they left it, on any computer.</p></div>
   <ul class="tick">
     <li><b>Their own columns.</b> Users hide, show and reorder the columns you set up, nothing more: from <b>Choose columns</b> beside Refresh, <b>Hide column</b> in a column's menu, or by dragging a header. Select <b>Always shown</b> on a column (Always Shown in Setup) to keep it on screen; it can still be moved. Hidden columns are still read: search, sorts, filters and grouping on them still work, and Export writes what the user sees.</li>
     <li><b>Their own frozen columns.</b> Frozen Columns sets how many a grid starts with; a user can freeze up to five from a column's menu (<b>Freeze up to this column</b>) or unfreeze them all.</li>
     <li><b>Child tables too.</b> A tab of related records keeps each user's layout for that tab, the same under every row.</li>
     <li><b>Grid User Layout</b> records are private: each belongs to its user, who alone can read it. Rowhouse Grid User gives access to one's own.</li>
     <li><b>Kept quietly</b>, two seconds after the last change. If it cannot be kept, the grid works as before and says nothing (people with Rowhouse Grid Diagnostics see why in the browser console).</li>
-    <li><b>Reset layout</b> beside Refresh deletes the record, and the grid goes back to the admin's settings. Filters are never kept.</li>
+    <li><b>Reset layout</b> (↶ in the toolbar, after Charts and the Display Key) deletes the record, and the grid goes back to the admin's settings. Filters are never kept.</li>
   </ul>
 </section>
 
@@ -251,6 +252,17 @@
   </div>
 </section>
 
+<section id="charts">
+  <div class="sec-head"><span class="sec-num">Feature</span><h2>Charts</h2>
+  <p class="sec-sub">As on a list view, <b>Charts</b> in the toolbar opens a chart beside the table of every record the search and filters match, not only the rows loaded. There is nothing to set up.</p></div>
+  <ul class="tick">
+    <li><b>Who gets it:</b> every user of a grid with a column it can group by: a picklist, checkbox, lookup, owner, date or date/time column, or a text column with a Group Level or Allow Grouping. Not in a child table. No setting turns it off.</li>
+    <li><b>What it draws:</b> a vertical bar, horizontal bar or donut chart of the record count, or the sum or average of a number column, by any column the grid can group by, a date by month, quarter or year. The nine largest groups are named and the rest go in Other; a date shows its last 24 periods, and the ones before as Earlier. <b>Show as a table</b> gives every figure in full.</li>
+    <li><b>Saved values,</b> worked out on the server as the subtotals are, so the chart agrees with the Total row. An unsaved edit counts once it is saved. A formula, child total or encrypted column cannot be charted.</li>
+    <li><b>Kept for each user</b> with their layout: one chart per grid, and whether it is open. <b>Reset layout</b> puts it away. How users read and change it: <a href="using.html#charts">User guide › Charts</a>.</li>
+  </ul>
+</section>
+
 <section id="currency">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>More than one currency</h2>
   <p class="sec-sub">In an org that uses more than one currency, each record has a currency of its own, and the grid shows its amounts the way Salesforce does. Nothing needs setting up.</p></div>
@@ -294,8 +306,9 @@
     <li><b>Security per tab.</b> A tab appears only for users who can read the child object and its relationship field.</li>
     <li><b>Import into a tab</b> fills in the parent on every record it creates.</li>
     <li><b>Open rows</b> are kept in each user's layout and open again next time. The button in the toggle column's header opens every row at once (up to 200) and closes them again.</li>
-    <li><b>Height:</b> a Grid Child Table's Height is the most its panel grows to; leave it empty to fit the records.</li>
-    <li><b>Totals on the parent row.</b> A Grid Column can show a child table's count, sum, average, lowest or highest value on each row, such as each account's number of contacts. Read only; up to five per grid.</li>
+    <li><b>Height:</b> a Grid Child Table's Height (px) is how tall its grid can be under an open row; fewer rows take less room, more scroll inside. Leave it blank for the standard height: 388 pixels under a top-level row, 168 a level down; the least is 160.</li>
+    <li><b>Totals on the parent row.</b> A Grid Column can show a child table's Count, Sum, Average, Min or Max on each row, such as each account's number of contacts: <b>Add child total column</b> on the Columns tab. Read only; up to five per grid.</li>
+    <li><b>Set one up</b> on the Grid Admin tab's <b>Child tables</b> tab with <b>Add child table</b>, once the child grid is built (see the <a href="configure.html#child">configuration reference</a>).</li>
   </ul>
 </section>
 
@@ -351,7 +364,7 @@
 <section id="mass">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Update and delete many records</h2></div>
   <div class="split">
-    <div class="tile sky"><div class="ic">{{ic:edit}}</div><h4>Update field</h4><p>With rows selected, <b>Update field</b> sets one editable column to one value on all of them. The dialog says what the rows hold now ("Currently: New (5), Working (2)"). The changes become unsaved edits, so the user sees every one before clicking Save, and one Undo takes them all back. Needs at least one editable column.</p></div>
+    <div class="tile sky"><div class="ic">{{ic:edit}}</div><h4>Update field</h4><p>With rows selected, <b>Update field</b> sets one editable column to one value on all of them. The dialog says what the rows hold now ("Currently: New (5), Working (2)"). The changes become unsaved edits, so the user sees every one before clicking Save, and one Undo takes them all back. Needs at least one editable column. Or, with two or more rows selected, edit a cell on one of them and select <b>Update N selected items</b> under the editor (or press Ctrl+Enter): every selected row gets the value.</p></div>
     <div class="tile rose"><div class="ic">{{ic:lock}}</div><h4>Delete</h4><p>Off unless you select <b>Allow Mass Delete</b> (<i>Delete selected rows</i> on the Grid Admin tab), and only for users who may delete the object. The dialog names the rows, says they go to the Recycle Bin, and starts on Cancel. Deletes run in batches of 200; a record that cannot be deleted stays, with the reason on its row. Afterwards <b>Undo</b>, under the grid's header, puts the deleted records back.</p></div>
   </div>
   <p class="note" style="margin-top:12px">One selection holds up to 10,000 rows. Select all takes the first 10,000 in the current order, including rows in collapsed groups. When more records match than are loaded, and no more than 50,000 do, <b>Select all N matching records</b> lets Delete delete every record the search and filters match. While it is chosen, Update field and actions wait: they work on loaded rows. Salesforce's Recycle Bin holds a limited number of records, and once it is full it removes the oldest that have been there two hours or more: a delete that big can push out what others deleted earlier.</p>
@@ -359,14 +372,14 @@
 
 <section id="audit">
   <div class="sec-head"><span class="sec-num">Feature</span><h2>Audit trail</h2>
-  <p class="sec-sub">Select <b>Log Changes</b> on a Grid Configuration (<i>Log every change in Grid Edit Log</i> on the Grid Admin tab) and every change that grid makes is written to <b>Grid Edit Log</b>: one entry per field changed, per record created, deleted or put back by Undo, and per record an action ran on.</p></div>
+  <p class="sec-sub">Select <b>Log Changes</b> on a Grid Configuration (<i>Log every change in Grid Edit Log</i> on the Grid Admin tab) and every change that grid makes is written to <b>Grid Edit Log</b>: one entry per field changed, per record created, deleted or put back by Undo, and per record an autolaunched flow ran on.</p></div>
   <div class="split">
     <figure class="mt0 rv">
       <div class="logstack" aria-hidden="true">
         <div class="le" style="--d:0s"><span class="op u">Update</span><b>Stage</b> Proposal/Price Quote → Negotiation/Review<small>LOG-0000412 · Abigail Whitcomb · today 9:14</small></div>
         <div class="le" style="--d:.5s"><span class="op u">Update</span><b>Amount</b> 180000 → 250000<small>LOG-0000413 · same Save Id</small></div>
         <div class="le" style="--d:1s"><span class="op c">Create</span><b>Contact</b> Margaret Doucette<small>LOG-0000414 · import</small></div>
-        <div class="le" style="--d:1.5s"><span class="op a">Action</span><b>Log a call</b> on 00001042<small>LOG-0000415</small></div>
+        <div class="le" style="--d:1.5s"><span class="op a">Action</span><b>Escalate</b> on 00001042<small>LOG-0000415</small></div>
         <div class="le" style="--d:2s"><span class="op d">Delete</span><b>Contact</b> Margret Doucette, a duplicate<small>LOG-0000416</small></div>
       </div>
       <figcaption>Entries written together share a Save Id, so one save's changes can be read as one.</figcaption>
@@ -377,14 +390,14 @@
         <li><b>Values as text</b>: dates as 2026-09-30, date/times in UTC, numbers in full, lookups as record Ids. An encrypted field, with Shield Platform Encryption or a Classic encrypted text field, is logged without its values, marked Values Not Recorded; the Grid Admin tab says so when such a column can be edited in a grid that logs.</li>
         <li><b>All or nothing.</b> If an entry cannot be written, the change is not made either, and the user is told why. A grid that logs never changes something silently.</li>
         <li><b>Users read their own entries</b> and can never edit or delete one. The log is private, so anyone else reads an entry only as your org's sharing allows (a manager above its author in the role hierarchy, for example). To let an auditor read everyone's, give them View All on Grid Edit Log, and the Grid Edit Logs tab, in a permission set of your own.</li>
-        <li id="audit-readers"><b>Whoever reads an entry reads its values</b>, old and new, even of a field hidden from them by field-level security: the log holds its own copy. So keep the readers few. In <span class="ui">Sharing Settings</span>, edit the organization-wide defaults and clear <span class="ui">Grant Access Using Hierarchies</span> for Grid Edit Log, so managers do not read their team's entries; give View All on it only to auditors; and install Rowhouse for admins only, then give people the Rowhouse permission sets, rather than for all users.</li>
+        <li id="audit-readers"><b>Whoever reads an entry reads its values</b>, old and new, even of a field hidden from them by field-level security: the log holds its own copy (an encrypted field's values excepted, as above). So keep the readers few. In <span class="ui">Sharing Settings</span>, edit the organization-wide defaults and clear <span class="ui">Grant Access Using Hierarchies</span> for Grid Edit Log, so managers do not read their team's entries; give View All on it only to auditors; and install Rowhouse for admins only, then give people the Rowhouse permission sets, rather than for all users.</li>
         <li><b>Change Owner</b>, in a row's menu, is logged as an Update of Owner, with the old and new owner's record Ids.</li>
-        <li><b>Not logged:</b> screen flows (they run in the browser), a row's <b>Edit</b> (it saves in Salesforce's own edit form, as the record's page does), and changes made outside the grid.</li>
+        <li><b>Not logged:</b> screen flows and quick actions (they run in the browser), what a flow itself changes, a row's <b>Edit</b> (it saves in Salesforce's own edit form, as the record's page does), and changes made outside the grid.</li>
       </ul>
     </div>
   </div>
   <h3>Reading the log</h3>
-  <p>The log has its own tab, <b>Grid Edit Logs</b>, in the <b>Rowhouse</b> app, which the Rowhouse Grid Admin permission set shows. Users of grids never see it.</p>
+  <p>The log has its own tab, <b>Grid Edit Logs</b>, in the <b>Rowhouse</b> app, which the Rowhouse Grid Admin permission set shows. Rowhouse Grid User does not show it.</p>
   <ol class="tut">
     <li><b>Open it.</b> Click the App Launcher, type <span class="v plain">Rowhouse</span>, click <span class="ui">Rowhouse</span>, then the <span class="ui">Grid Edit Logs</span> tab. Choose the <span class="ui">All</span> list view.</li>
     <li><b>Read it.</b> The <span class="ui">All</span> view shows when, who, the operation, the record, the field, the old and new value and the Save Id. Add other fields with the list view's <span class="ui">Select Fields to Display</span>.</li>
@@ -449,14 +462,14 @@
         </div>
       </div>
     </div></div></div>
-    <figcaption>The Grids page, with the eight grids that Get started and the tutorials build. On the left, what the list shows, each with how many; above the list, <b>New grid</b>, <b>Import Grid</b>, <b>Export 8 grids</b> and cards that sum up the org. <b>Export 8 grids</b> saves the grids the list shows to a file. Click a heading to sort the list by it; the <b>▾</b> at the end of a row is that grid's menu.</figcaption>
+    <figcaption>The Grids page in an org with eight of the grids that Get started and the tutorials build. On the left, what the list shows, each with how many; above the list, <b>New grid</b>, <b>Import Grid</b>, <b>Export 8 grids</b> and cards that sum up the org. <b>Export 8 grids</b> saves the grids the list shows to a file. Click a heading to sort the list by it; the <b>▾</b> at the end of a row is that grid's menu.</figcaption>
   </figure>
   <div class="split">
     <div>
       <h4 class="mt0">The Grid Admin tab</h4>
       <ul class="tick">
         <li>A tab of the <b>Rowhouse</b> app, which the App Launcher shows with the Rowhouse logo. Its header has two pages, <b>Grids</b> and <b>Settings</b>.</li>
-        <li><b>Grids</b> opens with <i>Your grids</i>, <b>New grid</b>, <b>Import Grid</b>, <b>Export</b> and cards that sum up the org: how many grids and objects, how many grids log every change or have child tables, and how long the edit log keeps its entries. Under them, every grid in use, with its Grid title, API name, object and number of columns; search it by title or API name; <b>Export</b>, beside Import Grid, saves the grids it shows to a file (<a href="#admin-transfer">below</a>). It opens sorted by Grid title, A to Z: click another heading to sort by that column, and click it again to sort the other way.</li>
+        <li><b>Grids</b> opens with <i>Your grids</i>, <b>New grid</b>, <b>Import Grid</b>, <b>Export N grids</b> and cards that sum up the org: how many grids and objects, how many grids log every change or have child tables, and how long the edit log keeps its entries. Under them, every grid in use, with its Grid title, API name, object and number of columns; search it by title or API name; <b>Export N grids</b>, beside Import Grid, saves the grids it shows to a file (<a href="#admin-transfer">below</a>). It opens sorted by Grid title, A to Z: click another heading to sort by that column, and click it again to sort the other way.</li>
         <li>The side navigation on the left of the Grids page chooses what the list shows, each with how many: <b>Available grids</b>, the grids in use; <b>Archived grids</b>; and, under <b>By object</b>, the grids in use of one object.</li>
         <li>Click a grid's title to change it. The grid's name heads the page, with its object and API name and <b>Close</b> and <b>Save</b>; <b>Grid Admin</b> or <b>Grids</b> above the name goes back, asking first if something is unsaved.</li>
         <li>The <b>▾</b> at the end of each row is the grid's menu: <b>Edit</b>, as its title does; <b>Clone</b>; <b>Export</b>, to a file; and <b>Archive</b>, which takes the grid out of use without deleting it (<a href="#admin-rows">below</a>).</li>
@@ -467,12 +480,12 @@
     <div>
       <h4 class="mt0">The gear on a grid</h4>
       <ul class="tick">
-        <li>Beside Refresh, for Rowhouse Grid Admin holders only. In a narrow space, or in a child table, it is <b>Grid settings</b> in the menu beside the search.</li>
+        <li><b>Grid settings</b>, in the toolbar after Reset layout and before Help, for Rowhouse Grid Admin holders only. In a narrow space, or in a child table, it is <b>Grid settings</b> in the menu beside the search.</li>
         <li>It opens the same editor in a dialog. Not while the grid has unsaved changes: save or cancel them first. Save the settings, and the grid loads again with them.</li>
       </ul>
     </div>
   </div>
-  <div class="call" style="margin-top:18px"><span class="k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do Clone, Archive, Restore and Import Grid, which are grayed out without it. Export needs only Rowhouse Grid Admin. Every field and setting is described in the <a href="configure.html#admin">configuration reference</a>.</p></div>
+  <div class="call" style="margin-top:18px"><span class="k">What is checked</span><p>The tab and the gear are hidden from everyone without Rowhouse Grid Admin, and the server checks the permission again on every request. Saving also needs Customize Application, as saving Custom Metadata in Setup does; so do New grid, Clone, Archive, Restore and Import Grid, which are grayed out without it. Export needs only Rowhouse Grid Admin. Every field and setting is described in the <a href="configure.html#admin">configuration reference</a>.</p></div>
 
   <h3 id="admin-rows" style="margin-top:26px">Clone, archive and delete a grid</h3>
   <p>Each is in the grid's menu, the <span class="ui">▾</span> at the end of its row on the Grid Admin tab's <span class="ui">Grids</span> page. Clone, Archive and Restore are saved like any change to a grid, in a few seconds; while they are, a spinner takes the dialog's place (<i>Archiving. This takes a few seconds.</i>).</p>
@@ -515,7 +528,7 @@
       <title id="secT">The checks every request passes</title>
       <desc id="secD">A request from the grid passes six checks before it reaches your data: the Rowhouse Grid User permission set; the user's access to the object; field-level security; sharing; the grid's own configuration, such as editable columns and whether import or delete is allowed, read on the server; and finally your own validation rules, triggers and flows.</desc>
       <path class="wire" d="M10,85 H890" style="stroke-width:2.5"/>
-      <g class="gate"><rect x="10" y="40" width="130" height="90" rx="10" fill="var(--accent-soft)" stroke="var(--accent-mid)"/><text x="75" y="76" text-anchor="middle" class="b">Rowhouse</text><text x="75" y="94" text-anchor="middle" class="b">User</text><text x="75" y="114" text-anchor="middle" class="s">permission set</text></g>
+      <g class="gate"><rect x="10" y="40" width="130" height="90" rx="10" fill="var(--accent-soft)" stroke="var(--accent-mid)"/><text x="75" y="76" text-anchor="middle" class="b">Rowhouse Grid</text><text x="75" y="94" text-anchor="middle" class="b">User</text><text x="75" y="114" text-anchor="middle" class="s">permission set</text></g>
       <g class="gate"><rect x="160" y="40" width="130" height="90" rx="10" fill="var(--sky-soft)" stroke="var(--sky-mid)"/><text x="225" y="76" text-anchor="middle" class="b">Object</text><text x="225" y="94" text-anchor="middle" class="b">access</text><text x="225" y="114" text-anchor="middle" class="s">read, edit, create, delete</text></g>
       <g class="gate"><rect x="310" y="40" width="130" height="90" rx="10" fill="var(--plum-soft)" stroke="var(--plum-mid)"/><text x="375" y="76" text-anchor="middle" class="b">Field-level</text><text x="375" y="94" text-anchor="middle" class="b">security</text><text x="375" y="114" text-anchor="middle" class="s">hidden columns removed</text></g>
       <g class="gate"><rect x="460" y="40" width="130" height="90" rx="10" fill="var(--gold-soft)" stroke="var(--gold-mid)"/><text x="525" y="76" text-anchor="middle" class="b">Sharing</text><text x="525" y="94" text-anchor="middle" class="s">only records the</text><text x="525" y="110" text-anchor="middle" class="s">user can see</text></g>
@@ -558,7 +571,9 @@
   <details class="faq"><summary>The grid shows an error instead of rows</summary><div class="a"><p>Check that the user has the <b>Rowhouse Grid User</b> permission set and can read the grid's object. Check that the Rowhouse Grid component's <b>Grid Configuration</b> matches the record's Grid Configuration Name exactly, and that Object API Name and every Field API Name are API names that exist.</p></div></details>
   <details class="faq"><summary>A column is missing for some users</summary><div class="a"><p>They cannot read that field. Rowhouse leaves out columns a user's field-level security hides, without a message. If the field is hidden from you, the Grid Admin tab lists it as a warning, not a problem, so you can still save the grid for the people who can read it.</p></div></details>
   <details class="faq"><summary>A column cannot be edited</summary><div class="a"><p>All four must hold: Allow Inline Edit on the configuration, Editable on the column, the user may edit the object and the field, and the field can be edited at all (not a formula, roll-up, auto-number, system field or rich text). A formula column of the grid is always read-only. A lookup also needs read access to the target object's name.</p></div></details>
-  <details class="faq"><summary>There is no Import or Delete button</summary><div class="a"><p>Import needs Allow Import, Allow New Records and Allow Inline Edit with at least one editable column, and the user must be allowed to edit the object; it is disabled while there are unsaved changes. Delete needs Allow Mass Delete and permission to delete the object, and appears in the bar that shows when rows are selected.</p></div></details>
+  <details class="faq"><summary>There is no Import or Delete button</summary><div class="a"><p>Import needs Allow Import, Allow New Records and Allow Inline Edit with at least one editable column, and the user must be allowed to edit the object; it is disabled while there are unsaved changes. Delete needs Allow Mass Delete and permission to delete the object, and appears in the bar that shows when rows are selected, and in each row's menu.</p></div></details>
+  <details class="faq"><summary>There is no Charts button</summary><div class="a"><p>The grid has no column it can group by (a picklist, checkbox, lookup, owner or date, or a text column with a Group Level or Allow Grouping), or it is a child table.</p></div></details>
+  <details class="faq"><summary>A row's menu has no Edit or Change Owner</summary><div class="a"><p>Allow Inline Edit is off, or the user cannot edit the object. Change Owner also needs an object with owners.</p></div></details>
   <details class="faq"><summary>A color, grouping, tab or action does not show</summary><div class="a"><p>Give yourself Rowhouse Grid Diagnostics and reload: the warning above the grid names the setting that was skipped and why. If there is no warning, the user cannot read a field it needs, or lacks the action's Required Permission.</p></div></details>
   <details class="faq"><summary>"Something went wrong. Try again…"</summary><div class="a"><p>An error Rowhouse did not expect. Give yourself Rowhouse Grid Diagnostics and do the same again: the message then ends with Salesforce's own words in brackets, which say what failed.</p></div></details>
   <details class="faq"><summary>Saves fail with "This grid keeps a log of every change…"</summary><div class="a"><p>The grid has Log Changes selected and the user cannot write to Grid Edit Log. Assign them Rowhouse Grid User, which includes that access.</p></div></details>
