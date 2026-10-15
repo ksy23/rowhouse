@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "description": "Rowhouse — a free, open-source grid component for Salesforce",
-  "license": "AGPL-3.0-only",
+  "license": "AGPL-3.0",
   "homepage": "https://rowhouse.app",
   "repository": {
     "type": "git",

@@ -230,14 +230,12 @@ in a Salesforce org; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-GNU Affero General Public License v3.0 only (AGPL-3.0-only); see [LICENSE](LICENSE)
+GNU Affero General Public License v3.0 (AGPL-3.0); see [LICENSE](LICENSE)
 and [NOTICE](NOTICE). Installing the package and using it in your org asks
 nothing of you. Change it freely too; if you distribute a changed version, or
 a work based on Rowhouse, it must be under the AGPL-3.0 as well, with its
 source; and if you let people use a changed version over a network, offer
-them its source (section 13 of the license). Source published here before
-15 October 2026 was licensed under the Mozilla Public License 2.0, and copies
-received under it keep those terms. The name is covered by the
+them its source (section 13 of the license). The name is covered by the
 [trademark policy](TRADEMARKS.md).
 
 Rowhouse by Kugamon is an independent open-source project. It is not affiliated with,
