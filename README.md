@@ -215,4 +215,5 @@ is covered by the [trademark policy](TRADEMARKS.md).
 
 Rowhouse by Kugamon is an independent open-source project. It is not affiliated with,
 endorsed by or sponsored by Salesforce, Inc. Salesforce, Lightning and
-AppExchange are trademarks of Salesforce, Inc.
+AppExchange are trademarks of Salesforce, Inc. “Rowhouse” and the Rowhouse
+logo are trademarks of Kugamon LLC.
