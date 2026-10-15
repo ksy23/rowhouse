@@ -14,7 +14,7 @@ from the keyboard as well as the mouse, built for screen readers. Admins build
 each grid on a Grid Admin tab, without code. There is no paid tier. It runs
 in Lightning Experience, in the browsers Salesforce supports.
 
-![Editing in a Rowhouse grid: double-click a cell or just type, and each change waits in the Save bar with Undo, Redo, Cancel and Save](docs/images/rowhouse-editing.gif)
+![A Rowhouse grid of opportunities: edit cells in place, each change waiting in the Save bar with Undo, Redo, Cancel and Save; group by Stage for counts and subtotals; open a chart beside the grid](docs/images/rowhouse-tour.gif)
 
 > **Status: in development, not installable yet.** When it is released,
 > Rowhouse installs as a managed package, linked from
@@ -43,6 +43,9 @@ in Lightning Experience, in the browsers Salesforce supports.
 - Grouping up to three levels (dates by day, week, month, quarter, year or
   fiscal period), with counts and subtotals over every matching record, and a
   Total row.
+- Charts beside the grid, as on a list view: a bar or donut chart of a record
+  count, sum or average by any column the grid can group by, over every
+  matching record, kept in each user's layout.
 - Child tables: a row opens tabs of related records, each a grid of its own,
   up to three levels deep, with child-total columns on the parent.
 - Formula columns in the syntax of formula fields, and display rules: fills,
@@ -65,8 +68,9 @@ in Lightning Experience, in the browsers Salesforce supports.
 - Import from CSV or Excel: a preview first, then updates by record Id or an
   External Id and new records for the rest, with Undo import.
 - CSV export, with formula injection neutralised.
-- Actions from each row's menu or on the selected rows: a screen flow, an
-  autolaunched flow, invocable Apex or a quick action.
+- Actions from each row's menu or on the selected rows: a screen flow or an
+  autolaunched flow (which can call your Apex), and from a row's menu a quick
+  action, in Salesforce's own window.
 
 **For admins**
 - The Grid Admin tab: every grid, searchable, sortable, and listed by object
