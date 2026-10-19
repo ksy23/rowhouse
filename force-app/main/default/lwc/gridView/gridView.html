@@ -402,6 +402,7 @@
                         object-label={definition.objectLabel}
                         onclose={handleChartsClose}
                         onedit={handleChartEdit}
+                        ondisplay={handleChartDisplay}
                     ></c-grid-chart-panel>
                 </template>
                 </div>
@@ -456,7 +457,7 @@
 
         <template lwc:if={chartDialogOpen}>
             <c-grid-chart-dialog
-                chart={chart}
+                chart={chartDialogChart}
                 columns={definition.columns}
                 onsave={handleChartDialogSave}
                 oncancel={handleChartDialogCancel}

@@ -87,6 +87,8 @@ export const SUBTOTAL_NAMES = { sum: 'Sum', average: 'Average', min: 'Min', max:
 export const BLANK_LABEL = '(blank)';
 /** Joins a group's keys into its path; a control character, so no value contains it. */
 const SEP = String.fromCharCode(31);
+/** What joins a group's keys into a path (rollUp's byPath). */
+export const PATH_SEP = SEP;
 const DECIMAL_RE = /^[-+]?\d+(\.\d+)?$/;
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})/;
 

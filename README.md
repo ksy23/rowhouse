@@ -65,9 +65,10 @@ grid ([Placing a grid](#placing-a-grid), below).
 - Grouping up to three levels (dates by day, week, month, quarter, year or
   fiscal period), with counts and subtotals over every matching record, and a
   Total row.
-- Charts beside the grid, as on a list view: a bar or donut chart of a record
-  count, sum or average by any column the grid can group by, over every
-  matching record, kept in each user's layout.
+- Charts beside the grid, as on a list view: a bar, stacked bar or donut
+  chart of a record count, sum or average by any column the grid can group
+  by, over every matching record, with a tooltip on each bar, kept in each
+  user's layout.
 - Child tables: a row opens tabs of related records, each a grid of its own,
   up to three levels deep, with child-total columns on the parent.
 - Formula columns in the syntax of formula fields, and display rules: fills,

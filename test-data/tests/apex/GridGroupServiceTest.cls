@@ -613,6 +613,54 @@ private class GridGroupServiceTest {
     }
 
     @IsTest
+    static void aStackedChartGroupsByASecondColumnWithinTheFirst() {
+        System.runAs(GridTestUsers.fullUser()) {
+            seed();
+            Test.startTest();
+            GridGroupService.Result stacked = GridGroupService.chart(
+                CONFIG,
+                null,
+                'Service_Level__c',
+                'Ship_Date__c:quarter',
+                'sum',
+                'Pieces__c',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
+            String twice;
+            try {
+                GridGroupService.chart(
+                    CONFIG,
+                    null,
+                    'Service_Level__c',
+                    'Service_Level__c',
+                    'count',
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                );
+            } catch (GridException e) {
+                twice = e.getMessage();
+            }
+            Test.stopTest();
+            Map<String, Object> q1 = groupFor(stacked, new List<String>{ 'Economy', '2026-Q1' });
+            System.assertEquals(2, q1.get('n'), String.valueOf(stacked.groups));
+            System.assert(number(q1, 'Pieces__c', 's') == 15, String.valueOf(q1));
+            System.assertEquals(1, groupFor(stacked, new List<String>{ 'Economy', '2026-Q2' }).get('n'));
+            System.assertEquals(1, groupFor(stacked, new List<String>{ 'Standard', '2026-Q1' }).get('n'));
+            System.assert(twice != null && twice.contains('twice'), twice);
+        }
+    }
+
+    @IsTest
     static void aChartIsRefusedWhatTheGridCannotChart() {
         System.runAs(GridTestUsers.fullUser()) {
             Test.startTest();

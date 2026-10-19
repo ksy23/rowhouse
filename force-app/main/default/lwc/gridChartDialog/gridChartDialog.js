@@ -1,9 +1,13 @@
 /**
  * gridChartDialog — Edit chart: what the grid's chart shows. Chart type, as
- * three tiles (Vertical bar, Horizontal bar, Donut); Measure (Record count,
- * Sum of, Average of) beside Field, the number column a sum or an average
- * adds up (Record count needs none, so Field waits, disabled); and Group by,
- * any column the grid can group by, a date by month, quarter or year.
+ * five tiles (Vertical bar, Horizontal bar, Stacked vertical bar, Stacked
+ * horizontal bar, Donut); Measure (Record count, Sum of, Average of) beside
+ * Field, the number column a sum or an average adds up (Record count needs
+ * none, so Field waits, disabled); Group by, any column the grid can group
+ * by, a date by month, quarter or year; and beside it Stack by, for stacked
+ * bars, a second such column (other types need none, so it waits,
+ * disabled). Stacked bars add up, so they count or sum: Average of is not
+ * offered for them.
  *
  * The SLDS modal blueprint, as the grid's other dialogs: focus starts on the
  * chosen chart type and stays inside (a guard at each end sends it round);
@@ -17,14 +21,10 @@
  */
 import { LightningElement, api } from 'lwc';
 import { UNIT_LABELS, isDateColumn } from 'c/gridGroups';
-import { groupByColumns, measureColumns, normalizeChart } from 'c/gridCharts';
+import { CHART_TYPES, groupByColumns, measureColumns, normalizeChart, isStacked } from 'c/gridCharts';
 
-/** The tiles, left to right. */
-const TYPE_TILES = [
-    { value: 'vbar', label: 'Vertical bar' },
-    { value: 'hbar', label: 'Horizontal bar' },
-    { value: 'donut', label: 'Donut' }
-];
+/** The tiles, left to right, named as the gear's Display as names them. */
+const TYPE_TILES = CHART_TYPES.map(t => ({ value: t.value, label: t.name }));
 /** What a chart measures, in the order its help text gives them. */
 const MEASURE_OPTIONS = [
     { value: 'count', label: 'Record count' },
@@ -44,6 +44,8 @@ export default class GridChartDialog extends LightningElement {
     field = null;
     groupBy = null;
     unit = null;
+    stackBy = null;
+    stackUnit = null;
     focusedType = null;
 
     // Non-reactive (HR-20).
@@ -51,7 +53,15 @@ export default class GridChartDialog extends LightningElement {
 
     @api
     get chart() {
-        return { type: this.type, measure: this.measure, field: this.field, groupBy: this.groupBy, unit: this.unit };
+        return {
+            type: this.type,
+            measure: this.measure,
+            field: this.field,
+            groupBy: this.groupBy,
+            unit: this.unit,
+            stackBy: this.stackBy,
+            stackUnit: this.stackUnit
+        };
     }
     set chart(value) {
         const c = value || {};
@@ -60,6 +70,10 @@ export default class GridChartDialog extends LightningElement {
         this.field = c.field || null;
         this.groupBy = c.groupBy || null;
         this.unit = c.unit || null;
+        this.stackBy = c.stackBy || null;
+        this.stackUnit = c.stackUnit || null;
+        // Stacked bars add up: an average becomes a sum of the same field.
+        if (isStacked(this.type) && this.measure === 'average') this.measure = 'sum';
     }
 
     renderedCallback() {
@@ -82,7 +96,9 @@ export default class GridChartDialog extends LightningElement {
                 checked,
                 tileClass,
                 isVbar: t.value === 'vbar',
-                isHbar: t.value === 'hbar'
+                isHbar: t.value === 'hbar',
+                isSvbar: t.value === 'svbar',
+                isShbar: t.value === 'shbar'
             };
         });
     }
@@ -91,10 +107,16 @@ export default class GridChartDialog extends LightningElement {
         return measureColumns(this.columns);
     }
 
-    /** Sum of and Average of only where there is a number column to add up. */
+    get stacked() {
+        return isStacked(this.type);
+    }
+
+    /** Sum of and Average of only where there is a number column to add up; stacked bars do not average. */
     get measureOptions() {
         const canAdd = this.numberColumns.length > 0;
-        return MEASURE_OPTIONS.filter(m => canAdd || m.value === 'count').map(m => ({ ...m }));
+        return MEASURE_OPTIONS.filter(m => canAdd || m.value === 'count')
+            .filter(m => !this.stacked || m.value !== 'average')
+            .map(m => ({ ...m }));
     }
 
     get needsField() {
@@ -118,25 +140,32 @@ export default class GridChartDialog extends LightningElement {
     }
 
     /**
-     * Each column the grid can group by; a date once for each period, as
-     * "Close Date (Month)". A chart kept with another period (a week, a
-     * fiscal quarter) keeps its own choice in the list, so it still shows.
+     * Each column the grid can group by, but `except`; a date once for each
+     * period, as "Close Date (Month)". A chart kept with another period (a
+     * week, a fiscal quarter) keeps its own choice in the list, so it still
+     * shows.
      */
-    get groupOptions() {
+    columnOptions(except, chosen, chosenUnit) {
         const options = [];
-        groupByColumns(this.columns).forEach(c => {
-            const label = c.label || c.field;
-            if (!isDateColumn(c)) {
-                options.push({ value: c.field, label });
-                return;
-            }
-            const units = [...GROUP_UNITS];
-            if (c.field === this.groupBy && this.unit && !units.includes(this.unit)) units.push(this.unit);
-            units.forEach(u =>
-                options.push({ value: c.field + SEPARATOR + u, label: `${label} (${UNIT_LABELS[u] || u})` })
-            );
-        });
+        groupByColumns(this.columns)
+            .filter(c => c.field !== except)
+            .forEach(c => {
+                const label = c.label || c.field;
+                if (!isDateColumn(c)) {
+                    options.push({ value: c.field, label });
+                    return;
+                }
+                const units = [...GROUP_UNITS];
+                if (c.field === chosen && chosenUnit && !units.includes(chosenUnit)) units.push(chosenUnit);
+                units.forEach(u =>
+                    options.push({ value: c.field + SEPARATOR + u, label: `${label} (${UNIT_LABELS[u] || u})` })
+                );
+            });
         return options;
+    }
+
+    get groupOptions() {
+        return this.columnOptions(this.stacked ? this.stackBy : null, this.groupBy, this.unit);
     }
 
     get groupColumn() {
@@ -148,12 +177,33 @@ export default class GridChartDialog extends LightningElement {
         return isDateColumn(this.groupColumn) ? this.groupBy + SEPARATOR + (this.unit || 'month') : this.groupBy;
     }
 
+    get stackOptions() {
+        return this.columnOptions(this.groupBy, this.stackBy, this.stackUnit);
+    }
+
+    get stackDisabled() {
+        return !this.stacked;
+    }
+
+    get stackPlaceholder() {
+        return this.stacked ? 'Choose a column' : 'Only for stacked bars';
+    }
+
+    get stackValue() {
+        if (!this.stacked || !this.stackBy || this.stackBy === this.groupBy) return null;
+        const c = groupByColumns(this.columns).find(col => col.field === this.stackBy);
+        if (!c) return null;
+        return isDateColumn(c) ? this.stackBy + SEPARATOR + (this.stackUnit || 'month') : this.stackBy;
+    }
+
     get saveDisabled() {
-        return !this.groupBy || (this.needsField && !this.field);
+        return !this.groupBy || (this.needsField && !this.field) || (this.stacked && !this.stackValue);
     }
 
     handleType(event) {
         this.type = event.target.value;
+        // Stacked bars add up: an average becomes a sum of the same field.
+        if (this.stacked && this.measure === 'average') this.measure = 'sum';
     }
 
     handleTypeFocus(event) {
@@ -182,6 +232,13 @@ export default class GridChartDialog extends LightningElement {
         this.unit = at < 0 ? null : value.slice(at + 1);
     }
 
+    handleStack(event) {
+        const value = event.detail.value || '';
+        const at = value.indexOf(SEPARATOR);
+        this.stackBy = at < 0 ? value : value.slice(0, at);
+        this.stackUnit = at < 0 ? null : value.slice(at + 1);
+    }
+
     handleSave() {
         if (this.saveDisabled) return;
         const chart = normalizeChart(
@@ -190,7 +247,9 @@ export default class GridChartDialog extends LightningElement {
                 measure: this.measure,
                 field: this.needsField ? this.field : null,
                 groupBy: this.groupBy,
-                unit: this.unit
+                unit: this.unit,
+                stackBy: this.stackBy,
+                stackUnit: this.stackUnit
             },
             this.columns
         );

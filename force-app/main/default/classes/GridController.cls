@@ -549,7 +549,8 @@ public with sharing class GridController {
 
     /**
      * A chart's numbers: { groups, boundaries, tooManyGroups }, as
-     * summarizeGroups answers, for one column to group by and what to measure
+     * summarizeGroups answers, for one column to group by (and, for stacked
+     * bars, a second to stack by; blank for none) and what to measure
      * (count, or sum or average of a number column). Both columns must be the
      * grid's, and the user's to read (HR-6). Sliced as summarizeGroups is.
      */
@@ -558,6 +559,7 @@ public with sharing class GridController {
         String configName,
         String searchTerm,
         String groupBy,
+        String stackBy,
         String measure,
         String measureField,
         String fromId,
@@ -572,6 +574,7 @@ public with sharing class GridController {
                 configName,
                 searchTerm,
                 groupBy,
+                stackBy,
                 measure,
                 measureField,
                 fromId,

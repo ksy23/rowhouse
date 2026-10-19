@@ -264,12 +264,7 @@ public with sharing class GridGroupService {
     /** What a chart measures: the records, or a number column summed or averaged. */
     public static final Set<String> CHART_MEASURES = new Set<String>{ 'count', 'sum', 'average' };
 
-    /**
-     * A chart's numbers: grouped by one column (groupBy, as a grouping level
-     * is sent: "Field__c", or "Field__c:month" for a date), measured by the
-     * records (count) or by one number column summed or averaged
-     * (measureField). Narrowed as the rows are, and sliced as a grouping is.
-     */
+    /** A chart of one grouping (no stack). */
     public static Result chart(
         String configName,
         String searchTerm,
@@ -283,11 +278,53 @@ public with sharing class GridGroupService {
         List<Map<String, Object>> filters,
         String recordId
     ) {
+        return chart(
+            configName,
+            searchTerm,
+            groupBy,
+            null,
+            measure,
+            measureField,
+            fromId,
+            toId,
+            parentLink,
+            parentId,
+            filters,
+            recordId
+        );
+    }
+
+    /**
+     * A chart's numbers: grouped by one column (groupBy, as a grouping level
+     * is sent: "Field__c", or "Field__c:month" for a date) and, for stacked
+     * bars, by a second within it (stackBy, sent the same way; blank for
+     * none), measured by the records (count) or by one number column summed
+     * or averaged (measureField). Narrowed as the rows are, and sliced as a
+     * grouping is.
+     */
+    public static Result chart(
+        String configName,
+        String searchTerm,
+        String groupBy,
+        String stackBy,
+        String measure,
+        String measureField,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String recordId
+    ) {
         GridConfig.Definition def = GridConfig.forUser(configName);
         if (String.isBlank(groupBy)) {
             throw new GridException('Choose a column to group the chart by.');
         }
-        List<Level> levels = levels(def, new List<String>{ groupBy });
+        List<String> grouping = new List<String>{ groupBy };
+        if (String.isNotBlank(stackBy)) {
+            grouping.add(stackBy);
+        }
+        List<Level> levels = levels(def, grouping);
         String kind = measure == null ? '' : measure.trim().toLowerCase();
         if (!CHART_MEASURES.contains(kind)) {
             throw new GridException('A chart counts the records, or adds up or averages a number column.');

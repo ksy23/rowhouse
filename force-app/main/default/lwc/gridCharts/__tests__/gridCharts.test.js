@@ -19,6 +19,11 @@ import {
     clip,
     measureColumns,
     groupByColumns,
+    stackParam,
+    chartTip,
+    shareText,
+    isStacked,
+    MAX_STACKS,
     MAX_NAMED,
     MAX_PERIODS,
     OTHER_KEY
@@ -317,5 +322,148 @@ describe('the drawing', () => {
         expect(shortNumber(410000)).toBe('410K');
         expect(shortNumber(12)).toBe('12');
         expect(shortNumber(null)).toBe('');
+    });
+});
+
+describe('stacked bars', () => {
+    const g2 = (k1, k2, n, amount) => ({
+        k: [k1, k2],
+        l: ['', ''],
+        n,
+        v: amount === undefined ? {} : { Amount: { s: String(amount), c: n } }
+    });
+    const STACKED = {
+        type: 'svbar',
+        measure: 'sum',
+        field: 'Amount',
+        groupBy: 'StageName',
+        unit: null,
+        stackBy: 'CloseDate',
+        stackUnit: 'quarter'
+    };
+
+    it('keep a second column to stack by, and fall back to plain bars without one or when averaged', () => {
+        expect(normalizeChart(STACKED, COLUMNS)).toEqual(STACKED);
+        expect(isStacked('svbar') && isStacked('shbar') && !isStacked('vbar')).toBe(true);
+        expect(normalizeChart({ ...STACKED, stackBy: null }, COLUMNS).type).toBe('vbar');
+        expect(normalizeChart({ ...STACKED, type: 'shbar', stackBy: 'StageName' }, COLUMNS).type).toBe('hbar');
+        expect(normalizeChart({ ...STACKED, measure: 'average' }, COLUMNS).type).toBe('vbar');
+        // Kept when the type is plain, so stacked bars can come back.
+        expect(normalizeChart({ ...STACKED, type: 'donut' }, COLUMNS)).toEqual(
+            expect.objectContaining({ type: 'donut', stackBy: 'CloseDate', stackUnit: 'quarter' })
+        );
+        expect(stackParam(normalizeChart(STACKED, COLUMNS))).toBe('CloseDate:quarter');
+        expect(stackParam(normalizeChart({ ...STACKED, type: 'donut' }, COLUMNS))).toBeNull();
+        expect(chartTitle(STACKED, COLUMNS)).toBe('Sum of Amount by Stage and Close Date (Quarter)');
+    });
+
+    it('stack each bar by the second column, the largest stacks first and the rest in Other', () => {
+        const quarters = ['2026-Q1', '2026-Q2', '2026-Q3', '2026-Q4', '2027-Q1', '2027-Q2', '2027-Q3', '2027-Q4'];
+        const chart = { ...STACKED, stackBy: 'OwnerId', stackUnit: null };
+        const owners = quarters.map((q, i) => `005000000000000${String.fromCharCode(65 + i)}AA`);
+        const groups = owners.map((o, i) => g2('Closed Won', o, 1, 100 * (8 - i)));
+        groups.push(g2('Prospecting', owners[0], 1, 50));
+        const series = chartSeries(groups, chart, COLUMNS, {
+            names: Object.fromEntries(owners.map((o, i) => [o, `Owner ${i + 1}`]))
+        });
+        expect(series.stacked).toBe(true);
+        expect(series.stacks.map(s => s.label)).toEqual([
+            'Owner 1',
+            'Owner 2',
+            'Owner 3',
+            'Owner 4',
+            'Owner 5',
+            'Owner 6',
+            'Other'
+        ]);
+        expect(series.stacks).toHaveLength(MAX_STACKS + 1);
+        expect(series.stacks[MAX_STACKS].colorClass).toBe('rh-chart-c10');
+        const won = series.entries.find(e => e.label === 'Closed Won');
+        expect(won.segments.map(s => s.value)).toEqual([800, 700, 600, 500, 400, 300, 300]);
+        expect(won.value).toBe(3600);
+        expect(series.entries.find(e => e.label === 'Prospecting').segments).toHaveLength(1);
+    });
+
+    it('stack by a date in order, its latest periods as many as the stacks and the ones before in Earlier', () => {
+        const quarters = ['2026-Q1', '2026-Q2', '2026-Q3', '2026-Q4', '2027-Q1', '2027-Q2', '2027-Q3', '2027-Q4'];
+        const series = chartSeries(
+            quarters.map(q => g2('Closed Won', q, 1, 100)),
+            STACKED,
+            COLUMNS
+        );
+        expect(series.stacksDated).toBe(true);
+        expect(series.stacks).toHaveLength(MAX_STACKS + 1);
+        expect(series.stacks[0].label).toBe('Earlier');
+        expect(series.stacks.slice(1).map(s => s.key)).toEqual(quarters.slice(2));
+        const won = series.entries.find(e => e.label === 'Closed Won');
+        expect(won.segments[0].value).toBe(200);
+    });
+
+    it('stack up from zero, and down for a figure below it', () => {
+        const entries = [
+            {
+                key: 'a',
+                label: 'Closed Won',
+                value: 50,
+                short: '50',
+                segments: [
+                    { key: 'x', value: 80, colorClass: 'rh-chart-c0' },
+                    { key: 'y', value: -30, colorClass: 'rh-chart-c1' }
+                ]
+            }
+        ];
+        const layout = barLayout(entries, false, { width: 320, height: 300 }, { stacked: true });
+        const [up, down] = layout.bars[0].segs;
+        expect(layout.width).toBe(320);
+        expect(layout.height).toBe(300);
+        expect(up.y + up.h).toBeCloseTo(layout.baseline.y1, 0);
+        expect(down.y).toBeCloseTo(layout.baseline.y1, 0);
+        expect(up.colorClass).toBe('rh-chart-c0');
+        expect([up.entry, up.segment, down.segment]).toEqual([0, 0, 1]);
+    });
+});
+
+describe('the chart at the panel size, and its tooltip', () => {
+    const ENTRIES = [
+        { key: 'a', label: 'Closed Won', value: 3645000, short: '$3.6M', colorClass: 'rh-chart-c0' },
+        { key: 'b', label: 'Prospecting', value: 100000, short: '$100K', colorClass: 'rh-chart-c1' }
+    ];
+
+    it('fills the plot it is given: bars to its width and height, rows up to 60 high', () => {
+        const tall = barLayout(ENTRIES, false, { width: 280, height: 500 });
+        expect([tall.width, tall.height]).toEqual([280, 500]);
+        const rows = barLayout(ENTRIES, true, { width: 280, height: 500 });
+        expect(rows.bars[1].y - rows.bars[0].y).toBe(60);
+        // Without a size, as before: the drawing's own.
+        expect(barLayout(ENTRIES, false).width).toBe(300);
+    });
+
+    it('draws a donut as wide as the panel lets it be, and its total larger with it', () => {
+        expect(donutLayout(ENTRIES, { width: 280 }).size).toBe(240);
+        expect(donutLayout(ENTRIES, { width: 120 }).size).toBe(150);
+        expect(donutLayout(ENTRIES).size).toBe(150);
+        expect(donutTotalSize('$3.7M', 240)).toBe(26);
+        expect(donutLayout(ENTRIES).segments.map(s => s.entry)).toEqual([0, 1]);
+    });
+
+    it('says what a bar is, its figure and its share, as a list view does', () => {
+        const chart = { type: 'hbar', measure: 'sum', field: 'Amount', groupBy: 'StageName', unit: null };
+        const series = chartSeries(
+            [
+                g('Closed Won', 2, { Amount: { s: '3645000', c: 2 } }),
+                g('Prospecting', 1, { Amount: { s: '100000', c: 1 } })
+            ],
+            chart,
+            COLUMNS
+        );
+        const lines = chartTip(series, chart, COLUMNS, 0, null);
+        expect(lines[0]).toBe('Stage: Closed Won');
+        expect(lines[1]).toMatch(/^Sum of Amount: \D*3,645,000/);
+        expect(lines[2]).toMatch(/^97\.3% of \D*3,745,000/);
+        // An average has no share.
+        expect(shareText(5, 10, { measure: 'average' })).toBe('');
+        expect(shareText(-5, 10, { measure: 'sum' })).toBe('');
+        expect(shareText(1, 3, { measure: 'count' })).toBe('33.3%');
+        expect(chartTip(series, chart, COLUMNS, 9, null)).toEqual([]);
     });
 });

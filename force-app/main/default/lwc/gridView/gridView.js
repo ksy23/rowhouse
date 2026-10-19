@@ -293,7 +293,7 @@ import {
     isQuickActionPath
 } from 'c/gridFlowRoute';
 import { openGuide } from 'c/guideRoute';
-import { normalizeChart, defaultChart, chartParam, groupByColumns } from 'c/gridCharts';
+import { normalizeChart, defaultChart, chartParam, stackParam, groupByColumns, isStacked } from 'c/gridCharts';
 
 /** Loaded up front: the published benchmark ceiling. Beyond it, rows load as the user scrolls. */
 export const PRELOAD_ROWS = 10000;
@@ -568,6 +568,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
     chartData = null;
     /** Edit chart is open. */
     chartDialogOpen = false;
+    /** The chart Edit chart opens with: the chart, or it with the type Display as chose. */
+    chartDialogChart = null;
     /** The Choose columns dialog is open. */
     columnsOpen = false;
     /**
@@ -644,6 +646,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         holdKey: null,
         key: 0,
         off: false,
+        // Off because a request failed, not for want of access: changes are
+        // still held, so the next opening keeps the latest one.
+        holdOnly: false,
         inFlight: null
     };
 
@@ -852,6 +857,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.focusRow = null;
         this.recordTypePicklists = null;
         this._saved.off = false;
+        this._saved.holdOnly = false;
         this._saved.lastJson = null;
         this._saved.serverJson = null;
         this._runtime.summaryToken++;
@@ -1865,7 +1871,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     /** Keep the layout LAYOUT_DELAY_MS after the last change, for the grid it belongs to. */
     rememberLayout() {
-        if (this._saved.off || !this.definition) return;
+        if (!this.definition) return;
+        if (this._saved.off) {
+            // A request to keep one failed, and it is still held. Later changes
+            // are not sent, but held over it, or the next opening would keep
+            // that older change instead of the latest.
+            if (this._saved.holdOnly && this._saved.holdKey && this._saved.name === this._configName) {
+                holdLayout(this._saved.holdKey, this.layoutJson, this._saved.serverJson);
+            }
+            return;
+        }
         clearTimeout(this._saved.timer);
         this._saved.pending = true;
         this._saved.name = this._configName;
@@ -1909,7 +1924,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 }
             })
             .catch(e => {
-                if (name === this._configName) this._saved.off = true;
+                if (name === this._configName) {
+                    this._saved.off = true;
+                    this._saved.holdOnly = true;
+                }
                 this.telemetry('layout', { error: messageOf(e) });
             })
             .finally(() => {
@@ -1963,6 +1981,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this._saved.lastJson = null;
         this._saved.serverJson = null;
         this._saved.off = false;
+        this._saved.holdOnly = false;
         this._saved.table = { widths: null, wrap: {}, expanded: [], groupView: null, frozen: null };
         this.sort = sort;
         this.grouping = grouping;
@@ -2170,7 +2189,32 @@ export default class GridView extends NavigationMixin(LightningElement) {
     }
 
     handleChartEdit() {
+        this.chartDialogChart = this.chart;
         this.chartDialogOpen = true;
+    }
+
+    /**
+     * The gear's Display as: the chart drawn another way. Stacked bars need a
+     * column to stack by, and add up: when the chart has none, or averages,
+     * Edit chart opens with that type chosen, to finish it.
+     */
+    handleChartDisplay(event) {
+        const type = event.detail && event.detail.type;
+        const chart = this.chart;
+        if (!type || !chart) return;
+        if (isStacked(type) && (!chart.stackBy || chart.measure === 'average')) {
+            this.chartDialogChart = { ...chart, type };
+            this.chartDialogOpen = true;
+            return;
+        }
+        const next = normalizeChart({ ...chart, type }, this.definition && this.definition.columns);
+        if (!next) return;
+        const regroup = stackParam(next) !== stackParam(chart);
+        this.chart = next;
+        this.rememberLayout();
+        // Stacked and plain bars are grouped differently; between the other types the figures stay.
+        if (regroup) this.loadChart();
+        this.focusChartMenu();
     }
 
     handleChartDialogCancel() {
@@ -2209,6 +2253,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             configName: this._configName,
             searchTerm: this.searchTerm || null,
             groupBy: chartParam(chart),
+            stackBy: stackParam(chart),
             measure: chart.measure,
             measureField: chart.field || null,
             ...this.parentParams,

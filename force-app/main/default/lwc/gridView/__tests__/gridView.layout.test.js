@@ -835,6 +835,22 @@ describe('a change made just before the page is left (issue: lost on a quick rel
         el.remove();
     });
 
+    it('holds a later change over the one that failed, without sending it, so the latest wins next time', async () => {
+        saveLayout.mockRejectedValue({ body: { message: 'Request aborted' } });
+        const el = mount();
+        await settle();
+        sortChange(el, DESC);
+        await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
+        await settle();
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        const later = [{ field: 'Freight_Charge__c', direction: 'asc' }];
+        sortChange(el, later);
+        await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(heldLayout(KEY).json).sort).toEqual(later);
+        el.remove();
+    });
+
     it('is used and kept when the grid opens again and nothing was kept since', async () => {
         const held = JSON.stringify({ v: 1, sort: DESC, grouping: [], widths: { Name: 240 } });
         holdLayout(KEY, held, null);

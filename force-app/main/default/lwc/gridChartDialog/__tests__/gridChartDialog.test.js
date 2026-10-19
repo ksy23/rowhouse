@@ -44,31 +44,77 @@ afterEach(() => {
     while (document.body.firstChild) document.body.firstChild.remove();
 });
 
-it('is laid out as the mock-up: tiles, then Measure beside Field, then Group by and its help', async () => {
+it('is laid out as the mock-up: tiles, then Measure beside Field, then Group by beside Stack by, and its help', async () => {
     await mount();
     expect($('h1').textContent).toBe('Edit chart');
     expect($('legend').textContent).toBe('Chart type');
-    expect($$('.rh-chart-type-label').map(l => l.textContent)).toEqual(['Vertical bar', 'Horizontal bar', 'Donut']);
+    expect($$('.rh-chart-type-label').map(l => l.textContent)).toEqual([
+        'Vertical bar',
+        'Horizontal bar',
+        'Stacked vertical bar',
+        'Stacked horizontal bar',
+        'Donut'
+    ]);
     expect($$('.rh-chart-type-tile').map(t => t.classList.contains('rh-chart-type-tile_on'))).toEqual([
         false,
         true,
+        false,
+        false,
         false
     ]);
-    expect($$('.rh-chart-pair lightning-combobox').map(c => c.label)).toEqual(['Measure', 'Field']);
+    expect($$('.rh-chart-pair lightning-combobox').map(c => c.label)).toEqual([
+        'Measure',
+        'Field',
+        'Group by',
+        'Stack by'
+    ]);
     expect($('.rh-chart-measure').options.map(o => o.label)).toEqual(['Record count', 'Sum of', 'Average of']);
     expect($('.rh-chart-measure').value).toBe('count');
     expect($('.rh-chart-group').label).toBe('Group by');
+    // Plain bars stack nothing.
+    expect($('.rh-chart-stack').disabled).toBe(true);
+    expect($('.rh-chart-stack').placeholder).toBe('Only for stacked bars');
     expect($('.rh-chart-help').textContent).toBe(
-        "Measure: Record count, or the Sum or Average of a number, currency or percent column, as a list view's chart offers. Group by: any column the grid can group by; dates by month, quarter or year."
+        "Measure: Record count, or the Sum or Average of a number, currency or percent column, as a list view's chart offers. Group by: any column the grid can group by; dates by month, quarter or year. Stack by, for stacked bars: a second column, whose groups stack within each bar; stacked bars count or sum."
     );
 });
 
 it('starts on the chosen chart type, and draws each with its own picture', async () => {
     await mount({ chart: { ...CHART, type: 'donut' } });
-    expect(el.shadowRoot.activeElement).toBe($$('.rh-chart-type-input')[2]);
-    expect($$('.rh-chart-type-input').map(i => i.checked)).toEqual([false, false, true]);
-    expect($$('.rh-chart-type-figure').map(s => s.getElementsByTagName('rect').length)).toEqual([3, 3, 0]);
-    expect($$('.rh-chart-type-figure')[2].querySelectorAll('circle')).toHaveLength(3);
+    expect(el.shadowRoot.activeElement).toBe($$('.rh-chart-type-input')[4]);
+    expect($$('.rh-chart-type-input').map(i => i.checked)).toEqual([false, false, false, false, true]);
+    expect($$('.rh-chart-type-figure').map(s => s.getElementsByTagName('rect').length)).toEqual([3, 3, 6, 6, 0]);
+    expect($$('.rh-chart-type-figure')[4].querySelectorAll('circle')).toHaveLength(3);
+});
+
+it('asks for a second column to stack by, and leaves Average out, for stacked bars', async () => {
+    await mount({ chart: { ...CHART, measure: 'average', field: 'Freight_Charge__c' } });
+    await pickType('shbar');
+    // Stacked bars add up: the average became a sum of the same field.
+    expect($('.rh-chart-measure').value).toBe('sum');
+    expect($('.rh-chart-measure').options.map(o => o.label)).toEqual(['Record count', 'Sum of']);
+    expect($('.rh-chart-stack').disabled).toBe(false);
+    expect($('.rh-chart-stack').required).toBe(true);
+    expect($('.rh-chart-save').disabled).toBe(true);
+    // Neither column offers the one the other chose.
+    expect($('.rh-chart-stack').options.map(o => o.label)).toEqual([
+        'Ship Date (Month)',
+        'Ship Date (Quarter)',
+        'Ship Date (Year)'
+    ]);
+    await choose('.rh-chart-stack', 'Ship_Date__c:year');
+    expect($('.rh-chart-group').options.map(o => o.label)).toEqual(['Service Level']);
+    expect($('.rh-chart-save').disabled).toBe(false);
+    $('.rh-chart-save').click();
+    expect(events[0].detail.chart).toEqual({
+        type: 'shbar',
+        measure: 'sum',
+        field: 'Freight_Charge__c',
+        groupBy: 'Service_Level__c',
+        unit: null,
+        stackBy: 'Ship_Date__c',
+        stackUnit: 'year'
+    });
 });
 
 it('waits on Field until a sum or an average needs one, choosing the only one there is', async () => {

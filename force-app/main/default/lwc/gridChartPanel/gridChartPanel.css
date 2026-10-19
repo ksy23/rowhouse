@@ -42,8 +42,66 @@
 
 .rh-charts-body {
     position: relative;
+    display: flex;
     flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
     padding: var(--slds-g-spacing-3, 0.75rem);
+}
+
+/* The plot: bars fill what the panel leaves; the drawing is laid out to its size. */
+.rh-charts-plot {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.rh-charts-plot_bars {
+    min-height: 14rem;
+}
+
+.rh-charts-plot_bars .rh-charts-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.rh-charts-plot_donut {
+    flex: none;
+}
+
+/* The tooltip, as a list view's: dark, beside the pointer, never in the way of it. */
+.rh-charts-tip {
+    position: absolute;
+    z-index: 1;
+    /* Its own width, not what is left of the plot beside the pointer; never
+       wider than the plot, wrapping if it must. */
+    width: max-content;
+    max-width: calc(100% - var(--slds-g-spacing-2, 0.5rem));
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background-color: var(--slds-g-color-palette-cloud-blue-20, #032d60);
+    color: var(--slds-g-color-neutral-base-100, #fff);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    line-height: var(--slds-g-font-lineheight-3, 1.375);
+    overflow-wrap: anywhere;
+    pointer-events: none;
+}
+
+/* Stacked bars: a key to the stacks' colours, above the bars. */
+.rh-charts-stackkey {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-3, 0.75rem);
+    margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-charts-stackkey-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+    min-width: 0;
 }
 
 .rh-charts-loading {
@@ -57,29 +115,23 @@
 
 .rh-charts-svg {
     display: block;
-    width: 100%;
-    max-width: 28rem;
-    height: auto;
-    margin: 0 auto;
 }
 
-/* A donut, its total and count in the middle, its groups beside it. */
-.rh-charts-donutrow {
-    display: flex;
-    align-items: center;
-    gap: var(--slds-g-spacing-2, 0.5rem);
-}
-
+/* A donut as wide as the panel lets it be, its total and count in the middle, its groups under it. */
 .rh-charts-donut {
     display: block;
-    flex: none;
-    width: 8.75rem;
-    height: 8.75rem;
+    margin: 0 auto;
 }
 
 /* A donut's slices are rings: the colour classes give them a stroke, never a fill. */
 .rh-charts-donut circle {
     fill: none;
+}
+
+/* A bar, a stack or a slice shows its tooltip: the pointer says so. */
+.rh-charts-svg rect[data-entry],
+.rh-charts-donut circle[data-entry] {
+    cursor: default;
 }
 
 /* Text inside the drawing: SVG takes fill, not color. */
@@ -115,8 +167,9 @@
 }
 
 .rh-charts-legend {
-    flex: 1 1 auto;
+    flex: none;
     min-width: 0;
+    margin-top: var(--slds-g-spacing-2, 0.5rem);
     font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
 }
 
@@ -154,14 +207,27 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* The groups' names wrap, so the figures in full keep to the panel's width. */
+/* The groups' names wrap between words (and after a slash), so the figures in
+   full keep to the panel's width; a word splits only if it is wider than the
+   column on its own. */
 .rh-charts-grid .rh-charts-grid-label {
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .rh-charts-grid-total {
     font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+/* Stacked: each group bold, its stacks under it, indented. */
+.rh-charts-grid-group {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.rh-charts-grid .rh-charts-grid-stack .rh-charts-grid-label {
+    padding-left: var(--slds-g-spacing-4, 1rem);
+    font-weight: var(--slds-g-font-weight-4, 400);
 }
 
 .rh-charts-foot {

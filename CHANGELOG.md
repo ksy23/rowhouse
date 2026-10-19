@@ -5,6 +5,15 @@ Each release is a version of the Rowhouse Grid managed package (namespace
 
 ## Unreleased
 
+- **Charts, as a list view's.** The gear beside the chart's title is a menu:
+  **Display as** draws the chart another way at once, then **Edit chart**.
+  Two new chart types, **Stacked vertical bar** and **Stacked horizontal
+  bar**, stack a second column's groups within each bar (**Stack by**; counts
+  and sums). Pointing at a bar, a stack or a slice shows its figure and its
+  share of the total, and **Show as a table** adds the share. The chart fills
+  the panel.
+- **Fixed:** when a request to keep a layout change failed, the next opening
+  brought back that change, not the ones made after it.
 - **Export, as Salesforce exports a report.** Export opens a dialog with the
   same two views. **Formatted Report** is an Excel workbook (.xlsx) of the
   grid as it looks, under the report's header (the grid's name; As of,

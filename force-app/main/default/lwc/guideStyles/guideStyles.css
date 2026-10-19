@@ -3659,6 +3659,162 @@ table.rh-ref td.rh-d {
     color: var(--rh-m-brand);
 }
 
+/* The gear as a menu button (Chart options): the gear and its down arrow */
+.rh-m-charts-h .rh-m-ibtn.rh-m-gearmenu {
+    display: inline-flex;
+    gap: 0;
+    width: auto;
+    flex-basis: auto;
+    padding: 0 var(--slds-g-spacing-1, 0.25rem);
+}
+
+.rh-m-gearmenu svg + svg {
+    width: var(--slds-g-sizing-3, 0.625rem);
+    height: var(--slds-g-sizing-3, 0.625rem);
+}
+
+/* The chart panel on its own, as wide as the panel in Lightning */
+.rh-m-chartsolo {
+    max-width: 19rem;
+    margin: 0 auto;
+}
+
+.rh-m-chartsolo .rh-m-charts {
+    flex: 1 1 auto;
+    border-left: 0;
+}
+
+/* Stacked vertical bars: the key, the bars with their figures, the months under them */
+.rh-m-ckey {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-2, 0.5rem);
+    margin: 0 0 var(--slds-g-spacing-2, 0.5rem);
+    padding: 0;
+    list-style: none;
+}
+
+.rh-m-ckey li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-1, 0.25rem);
+}
+
+.rh-m-ckey i {
+    width: var(--slds-g-sizing-3, 0.625rem);
+    height: var(--slds-g-sizing-3, 0.625rem);
+    border-radius: var(--slds-g-radius-border-circle, 100%);
+}
+
+.rh-m-vplot {
+    position: relative;
+    display: flex;
+    height: 9rem;
+}
+
+.rh-m-vaxis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 1.5rem;
+    padding-right: var(--slds-g-spacing-1, 0.25rem);
+    text-align: right;
+    color: var(--rh-m-weak);
+    line-height: 1;
+    transform: translateY(0.35em);
+}
+
+.rh-m-vbars {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: stretch;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+    padding: 0 var(--slds-g-spacing-1, 0.25rem);
+    border-left: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+    border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+}
+
+.rh-m-vbar {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.rh-m-vbar em {
+    font-style: normal;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.rh-m-vbar i {
+    display: block;
+    height: var(--rh-h, 0%);
+    min-height: 1px;
+}
+
+/* The months under the bars, slanted as the grid draws them */
+.rh-m-vlabels {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+    height: 2.25rem;
+    padding: 0.75rem var(--slds-g-spacing-1, 0.25rem) 0 1.75rem;
+    color: var(--rh-m-ink2);
+}
+
+.rh-m-vlabels span {
+    display: flex;
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
+    white-space: nowrap;
+    transform: rotate(-35deg);
+}
+
+/* The tooltip, dark, beside the pointer, as the grid's */
+.rh-m-ctip {
+    position: absolute;
+    top: 0.75rem;
+    left: 2.75rem;
+    padding: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-2, 0.5rem);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background: var(--slds-g-color-palette-cloud-blue-20, #032d60);
+    color: var(--slds-g-color-neutral-base-100, #fff);
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* The chart's colors, as the grid draws them */
+.rh-m-c0 {
+    background: var(--slds-g-color-palette-teal-40, #0b827c);
+}
+
+.rh-m-c1 {
+    background: var(--slds-g-color-palette-purple-50, #9050e9);
+}
+
+.rh-m-c2 {
+    background: var(--slds-g-color-palette-orange-60, #dd7a01);
+}
+
+.rh-m-c3 {
+    background: var(--slds-g-color-palette-indigo-50, #5867e8);
+}
+
+.rh-m-c4 {
+    background: var(--slds-g-color-palette-green-50, #3ba755);
+}
+
+.rh-m-c5 {
+    background: var(--slds-g-color-palette-pink-50, #e3066a);
+}
+
+.rh-m-c10 {
+    background: var(--slds-g-color-palette-neutral-60, #939393);
+}
+
 @media (max-width: 640px) {
     .rh-m-chartrow {
         flex-direction: column;

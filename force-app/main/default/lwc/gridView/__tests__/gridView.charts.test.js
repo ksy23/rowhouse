@@ -161,6 +161,7 @@ it('opens a chart of the records counted by the first picklist, from the server,
         configName: 'Consignments',
         searchTerm: null,
         groupBy: 'Service_Level__c',
+        stackBy: null,
         measure: 'count',
         measureField: null,
         filters: null,
@@ -212,7 +213,7 @@ it('edits the chart in Edit chart and reads it again', async () => {
     panel(el).dispatchEvent(new CustomEvent('edit'));
     await settle();
     const dialog = $(el, 'c-grid-chart-dialog');
-    expect(dialog.chart).toEqual(panel(el).chart);
+    expect(dialog.chart).toEqual({ ...panel(el).chart, stackBy: null, stackUnit: null });
     const chart = {
         type: 'vbar',
         measure: 'sum',
@@ -227,6 +228,54 @@ it('edits the chart in Edit chart and reads it again', async () => {
     expect(lastCall(chartGroups)).toEqual(
         expect.objectContaining({ groupBy: 'Ship_Date__c:quarter', measure: 'sum', measureField: 'Freight_Charge__c' })
     );
+});
+
+it("draws the chart another way from the gear's Display as, keeping it, without reading it again", async () => {
+    const el = mount();
+    await settle();
+    await openCharts(el);
+    chartGroups.mockClear();
+    panel(el).dispatchEvent(new CustomEvent('display', { detail: { type: 'donut' } }));
+    await settle();
+    expect(panel(el).chart).toEqual(expect.objectContaining({ type: 'donut', groupBy: 'Service_Level__c' }));
+    expect(chartGroups).not.toHaveBeenCalled();
+    expect($(el, 'c-grid-chart-dialog')).toBeNull();
+});
+
+it('opens Edit chart for stacked bars without a column to stack by, then reads the chart stacked', async () => {
+    const el = mount();
+    await settle();
+    await openCharts(el);
+    panel(el).dispatchEvent(new CustomEvent('display', { detail: { type: 'svbar' } }));
+    await settle();
+    const dialog = $(el, 'c-grid-chart-dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog.chart).toEqual(
+        expect.objectContaining({ type: 'svbar', groupBy: 'Service_Level__c', stackBy: null })
+    );
+    expect(panel(el).chart.type).toBe('hbar'); // nothing changes until Save
+    const chart = {
+        type: 'svbar',
+        measure: 'count',
+        field: null,
+        groupBy: 'Service_Level__c',
+        unit: null,
+        stackBy: 'Ship_Date__c',
+        stackUnit: 'quarter'
+    };
+    chartGroups.mockClear();
+    dialog.dispatchEvent(new CustomEvent('save', { detail: { chart } }));
+    await settle();
+    expect(panel(el).chart).toEqual(chart);
+    expect(lastCall(chartGroups)).toEqual(
+        expect.objectContaining({ groupBy: 'Service_Level__c', stackBy: 'Ship_Date__c:quarter' })
+    );
+    // Back to plain bars from Display as: grouped by one column again.
+    chartGroups.mockClear();
+    panel(el).dispatchEvent(new CustomEvent('display', { detail: { type: 'hbar' } }));
+    await settle();
+    expect(lastCall(chartGroups)).toEqual(expect.objectContaining({ stackBy: null }));
+    expect(panel(el).chart).toEqual(expect.objectContaining({ type: 'hbar', stackBy: 'Ship_Date__c' }));
 });
 
 it('reads the chart again with the search, as the subtotals are', async () => {

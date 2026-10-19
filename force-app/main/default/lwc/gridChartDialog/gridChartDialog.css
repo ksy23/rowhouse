@@ -3,7 +3,7 @@
     overflow: visible;
 }
 
-/* Chart type: three tiles in a row, each a radio button with its picture. */
+/* Chart type: five tiles in a row, each a radio button with its picture. */
 .rh-chart-types {
     margin-bottom: var(--slds-g-spacing-4, 1rem);
 }
@@ -15,7 +15,7 @@
 
 .rh-chart-type-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: var(--slds-g-spacing-3, 0.75rem);
 }
 
@@ -26,13 +26,14 @@
     align-items: center;
     justify-content: center;
     gap: var(--slds-g-spacing-3, 0.75rem);
-    min-height: 7.5rem;
-    padding: var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-2, 0.5rem);
+    min-height: 7rem;
+    padding: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-1, 0.25rem);
     border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, #c9c9c9);
     border-radius: var(--slds-g-radius-border-3, 0.5rem);
     background: var(--slds-g-color-surface-container-1, #fff);
     color: var(--slds-g-color-on-surface-3, #181818);
-    font-size: var(--slds-g-font-scale-2, 1rem);
+    font-size: var(--slds-g-font-scale-1, 0.875rem);
+    line-height: var(--slds-g-font-lineheight-2, 1.25);
     text-align: center;
     cursor: pointer;
 }
@@ -110,8 +111,12 @@
     gap: var(--slds-g-spacing-4, 1rem);
 }
 
-/* On a phone the tiles keep their row and the pair stacks. */
+/* On a phone the tiles take two rows and each pair stacks. */
 @media (max-width: 30em) {
+    .rh-chart-type-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .rh-chart-pair {
         grid-template-columns: minmax(0, 1fr);
         gap: var(--slds-g-spacing-3, 0.75rem);

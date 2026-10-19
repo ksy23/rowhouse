@@ -6,15 +6,24 @@
                 <p class="rh-charts-sub">{subtitle}</p>
             </div>
             <div class="rh-charts-tools">
-                <lightning-button-icon
+                <!-- The gear: Display as (each type, the one drawn checked), then Edit chart. -->
+                <lightning-button-menu
                     class="rh-charts-edit"
                     icon-name="utility:settings"
+                    icon-size="small"
                     variant="border-filled"
-                    size="small"
-                    alternative-text="Edit chart"
-                    title="Edit chart"
-                    onclick={handleEdit}
-                ></lightning-button-icon>
+                    alternative-text="Chart options"
+                    title="Chart options"
+                    menu-alignment="right"
+                    onselect={handleMenuSelect}
+                >
+                    <lightning-menu-subheader label="Display as"></lightning-menu-subheader>
+                    <template for:each={typeItems} for:item="t">
+                        <lightning-menu-item key={t.value} value={t.value} label={t.label} checked={t.checked}></lightning-menu-item>
+                    </template>
+                    <lightning-menu-divider></lightning-menu-divider>
+                    <lightning-menu-item value="edit" label="Edit chart"></lightning-menu-item>
+                </lightning-button-menu>
                 <lightning-button-icon
                     class="rh-charts-close"
                     icon-name="utility:close"
@@ -37,40 +46,71 @@
                 <p class="rh-charts-message" role="status">{message}</p>
             </template>
 
+            <!-- Stacked bars: what each colour is. -->
+            <template lwc:if={showStackKey}>
+                <ul class="rh-charts-stackkey" aria-hidden="true">
+                    <template for:each={stacks} for:item="s">
+                        <li key={s.key} class="rh-charts-stackkey-item"><span class={s.swatchClass}></span>{s.label}</li>
+                    </template>
+                </ul>
+            </template>
+
             <!-- The drawing is for the eye; the table under it is what a screen reader reads. -->
             <template lwc:if={showHbar}>
-                <svg class="rh-charts-svg" viewBox={barsViewBox} aria-hidden="true" focusable="false">
-                    <template for:each={bars.ticks} for:item="t">
-                        <text key={t.key} class="rh-charts-tick" x={t.x} y={t.y} text-anchor="middle">{t.text}</text>
+                <div class="rh-charts-plot rh-charts-plot_bars">
+                    <svg class="rh-charts-svg" viewBox={barsViewBox} style={barsStyle} aria-hidden="true" focusable="false" onmousemove={handleTip} onmouseleave={handleTipOut}>
+                        <template for:each={bars.ticks} for:item="t">
+                            <text key={t.key} class="rh-charts-tick" x={t.x} y={t.y} text-anchor="middle">{t.text}</text>
+                        </template>
+                        <line class="rh-charts-axis" x1={bars.baseline.x1} y1={bars.baseline.y1} x2={bars.baseline.x2} y2={bars.baseline.y2}></line>
+                        <template for:each={bars.bars} for:item="b">
+                            <g key={b.key}>
+                                <template for:each={b.segs} for:item="s">
+                                    <rect key={s.key} class={s.colorClass} x={s.x} y={s.y} width={s.w} height={s.h} rx="2" data-entry={s.entry} data-segment={s.segment}></rect>
+                                </template>
+                                <text class="rh-charts-label" x={b.labelX} y={b.labelY} text-anchor="end">{b.label}</text>
+                                <text class="rh-charts-value" x={b.valueX} y={b.valueY} text-anchor="start">{b.value}</text>
+                            </g>
+                        </template>
+                    </svg>
+                    <template lwc:if={tip}>
+                        <div class="rh-charts-tip" style={tip.style} aria-hidden="true">
+                            <template for:each={tip.lines} for:item="line">
+                                <div key={line.key}>{line.text}</div>
+                            </template>
+                        </div>
                     </template>
-                    <line class="rh-charts-axis" x1={bars.baseline.x1} y1={bars.baseline.y1} x2={bars.baseline.x2} y2={bars.baseline.y2}></line>
-                    <template for:each={bars.bars} for:item="b">
-                        <g key={b.key}>
-                            <rect class={b.colorClass} x={b.x} y={b.y} width={b.w} height={b.h} rx="2"></rect>
-                            <text class="rh-charts-label" x={b.labelX} y={b.labelY} text-anchor="end">{b.label}</text>
-                            <text class="rh-charts-value" x={b.valueX} y={b.valueY} text-anchor="start">{b.value}</text>
-                        </g>
-                    </template>
-                </svg>
+                </div>
             </template>
             <template lwc:if={showVbar}>
-                <svg class="rh-charts-svg" viewBox={barsViewBox} aria-hidden="true" focusable="false">
-                    <template for:each={bars.ticks} for:item="t">
-                        <text key={t.key} class="rh-charts-tick" x={t.x} y={t.y} text-anchor="end">{t.text}</text>
+                <div class="rh-charts-plot rh-charts-plot_bars">
+                    <svg class="rh-charts-svg" viewBox={barsViewBox} style={barsStyle} aria-hidden="true" focusable="false" onmousemove={handleTip} onmouseleave={handleTipOut}>
+                        <template for:each={bars.ticks} for:item="t">
+                            <text key={t.key} class="rh-charts-tick" x={t.x} y={t.y} text-anchor="end">{t.text}</text>
+                        </template>
+                        <line class="rh-charts-axis" x1={bars.baseline.x1} y1={bars.baseline.y1} x2={bars.baseline.x2} y2={bars.baseline.y2}></line>
+                        <template for:each={bars.bars} for:item="b">
+                            <g key={b.key}>
+                                <template for:each={b.segs} for:item="s">
+                                    <rect key={s.key} class={s.colorClass} x={s.x} y={s.y} width={s.w} height={s.h} rx="2" data-entry={s.entry} data-segment={s.segment}></rect>
+                                </template>
+                                <text class="rh-charts-value" x={b.valueX} y={b.valueY} text-anchor="middle">{b.value}</text>
+                                <text class="rh-charts-label" x={b.labelX} y={b.labelY} transform={b.labelTransform} text-anchor="end">{b.label}</text>
+                            </g>
+                        </template>
+                    </svg>
+                    <template lwc:if={tip}>
+                        <div class="rh-charts-tip" style={tip.style} aria-hidden="true">
+                            <template for:each={tip.lines} for:item="line">
+                                <div key={line.key}>{line.text}</div>
+                            </template>
+                        </div>
                     </template>
-                    <line class="rh-charts-axis" x1={bars.baseline.x1} y1={bars.baseline.y1} x2={bars.baseline.x2} y2={bars.baseline.y2}></line>
-                    <template for:each={bars.bars} for:item="b">
-                        <g key={b.key}>
-                            <rect class={b.colorClass} x={b.x} y={b.y} width={b.w} height={b.h} rx="2"></rect>
-                            <text class="rh-charts-value" x={b.valueX} y={b.valueY} text-anchor="middle">{b.value}</text>
-                            <text class="rh-charts-label" x={b.labelX} y={b.labelY} transform={b.labelTransform} text-anchor="end">{b.label}</text>
-                        </g>
-                    </template>
-                </svg>
+                </div>
             </template>
             <template lwc:if={showDonut}>
-                <div class="rh-charts-donutrow">
-                    <svg class="rh-charts-donut" viewBox={donutViewBox} aria-hidden="true" focusable="false">
+                <div class="rh-charts-plot rh-charts-plot_donut">
+                    <svg class="rh-charts-donut" viewBox={donutViewBox} style={donutStyle} aria-hidden="true" focusable="false" onmousemove={handleTip} onmouseleave={handleTipOut}>
                         <g transform={donutRotate}>
                             <template for:each={donut.segments} for:item="s">
                                 <circle
@@ -83,70 +123,98 @@
                                     stroke-width={donut.stroke}
                                     stroke-dasharray={s.dash}
                                     stroke-dashoffset={s.offset}
+                                    data-entry={s.entry}
                                 ></circle>
                             </template>
                         </g>
                         <text class="rh-charts-total" style={donutTotalStyle} x={donut.center} y={donutTotalY} text-anchor="middle">{totalShort}</text>
                         <text class="rh-charts-count" x={donut.center} y={donutCountY} text-anchor="middle">{donutCountText}</text>
                     </svg>
-                    <ul class="rh-charts-legend">
-                        <template for:each={entries} for:item="e">
-                            <li key={e.key} class="rh-charts-legend-item">
-                                <span class={e.swatchClass}></span>
-                                <span class="rh-charts-legend-label" title={e.label}>{e.axisLabel}</span>
-                                <span class="rh-charts-legend-value" title={e.text}>{e.short}</span>
-                            </li>
-                        </template>
-                    </ul>
+                    <template lwc:if={tip}>
+                        <div class="rh-charts-tip" style={tip.style} aria-hidden="true">
+                            <template for:each={tip.lines} for:item="line">
+                                <div key={line.key}>{line.text}</div>
+                            </template>
+                        </div>
+                    </template>
                 </div>
+                <ul class="rh-charts-legend">
+                    <template for:each={entries} for:item="e">
+                        <li key={e.key} class="rh-charts-legend-item">
+                            <span class={e.swatchClass}></span>
+                            <span class="rh-charts-legend-label" title={e.label}>{e.axisLabel}</span>
+                            <span class="rh-charts-legend-value" title={e.text}>{e.short}</span>
+                        </li>
+                    </template>
+                </ul>
             </template>
 
             <!-- Show as a table: the figures in full, in place of the drawing. -->
             <template lwc:if={showTable}>
-                <table class="slds-table slds-table_cell-buffer slds-table_bordered rh-charts-grid">
+                <table class="slds-table slds-table_bordered rh-charts-grid">
                     <caption class="slds-assistive-text">{title}</caption>
                     <thead>
                         <tr class="slds-line-height_reset">
                             <th scope="col" class="rh-charts-grid-label"><div class="slds-truncate">{groupHeading}</div></th>
                             <th scope="col" class="rh-charts-num"><div class="slds-truncate">{valueHeading}</div></th>
+                            <template lwc:if={hasShare}>
+                                <th scope="col" class="rh-charts-num"><div class="slds-truncate">Share</div></th>
+                            </template>
                         </tr>
                     </thead>
                     <tbody>
-                        <template for:each={entries} for:item="e">
-                            <tr key={e.key}>
-                                <th scope="row" class="rh-charts-grid-label">{e.label}</th>
-                                <td class="rh-charts-num">{e.text}</td>
+                        <template for:each={tableRows} for:item="r">
+                            <tr key={r.key} class={r.rowClass}>
+                                <th scope="row" class="rh-charts-grid-label">{r.label}</th>
+                                <td class="rh-charts-num">{r.text}</td>
+                                <template lwc:if={hasShare}>
+                                    <td class="rh-charts-num">{r.share}</td>
+                                </template>
                             </tr>
                         </template>
                         <tr class="rh-charts-grid-total">
                             <th scope="row" class="rh-charts-grid-label">Total</th>
                             <td class="rh-charts-num">{totalText}</td>
+                            <template lwc:if={hasShare}>
+                                <td class="rh-charts-num"></td>
+                            </template>
                         </tr>
                     </tbody>
                 </table>
             </template>
             <template lwc:elseif={drawn}>
-                <table class="slds-assistive-text rh-charts-table">
+                <div class="slds-assistive-text">
+                <table class="rh-charts-table">
                     <caption>{title}</caption>
                     <thead>
                         <tr>
                             <th scope="col">{groupHeading}</th>
                             <th scope="col">{valueHeading}</th>
+                            <template lwc:if={hasShare}>
+                                <th scope="col">Share</th>
+                            </template>
                         </tr>
                     </thead>
                     <tbody>
-                        <template for:each={entries} for:item="e">
-                            <tr key={e.key}>
-                                <th scope="row">{e.label}</th>
-                                <td>{e.text}</td>
+                        <template for:each={tableRows} for:item="r">
+                            <tr key={r.key}>
+                                <th scope="row">{r.spoken}</th>
+                                <td>{r.text}</td>
+                                <template lwc:if={hasShare}>
+                                    <td>{r.share}</td>
+                                </template>
                             </tr>
                         </template>
                         <tr>
                             <th scope="row">Total</th>
                             <td>{totalText}</td>
+                            <template lwc:if={hasShare}>
+                                <td></td>
+                            </template>
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </template>
         </div>
         <template lwc:if={footText}>
