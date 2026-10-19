@@ -1231,8 +1231,8 @@ public with sharing class GridAdmin {
      * What a save says when Salesforce refuses it because the package has not
      * yet passed its security review. Salesforce's documentation says an
      * uncertified package's Apex may deploy metadata only with this setting
-     * on; a Developer Edition and a scratch org allowed it with the setting
-     * off (measured), so it is a production org's message.
+     * on; a Developer Edition, a scratch org and a production org allowed it
+     * with the setting off, so this message is for an org that refuses.
      */
     public static final String BEFORE_REVIEW =
         'Salesforce did not let Rowhouse save it. In this org, a package that has not yet passed Salesforce\'s ' +
