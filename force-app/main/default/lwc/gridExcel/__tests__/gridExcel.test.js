@@ -10,6 +10,7 @@ import {
     detailText,
     asOfText,
     reportSubtitle,
+    REPORT_FOOTER,
     cellValue,
     currencyFormat,
     dateSerial,
@@ -352,7 +353,8 @@ describe('a Formatted Report', () => {
 
     it('keeps the subtotals, the filter buttons and the frozen columns on the table, below the header', () => {
         const sheet = report();
-        const total = sheet.rows[sheet.rows.length - 1];
+        // The Total row, then the footer's two blank rows and two lines.
+        const total = sheet.rows[sheet.rows.length - 5];
         expect(total.cells[1].v).toBe('Total');
         // Freight Charge: the margin, Consignment and Carrier come first; the records are rows 11 to 13.
         expect(total.cells[3]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,D11:D13)', v: 2640.75 }));
@@ -362,6 +364,28 @@ describe('a Formatted Report', () => {
         expect(sheet.columns[0]).toEqual({ width: 4.33 });
         expect(sheet.columns[sheet.columns.length - 1]).toEqual({ width: 4.33 });
         expect(sheet.columns).toHaveLength(COLUMNS.length + 2);
+    });
+
+    it('ends with the report’s footer where Salesforce puts its own, two rows under the table', () => {
+        const sheet = report();
+        const last = sheet.rows.slice(-4);
+        expect(last[0].cells).toEqual([]);
+        expect(last[1].cells).toEqual([]);
+        expect(last.slice(2).map(r => valuesOf(r))).toEqual([
+            [null, 'Confidential Information - Do Not Distribute'],
+            [null, 'Made with Rowhouse Grid by Kugamon']
+        ]);
+        expect(last[2].cells[1].style).toEqual({ size: 12, color: '56585B' });
+        expect(REPORT_FOOTER).toEqual([
+            'Confidential Information - Do Not Distribute',
+            'Made with Rowhouse Grid by Kugamon'
+        ]);
+        // Without the report's header, no footer either: the table alone.
+        expect(
+            build()
+                .rows.flat()
+                .some(r => r.cells.some(c => c && c.v === REPORT_FOOTER[1]))
+        ).toBe(false);
     });
 
     it('opens as a workbook with the header and the table', () => {

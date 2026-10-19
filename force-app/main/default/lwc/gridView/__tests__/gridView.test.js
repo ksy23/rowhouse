@@ -1095,11 +1095,14 @@ describe('export', () => {
         // The table: no Id, the rows in the order the table shows them, the admin's sort by Name.
         const head = textAt(rows, 'Name');
         expect(rows[head].filter(c => c && c.v).map(c => c.v)).toEqual(['Name', 'Pieces']);
-        expect(rows.slice(head + 1).map(r => r.find(c => c && c.t === 's').v)).toEqual([
+        expect(rows.slice(head + 1, head + 4).map(r => r.find(c => c && c.t === 's').v)).toEqual([
             'Penobscot Paper, load 1',
             'Penobscot Paper, load 2',
             'Penobscot Paper, load 3'
         ]);
+        // Under the table, the report's footer.
+        expect(textAt(rows, 'Confidential Information - Do Not Distribute')).toBeGreaterThan(head + 3);
+        expect(textAt(rows, 'Made with Rowhouse Grid by Kugamon')).toBeGreaterThan(head + 3);
         expect(dialogOf(el)).toBeNull();
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('Exported 3 rows.');
     });
