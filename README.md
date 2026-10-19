@@ -36,12 +36,14 @@ grid ([Placing a grid](#placing-a-grid), below).
 - **Upgrading:** each new version is installed the same way, from its link in
   [CHANGELOG.md](CHANGELOG.md). It upgrades Rowhouse in place and keeps your
   grids.
-- **In a production org**, until Rowhouse has passed Salesforce's security
-  review: if saving a grid says Salesforce did not let Rowhouse save it, turn
-  on **Deploy Metadata from Non-Certified Package Versions via Apex** (in
-  Setup, type Apex Settings in the Quick Find box). Saving a grid, the Grid
-  Guide's Build buttons and Import Grid write Custom Metadata from Apex, which
-  Salesforce allows such a package only with this setting.
+- **If saving a grid is refused** with "Salesforce did not let Rowhouse save
+  it", turn on **Deploy Metadata from Non-Certified Package Versions via
+  Apex** (in Setup, type Apex Settings in the Quick Find box). Saving a grid,
+  the Grid Guide's Build buttons and Import Grid write Custom Metadata from
+  Apex, and Salesforce documents this setting for a package that has not yet
+  passed its security review. The orgs Rowhouse has been tried in, a
+  production org among them, saved with it off, so leave it off unless your
+  org refuses.
 
 ## What it does
 
