@@ -84,6 +84,9 @@ public with sharing class GridAdmin {
         public Boolean allowInlineEdit = true;
         @AuraEnabled
         public Boolean allowCsvExport = true;
+        /** Export only for users with Salesforce's Export Reports permission. */
+        @AuraEnabled
+        public Boolean requireExportReports = false;
         @AuraEnabled
         public Boolean allowMassDelete = false;
         @AuraEnabled
@@ -424,6 +427,7 @@ public with sharing class GridAdmin {
         d.config.sortDirection = cfg.Default_Sort_Direction__c;
         d.config.allowInlineEdit = cfg.Allow_Inline_Edit__c == true;
         d.config.allowCsvExport = cfg.Allow_CSV_Export__c == true;
+        d.config.requireExportReports = cfg.Require_Export_Reports__c == true;
         d.config.allowMassDelete = cfg.Allow_Mass_Delete__c == true;
         d.config.allowImport = cfg.Allow_Import__c == true;
         d.config.allowNewRecords = cfg.Allow_New_Records__c == true;
@@ -1619,6 +1623,7 @@ public with sharing class GridAdmin {
             Grid_Configuration__mdt.Default_Sort_Direction__c => trimmed(c.sortDirection),
             Grid_Configuration__mdt.Allow_Inline_Edit__c => c.allowInlineEdit == true,
             Grid_Configuration__mdt.Allow_CSV_Export__c => c.allowCsvExport == true,
+            Grid_Configuration__mdt.Require_Export_Reports__c => c.requireExportReports == true,
             Grid_Configuration__mdt.Allow_Mass_Delete__c => c.allowMassDelete == true,
             Grid_Configuration__mdt.Allow_Import__c => c.allowImport == true,
             Grid_Configuration__mdt.Allow_New_Records__c => c.allowNewRecords == true,

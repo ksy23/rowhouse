@@ -4703,3 +4703,91 @@ table.rh-ref.rh-wrap1 td:first-child {
         display: none;
     }
 }
+
+/* The Export dialog (Using › Import and export): Export View as two cards, then Format. */
+.rh-m-xlabel {
+    display: block;
+    margin: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-4, 1rem) 0;
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    font-weight: var(--slds-g-font-weight-7, 700);
+    color: var(--rh-m-ink);
+}
+
+.rh-m-xviews {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    margin: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-4, 1rem) 0;
+}
+
+.rh-m-xcard {
+    position: relative;
+    padding: var(--slds-g-spacing-3, 0.75rem);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background: var(--slds-g-color-palette-neutral-100, #fff);
+    text-align: center;
+    font-size: var(--slds-g-font-scale-neg-2, 0.625rem);
+    line-height: var(--slds-g-font-line-height-4, 1.5);
+    color: var(--rh-m-ink2);
+}
+
+.rh-m-xcard b {
+    display: block;
+    margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    font-weight: var(--slds-g-font-weight-4, 400);
+    color: var(--rh-m-ink);
+}
+
+.rh-m-xcard.rh-on {
+    border-color: var(--rh-m-brand);
+    box-shadow: inset 0 0 0 var(--slds-g-sizing-border-1, 1px) var(--rh-m-brand);
+}
+
+/* The chosen card's corner, as Salesforce marks it. */
+.rh-m-xcard.rh-on::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--slds-g-sizing-5, 1rem);
+    height: var(--slds-g-sizing-5, 1rem);
+    border-top-right-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background: linear-gradient(to bottom left, var(--rh-m-brand) 50%, transparent 50%);
+}
+
+.rh-m-xfields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--slds-g-spacing-4, 1rem);
+    margin: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-4, 1rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-m-xfields .rh-lb {
+    display: block;
+    margin-bottom: var(--slds-g-spacing-1, 0.25rem);
+    color: var(--rh-m-ink2);
+}
+
+.rh-m-xfields .rh-sel {
+    display: block;
+    padding: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-2, 0.5rem);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-palette-neutral-60, #939393);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background: var(--slds-g-color-palette-neutral-100, #fff);
+    color: var(--rh-m-ink);
+}
+
+.rh-m-xfields .rh-sel.rh-off {
+    background: var(--slds-g-color-palette-neutral-95, #f3f3f3);
+    color: var(--rh-m-ink2);
+}
+
+@media (max-width: 480px) {
+    .rh-m-xviews,
+    .rh-m-xfields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

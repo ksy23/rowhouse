@@ -89,9 +89,11 @@ grid ([Placing a grid](#placing-a-grid), below).
   grid allows it), with Undo.
 - Import from CSV or Excel: a preview first, then updates by record Id or an
   External Id and new records for the rest, with Undo import.
-- Export to Excel (.xlsx) as the grid looks: numbers, dates and amounts with
-  their formats, display rules, frozen columns, and groups with subtotals; or
-  to CSV, with formula injection neutralized.
+- Export every matching record as Salesforce exports a report: a Formatted
+  Report (Excel, as the grid looks, under the report's header and filter
+  details, groups with subtotals) or Details Only (Excel or CSV, lookups by
+  name, formula injection neutralized); optionally only for users with the
+  Export Reports permission.
 - Actions from each row's menu or on the selected rows: a screen flow or an
   autolaunched flow (which can call your Apex), and from a row's menu a quick
   action, in Salesforce's own window.
@@ -154,7 +156,8 @@ force-app/main/default/
     gridKeyboard/     keyboard model as pure functions (no DOM)
     gridFormat/       display, rounding, comparison and link-safety rules
     gridCsv/          CSV export, and handing an exported file to the browser
-    gridExcel/        Export to Excel: the grid as it looks, as a sheet
+    gridExportDialog/ the Export dialog: Formatted Report or Details Only
+    gridExcel/        Export: a Formatted Report and Details Only, as sheets
     gridXlsxWriter/   our own .xlsx writer: ZIP, DEFLATE, the sheet and its styles
     gridEditState/    draft edits and save results
     gridClipboard/    what copy writes and paste reads, per column type

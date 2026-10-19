@@ -213,8 +213,16 @@ describe("the user's own columns", () => {
             hidden: ['Service_Level__c', 'Ship_Date__c', 'Delivery_Notes__c']
         });
         await settle();
-        $(el, '.rh-export').dispatchEvent(new CustomEvent('select', { detail: { value: 'csv' } }));
+        $(el, '.rh-export').click();
         await settle();
+        $(el, 'c-grid-export-dialog').dispatchEvent(
+            new CustomEvent('export', { detail: { view: 'details', format: 'csv' } })
+        );
+        for (let i = 0; i < 4; i++) {
+            // eslint-disable-next-line no-await-in-loop
+            await settle();
+            jest.runOnlyPendingTimers();
+        }
         const [, columns] = toCsv.mock.calls[0];
         expect(columns.map(c => c.field)).toEqual(['Id', 'Freight_Charge__c', 'Name']);
     });

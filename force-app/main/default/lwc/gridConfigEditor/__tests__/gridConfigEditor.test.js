@@ -298,6 +298,25 @@ describe('editing', () => {
         expect(lastDraft().config.allowImport).toBe(false); // turned back on by hand, not by New
     });
 
+    it('offers Require the Export Reports permission under Export, and keeps it while Export is off', async () => {
+        const el = await mount();
+        const box = $(el, '.rh-config-export-permission');
+        expect(box.label).toBe('Require the Export Reports permission');
+        expect(box.checked).toBeFalsy(); // not required unless the grid's record says so
+        expect(box.disabled).toBe(false);
+        change(box, true);
+        await afterCheck();
+        expect(lastDraft().config.requireExportReports).toBe(true);
+        change($(el, '.rh-config-export'), false);
+        await afterCheck();
+        expect($(el, '.rh-config-export-permission').disabled).toBe(true);
+        expect(lastDraft().config.requireExportReports).toBe(true); // kept, for when Export comes back
+        change($(el, '.rh-config-export'), true);
+        await afterCheck();
+        expect($(el, '.rh-config-export-permission').disabled).toBe(false);
+        expect($(el, '.rh-config-export-permission').checked).toBe(true);
+    });
+
     it("checks the draft a moment after a change, with the grid's own code", async () => {
         const el = await mount();
         expect($(el, '.rh-editor-save').disabled).toBe(true); // nothing changed yet

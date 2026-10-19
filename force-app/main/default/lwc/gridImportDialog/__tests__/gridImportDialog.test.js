@@ -472,6 +472,17 @@ describe('gridImportDialog', () => {
             expect($('.rh-import-go').disabled).toBe(false);
         });
 
+        it('asks about more than one call’s worth of names in several calls, one after another', async () => {
+            const shippers = Array.from({ length: 450 }, (_, i) => `Kennebunk Stone Works ${i + 1}`);
+            await mount({ columns });
+            await choose(
+                csv('Name,Shipper\n' + shippers.map((n, i) => `"Curbing, lot ${i + 1}",${n}`).join('\n') + '\n')
+            );
+            await until(() => !$('.rh-import-finding'));
+            expect(findLookupNames.mock.calls.map(c => c[0].names.length)).toEqual([200, 200, 50]);
+            expect(findLookupNames.mock.calls.flatMap(c => c[0].names)).toEqual(shippers);
+        });
+
         it('asks once per name, and leaves a name nothing has as a problem', async () => {
             await mount({ columns });
             await choose(

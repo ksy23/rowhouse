@@ -307,6 +307,11 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
         return this.config.allowNewRecords !== false;
     }
 
+    /** Export Reports matters only to a grid that offers Export; the choice is kept while Export is off. */
+    get exportPermissionDisabled() {
+        return this.config.allowCsvExport === false;
+    }
+
     /** Import creates a record for each row without an Id: it needs Create records with New. */
     get importDisabled() {
         return !this.allowNewRecords;

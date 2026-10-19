@@ -1,0 +1,95 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        aria-describedby="content"
+        class="slds-modal slds-fade-in-open rh-export-dialog"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <button class="slds-button slds-button_icon slds-modal__close rh-export-close" title="Cancel and close" onclick={handleCancel}>
+                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                <span class="slds-assistive-text">Cancel and close</span>
+            </button>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate">Export</h1>
+            </div>
+            <div id="content" class="slds-modal__content slds-p-around_medium rh-export-content">
+                <fieldset class="slds-form-element rh-export-views" disabled={busy}>
+                    <legend class="slds-form-element__label rh-export-views-label">Export View</legend>
+                    <div class="rh-export-view-row">
+                        <template for:each={viewTiles} for:item="t">
+                            <label key={t.value} class={t.tileClass}>
+                                <input
+                                    type="radio"
+                                    class="rh-export-view-input"
+                                    name="rh-export-view"
+                                    value={t.value}
+                                    checked={t.checked}
+                                    aria-describedby={t.descriptionId}
+                                    onchange={handleView}
+                                    onfocus={handleViewFocus}
+                                    onblur={handleViewBlur}
+                                />
+                                <span class="rh-export-view-check" aria-hidden="true">
+                                    <lightning-icon icon-name="utility:check" size="xx-small" variant="inverse"></lightning-icon>
+                                </span>
+                                <span class="rh-export-view-title">{t.label}</span>
+                                <span id={t.descriptionId} class="rh-export-view-text">{t.description}</span>
+                            </label>
+                        </template>
+                    </div>
+                </fieldset>
+                <div class="rh-export-pair">
+                    <lightning-combobox
+                        class="rh-export-format"
+                        label="Format"
+                        value={format}
+                        options={formatOptions}
+                        disabled={formatDisabled}
+                        onchange={handleFormat}
+                    ></lightning-combobox>
+                    <template lwc:if={showEncoding}>
+                        <lightning-combobox
+                            class="rh-export-encoding"
+                            label="Encoding"
+                            value="UTF-8"
+                            options={encodingOptions}
+                            disabled
+                        ></lightning-combobox>
+                    </template>
+                </div>
+                <template lwc:if={rowsNote}>
+                    <p class="slds-m-top_small slds-text-color_weak rh-export-note">{rowsNote}</p>
+                </template>
+                <template lwc:if={busy}>
+                    <div class="slds-m-top_medium rh-export-progress">
+                        <p class="slds-m-bottom_x-small" aria-live="polite">{progressText}</p>
+                        <div
+                            class="slds-progress-bar slds-progress-bar_small"
+                            role="progressbar"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-valuenow={progressPercent}
+                            aria-label={progressText}
+                        >
+                            <span class="slds-progress-bar__value" style={progressStyle}></span>
+                        </div>
+                    </div>
+                </template>
+                <template lwc:if={error}>
+                    <div class="slds-m-top_medium slds-text-color_error rh-export-error" role="alert">{error}</div>
+                </template>
+            </div>
+            <div class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral rh-export-cancel" onclick={handleCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand rh-export-go" disabled={busy} onclick={handleExport}>Export</button>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

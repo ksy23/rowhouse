@@ -46,9 +46,10 @@ export const MAX_NAME_LOOKUP = 200;
 /**
  * The names among these texts that no record in `names` ({ [id]: name })
  * carries and that are not record Ids: what a paste or an import must ask
- * the server about. Distinct, trimmed, at most MAX_NAME_LOOKUP.
+ * the server about. Distinct, trimmed, at most `limit` (one call's worth,
+ * MAX_NAME_LOOKUP, unless the caller asks in several calls).
  */
-export function unknownNames(texts, names) {
+export function unknownNames(texts, names, limit = MAX_NAME_LOOKUP) {
     const index = nameIndex(names);
     const out = new Map();
     (texts || []).forEach(t => {
@@ -57,7 +58,7 @@ export function unknownNames(texts, names) {
         const key = s.toLowerCase();
         if (!index.has(key) && !out.has(key)) out.set(key, s);
     });
-    return [...out.values()].slice(0, MAX_NAME_LOOKUP);
+    return [...out.values()].slice(0, limit);
 }
 
 /** The server's answer ({ lower-case name: [{ id, name }] }) as { [id]: name }. */

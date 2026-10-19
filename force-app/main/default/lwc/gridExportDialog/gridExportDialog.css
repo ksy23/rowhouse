@@ -1,0 +1,118 @@
+/* The Format list opens over the footer, as in Salesforce's own dialog. */
+.rh-export-content {
+    overflow: visible;
+}
+
+.rh-export-views {
+    margin-bottom: var(--slds-g-spacing-4, 1rem);
+}
+
+.rh-export-views-label {
+    padding: 0;
+    margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+/* Export View: two cards side by side, each a radio button with its words, as Salesforce draws them. */
+.rh-export-view-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-export-view-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--slds-g-spacing-3, 0.75rem);
+    min-height: 7.5rem;
+    padding: var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-3, 0.75rem);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, #c9c9c9);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background: var(--slds-g-color-surface-container-1, #fff);
+    color: var(--slds-g-color-on-surface-3, #181818);
+    text-align: center;
+    cursor: pointer;
+}
+
+.rh-export-view-tile:hover {
+    border-color: var(--slds-g-color-border-2, #939393);
+}
+
+/* Chosen: the brand's border and a check in its corner. */
+.rh-export-view-tile_on,
+.rh-export-view-tile_on:hover {
+    border-color: var(--slds-g-color-accent-1, #0176d3);
+    box-shadow: inset 0 0 0 var(--slds-g-sizing-border-1, 1px) var(--slds-g-color-accent-1, #0176d3);
+}
+
+.rh-export-view-tile_focus {
+    outline: var(--slds-g-sizing-border-2, 2px) solid var(--slds-g-color-accent-1, #0176d3);
+    outline-offset: var(--slds-g-sizing-border-2, 2px);
+}
+
+.rh-export-view-check {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-top-right-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background: linear-gradient(to bottom left, var(--slds-g-color-accent-1, #0176d3) 50%, transparent 50%);
+}
+
+.rh-export-view-check lightning-icon {
+    position: absolute;
+    top: 0.125rem;
+    right: 0.125rem;
+}
+
+.rh-export-view-tile_on .rh-export-view-check {
+    display: block;
+}
+
+/* The radio button itself is not drawn; the card is. It still takes focus and the arrow keys. */
+.rh-export-view-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+}
+
+.rh-export-view-title {
+    font-size: var(--slds-g-font-scale-2, 1rem);
+}
+
+.rh-export-view-text {
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--slds-g-color-on-surface-2, #444);
+}
+
+.rh-export-views[disabled] .rh-export-view-tile {
+    cursor: default;
+}
+
+/* Format and Encoding side by side. */
+.rh-export-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--slds-g-spacing-4, 1rem);
+}
+
+/* On a phone the cards keep their row and the pair stacks. */
+@media (max-width: 30em) {
+    .rh-export-pair {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--slds-g-spacing-3, 0.75rem);
+    }
+
+    .rh-export-view-tile {
+        min-height: 6rem;
+    }
+}

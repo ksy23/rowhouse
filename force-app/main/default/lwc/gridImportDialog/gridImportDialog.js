@@ -56,11 +56,12 @@ import {
     mappingChoices,
     mappedTo,
     importableColumns,
-    lookupTexts
+    lookupTexts,
+    MAX_IMPORT_ROWS
 } from 'c/gridImport';
 import { readXlsx } from 'c/gridXlsx';
 import { formatValue, isNumericType } from 'c/gridFormat';
-import { isLookup, lookupText, unknownNames, namesFound } from 'c/gridFields';
+import { isLookup, lookupText, unknownNames, namesFound, MAX_NAME_LOOKUP } from 'c/gridFields';
 import { toCsv, downloadCsv } from 'c/gridCsv';
 
 /** Rows per server call: one DML statement's worth (GridImportService.MAX_ROWS). */
@@ -407,8 +408,11 @@ export default class GridImportDialog extends LightningElement {
     /**
      * A name in a lookup column of the file that no row of the grid points
      * to is looked up on the server, once: the records it names are any the
-     * user can see. When some are found the file is checked again, and the
-     * grid is told their names (namesfound). Import waits until then.
+     * user can see. The server takes MAX_NAME_LOOKUP names a call, so a file
+     * with more, a whole report exported by name, is asked about in several
+     * calls, one after another for each column. When some are found the file
+     * is checked again, and the grid is told their names (namesfound).
+     * Import waits until then.
      */
     async findNames() {
         if (!this.configName || !this.plan || !this._file) return;
@@ -416,7 +420,9 @@ export default class GridImportDialog extends LightningElement {
         const asks = lookupTexts(this._file.table, this.plan.mapping)
             .map(({ field, texts }) => ({
                 field,
-                names: unknownNames(texts, this.allNames).filter(n => !asked.has(field + '\n' + n.toLowerCase()))
+                names: unknownNames(texts, this.allNames, MAX_IMPORT_ROWS).filter(
+                    n => !asked.has(field + '\n' + n.toLowerCase())
+                )
             }))
             .filter(a => a.names.length);
         if (!asks.length) return;
@@ -424,12 +430,20 @@ export default class GridImportDialog extends LightningElement {
         const token = ++this._names.token;
         this.findingNames = true;
         const answers = await Promise.all(
-            asks.map(a =>
-                findLookupNames({ configName: this.configName, field: a.field, names: a.names }).then(
-                    namesFound,
-                    () => ({})
-                )
-            )
+            asks.map(async a => {
+                const found = {};
+                for (let i = 0; i < a.names.length; i += MAX_NAME_LOOKUP) {
+                    if (token !== this._names.token) break;
+                    // eslint-disable-next-line no-await-in-loop -- one call at a time for a column
+                    const part = await findLookupNames({
+                        configName: this.configName,
+                        field: a.field,
+                        names: a.names.slice(i, i + MAX_NAME_LOOKUP)
+                    }).then(namesFound, () => ({}));
+                    Object.assign(found, part);
+                }
+                return found;
+            })
         );
         if (token !== this._names.token) return;
         this.findingNames = false;

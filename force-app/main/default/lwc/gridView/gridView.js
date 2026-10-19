@@ -265,9 +265,10 @@ import {
     rowsSharingParents
 } from 'c/gridEditState';
 import { toCsv, downloadCsv, downloadBytes, XLSX_TYPE } from 'c/gridCsv';
-import { buildSheet } from 'c/gridExcel';
+import { buildSheet, buildDetails, detailRows, detailText, reportSubtitle } from 'c/gridExcel';
+import { describeFilter } from 'c/gridFilters';
 import { toXlsx } from 'c/gridXlsxWriter';
-import { sortRows, picklistRanks, isMixedCurrency } from 'c/gridFormat';
+import { isMixedCurrency } from 'c/gridFormat';
 import { mark } from 'c/gridTiming';
 import {
     emptyHistory,
@@ -513,6 +514,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
     undoDelete = null;
     restoring = false;
     importOpen = false;
+    /** The Export dialog is open; busy while it loads the rest of the rows or writes the file. */
+    exportOpen = false;
+    exportBusy = false;
+    exportError = null;
     /** The grouping, outermost first: [{ field, unit }]. */
     grouping = [];
     /** Counts and subtotals: null, or { status: 'loading' | 'ready' | 'unavailable', totals }. */
@@ -1069,18 +1074,27 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.loadChildCounts(rows.map(r => r.Id));
     }
 
+    /** One more page, when the table asks (loadmore). */
+    handleLoadMore() {
+        this.loadNextPage();
+    }
+
     /**
-     * One more page, when the table asks (loadmore). It continues on the same
-     * cursor and locator as the load before it; a new sort or search starts a
-     * new load, and a page still arriving for the old one is dropped.
+     * One more page. It continues on the same cursor and locator as the load
+     * before it; a new sort or search starts a new load, and a page still
+     * arriving for the old one is dropped. Quiet, for Export, which loads
+     * page after page: it says nothing per page.
+     * @returns {Promise<string>} 'loaded', 'busy' (another load is under way),
+     *   'done' (nothing more to load), 'stale' (a new load began) or 'error'
      */
-    async handleLoadMore() {
-        if (this.loading || this.loadingMore || !this.canLoadMore) return;
+    async loadNextPage({ quiet = false } = {}) {
+        if (this.loading || this.loadingMore) return 'busy';
+        if (!this.canLoadMore) return 'done';
         const token = this._runtime.token;
         const { locator, cursorToken } = this._runtime.next;
-        if (!locator) return;
+        if (!locator) return 'done';
         this.loadingMore = true;
-        this.announce('Loading more rows…');
+        if (!quiet) this.announce('Loading more rows…');
         const started = now();
         try {
             const page = await fetchRows({
@@ -1089,7 +1103,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 cursorToken,
                 pageSize: Math.min(FOLLOW_PAGE_SIZE, MAX_LOADED_ROWS - this.rows.length)
             });
-            if (token !== this._runtime.token) return;
+            if (token !== this._runtime.token) return 'stale';
             const before = this.rows.length;
             this.rows = appendUnique(this.rows, page.rows || []); // a new array (HR-17)
             this.learnNames(page.rows);
@@ -1106,11 +1120,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 loaded: this.rows.length,
                 total: this.totalRows
             });
-            this.announce(`Loaded ${this.format(added)} more ${added === 1 ? 'row' : 'rows'}. ${this.loadedMessage}`);
+            if (!quiet)
+                this.announce(
+                    `Loaded ${this.format(added)} more ${added === 1 ? 'row' : 'rows'}. ${this.loadedMessage}`
+                );
+            return 'loaded';
         } catch (e) {
-            if (token !== this._runtime.token) return;
+            if (token !== this._runtime.token) return 'stale';
             this.notice = { variant: 'error', message: 'More rows could not be loaded. ' + messageOf(e) };
-            this.announce(this.notice.message);
+            if (!quiet) this.announce(this.notice.message);
+            return 'error';
         } finally {
             if (token === this._runtime.token) this.loadingMore = false;
         }
@@ -1500,15 +1519,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
             items.push({ key: 'columns', value: 'columns', label: 'Choose columns', disabled: false });
         if (this.canImport)
             items.push({ key: 'import', value: 'import', label: 'Import', disabled: this.importDisabled });
-        if (this.canExport) {
-            items.push({
-                key: 'exportXlsx',
-                value: 'exportXlsx',
-                label: 'Export as Excel',
-                disabled: this.exportDisabled
-            });
-            items.push({ key: 'export', value: 'export', label: 'Export as CSV', disabled: this.exportDisabled });
-        }
+        if (this.canExport)
+            items.push({ key: 'export', value: 'export', label: 'Export', disabled: this.exportDisabled });
         if (this.canChart)
             items.push({
                 key: 'charts',
@@ -1536,8 +1548,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (value === 'refresh') this.handleRefresh();
         else if (value === 'new') this.handleNew();
         else if (value === 'import') this.handleImportOpen();
-        else if (value === 'export') this.handleExport();
-        else if (value === 'exportXlsx') this.handleExportXlsx();
+        else if (value === 'export') this.handleExportOpen();
         else if (value === 'displayKey') this.handleDisplayKeyToggle();
         else if (value === 'charts') this.handleChartsToggle();
         else if (value === 'settings') this.handleSettingsOpen();
@@ -3786,90 +3797,219 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     // ============================================================ export
 
-    /** The Export menu: Excel (.xlsx) or CSV. */
-    handleExportSelect(event) {
-        const value = event.detail && event.detail.value;
-        if (value === 'xlsx') this.handleExportXlsx();
-        else if (value === 'csv') this.handleExport();
+    /** Export: the dialog, as Salesforce's for a report (c/gridExportDialog). */
+    handleExportOpen() {
+        if (this.exportDisabled || !this.canExport) return;
+        this.exportError = null;
+        this.exportBusy = false;
+        this.exportOpen = true;
+    }
+
+    /** Cancel: the dialog closes; rows still loading stop after the page under way. */
+    handleExportCancel() {
+        this._runtime.exportRun = (this._runtime.exportRun || 0) + 1;
+        this.exportOpen = false;
+        this.exportBusy = false;
+        this.focusButton('.rh-export');
+    }
+
+    /** How many records the export would hold, for the dialog. */
+    get exportTotal() {
+        return Math.max(Number(this.totalRows) || 0, this.rows.length);
+    }
+
+    get loadedCount() {
+        return this.rows.length;
+    }
+
+    get maxExportRows() {
+        return MAX_LOADED_ROWS;
     }
 
     /**
-     * Export to Excel: the rows Export to CSV writes, as the grid shows them
-     * (c/gridExcel), in a workbook of our own making (c/gridXlsxWriter).
+     * Export, from the dialog: every matching record, as a report exports
+     * the whole report. The rows not yet loaded load first (up to the most a
+     * grid holds), then the file is written in the view chosen.
      */
-    handleExportXlsx() {
-        const d = this.definition;
-        const table = this.template.querySelector('c-grid-table');
-        if (!d || !this.rows.length || !table) return;
-        let bytes;
-        try {
-            const sheet = buildSheet({
-                title: this.title,
-                view: table.exportView(),
-                columns: d.columns,
-                names: this.refNames,
-                rules: d.displayRules || [],
-                today: this.formatToday
-            });
-            bytes = toXlsx(sheet);
-        } catch (e) {
-            this.exportRefused('The file could not be made. ' + messageOf(e));
+    async handleExportGo(event) {
+        const detail = (event && event.detail) || {};
+        const view = detail.view === 'details' ? 'details' : 'formatted';
+        const format = view === 'details' && detail.format === 'csv' ? 'csv' : 'xlsx';
+        const run = (this._runtime.exportRun = (this._runtime.exportRun || 0) + 1);
+        const cancelled = () => run !== this._runtime.exportRun || !this.exportOpen;
+        this.exportError = null;
+        this.exportBusy = true;
+        const status = await this.loadEveryRow(cancelled);
+        if (cancelled()) return;
+        if (status !== 'done') {
+            this.exportBusy = false;
+            this.exportError =
+                status === 'stale'
+                    ? 'The list changed while its rows loaded. Export again.'
+                    : 'Some rows could not be loaded, so nothing was exported. Try again, or search to narrow the list.';
             return;
         }
-        if (
-            !downloadBytes(bytes, this.exportFileName('xlsx'), this.template.querySelector('.rh-download'), XLSX_TYPE)
-        ) {
-            this.exportRefused('This browser did not allow the file to be downloaded.');
+        // The table draws the new rows before it is asked for them.
+        await delay(0);
+        if (cancelled()) return;
+        let done;
+        if (view === 'formatted') done = this.exportFormatted();
+        else if (format === 'csv') done = this.exportDetailsCsv();
+        else done = this.exportDetailsXlsx();
+        this.exportBusy = false;
+        if (done !== true) {
+            this.exportError = done;
             return;
         }
+        this.exportOpen = false;
+        this.focusButton('.rh-export');
         this.announce(this.exportedMessage());
     }
 
-    exportRefused(message) {
-        this.announce(message);
-        this.dispatchEvent(new ShowToastEvent({ title: 'Not exported', message, variant: 'error' }));
+    /**
+     * Load page after page until every matching record is loaded, or the
+     * grid holds as many as it can. 'done', or why it stopped: 'cancelled',
+     * 'stale' (a new load began), 'error'.
+     */
+    async loadEveryRow(cancelled) {
+        let waits = 0;
+        while (this.canLoadMore) {
+            if (cancelled()) return 'cancelled';
+            // eslint-disable-next-line no-await-in-loop -- each page continues where the one before it ended
+            const status = await this.loadNextPage({ quiet: true });
+            if (status === 'stale' || status === 'error') return status;
+            if (status === 'busy') {
+                // A page the grid asked for as the user scrolled: wait for it.
+                if (++waits > 600) return 'error';
+                // eslint-disable-next-line no-await-in-loop -- waiting for that page
+                await delay(100);
+            }
+        }
+        return 'done';
+    }
+
+    /** The table's rows as Export writes them (gridTable exportView). */
+    exportView() {
+        const table = this.template.querySelector('c-grid-table');
+        return table ? table.exportView() : null;
+    }
+
+    /** Formatted Report: the grid as it looks, under the report's header and filter details (c/gridExcel). */
+    exportFormatted() {
+        const d = this.definition;
+        const view = this.exportView();
+        if (!d || !view) return 'The file could not be made. Reload the page and try again.';
+        try {
+            const bytes = toXlsx(
+                buildSheet({
+                    title: this.title,
+                    view,
+                    columns: d.columns,
+                    names: this.refNames,
+                    rules: d.displayRules || [],
+                    today: this.formatToday,
+                    report: { subtitle: this.exportSubtitle(), filters: this.exportFilterLines() }
+                })
+            );
+            return this.handOverFile(bytes, 'xlsx', XLSX_TYPE);
+        } catch (e) {
+            return 'The file could not be made. ' + messageOf(e);
+        }
+    }
+
+    /** Details Only, as an Excel workbook: each row without formatting (c/gridExcel). */
+    exportDetailsXlsx() {
+        const d = this.definition;
+        const view = this.exportView();
+        if (!d || !view) return 'The file could not be made. Reload the page and try again.';
+        try {
+            const bytes = toXlsx(buildDetails({ title: this.title, view, columns: d.columns, names: this.refNames }));
+            return this.handOverFile(bytes, 'xlsx', XLSX_TYPE);
+        } catch (e) {
+            return 'The file could not be made. ' + messageOf(e);
+        }
+    }
+
+    /**
+     * Details Only, as a CSV: the record Id first, so the file can come back
+     * in as an import, then the columns this user sees, in their order and
+     * in the grid's, lookups by their record's name and picklists by their
+     * labels, as Salesforce writes a report's rows. The configuration holds
+     * only columns this user can read (forUser), and toCsv writes only the
+     * columns it is given.
+     */
+    exportDetailsCsv() {
+        const d = this.definition;
+        const view = this.exportView();
+        if (!d || !view) return 'The file could not be made. Reload the page and try again.';
+        const byField = new Map(d.columns.map(c => [c.field, c]));
+        const shown = view.columns.map(v => byField.get(v.field)).filter(Boolean);
+        const columns = [{ field: 'Id', label: 'Id', type: 'id' }].concat(
+            shown.map(c => ({ field: c.field, label: c.label, type: c.type }))
+        );
+        const rows = detailRows(view).map(row => {
+            const out = { Id: row.Id };
+            shown.forEach(c => {
+                out[c.field] = detailText(row[c.field], c, this.refNames);
+            });
+            return out;
+        });
+        const csv = toCsv(rows, columns);
+        if (!downloadCsv(csv, this.exportFileName('csv'), this.template.querySelector('.rh-download'))) {
+            return 'This browser did not allow the file to be downloaded.';
+        }
+        return true;
+    }
+
+    /** The workbook to the browser; true, or why not. */
+    handOverFile(bytes, extension, type) {
+        if (!downloadBytes(bytes, this.exportFileName(extension), this.template.querySelector('.rh-download'), type)) {
+            return 'This browser did not allow the file to be downloaded.';
+        }
+        return true;
+    }
+
+    /** The report's "As of … • Generated by … • Sorted by …" line. */
+    exportSubtitle() {
+        const d = this.definition || {};
+        const byField = new Map((d.columns || []).map(c => [c.field, c]));
+        return reportSubtitle({
+            now: new Date(),
+            userName: d.userName || null,
+            sortedBy: (this.sort || []).map(k => ({
+                label: (byField.get(k.field) || {}).label || k.field,
+                direction: k.direction
+            }))
+        });
+    }
+
+    /**
+     * The report's filter details, as Salesforce lists them under Filtered By:
+     * what the grid shows, then each filter, the admin's first, then a search.
+     */
+    exportFilterLines() {
+        const d = this.definition || {};
+        const plural = String(d.objectLabel || 'records');
+        const lines = [
+            this._parent || (d.recordPageField && this._recordId)
+                ? `Show: ${plural} related to this record`
+                : `Show: All ${plural.toLowerCase()}`
+        ];
+        this.adminFilters.forEach(f => lines.push(f.text));
+        const byField = new Map((d.columns || []).map(c => [c.field, c]));
+        (this.filters || []).forEach(f =>
+            lines.push(describeFilter(f, byField.get(f.field) || { field: f.field, label: f.field }))
+        );
+        if (this.searchTerm) lines.push(`Search: “${this.searchTerm}”`);
+        return lines;
     }
 
     /** What an export says once the browser has the file. */
     exportedMessage() {
         let message = `Exported ${this.format(this.rows.length)} rows.`;
         if (hasDrafts(this.drafts)) message += ' Unsaved changes are not included.';
-        if (this.hasMore) message += ' Only the loaded rows were exported.';
+        if (this.hasMore) message += ` Only the first ${this.format(this.rows.length)} were exported.`;
         return message;
-    }
-
-    handleExport() {
-        const d = this.definition;
-        if (!d || !this.rows.length) return;
-        const byField = {};
-        d.columns.forEach(c => {
-            byField[c.field] = c;
-        });
-        // A picklist sorts in its own order, as on screen.
-        const keys = this.sort.map(k => {
-            const c = byField[k.field] || {};
-            return {
-                field: k.field,
-                direction: k.direction,
-                type: c.type,
-                ranks: c.type === 'picklist' ? picklistRanks(c.options) : null,
-                mixed: isMixedCurrency(c)
-            };
-        });
-        // The configuration holds only columns this user can read (forUser), and
-        // toCsv writes only the columns it is given.
-        // The record Id comes first, so the file can come back in as an import.
-        // The columns this user sees, in their order: export writes what is on screen.
-        const shown = shownColumns(d.columns, this.columnChoice);
-        const columns = [{ field: 'Id', label: 'Id', type: 'id' }].concat(
-            shown.map(c => ({ field: c.field, label: c.label, type: c.type }))
-        );
-        const csv = toCsv(sortRows(this.rows, keys), columns);
-        if (!downloadCsv(csv, this.exportFileName('csv'), this.template.querySelector('.rh-download'))) {
-            this.exportRefused('This browser did not allow the file to be downloaded.');
-            return;
-        }
-        this.announce(this.exportedMessage());
     }
 
     /** The grid's title and today's date: Pipeline-Review-2026-10-19.xlsx. */

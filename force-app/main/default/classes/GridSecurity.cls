@@ -242,6 +242,18 @@ public with sharing class GridSecurity {
         );
     }
 
+    /**
+     * Does the running user hold Export Reports? A grid that requires it
+     * (Require Export Reports Permission) offers Export only then, as
+     * Salesforce does for a report. Read as canCustomizeApplication is.
+     */
+    public static Boolean canExportReports() {
+        return holdsUserPermission(
+            'SELECT PermissionsExportReport FROM UserPermissionAccess LIMIT 1',
+            'PermissionsExportReport'
+        );
+    }
+
     /** The running user's UserPermissionAccess row says true for this permission; false on any failure. */
     private static Boolean holdsUserPermission(String soql, String permission) {
         try {

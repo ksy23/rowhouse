@@ -186,18 +186,15 @@
                                 ></lightning-button>
                             </template>
                             <template lwc:if={canExport}>
-                                <!-- Export: an Excel workbook as the grid looks, or a CSV of the values. -->
-                                <lightning-button-menu
+                                <!-- Export: a Formatted Report or Details Only, as Salesforce exports a report. -->
+                                <lightning-button
                                     class="rh-export"
                                     label="Export"
-                                    title="Export to Excel or CSV"
+                                    icon-name="utility:download"
+                                    title="Export"
                                     disabled={exportDisabled}
-                                    menu-alignment="right"
-                                    onselect={handleExportSelect}
-                                >
-                                    <lightning-menu-item value="xlsx" label="Excel (.xlsx)"></lightning-menu-item>
-                                    <lightning-menu-item value="csv" label="CSV"></lightning-menu-item>
-                                </lightning-button-menu>
+                                    onclick={handleExportOpen}
+                                ></lightning-button>
                             </template>
                         </lightning-button-group>
                     </template>
@@ -443,6 +440,18 @@
                 oncreated={handleNewRecordCreated}
                 oncancel={handleNewRecordCancel}
             ></c-grid-new-record>
+        </template>
+
+        <template lwc:if={exportOpen}>
+            <c-grid-export-dialog
+                total={exportTotal}
+                loaded={loadedCount}
+                max={maxExportRows}
+                busy={exportBusy}
+                error={exportError}
+                onexport={handleExportGo}
+                oncancel={handleExportCancel}
+            ></c-grid-export-dialog>
         </template>
 
         <template lwc:if={chartDialogOpen}>

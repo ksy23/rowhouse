@@ -27,6 +27,8 @@
  *                   Application: may open the Grid Admin tab, may not save.
  *   limitedAdmin() — Rowhouse_Grid_Admin with limitedUser()'s field access, for
  *                   what an admin who cannot read a field is told.
+ *   noExportUser() — fullUser()'s access on the Minimum Access - Salesforce
+ *                   profile, which does not grant Export Reports.
  * All but noLogUser() hold Rowhouse_Grid_User, the product's own permission set.
  * A class that builds its users in @TestSetup finds them again with built(),
  * by the alias each one is built with (LIMITED, FULL, PEER and so on).
@@ -127,6 +129,16 @@ public class GridTestUsers {
             'rhladm',
             'Mercy Thibault',
             new List<String>{ 'Freight_Limited_Access', 'Rowhouse_Grid_User', 'Rowhouse_Grid_Admin' }
+        );
+    }
+
+    /** fullUser()'s access on a profile without Export Reports, for a grid that requires it. */
+    public static User noExportUser() {
+        return userWith(
+            'rhnoexp',
+            'Wendell Cote',
+            new List<String>{ 'Freight_Full_Access', 'Rowhouse_Grid_User' },
+            'Minimum Access - Salesforce'
         );
     }
 

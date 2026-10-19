@@ -94,6 +94,10 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
+                <field>Require_Export_Reports__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
                 <field>Allow_Mass_Delete__c</field>
             </layoutItems>
         </layoutColumns>

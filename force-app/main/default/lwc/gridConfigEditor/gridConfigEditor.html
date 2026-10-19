@@ -336,6 +336,18 @@
                                         onchange={handleChange}
                                     ></lightning-input>
                                     <lightning-input
+                                        class="slds-p-left_large rh-config-export-permission"
+                                        type="checkbox"
+                                        label="Require the Export Reports permission"
+                                        checked={config.requireExportReports}
+                                        disabled={exportPermissionDisabled}
+                                        field-level-help="As Salesforce does for reports: Export shows only for users whose profile or permission sets grant Export Reports."
+                                        data-list="config"
+                                        data-prop="requireExportReports"
+                                        data-kind="checkbox"
+                                        onchange={handleChange}
+                                    ></lightning-input>
+                                    <lightning-input
                                         class="rh-config-import"
                                         type="checkbox"
                                         label="Import from a CSV or Excel file"

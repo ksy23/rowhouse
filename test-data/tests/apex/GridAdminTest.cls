@@ -972,6 +972,46 @@ private class GridAdminTest {
     }
 
     @IsTest
+    static void requireExportReportsReadsBackAndIsKeptBySaveArchiveAndRestore() {
+        System.runAs(GridTestUsers.adminUser()) {
+            GridAdmin.Draft d = (GridAdmin.Draft) GridAdmin.readConfig('Consignment_Exports').get('draft');
+            System.assertEquals(true, d.config.requireExportReports, 'Require Export Reports Permission reads back.');
+            GridAdmin.Draft other = (GridAdmin.Draft) GridAdmin.readConfig('Consignments').get('draft');
+            System.assertEquals(false, other.config.requireExportReports, 'Unset reads back deselected.');
+            Kept spy = new Kept();
+            GridAdmin.deployWith = spy;
+            GridAdmin.save(d);
+            System.assertEquals(
+                true,
+                valueOf(
+                    byName(spy.container).get('Grid_Configuration__mdt.Consignment_Exports'),
+                    'Require_Export_Reports__c'
+                ),
+                'Saved as it was.'
+            );
+            GridAdmin.setArchived('Consignment_Exports', true);
+            System.assertEquals(
+                true,
+                valueOf(
+                    byName(spy.container).get('Grid_Configuration__mdt.Consignment_Exports'),
+                    'Require_Export_Reports__c'
+                ),
+                'Archive keeps it.'
+            );
+            d.config.requireExportReports = false;
+            GridAdmin.save(d);
+            System.assertEquals(
+                false,
+                valueOf(
+                    byName(spy.container).get('Grid_Configuration__mdt.Consignment_Exports'),
+                    'Require_Export_Reports__c'
+                ),
+                'Deselecting it is saved.'
+            );
+        }
+    }
+
+    @IsTest
     static void aSaveKeepsArchivedAsTheOrgHasIt() {
         System.runAs(GridTestUsers.adminUser()) {
             GridAdmin.Draft d = (GridAdmin.Draft) GridAdmin.readConfig('Consignments').get('draft');

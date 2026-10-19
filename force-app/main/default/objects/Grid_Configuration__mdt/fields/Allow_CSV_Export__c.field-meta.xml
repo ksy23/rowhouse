@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Allow_CSV_Export__c</fullName>
     <description>Lets users export the grid's rows to an Excel workbook or a CSV file.</description>
-    <inlineHelpText>Select to show the Export menu, which downloads the grid's rows as an Excel workbook (.xlsx), as the grid shows them, or as a CSV file.</inlineHelpText>
+    <inlineHelpText>Select to show Export, which downloads every matching row as a Formatted Report (an Excel workbook, as the grid shows them) or as Details Only (an Excel workbook or a CSV file).</inlineHelpText>
     <label>Allow Export</label>
     <type>Checkbox</type>
     <defaultValue>true</defaultValue>

@@ -164,6 +164,30 @@ describe('the workbook', () => {
         expect(top).not.toContain('autoFilter');
     });
 
+    it('puts filter buttons on a range of the sheet, as a report below its header has', () => {
+        const s = sheet({ autoFilter: 'B2:C3' });
+        const p = parts(toXlsx(s));
+        expect(p['xl/worksheets/sheet1.xml']).toContain('<autoFilter ref="B2:C3"/>');
+        expect(p['xl/workbook.xml']).toContain("'Open Consignments'!$B$2:$C$3");
+        expect(parts(toXlsx(sheet({ autoFilter: 'B9:C3' })))['xl/worksheets/sheet1.xml']).not.toContain('autoFilter');
+        expect(parts(toXlsx(sheet({ autoFilter: 'not a range' })))['xl/worksheets/sheet1.xml']).not.toContain(
+            'autoFilter'
+        );
+    });
+
+    it('writes a font size and a right border', () => {
+        const s = sheet();
+        s.rows[1].cells[1].style = { size: 18, color: '56585B', fill: 'F9F9F7' };
+        s.rows[2].cells[1].style = { fill: 'F9F9F7', borderRight: { style: 'thin', color: '8E9297' } };
+        const styles = parts(toXlsx(s))['xl/styles.xml'];
+        expect(styles).toContain(
+            '<font><sz val="18"/><color rgb="FF56585B"/><name val="Calibri"/><family val="2"/></font>'
+        );
+        expect(styles).toContain(
+            '<border><left/><right style="thin"><color rgb="FF8E9297"/></right><top/><bottom/><diagonal/></border>'
+        );
+    });
+
     it('keeps a Total row below out of the filter when told how many rows it covers', () => {
         const s = sheet({ autoFilter: 3 });
         s.rows.push({ level: 0, cells: [{ v: 'Total', t: 's' }, null, { f: 'SUBTOTAL(9,C2:C3)', v: 2230.5 }] });

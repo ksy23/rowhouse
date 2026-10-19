@@ -1,10 +1,15 @@
 /**
- * Export to Excel: the grid as the user sees it, as a sheet. The locale is
+ * Export: a Formatted Report (the grid as the user sees it, under the report's
+ * header) and Details Only, as sheets. The locale is
  * en-US, the currency USD and the time zone America/Los_Angeles (the Jest
  * transformer's).
  */
 import {
     buildSheet,
+    buildDetails,
+    detailText,
+    asOfText,
+    reportSubtitle,
     cellValue,
     currencyFormat,
     dateSerial,
@@ -149,20 +154,28 @@ describe('values', () => {
 });
 
 describe('an ungrouped grid', () => {
-    it('writes the Id first, then the columns shown, in their order', () => {
-        const sheet = build({ view: { columns: [SHOWN[3], SHOWN[0]], frozen: 0, items: ROWS } });
-        expect(valuesOf(sheet.rows[0])).toEqual(['Id', 'Pieces', 'Consignment']);
-        expect(valuesOf(sheet.rows[1])).toEqual(['a00000000000001AAA', 12, 'Kennebec Lumber, load 1']);
+    it('writes the columns shown, in their order, without the record Id', () => {
+        const sheet = build({ view: { columns: [SHOWN[0], SHOWN[3]], frozen: 0, items: ROWS } });
+        expect(valuesOf(sheet.rows[0])).toEqual(['Consignment', 'Pieces']);
+        expect(valuesOf(sheet.rows[1])).toEqual(['Kennebec Lumber, load 1', 12]);
         expect(sheet.rows).toHaveLength(4 + 1); // the header, three rows and the Total
         expect(sheet.freeze).toEqual({ rows: 1, columns: 0 });
         // Filter buttons over the header and the three rows; the Total row stays out, so a sort leaves it last.
-        expect(sheet.autoFilter).toBe(4);
+        expect(sheet.autoFilter).toBe('A1:B4');
     });
 
-    it('freezes the Id with the columns the grid freezes, and wraps the columns it wraps', () => {
+    it('gives the word Total a column of its own when the first column is added up', () => {
+        const sheet = build({ view: { columns: [SHOWN[3], SHOWN[0]], frozen: 0, items: ROWS } });
+        expect(valuesOf(sheet.rows[0])).toEqual([null, 'Pieces', 'Consignment']);
+        const total = sheet.rows[sheet.rows.length - 1];
+        expect(total.cells[0].v).toBe('Total');
+        expect(total.cells[1]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,B2:B4)', v: 22 }));
+    });
+
+    it('freezes the columns the grid freezes, and wraps the columns it wraps', () => {
         const sheet = build();
-        expect(sheet.freeze).toEqual({ rows: 1, columns: 2 });
-        const notes = sheet.rows[1].cells[COLUMNS.length];
+        expect(sheet.freeze).toEqual({ rows: 1, columns: 1 });
+        const notes = sheet.rows[1].cells[COLUMNS.length - 1];
         expect(notes.v).toBe('Dock 4.\nCall ahead.');
         expect(notes.style).toEqual(expect.objectContaining({ wrap: true, top: true }));
     });
@@ -171,32 +184,32 @@ describe('an ungrouped grid', () => {
         const sheet = build();
         const total = sheet.rows[sheet.rows.length - 1];
         expect(total.cells[0].v).toBe('Total');
-        // Freight Charge is the fourth column (D), rows 2 to 4.
-        expect(total.cells[3]).toEqual(
+        // Freight Charge is the third column (C), rows 2 to 4.
+        expect(total.cells[2]).toEqual(
             expect.objectContaining({
-                f: 'SUBTOTAL(9,D2:D4)',
+                f: 'SUBTOTAL(9,C2:C4)',
                 v: 2640.75,
                 style: expect.objectContaining({ numFmt: '"$"#,##0.00', bold: true })
             })
         );
-        expect(total.cells[4]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,E2:E4)', v: 22 }));
+        expect(total.cells[3]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,D2:D4)', v: 22 }));
         // Columns without a subtotal stay empty.
-        expect(total.cells[5].v).toBeNull();
+        expect(total.cells[4].v).toBeNull();
     });
 
     it('adds no Total row when no column has a subtotal', () => {
         const plain = COLUMNS.map(c => ({ ...c, subtotal: null }));
         const sheet = build({ columns: plain });
         expect(sheet.rows).toHaveLength(4);
-        expect(sheet.autoFilter).toBe(4);
+        expect(sheet.autoFilter).toBe('A1:J4');
     });
 
     it('does not add up amounts in more than one currency, which only the grid can convert', () => {
         const mixed = COLUMNS.map(c => (c.type === 'currency' ? { ...c, currencyField: 'CurrencyIsoCode' } : c));
         const sheet = build({ columns: mixed });
         const total = sheet.rows[sheet.rows.length - 1];
-        expect(total.cells[3].f).toBeUndefined();
-        expect(total.cells[4].f).toBe('SUBTOTAL(9,E2:E4)');
+        expect(total.cells[2].f).toBeUndefined();
+        expect(total.cells[3].f).toBe('SUBTOTAL(9,D2:D4)');
     });
 
     it('gives cells the display rules’ fills, colors and bold, and a row rule’s tint and bar', () => {
@@ -234,16 +247,16 @@ describe('an ungrouped grid', () => {
         ];
         const sheet = build({ rules, today: '2026-10-19' });
         const first = sheet.rows[1].cells;
-        // The row rule: a red tint on every cell, a red bar at the left edge (the Id).
+        // The row rule: a red tint on every cell, a red bar at the left edge (the first column).
         expect(first[0].style).toEqual({ fill: 'FEF1EE', borderLeft: { style: 'thick', color: 'FE5C4C' } });
         expect(first[1].style).toEqual({ fill: 'FEF1EE' });
         // The cell rules over the tint.
-        expect(first[3].style).toEqual(expect.objectContaining({ fill: 'F9E3B6', numFmt: '"$"#,##0.00' }));
-        expect(first[4].style).toEqual(expect.objectContaining({ bold: true, fill: 'FEF1EE' }));
+        expect(first[2].style).toEqual(expect.objectContaining({ fill: 'F9E3B6', numFmt: '"$"#,##0.00' }));
+        expect(first[3].style).toEqual(expect.objectContaining({ bold: true, fill: 'FEF1EE' }));
         // A row no rule meets has no look of its own.
-        expect(sheet.rows[2].cells[1].style).toBeNull();
+        expect(sheet.rows[2].cells[0].style).toBeNull();
         // Cells that look alike share one style object.
-        expect(first[1].style).toBe(first[2].style);
+        expect(first[1].style).toBe(first[8].style);
     });
 });
 
@@ -253,7 +266,7 @@ describe('a grouped grid', () => {
 
     it('adds a Group column with each group’s heading, and no filter buttons', () => {
         const sheet = grouped();
-        expect(valuesOf(sheet.rows[0]).slice(0, 3)).toEqual(['Group', 'Id', 'Consignment']);
+        expect(valuesOf(sheet.rows[0]).slice(0, 3)).toEqual(['Group', 'Consignment', 'Carrier']);
         expect(sheet.rows[1].cells[0].v).toBe('Service Level: Express (2)');
         expect(sheet.rows[1].cells[0].style).toEqual(expect.objectContaining({ bold: true, fill: 'F3F3F3' }));
         expect(sheet.autoFilter).toBe(false);
@@ -272,11 +285,11 @@ describe('a grouped grid', () => {
             [0, 'Subtotal: Two-day'],
             [0, 'Total']
         ]);
-        // Freight Charge is column E with the Group column first.
-        expect(sheet.rows[4].cells[4]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,E3:E4)', v: 1660.75 }));
-        expect(sheet.rows[7].cells[4]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,E7:E7)', v: 980 }));
+        // Freight Charge is column D with the Group column first.
+        expect(sheet.rows[4].cells[3]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,D3:D4)', v: 1660.75 }));
+        expect(sheet.rows[7].cells[3]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,D7:D7)', v: 980 }));
         // The Total reaches over the subtotals, which SUBTOTAL leaves out.
-        expect(sheet.rows[8].cells[4]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,E2:E8)', v: 2640.75 }));
+        expect(sheet.rows[8].cells[3]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,D2:D8)', v: 2640.75 }));
     });
 
     it('nests groups, each counting its own rows once', () => {
@@ -300,24 +313,136 @@ describe('a grouped grid', () => {
             [0, 'Subtotal: Express'],
             [0, 'Total']
         ]);
-        expect(sheet.rows[8].cells[4]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,E3:E8)', v: 1660.75 }));
+        expect(sheet.rows[8].cells[3]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,D3:D8)', v: 1660.75 }));
         expect(sheet.rows[2].cells[0].style).toEqual(expect.objectContaining({ indent: 1 }));
     });
 });
 
-describe('the file', () => {
-    it('is a workbook Import reads back, with dates as dates', () => {
-        const { rows } = readXlsx(toXlsx(build()));
-        expect(rows[0].slice(0, 3)).toEqual([
-            { t: 's', v: 'Id' },
-            { t: 's', v: 'Consignment' },
-            { t: 's', v: 'Carrier' }
-        ]);
+describe('a Formatted Report', () => {
+    const REPORT = {
+        subtitle: 'As of 2026-10-19 14:53:30 Pacific Daylight Time/PDT • Generated by Abigail Whitcomb',
+        filters: ['Show: All consignments', 'Service Level equals Express']
+    };
+    const report = (extra = {}) => build({ report: REPORT, ...extra });
+
+    it('heads the sheet as Salesforce heads an exported report: title, As of line, Filtered By', () => {
+        const sheet = report();
+        const text = r => (sheet.rows[r].cells[1] ? sheet.rows[r].cells[1].v : null);
+        expect(text(1)).toBe('Open Consignments');
+        expect(sheet.rows[1].cells[1].style).toEqual({ fill: 'F9F9F7', size: 18, color: '56585B' });
+        expect(text(2)).toBe(REPORT.subtitle);
+        expect(sheet.rows[2].cells[1].style).toEqual({ fill: 'F9F9F7', size: 12, color: '56585B' });
+        // The band: from the margin column to the one after the table, its right edge framed, a line under it.
+        expect(sheet.rows[0].cells).toHaveLength(1 + COLUMNS.length + 1);
+        expect(sheet.rows[0].cells[COLUMNS.length + 1].style).toEqual({
+            fill: 'F9F9F7',
+            borderRight: { style: 'thin', color: '8E9297' }
+        });
+        expect(sheet.rows[3].cells[1].style).toEqual(
+            expect.objectContaining({ borderBottom: { style: 'thin', color: 'D5D3D1' } })
+        );
+        expect(sheet.rows[4].cells).toEqual([]);
+        expect(text(5)).toBe('Filtered By');
+        expect(sheet.rows[5].cells[1].style).toEqual({ bold: true, size: 12, color: '56585B' });
+        expect([text(6), text(7)]).toEqual(REPORT.filters);
+        expect(sheet.rows[8].cells).toEqual([]);
+        // Then the table, from column B.
+        expect(valuesOf(sheet.rows[9]).slice(0, 3)).toEqual([null, 'Consignment', 'Carrier']);
+    });
+
+    it('keeps the subtotals, the filter buttons and the frozen columns on the table, below the header', () => {
+        const sheet = report();
+        const total = sheet.rows[sheet.rows.length - 1];
+        expect(total.cells[1].v).toBe('Total');
+        // Freight Charge: the margin, Consignment and Carrier come first; the records are rows 11 to 13.
+        expect(total.cells[3]).toEqual(expect.objectContaining({ f: 'SUBTOTAL(9,D11:D13)', v: 2640.75 }));
+        expect(sheet.autoFilter).toBe('B10:K13');
+        // No frozen rows, as Salesforce's has none; the margin and the column the grid freezes stay put.
+        expect(sheet.freeze).toEqual({ rows: 0, columns: 2 });
+        expect(sheet.columns[0]).toEqual({ width: 4.33 });
+        expect(sheet.columns[sheet.columns.length - 1]).toEqual({ width: 4.33 });
+        expect(sheet.columns).toHaveLength(COLUMNS.length + 2);
+    });
+
+    it('opens as a workbook with the header and the table', () => {
+        const { rows } = readXlsx(toXlsx(report()));
+        expect(rows.some(r => r.some(c => c && c.v === 'Open Consignments'))).toBe(true);
+        expect(rows.some(r => r.some(c => c && c.v === 'Filtered By'))).toBe(true);
+    });
+
+    it('writes the As of line on the user’s clock, with the time zone’s names', () => {
+        expect(asOfText(new Date('2026-10-19T21:53:30Z'), 'America/Los_Angeles')).toBe(
+            'As of 2026-10-19 14:53:30 Pacific Daylight Time/PDT'
+        );
+        expect(
+            reportSubtitle({
+                now: new Date('2026-01-05T09:00:00Z'),
+                timeZone: 'America/New_York',
+                userName: 'Abigail Whitcomb',
+                sortedBy: [
+                    { label: 'Close Date', direction: 'asc' },
+                    { label: 'Amount', direction: 'desc' }
+                ]
+            })
+        ).toBe(
+            'As of 2026-01-05 04:00:00 Eastern Standard Time/EST • Generated by Abigail Whitcomb • ' +
+                'Sorted by Close Date (Ascending), Amount (Descending)'
+        );
+    });
+});
+
+describe('Details Only', () => {
+    const details = (items = ROWS) =>
+        buildDetails({
+            title: 'Open Consignments',
+            view: { columns: SHOWN, frozen: 1, items },
+            columns: COLUMNS,
+            names: NAMES
+        });
+
+    it('writes the record Id, then each row’s values, without formatting', () => {
+        const sheet = details();
+        expect(valuesOf(sheet.rows[0])).toEqual(['Id'].concat(COLUMNS.map(c => c.label)));
+        expect(sheet.rows[1].cells[0]).toEqual({ v: 'a00000000000001AAA', t: 's' });
+        // A lookup by its record's name, a picklist by its label.
+        expect(sheet.rows[1].cells[2]).toEqual({ v: 'Bangor Freight Lines', t: 's', style: null });
+        expect(sheet.rows[2].cells[9]).toEqual({ v: 'Two-day', t: 's', style: null });
+        // Numbers and dates keep their kind; the format is all the look they have.
+        expect(sheet.rows[1].cells[3]).toEqual({ v: 1250.5, t: 'n', style: { numFmt: '"$"#,##0.00' } });
+        expect(sheet.freeze).toBeNull();
+        expect(sheet.autoFilter).toBe(false);
+    });
+
+    it('leaves out group headings, subtotals and totals', () => {
+        const sheet = details([group(1, 'Express', 2, '__g1_a'), ROWS[0], ROWS[2]]);
+        expect(sheet.rows.map(r => r.cells[0].v)).toEqual(['Id', 'a00000000000001AAA', 'a00000000000003AAA']);
+    });
+
+    it('reads back as the same rows', () => {
+        const { rows } = readXlsx(toXlsx(details()));
+        expect(rows[1][2]).toEqual({ t: 's', v: 'Bangor Freight Lines' });
         expect(rows[1][3]).toEqual({ t: 'n', v: '1250.5' });
         expect(rows[1][6]).toEqual({ t: 'd', v: '2026-11-14' });
         expect(rows[1][8]).toEqual({ t: 'b', v: 'true' });
         // A percent comes back as a percent: Import puts 12.5 into the field again.
         expect(rows[1][5]).toEqual({ t: 'n', v: '0.125', pct: true });
+    });
+
+    it('gives a CSV the names and labels, and leaves other values as stored', () => {
+        const multi = {
+            field: 'Handling__c',
+            type: 'multipicklist',
+            options: [
+                { value: 'liftgate', label: 'Liftgate' },
+                { value: 'inside', label: 'Inside delivery' }
+            ]
+        };
+        expect(detailText('001000000000001AAA', COLUMNS[1], NAMES)).toBe('Bangor Freight Lines');
+        expect(detailText('001000000000009AAA', COLUMNS[1], NAMES)).toBe('001000000000009AAA');
+        expect(detailText('two_day', COLUMNS[8], NAMES)).toBe('Two-day');
+        expect(detailText('liftgate;inside', multi, NAMES)).toBe('Liftgate;Inside delivery');
+        expect(detailText(1250.5, COLUMNS[2], NAMES)).toBe(1250.5);
+        expect(detailText(null, COLUMNS[1], NAMES)).toBeNull();
     });
 });
 

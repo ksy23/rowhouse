@@ -357,6 +357,7 @@ export function emptyDraft() {
             allowInlineEdit: true,
             allowNewRecords: true,
             allowCsvExport: true,
+            requireExportReports: false,
             allowMassDelete: false,
             allowImport: false,
             logChanges: false,

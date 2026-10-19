@@ -16,9 +16,10 @@
  *   { name, title,
  *     columns: [{ width }],            width in Excel's characters
  *     freeze: { rows, columns },       panes frozen at the top and left
- *     autoFilter: true|false|n,        filter buttons on the first row, over every
- *                                      row (true) or the first n (a Total row below
- *                                      stays out of the filter and its sort)
+ *     autoFilter: true|false|n|'B10:H25', filter buttons on the first row, over
+ *                                      every row (true) or the first n (a Total row
+ *                                      below stays out of the filter and its sort);
+ *                                      or on the first row of a range of the sheet
  *     rows: [{ level, cells }] }       level: the row's outline level, 0 to 7
  * Each cell is null (nothing written) or
  *   { v, t, f, style }
@@ -26,8 +27,9 @@
  *          decimal string, written as it is, so no digit is lost on the way
  *   f      a formula (no leading =), with v as its last value
  *   style  { numFmt (a format code, or a built-in format's number), bold,
- *            italic, color, fill, align, indent, wrap, top, borderTop,
- *            borderBottom, borderLeft: { style, color } }; colors as RRGGBB.
+ *            italic, size (points; 11 when not given), color, fill, align,
+ *            indent, wrap, top, borderTop, borderBottom, borderLeft,
+ *            borderRight: { style, color } }; colors as RRGGBB.
  *          Cells that look alike should share one style object: the
  *          format each object stands for is worked out once.
  *
@@ -461,15 +463,16 @@ class Styles {
     }
 
     font(s) {
-        const key = [s.bold ? 'b' : '', s.italic ? 'i' : '', s.color || ''].join('|');
-        if (key === '||') return 0;
+        const size = Number(s.size) > 0 && Number(s.size) !== 11 ? Math.min(409, Number(s.size)) : 11;
+        const key = [s.bold ? 'b' : '', s.italic ? 'i' : '', s.color || '', size === 11 ? '' : size].join('|');
+        if (key === '|||') return 0;
         if (!this.fonts.has(key)) {
             this.fonts.set(key, this.fontXml.length);
             this.fontXml.push(
                 '<font>' +
                     (s.bold ? '<b/>' : '') +
                     (s.italic ? '<i/>' : '') +
-                    '<sz val="11"/>' +
+                    `<sz val="${size}"/>` +
                     (s.color ? `<color rgb="${color(s.color)}"/>` : '<color theme="1"/>') +
                     '<name val="Calibri"/><family val="2"/></font>'
             );
@@ -492,8 +495,9 @@ class Styles {
         const left = s.borderLeft ? `${s.borderLeft.style || 'thin'}:${s.borderLeft.color || ''}` : '';
         const top = s.borderTop ? `${s.borderTop.style || 'thin'}:${s.borderTop.color || ''}` : '';
         const bottom = s.borderBottom ? `${s.borderBottom.style || 'thin'}:${s.borderBottom.color || ''}` : '';
-        const key = [left, top, bottom].join('|');
-        if (key === '||') return 0;
+        const right = s.borderRight ? `${s.borderRight.style || 'thin'}:${s.borderRight.color || ''}` : '';
+        const key = [left, top, bottom, right].join('|');
+        if (key === '|||') return 0;
         if (!this.borders.has(key)) {
             const side = (name, b) =>
                 b
@@ -505,7 +509,7 @@ class Styles {
             this.borderXml.push(
                 '<border>' +
                     side('left', s.borderLeft) +
-                    '<right/>' +
+                    side('right', s.borderRight) +
                     side('top', s.borderTop) +
                     side('bottom', s.borderBottom) +
                     '<diagonal/></border>'
@@ -660,9 +664,15 @@ function sheetXml(sheet, styles) {
     return { bytes: out.bytes(), filterRef };
 }
 
-/** The range the filter buttons cover: every row, or the first n; null for none. */
+const RANGE = /^([A-Z]{1,3})([1-9]\d{0,6}):([A-Z]{1,3})([1-9]\d{0,6})$/;
+
+/** The range the filter buttons cover: every row, the first n, or a range; null for none. */
 function filterRange(autoFilter, width, rowCount) {
     if (!autoFilter || !rowCount) return null;
+    if (typeof autoFilter === 'string') {
+        const m = RANGE.exec(autoFilter);
+        return m && Number(m[2]) <= Number(m[4]) ? autoFilter : null;
+    }
     const n = autoFilter === true ? rowCount : Math.min(rowCount, Math.floor(Number(autoFilter)));
     if (!(n >= 1)) return null;
     return `A1:${columnName(width)}${n}`;

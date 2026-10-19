@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Require_Export_Reports__c</fullName>
+    <description>Lets only users with Salesforce's Export Reports permission export the grid's rows, as Salesforce requires for exporting a report. Others see no Export.</description>
+    <inlineHelpText>Select to show Export only to users whose profile or permission sets grant Export Reports. Leave deselected to let every user of the grid export when Allow Export is selected.</inlineHelpText>
+    <label>Require Export Reports Permission</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+</CustomField>
