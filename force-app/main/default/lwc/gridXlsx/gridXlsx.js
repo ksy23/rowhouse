@@ -16,7 +16,9 @@
  * every sheet's name, and the rows, an array of rows in which
  * each cell is { t, v }: t is 's' (text), 'n' (a number, written plainly as
  * 1234.5), 'd' (a date, 2026-12-31, or a date and time, 2026-12-31T09:30:00),
- * or 'b' (true or false). Empty cells are null. It throws an Error whose
+ * or 'b' (true or false). Empty cells are null. A number shown as a percent
+ * also has pct: true: Excel keeps 12.5% as 0.125, and an import into a
+ * percent field (which keeps 12.5) needs to know. It throws an Error whose
  * message a user can act on when the file is not an .xlsx workbook.
  *
  * LIMITS
@@ -580,6 +582,31 @@ function dateStyles(files) {
     });
 }
 
+/** Whether a custom number format shows a percent: a % outside quotes and escapes. */
+export function isPercentFormat(code) {
+    return /%/.test(
+        String(code || '')
+            .replace(/"[^"]*"/g, '')
+            .replace(/\\./g, '')
+    );
+}
+
+/** For each cell style, whether it shows a number as a percent (built-in formats 9 and 10, or a custom one). */
+function percentStyles(files) {
+    const styles = part(files, 'xl/styles.xml');
+    if (!styles) return [];
+    const custom = {};
+    elements(styles, 'numFmt').forEach(f => {
+        custom[f.attrs.numFmtId] = f.attrs.formatCode;
+    });
+    const cellXfs = elements(styles, 'cellXfs')[0];
+    if (!cellXfs) return [];
+    return elements(cellXfs.body, 'xf').map(xf => {
+        const id = Number(xf.attrs.numFmtId || 0);
+        return id === 9 || id === 10 || (custom[id] !== undefined && isPercentFormat(custom[id]));
+    });
+}
+
 /**
  * A worksheet of an .xlsx file: { sheet, sheets, rows }, the sheet named
  * `sheetName`, or the first; `sheets` lists every sheet's name.
@@ -599,6 +626,7 @@ export function readXlsx(bytes, sheetName = null) {
     const sharedXml = part(files, 'xl/sharedStrings.xml');
     const shared = sharedXml ? elements(sharedXml, 'si').map(si => runText(si.body)) : [];
     const isDate = dateStyles(files);
+    const isPercent = percentStyles(files);
 
     const rows = [];
     let rowNumber = 0;
@@ -613,7 +641,7 @@ export function readXlsx(bytes, sheetName = null) {
         elements(row.body, 'c').forEach(c => {
             col = c.attrs.r ? columnIndex(c.attrs.r) : col + 1;
             if (!(col >= 0 && col < MAX_COLUMNS)) throw corrupt();
-            const cell = readCell(c, shared, isDate, sheet.date1904);
+            const cell = readCell(c, shared, isDate, sheet.date1904, isPercent);
             if (cell) cells[col] = cell;
         });
         spanned += cells.length;
@@ -625,7 +653,7 @@ export function readXlsx(bytes, sheetName = null) {
     return { sheet: sheet.name, sheets: sheet.names, rows };
 }
 
-function readCell(c, shared, isDate, date1904) {
+function readCell(c, shared, isDate, date1904, isPercent = []) {
     const type = c.attrs.t || 'n';
     if (type === 'inlineStr') {
         const is = elements(c.body, 'is')[0];
@@ -645,5 +673,5 @@ function readCell(c, shared, isDate, date1904) {
     if (raw.trim() === '') return null;
     const style = Number(c.attrs.s || 0);
     if (isDate[style] && Number.isFinite(Number(raw))) return { t: 'd', v: serialToIso(Number(raw), date1904) };
-    return { t: 'n', v: plainNumber(raw) };
+    return isPercent[style] ? { t: 'n', v: plainNumber(raw), pct: true } : { t: 'n', v: plainNumber(raw) };
 }

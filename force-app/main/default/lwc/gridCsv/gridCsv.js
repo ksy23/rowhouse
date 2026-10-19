@@ -1,5 +1,6 @@
 /**
- * gridCsv — CSV export. Correctness, plus one security rule.
+ * gridCsv — CSV export, and handing any exported file to the browser.
+ * Correctness, plus one security rule.
  *
  * THE SECURITY RULE (TC-019 / TC-020)
  * A cell that begins with = + - @ (or a tab or carriage return) is executed as a
@@ -103,21 +104,58 @@ export function downloadCsv(csv, fileName, container) {
  * @returns {boolean} true once the browser was handed the file.
  */
 export function downloadText(text, fileName, container, dataType) {
+    return handOver(
+        text,
+        () => `data:${dataType || 'text/plain'};charset=utf-8,` + encodeURIComponent(text),
+        fileName || 'download.txt',
+        container
+    );
+}
+
+/** The type of an Excel workbook, for the data: URL a binary file falls back to. */
+export const XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+/**
+ * A binary file (an Excel workbook), the same way: a blob: URL, or a
+ * base64 data: URL of `dataType` where that is refused.
+ *
+ * @returns {boolean} true once the browser was handed the file.
+ */
+export function downloadBytes(bytes, fileName, container, dataType) {
+    return handOver(
+        bytes,
+        () => `data:${dataType || 'application/octet-stream'};base64,` + base64(bytes),
+        fileName || 'download.bin',
+        container
+    );
+}
+
+/** Base64 of bytes, a slice at a time so no call is handed too many arguments. */
+export function base64(bytes) {
+    let out = '';
+    const SLICE = 0x6000; // a multiple of 3, so slices join without padding between them
+    for (let i = 0; i < bytes.length; i += SLICE) {
+        out += btoa(String.fromCharCode.apply(null, bytes.subarray(i, i + SLICE)));
+    }
+    return out;
+}
+
+function handOver(content, dataUrl, fileName, container) {
     const host = container || document.body;
     const link = document.createElement('a');
     let blobUrl = null;
     try {
-        blobUrl = URL.createObjectURL(new Blob([text], { type: 'application/octet-stream' }));
+        blobUrl = URL.createObjectURL(new Blob([content], { type: 'application/octet-stream' }));
         link.href = blobUrl;
     } catch {
         blobUrl = null;
         try {
-            link.href = `data:${dataType || 'text/plain'};charset=utf-8,` + encodeURIComponent(text);
+            link.href = dataUrl();
         } catch {
             return false;
         }
     }
-    link.download = fileName || 'download.txt';
+    link.download = fileName;
     link.rel = 'noopener';
     link.style.display = 'none';
     host.appendChild(link);

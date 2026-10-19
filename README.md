@@ -89,7 +89,9 @@ grid ([Placing a grid](#placing-a-grid), below).
   grid allows it), with Undo.
 - Import from CSV or Excel: a preview first, then updates by record Id or an
   External Id and new records for the rest, with Undo import.
-- CSV export, with formula injection neutralised.
+- Export to Excel (.xlsx) as the grid looks: numbers, dates and amounts with
+  their formats, display rules, frozen columns, and groups with subtotals; or
+  to CSV, with formula injection neutralized.
 - Actions from each row's menu or on the selected rows: a screen flow or an
   autolaunched flow (which can call your Apex), and from a row's menu a quick
   action, in Salesforce's own window.
@@ -151,10 +153,13 @@ force-app/main/default/
     gridChildTables/         child tables: panel rows, heights by level, row offsets
     gridKeyboard/     keyboard model as pure functions (no DOM)
     gridFormat/       display, rounding, comparison and link-safety rules
-    gridCsv/          CSV export
+    gridCsv/          CSV export, and handing an exported file to the browser
+    gridExcel/        Export to Excel: the grid as it looks, as a sheet
+    gridXlsxWriter/   our own .xlsx writer: ZIP, DEFLATE, the sheet and its styles
     gridEditState/    draft edits and save results
     gridClipboard/    what copy writes and paste reads, per column type
     gridHistory/      undo and redo of unsaved edits
+    gridPendingLayout/ a layout change held in the browser until it is kept
     gridFields/       lookup names and links, picklist dependencies
     gridDisplayRules/  display rules: which cells a rule colors
     gridUpdateField/   the dialog that changes one field on the selected rows

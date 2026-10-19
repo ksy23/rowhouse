@@ -213,7 +213,7 @@ describe("the user's own columns", () => {
             hidden: ['Service_Level__c', 'Ship_Date__c', 'Delivery_Notes__c']
         });
         await settle();
-        $(el, '.rh-export').click();
+        $(el, '.rh-export').dispatchEvent(new CustomEvent('select', { detail: { value: 'csv' } }));
         await settle();
         const [, columns] = toCsv.mock.calls[0];
         expect(columns.map(c => c.field)).toEqual(['Id', 'Freight_Charge__c', 'Name']);

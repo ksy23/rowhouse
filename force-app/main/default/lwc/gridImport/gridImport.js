@@ -23,7 +23,8 @@
  * (c/gridClipboard parseCell): the user's decimal separator for CSV text, a
  * picklist value by label or API name, a lookup by record Id or by the name
  * of a record already shown in the grid. Excel numbers, dates and booleans
- * arrive typed (c/gridXlsx) and are read as such. An empty cell clears the
+ * arrive typed (c/gridXlsx) and are read as such; a number Excel shows as a
+ * percent (12.5% is 0.125 there) goes into a percent field as 12.5. An empty cell clears the
  * field; a column not in the file is left as it is. A checkbox cell that is
  * empty is unchecked (TC-042: a checkbox is never blank).
  *
@@ -399,11 +400,26 @@ function problem(field, column, raw, text, message) {
     return { field, column, raw: raw == null ? '' : String(raw), problem: text, message };
 }
 
+/**
+ * A plain decimal times 100, exactly, by moving the point: "0.125" is
+ * "12.5". Anything else comes back as it was.
+ */
+export function hundredTimes(text) {
+    const m = /^(-?)(\d*)(?:\.(\d*))?$/.exec(String(text).trim());
+    if (!m || (!m[2] && !m[3])) return text;
+    const fraction = (m[3] || '').padEnd(2, '0');
+    const whole = ((m[2] || '') + fraction.slice(0, 2)).replace(/^0+(?=\d)/, '');
+    const rest = fraction.slice(2).replace(/0+$/, '');
+    const out = whole + (rest ? '.' + rest : '');
+    return m[1] && /[1-9]/.test(out) ? '-' + out : out;
+}
+
 /** One cell as a value for its column: { value } or { error }. */
 function readValue(cell, column, names, locale) {
     const typed = cell && typeof cell === 'object';
-    const text = cellText(cell);
     const type = column.type || 'text';
+    // Excel keeps 12.5% as 0.125; a percent field keeps 12.5.
+    const text = typed && cell.pct && type === 'percent' ? hundredTimes(cellText(cell)) : cellText(cell);
     if ((type === 'checkbox' || type === 'boolean') && text.trim() === '') return { value: false };
     const c = isLookup(type) ? { ...column, nameIndex: names } : column;
     // Excel's typed cells are written one way whatever the user's locale;

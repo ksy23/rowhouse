@@ -186,14 +186,18 @@
                                 ></lightning-button>
                             </template>
                             <template lwc:if={canExport}>
-                                <lightning-button
+                                <!-- Export: an Excel workbook as the grid looks, or a CSV of the values. -->
+                                <lightning-button-menu
                                     class="rh-export"
                                     label="Export"
-                                    icon-name="utility:download"
-                                    title="Export as CSV"
+                                    title="Export to Excel or CSV"
                                     disabled={exportDisabled}
-                                    onclick={handleExport}
-                                ></lightning-button>
+                                    menu-alignment="right"
+                                    onselect={handleExportSelect}
+                                >
+                                    <lightning-menu-item value="xlsx" label="Excel (.xlsx)"></lightning-menu-item>
+                                    <lightning-menu-item value="csv" label="CSV"></lightning-menu-item>
+                                </lightning-button-menu>
                             </template>
                         </lightning-button-group>
                     </template>

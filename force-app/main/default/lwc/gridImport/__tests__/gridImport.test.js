@@ -13,7 +13,8 @@ import {
     MAX_IMPORT_ROWS,
     REQUIRED_MESSAGE,
     MAP_ID,
-    MAP_SKIP
+    MAP_SKIP,
+    hundredTimes
 } from 'c/gridImport';
 import { toCsv } from 'c/gridCsv';
 
@@ -244,6 +245,50 @@ describe('planImport', () => {
             Ship_Date__c: '2026-12-31',
             Delivered__c: true
         });
+    });
+
+    it('reads a number Excel shows as a percent into a percent field as Salesforce keeps it: 12.5% is 12.5', () => {
+        const columns = [
+            ...COLUMNS,
+            { field: 'Discount__c', label: 'Discount', type: 'percent', editable: true, scale: 1 },
+            { field: 'Rate__c', label: 'Rate', type: 'number', editable: true, scale: 3 }
+        ];
+        const excel = plan(
+            [
+                [
+                    { t: 's', v: 'Id' },
+                    { t: 's', v: 'Discount' },
+                    { t: 's', v: 'Rate' }
+                ],
+                [
+                    { t: 's', v: ID1 },
+                    { t: 'n', v: '0.125', pct: true },
+                    { t: 'n', v: '0.125', pct: true }
+                ],
+                [
+                    { t: 's', v: ID2 },
+                    { t: 'n', v: '12.5' },
+                    { t: 'n', v: '2' }
+                ]
+            ],
+            { columns }
+        );
+        // A number field keeps the number Excel holds; a percent field what Excel shows.
+        expect(excel.items[0].values).toEqual({ Discount__c: 12.5, Rate__c: 0.125 });
+        expect(excel.items[1].values).toEqual({ Discount__c: 12.5, Rate__c: 2 });
+    });
+
+    it('moves a decimal point two places exactly', () => {
+        expect(['0.125', '1', '-0.05', '.5', '0', '12.3456', '-0', 'abc'].map(hundredTimes)).toEqual([
+            '12.5',
+            '100',
+            '-5',
+            '50',
+            '0',
+            '1234.56',
+            '0',
+            'abc'
+        ]);
     });
 
     it('holds back a row with anything wrong, and says what, by line', () => {

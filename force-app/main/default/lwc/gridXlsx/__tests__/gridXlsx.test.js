@@ -10,6 +10,7 @@ import {
     utf8,
     xmlText,
     isDateFormat,
+    isPercentFormat,
     serialToIso,
     plainNumber,
     columnIndex
@@ -283,5 +284,18 @@ describe('readXlsx with more than one sheet', () => {
 
     it('reads the first sheet when the one asked for is not there', () => {
         expect(readXlsx(workbook(), 'Claims').sheet).toBe('Consignments');
+    });
+});
+
+describe('isPercentFormat', () => {
+    it('knows a percent format by its % sign, outside quotes and escapes', () => {
+        expect(['0%', '0.00%', '#,##0.0%', '0.0%;[Red]-0.0%'].map(isPercentFormat)).toEqual([true, true, true, true]);
+        expect(['0.00', '"%" 0', '0\\%', 'General', ''].map(isPercentFormat)).toEqual([
+            false,
+            false,
+            false,
+            false,
+            false
+        ]);
     });
 });

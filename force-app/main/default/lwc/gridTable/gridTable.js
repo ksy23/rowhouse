@@ -1634,6 +1634,43 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         return view;
     }
 
+    /**
+     * What Export to Excel writes (c/gridExcel): the columns shown, in the
+     * user's order, at the widths drawn and wrapped or not; how many are
+     * frozen; and every loaded row in the order shown, under its group's
+     * heading when grouped, every group open whatever the user folded. Saved
+     * rows only: rows added with New are not records yet, and Export writes
+     * saved values.
+     */
+    @api
+    exportView() {
+        // Reading the view brings the memo up to date: the rows in the user's sort.
+        const shownView = this.view;
+        const sorted = this._memo.sorted || (Array.isArray(shownView) ? shownView.filter(r => !r.__group) : []);
+        const levels = this.grouping;
+        const items = levels.length
+            ? buildView(sorted, levels, {
+                  columns: this.columns,
+                  keyField: this.keyField,
+                  collapsed: {},
+                  totals: this.shownTotals,
+                  names: this._config.refNames || {},
+                  sortKeys: this.sortKeys,
+                  fiscal: this._config.fiscal || null,
+                  order: this.groupView.order
+              }).items
+            : sorted;
+        return {
+            columns: this.shownColumns.map(c => ({
+                field: c.field,
+                width: Math.round(this.drawnWidth(c)),
+                wrapped: this.isWrapped(c)
+            })),
+            frozen: this.frozenCount,
+            items
+        };
+    }
+
     /** A picklist column's values in the field's order (c/gridFormat picklistRanks), made once per column list. */
     ranksOf(column) {
         const m = this._memo;

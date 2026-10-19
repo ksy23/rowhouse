@@ -202,7 +202,11 @@
  * never cached), and starts with its sort, grouping, widths, Wrap or Clip,
  * frozen columns and open rows, as far as they still fit the grid. A
  * change to any of them is kept LAYOUT_DELAY_MS after the last one
- * (saveLayout), and at once if the grid goes away first. Reset layout
+ * (saveLayout), and at once if the grid goes away or the page is left
+ * (pagehide) or hidden (visibilitychange). A request started as the page
+ * goes can be dropped by the browser, so each change is also held in the
+ * browser (c/gridPendingLayout) until the server has kept it, and kept when
+ * the grid next opens there, unless a layout kept since is newer. Reset layout
  * forgets it and puts back the admin's. A layout that cannot be read or kept
  * changes nothing; only Rowhouse Grid Diagnostics users hear of it, in the
  * console. A child table keeps a layout of its own for the tab that shows
@@ -235,6 +239,8 @@ import countChildren from '@salesforce/apex/GridController.countChildren';
 import runAction from '@salesforce/apex/GridController.runAction';
 import saveLayout from '@salesforce/apex/GridController.saveLayout';
 import resetLayout from '@salesforce/apex/GridController.resetLayout';
+import USER_ID from '@salesforce/user/Id';
+import { pendingKey, holdLayout, heldLayout, releaseLayout, confirmLayout, decide } from 'c/gridPendingLayout';
 import { displayKeyFor, dateIn } from 'c/gridDisplayRules';
 import { normalizeGrouping, sameGrouping, levelParam, rollUp } from 'c/gridGroups';
 import {
@@ -258,7 +264,9 @@ import {
     withSameParent,
     rowsSharingParents
 } from 'c/gridEditState';
-import { toCsv, downloadCsv } from 'c/gridCsv';
+import { toCsv, downloadCsv, downloadBytes, XLSX_TYPE } from 'c/gridCsv';
+import { buildSheet } from 'c/gridExcel';
+import { toXlsx } from 'c/gridXlsxWriter';
 import { sortRows, picklistRanks, isMixedCurrency } from 'c/gridFormat';
 import { mark } from 'c/gridTiming';
 import {
@@ -592,7 +600,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         searchTimer: null,
         connected: false,
         newCount: 0,
-        next: { locator: null, cursorToken: null }
+        next: { locator: null, cursorToken: null },
+        // The page's pagehide and visibilitychange listeners, while connected.
+        onPageHide: null,
+        onVisibility: null
     };
     _memo = {};
     _readers = {};
@@ -622,6 +633,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         pending: false,
         name: null,
         lastJson: null,
+        // The layout the server is known to hold: read with the grid, or confirmed kept.
+        serverJson: null,
+        // Where the waiting change is held in the browser (c/gridPendingLayout).
+        holdKey: null,
         key: 0,
         off: false,
         inFlight: null
@@ -716,6 +731,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     connectedCallback() {
         this._runtime.connected = true;
+        // A change still waiting is kept as the page is left or hidden: a
+        // reload or a closed tab never runs disconnectedCallback.
+        this._runtime.onPageHide = () => this.keepLayoutNow();
+        this._runtime.onVisibility = () => {
+            if (document.visibilityState === 'hidden') this.keepLayoutNow();
+        };
+        window.addEventListener('pagehide', this._runtime.onPageHide);
+        document.addEventListener('visibilitychange', this._runtime.onVisibility);
         this.initialise();
     }
 
@@ -728,6 +751,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
         clearTimeout(this._runtime.searchTimer);
         this.stopWatchingQuickAction();
         this.keepLayoutNow(); // a change still waiting is kept, not lost
+        if (this._runtime.onPageHide) window.removeEventListener('pagehide', this._runtime.onPageHide);
+        if (this._runtime.onVisibility) document.removeEventListener('visibilitychange', this._runtime.onVisibility);
+        this._runtime.onPageHide = null;
+        this._runtime.onVisibility = null;
         if (this._layout.observer) this._layout.observer.disconnect();
         if (this._layout.onResize) window.removeEventListener('resize', this._layout.onResize);
         this._layout.observer = null;
@@ -821,6 +848,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.recordTypePicklists = null;
         this._saved.off = false;
         this._saved.lastJson = null;
+        this._saved.serverJson = null;
         this._runtime.summaryToken++;
         this._runtime.countToken++;
         const name = this._configName;
@@ -848,9 +876,17 @@ export default class GridView extends NavigationMixin(LightningElement) {
             const d = opened.definition;
             const layout = this.layoutOf(opened, name);
             if (layout.error) this.telemetry('layout', { error: layout.error });
-            const saved = readLayout(layout.json, d.columns);
-            this.layoutSaved = Boolean(layout.json);
+            // A change this browser held and the server never confirmed (the
+            // page was left first), when nothing has been kept since.
+            const holdKey = this.holdKeyFor(name);
+            const held = heldLayout(holdKey);
+            const use = !layout.error && !this._saved.off && decide(held, layout.json) === 'use';
+            if (held && !use) releaseLayout(holdKey);
+            const json = use ? held.json : layout.json;
+            const saved = readLayout(json, d.columns);
+            this.layoutSaved = Boolean(json);
             this._saved.lastJson = layout.json || null;
+            this._saved.serverJson = layout.json || null;
             this.sort = saved && saved.sort ? saved.sort : adminSort(d);
             this.startSort = this.sort;
             // The admin's grouping, as far as this user can group (the server has
@@ -872,6 +908,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
             this.chartData = null;
             this.newRowContext = opened.newRow || null;
             this.definition = d;
+            if (use) {
+                // Kept now, as it would have been had the page stayed.
+                this._saved.pending = true;
+                this._saved.name = name;
+                this._saved.holdKey = holdKey;
+                this.keepLayoutNow();
+            }
             const first = this.firstPageOf(opened, openMs);
             this.telemetry('config', {
                 ms: openMs,
@@ -1457,8 +1500,15 @@ export default class GridView extends NavigationMixin(LightningElement) {
             items.push({ key: 'columns', value: 'columns', label: 'Choose columns', disabled: false });
         if (this.canImport)
             items.push({ key: 'import', value: 'import', label: 'Import', disabled: this.importDisabled });
-        if (this.canExport)
+        if (this.canExport) {
+            items.push({
+                key: 'exportXlsx',
+                value: 'exportXlsx',
+                label: 'Export as Excel',
+                disabled: this.exportDisabled
+            });
             items.push({ key: 'export', value: 'export', label: 'Export as CSV', disabled: this.exportDisabled });
+        }
         if (this.canChart)
             items.push({
                 key: 'charts',
@@ -1487,6 +1537,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         else if (value === 'new') this.handleNew();
         else if (value === 'import') this.handleImportOpen();
         else if (value === 'export') this.handleExport();
+        else if (value === 'exportXlsx') this.handleExportXlsx();
         else if (value === 'displayKey') this.handleDisplayKeyToggle();
         else if (value === 'charts') this.handleChartsToggle();
         else if (value === 'settings') this.handleSettingsOpen();
@@ -1807,6 +1858,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         clearTimeout(this._saved.timer);
         this._saved.pending = true;
         this._saved.name = this._configName;
+        // Held in the browser at once, in case the page is left before it is kept.
+        this._saved.holdKey = this.holdKeyFor(this._configName);
+        holdLayout(this._saved.holdKey, this.layoutJson, this._saved.serverJson);
         // eslint-disable-next-line @lwc/lwc/no-async-operation -- debounce layout saves; flushed on disconnect
         this._saved.timer = setTimeout(() => this.keepLayoutNow(), LAYOUT_DELAY_MS);
     }
@@ -1818,19 +1872,28 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (!this._saved.pending) return;
         this._saved.pending = false;
         const name = this._saved.name;
+        const holdKey = this._saved.holdKey;
         // Only for the grid it was made on: a new configuration name has its own.
         if (!name || name !== this._configName || !this.definition) return;
         const json = this.layoutJson;
-        if (json === this._saved.lastJson) return;
+        if (json === this._saved.lastJson) {
+            releaseLayout(holdKey, json); // nothing changed: nothing to hold
+            return;
+        }
         this._saved.lastJson = json;
         // Kept as the save in flight: Reset layout waits for it, so a save that
         // reaches the server after the reset cannot bring the layout back.
         const saving = saveLayout({ configName: name, layout: json, parentLink: this.parentLink })
             .then(kept => {
                 if (kept === true) {
-                    if (name === this._configName) this.layoutSaved = true;
+                    if (name === this._configName) {
+                        this.layoutSaved = true;
+                        this._saved.serverJson = json;
+                    }
+                    confirmLayout(holdKey, json); // a newer change held since stays, on top of this one
                 } else {
                     if (name === this._configName) this._saved.off = true; // no access: do not try on every change
+                    releaseLayout(holdKey);
                     this.telemetry('layout', { error: 'not kept' });
                 }
             })
@@ -1842,6 +1905,11 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 if (this._saved.inFlight === saving) this._saved.inFlight = null;
             });
         this._saved.inFlight = saving;
+    }
+
+    /** Where this user's waiting change to a grid is held in the browser. */
+    holdKeyFor(name) {
+        return pendingKey(USER_ID, name, this.parentLink);
     }
 
     /** Reset layout is offered once a layout is kept. */
@@ -1865,6 +1933,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         clearTimeout(this._saved.timer);
         this._saved.pending = false;
         const name = this._configName;
+        releaseLayout(this.holdKeyFor(name)); // a change held in the browser goes too
         try {
             if (this._saved.inFlight) await this._saved.inFlight; // never throws: its failures are caught
             await resetLayout({ configName: name, parentLink: this.parentLink });
@@ -1881,6 +1950,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
         const groupingChanged = !sameGrouping(grouping, this.grouping);
         this.layoutSaved = false;
         this._saved.lastJson = null;
+        this._saved.serverJson = null;
         this._saved.off = false;
         this._saved.table = { widths: null, wrap: {}, expanded: [], groupView: null, frozen: null };
         this.sort = sort;
@@ -3716,6 +3786,58 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     // ============================================================ export
 
+    /** The Export menu: Excel (.xlsx) or CSV. */
+    handleExportSelect(event) {
+        const value = event.detail && event.detail.value;
+        if (value === 'xlsx') this.handleExportXlsx();
+        else if (value === 'csv') this.handleExport();
+    }
+
+    /**
+     * Export to Excel: the rows Export to CSV writes, as the grid shows them
+     * (c/gridExcel), in a workbook of our own making (c/gridXlsxWriter).
+     */
+    handleExportXlsx() {
+        const d = this.definition;
+        const table = this.template.querySelector('c-grid-table');
+        if (!d || !this.rows.length || !table) return;
+        let bytes;
+        try {
+            const sheet = buildSheet({
+                title: this.title,
+                view: table.exportView(),
+                columns: d.columns,
+                names: this.refNames,
+                rules: d.displayRules || [],
+                today: this.formatToday
+            });
+            bytes = toXlsx(sheet);
+        } catch (e) {
+            this.exportRefused('The file could not be made. ' + messageOf(e));
+            return;
+        }
+        if (
+            !downloadBytes(bytes, this.exportFileName('xlsx'), this.template.querySelector('.rh-download'), XLSX_TYPE)
+        ) {
+            this.exportRefused('This browser did not allow the file to be downloaded.');
+            return;
+        }
+        this.announce(this.exportedMessage());
+    }
+
+    exportRefused(message) {
+        this.announce(message);
+        this.dispatchEvent(new ShowToastEvent({ title: 'Not exported', message, variant: 'error' }));
+    }
+
+    /** What an export says once the browser has the file. */
+    exportedMessage() {
+        let message = `Exported ${this.format(this.rows.length)} rows.`;
+        if (hasDrafts(this.drafts)) message += ' Unsaved changes are not included.';
+        if (this.hasMore) message += ' Only the loaded rows were exported.';
+        return message;
+    }
+
     handleExport() {
         const d = this.definition;
         if (!d || !this.rows.length) return;
@@ -3743,25 +3865,21 @@ export default class GridView extends NavigationMixin(LightningElement) {
             shown.map(c => ({ field: c.field, label: c.label, type: c.type }))
         );
         const csv = toCsv(sortRows(this.rows, keys), columns);
-        if (!downloadCsv(csv, this.exportFileName, this.template.querySelector('.rh-download'))) {
-            const refused = 'This browser did not allow the file to be downloaded.';
-            this.announce(refused);
-            this.dispatchEvent(new ShowToastEvent({ title: 'Not exported', message: refused, variant: 'error' }));
+        if (!downloadCsv(csv, this.exportFileName('csv'), this.template.querySelector('.rh-download'))) {
+            this.exportRefused('This browser did not allow the file to be downloaded.');
             return;
         }
-        let message = `Exported ${this.format(this.rows.length)} rows.`;
-        if (hasDrafts(this.drafts)) message += ' Unsaved changes are not included.';
-        if (this.hasMore) message += ' Only the loaded rows were exported.';
-        this.announce(message);
+        this.announce(this.exportedMessage());
     }
 
-    get exportFileName() {
+    /** The grid's title and today's date: Pipeline-Review-2026-10-19.xlsx. */
+    exportFileName(extension) {
         const base =
             String(this.title)
                 .replace(/[^A-Za-z0-9 _-]+/g, '')
                 .trim()
                 .replace(/\s+/g, '-') || 'export';
-        return `${base}-${new Date().toISOString().slice(0, 10)}.csv`;
+        return `${base}-${new Date().toISOString().slice(0, 10)}.${extension}`;
     }
 
     // ============================================================ helpers

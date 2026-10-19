@@ -23,7 +23,8 @@ import saveStatus from '@salesforce/apex/GridController.saveStatus';
 import deleteRows from '@salesforce/apex/GridController.deleteRows';
 import summarizeGroups from '@salesforce/apex/GridController.summarizeGroups';
 import countChildren from '@salesforce/apex/GridController.countChildren';
-import { toCsv, downloadCsv } from 'c/gridCsv';
+import { toCsv, downloadCsv, downloadBytes, XLSX_TYPE } from 'c/gridCsv';
+import { readXlsx } from 'c/gridXlsx';
 import { REFUSED_BY_PERMISSION } from 'c/gridEditState';
 import { dateIn } from 'c/gridDisplayRules';
 
@@ -39,7 +40,12 @@ jest.mock('@salesforce/apex/GridController.countChildren', () => ({ default: jes
     virtual: true
 });
 // Export is checked at its boundary: what gridView hands to gridCsv.
-jest.mock('c/gridCsv', () => ({ toCsv: jest.fn(() => 'csv'), downloadCsv: jest.fn(() => true) }));
+jest.mock('c/gridCsv', () => ({
+    toCsv: jest.fn(() => 'csv'),
+    downloadCsv: jest.fn(() => true),
+    downloadBytes: jest.fn(() => true),
+    XLSX_TYPE: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+}));
 
 const DEFINITION = {
     name: 'Consignments',
@@ -345,7 +351,9 @@ describe('loading', () => {
         // Re-render for an unrelated reason: exporting changes only the
         // live-region text. (The child sees a read-only proxy; the membrane
         // returns the same proxy for the same object, so identity still holds.)
-        el.shadowRoot.querySelector('.rh-export').dispatchEvent(new CustomEvent('click'));
+        el.shadowRoot
+            .querySelector('.rh-export')
+            .dispatchEvent(new CustomEvent('select', { detail: { value: 'csv' } }));
         await settle();
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('Exported 3 rows.');
         expect(tableConfig(el)).toBe(first);
@@ -1033,7 +1041,9 @@ describe('export', () => {
             new CustomEvent('sortchange', { detail: { sort: [{ field: 'Pieces__c', direction: 'desc' }] } })
         );
         await settle();
-        el.shadowRoot.querySelector('.rh-export').dispatchEvent(new CustomEvent('click'));
+        el.shadowRoot
+            .querySelector('.rh-export')
+            .dispatchEvent(new CustomEvent('select', { detail: { value: 'csv' } }));
         const [rows, columns] = toCsv.mock.calls[0];
         expect(rows.map(r => r.Name)).toEqual([
             'Penobscot Paper, load 3',
@@ -1057,7 +1067,9 @@ describe('export', () => {
         await settle();
         const toasts = [];
         el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
-        el.shadowRoot.querySelector('.rh-export').dispatchEvent(new CustomEvent('click'));
+        el.shadowRoot
+            .querySelector('.rh-export')
+            .dispatchEvent(new CustomEvent('select', { detail: { value: 'csv' } }));
         await settle();
         expect(toasts).toEqual([
             expect.objectContaining({
@@ -1069,6 +1081,54 @@ describe('export', () => {
         expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe(
             'This browser did not allow the file to be downloaded.'
         );
+    });
+
+    it('exports to Excel: the same rows, as the grid shows them, in a workbook Import reads back', async () => {
+        const el = mount();
+        await settle();
+        el.shadowRoot
+            .querySelector('.rh-export')
+            .dispatchEvent(new CustomEvent('select', { detail: { value: 'xlsx' } }));
+        await settle();
+        expect(toCsv).not.toHaveBeenCalled();
+        expect(downloadBytes).toHaveBeenCalledTimes(1);
+        const [bytes, fileName, container, type] = downloadBytes.mock.calls[0];
+        expect(fileName).toMatch(/^Open-Consignments-\d{4}-\d{2}-\d{2}\.xlsx$/);
+        expect(container).toBe(el.shadowRoot.querySelector('.rh-download'));
+        expect(type).toBe(XLSX_TYPE);
+        const { sheet, rows } = readXlsx(bytes);
+        expect(sheet).toBe('Open Consignments');
+        expect(rows[0]).toEqual([
+            { t: 's', v: 'Id' },
+            { t: 's', v: 'Name' },
+            { t: 's', v: 'Pieces' }
+        ]);
+        // In the order the table shows them: the admin's sort, by Name.
+        expect(rows.slice(1).map(r => r[1].v)).toEqual([
+            'Penobscot Paper, load 1',
+            'Penobscot Paper, load 2',
+            'Penobscot Paper, load 3'
+        ]);
+        expect(rows[1][2]).toEqual({ t: 'n', v: '1' });
+        expect(el.shadowRoot.querySelector('.rh-live').textContent).toBe('Exported 3 rows.');
+    });
+
+    it('says so when the browser refuses the Excel file', async () => {
+        downloadBytes.mockReturnValueOnce(false);
+        const el = mount();
+        await settle();
+        const toasts = [];
+        el.addEventListener('lightning__showtoast', e => toasts.push(e.detail));
+        el.shadowRoot
+            .querySelector('.rh-export')
+            .dispatchEvent(new CustomEvent('select', { detail: { value: 'xlsx' } }));
+        await settle();
+        expect(toasts).toEqual([
+            expect.objectContaining({
+                title: 'Not exported',
+                message: 'This browser did not allow the file to be downloaded.'
+            })
+        ]);
     });
 
     it('offers no export when the configuration does not allow it', async () => {
@@ -2119,7 +2179,7 @@ describe('list view details', () => {
             // The title takes the first line, the search the second.
             expect($(el, '.rh-header').classList).toContain('rh-header_narrow');
             const items = [...el.shadowRoot.querySelectorAll('.rh-actions-menu lightning-menu-item')].map(i => i.label);
-            expect(items).toEqual(['Refresh', 'Choose columns', 'Export as CSV', 'Help']);
+            expect(items).toEqual(['Refresh', 'Choose columns', 'Export as Excel', 'Export as CSV', 'Help']);
             $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'export' } }));
             await settle();
             expect(downloadCsv).toHaveBeenCalled();

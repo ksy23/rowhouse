@@ -18,6 +18,8 @@ import summarizeGroups from '@salesforce/apex/GridController.summarizeGroups';
 import getLayout from '@salesforce/apex/GridController.getLayout';
 import saveLayout from '@salesforce/apex/GridController.saveLayout';
 import resetLayout from '@salesforce/apex/GridController.resetLayout';
+import USER_ID from '@salesforce/user/Id';
+import { pendingKey, holdLayout, heldLayout } from 'c/gridPendingLayout';
 
 jest.mock('@salesforce/apex/GridController.getGridConfig', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridController.openGrid', () => ({ default: jest.fn() }), { virtual: true });
@@ -766,6 +768,148 @@ describe('keeping changes', () => {
     });
 });
 
+describe('a change made just before the page is left (issue: lost on a quick reload)', () => {
+    const KEY = pendingKey(USER_ID, 'Consignments', null);
+    const DESC = [{ field: 'Freight_Charge__c', direction: 'desc' }];
+    const hidden = state =>
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
+
+    afterEach(() => {
+        delete document.visibilityState;
+    });
+
+    it('is kept at once when the page is left, without waiting for the delay', async () => {
+        const el = mount();
+        await settle();
+        sortChange(el, DESC);
+        window.dispatchEvent(new CustomEvent('pagehide'));
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        expect(keptLayout().sort).toEqual(DESC);
+        await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS * 2);
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        el.remove();
+    });
+
+    it('is kept at once when the page is hidden, and not when it is shown again', async () => {
+        const el = mount();
+        await settle();
+        sortChange(el, DESC);
+        hidden('visible');
+        document.dispatchEvent(new CustomEvent('visibilitychange'));
+        expect(saveLayout).not.toHaveBeenCalled();
+        hidden('hidden');
+        document.dispatchEvent(new CustomEvent('visibilitychange'));
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        el.remove();
+    });
+
+    it('is held in the browser until the server has kept it', async () => {
+        let keep;
+        saveLayout.mockReturnValue(
+            new Promise(resolve => {
+                keep = resolve;
+            })
+        );
+        const el = mount();
+        await settle();
+        sortChange(el, DESC);
+        expect(JSON.parse(heldLayout(KEY).json).sort).toEqual(DESC);
+        expect(heldLayout(KEY).base).toBeNull();
+        await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        expect(heldLayout(KEY)).not.toBeNull(); // sent, not yet kept
+        keep(true);
+        await settle();
+        expect(heldLayout(KEY)).toBeNull();
+        el.remove();
+    });
+
+    it('stays held when the request fails, so the next opening keeps it', async () => {
+        saveLayout.mockRejectedValue({ body: { message: 'Request aborted' } });
+        const el = mount();
+        await settle();
+        sortChange(el, DESC);
+        await jest.advanceTimersByTimeAsync(LAYOUT_DELAY_MS);
+        await settle();
+        expect(heldLayout(KEY)).not.toBeNull();
+        el.remove();
+    });
+
+    it('is used and kept when the grid opens again and nothing was kept since', async () => {
+        const held = JSON.stringify({ v: 1, sort: DESC, grouping: [], widths: { Name: 240 } });
+        holdLayout(KEY, held, null);
+        getLayout.mockResolvedValue(null);
+        const el = mount();
+        await settle();
+        expect(tableConfig(el).sort).toEqual(DESC);
+        expect(saveLayout).toHaveBeenCalledTimes(1);
+        expect(keptLayout()).toEqual(JSON.parse(held));
+        await settle();
+        expect(heldLayout(KEY)).toBeNull();
+        // Kept: Reset layout is offered.
+        expect($(el, '.rh-reset-layout')).not.toBeNull();
+    });
+
+    it('rests on the layout the server had, and is used over it', async () => {
+        const held = JSON.stringify({ ...SAVED, sort: [{ field: 'Name', direction: 'desc' }] });
+        holdLayout(KEY, held, SAVED_JSON);
+        getLayout.mockResolvedValue(SAVED_JSON);
+        const el = mount();
+        await settle();
+        expect(tableConfig(el).sort).toEqual([{ field: 'Name', direction: 'desc' }]);
+        expect(keptLayout().sort).toEqual([{ field: 'Name', direction: 'desc' }]);
+    });
+
+    it('is let go when a layout was kept since, on another device or in another tab', async () => {
+        holdLayout(KEY, JSON.stringify({ v: 1, sort: DESC, grouping: [] }), null);
+        getLayout.mockResolvedValue(SAVED_JSON);
+        const el = mount();
+        await settle();
+        expect(tableConfig(el).sort).toEqual(SAVED.sort);
+        expect(saveLayout).not.toHaveBeenCalled();
+        expect(heldLayout(KEY)).toBeNull();
+    });
+
+    it('is let go when the request did arrive', async () => {
+        holdLayout(KEY, SAVED_JSON, null);
+        getLayout.mockResolvedValue(SAVED_JSON);
+        mount();
+        await settle();
+        expect(saveLayout).not.toHaveBeenCalled();
+        expect(heldLayout(KEY)).toBeNull();
+    });
+
+    it("is never used for another user's grid in the same browser", async () => {
+        holdLayout(pendingKey('005000000000099AAA', 'Consignments', null), SAVED_JSON, null);
+        const el = mount();
+        await settle();
+        expect(tableConfig(el).sort).toEqual(ADMIN_SORT);
+        expect(saveLayout).not.toHaveBeenCalled();
+    });
+
+    it('goes with Reset layout', async () => {
+        getLayout.mockResolvedValue(SAVED_JSON);
+        const el = mount();
+        await settle();
+        sortChange(el, DESC);
+        expect(heldLayout(KEY)).not.toBeNull();
+        $(el, '.rh-reset-layout').click();
+        await settle();
+        expect(resetLayout).toHaveBeenCalled();
+        expect(heldLayout(KEY)).toBeNull();
+    });
+
+    it('stops listening to the page once the grid is gone', async () => {
+        const el = mount();
+        await settle();
+        el.remove();
+        window.dispatchEvent(new CustomEvent('pagehide'));
+        hidden('hidden');
+        document.dispatchEvent(new CustomEvent('visibilitychange'));
+        expect(saveLayout).not.toHaveBeenCalled();
+    });
+});
+
 describe('Reset layout', () => {
     const reset = el => $(el, '.rh-reset-layout').click();
 
@@ -960,7 +1104,7 @@ describe('Reset layout', () => {
         await settle();
         narrow();
         await settle();
-        expect(items(el)).toEqual(['Refresh', 'Choose columns', 'Export as CSV', 'Charts', 'Help']);
+        expect(items(el)).toEqual(['Refresh', 'Choose columns', 'Export as Excel', 'Export as CSV', 'Charts', 'Help']);
         el.remove();
 
         observers = [];

@@ -3,6 +3,21 @@
 Each release is a version of the Rowhouse Grid managed package (namespace
 `rowhouse`). Install or upgrade from its links; an upgrade keeps your grids.
 
+## Unreleased
+
+- **Export to Excel.** Export is a menu: **Excel (.xlsx)** writes the grid as
+  it looks (numbers, amounts, percents and dates with their formats, the
+  columns you see at their widths, frozen and wrapped columns, display rules'
+  fills, text colors and bold, and, in a grouped grid, a heading and a
+  subtotal row for each group and a Total row, as formulas Excel's outline
+  folds); **CSV** writes the values, as before. The Grid Configuration
+  setting is now labelled **Allow Export**.
+- **Import** reads a number Excel shows as a percent (12.5% is 0.125 in the
+  file) into a percent field as 12.5.
+- **Fixed:** a layout change (a hidden column, a new sort) made just before
+  the page was reloaded or closed was lost. It is now kept as the page goes,
+  and held in the browser until Salesforce has it.
+
 ## 1.1 — Winter 2027 (15 October 2026)
 
 The version to install. It upgrades 1.0 in place and keeps your grids.
