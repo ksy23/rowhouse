@@ -43,6 +43,8 @@
     <div class="lim sky"><span class="t">Formulas in one grid, columns and rules together</span><span class="n" data-count="10">10</span><div class="meter"><i style="--w:10%"></i></div></div>
     <div class="lim plum"><span class="t">Child total columns in one grid</span><span class="n" data-count="5">5</span><div class="meter"><i style="--w:5%"></i></div></div>
     <div class="lim gold"><span class="t">Rows opened at once with Show related records for every row</span><span class="n" data-count="200">200</span><div class="meter"><i style="--w:20%"></i></div></div>
+    <div class="lim sky"><span class="t">Open rows kept in your layout</span><span class="n" data-count="50">50</span><div class="meter"><i style="--w:25%"></i></div></div>
+    <div class="lim plum"><span class="t">Sort columns kept in your layout</span><span class="n" data-count="5">5</span><div class="meter"><i style="--w:5%"></i></div></div>
     <div class="lim rose"><span class="t">Records one Delete of every match takes</span><span class="n" data-count="50000">50,000</span><div class="meter"><i style="--w:50%"></i></div></div>
     <div class="lim teal"><span class="t">An Excel sheet in an import, unpacked · cells</span><span class="n">100 MB · 10 million</span><div class="meter"><i style="--w:100%"></i></div></div>
   </div>
@@ -54,7 +56,7 @@
     <li><b>More than 100,000 matching records</b>: the grid opens as usual and shows how many match (<i>10,000 of 110,000 items</i>); it scrolls through the first 100,000, and a search or filter reaches the rest. Counts, group counts and subtotals cover every match. Tested with 110,000 records.</li>
     <li><b>Subtotals</b> are exact over every matching record. Over 45,000 records they are worked out in slices that the browser adds up; sums beyond about 15 significant digits are rounded by Salesforce.</li>
     <li><b>With Log Changes on</b>, one transaction writes at most 5,000 log entries, so saves and imports of very wide rows go in smaller batches.</li>
-    <li><b>Names in a paste or an import</b>: up to 200 different names per lookup column are looked up in Salesforce at once. A name past that is held back; its record Id works instead.</li>
+    <li><b>Names in a paste</b>: up to 200 different names per lookup column are looked up in Salesforce. A name past that is held back; its record Id works instead. <b>An import</b> looks up every name in the file, 200 at a time.</li>
   </ul>
   <h3 style="margin-top:22px">Limits on settings</h3>
   <div class="tbox"><table class="ref wrap1">
