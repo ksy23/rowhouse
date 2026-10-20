@@ -129,6 +129,46 @@ private class GridConfigTest {
     }
 
     @IsTest
+    static void pageSizeAndFrozenColumnsSetInSetupAreKeptWithinWhatTheGridUses() {
+        GridConfig.Definition def = GridConfig.build(
+            new Grid_Configuration__mdt(
+                DeveloperName = 'Dispatch_Board',
+                MasterLabel = 'Dispatch Board',
+                Object_API_Name__c = 'Consignment__c',
+                Page_Size__c = 5000,
+                Frozen_Columns__c = 8
+            ),
+            new List<Grid_Column__mdt>{
+                new Grid_Column__mdt(
+                    DeveloperName = 'Dispatch_Board_Name',
+                    Field_API_Name__c = 'Name',
+                    Sort_Order__c = 10
+                )
+            },
+            new List<Grid_Display_Rule__mdt>(),
+            new List<Grid_Child_Table__mdt>(),
+            new List<Grid_Action__mdt>()
+        );
+        System.assertEquals(GridDataService.MAX_PAGE_SIZE, def.pageSize, 'Setup takes 5,000; a page holds 2,000.');
+        System.assertEquals(GridConfig.MAX_FROZEN, def.frozenColumns, 'Setup takes 8; the grid freezes 5.');
+        String warnings = String.join(def.warnings, ' | ');
+        System.assert(warnings.contains('Page Size: 5,000 is more than 2,000'), warnings);
+        System.assert(warnings.contains('Frozen Columns: 8 is more than 5, so the grid freezes 5.'), warnings);
+
+        List<String> none = new List<String>();
+        System.assertEquals(GridDataService.DEFAULT_PAGE_SIZE, GridConfig.pageSizeOf(0, none), 'Zero: the default.');
+        System.assertEquals(
+            GridDataService.DEFAULT_PAGE_SIZE,
+            GridConfig.pageSizeOf(null, none),
+            'Blank: the default.'
+        );
+        System.assertEquals(150, GridConfig.pageSizeOf(150, none));
+        System.assertEquals(0, GridConfig.frozenColumnsOf(-2, none));
+        System.assertEquals(3, GridConfig.frozenColumnsOf(3, none));
+        System.assertEquals(1, none.size(), 'Only the zero page size warns: ' + none);
+    }
+
+    @IsTest
     static void lookupsOwnersAndPicklistDependenciesAreDescribed() {
         Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
         for (GridConfig.Column c : GridConfig.load('Consignments').columns) {

@@ -847,6 +847,61 @@ public with sharing class GridConfig {
         return build(cfg, allColumns, allRules, links, actionRecords, new List<Grid_Filter__mdt>());
     }
 
+    /** The most columns a grid freezes: what the column menu and the Grid Admin tab allow. */
+    public static final Integer MAX_FROZEN = 5;
+
+    /**
+     * Rows a page, as Page Size says: blank is the default; a number Setup
+     * accepts but the grid cannot use is brought within 1 to the most a page
+     * holds, with a warning.
+     */
+    @TestVisible
+    private static Integer pageSizeOf(Decimal value, List<String> warnings) {
+        if (value == null) {
+            return GridDataService.DEFAULT_PAGE_SIZE;
+        }
+        Integer n = value.intValue();
+        if (n < 1) {
+            warnings.add(
+                'Page Size: ' +
+                    n +
+                    ' is less than 1, so the grid loads ' +
+                    GridDataService.DEFAULT_PAGE_SIZE +
+                    ' rows at a time, as when it is blank.'
+            );
+            return GridDataService.DEFAULT_PAGE_SIZE;
+        }
+        if (n > GridDataService.MAX_PAGE_SIZE) {
+            warnings.add(
+                'Page Size: ' +
+                    n.format() +
+                    ' is more than ' +
+                    GridDataService.MAX_PAGE_SIZE.format() +
+                    ', so the grid loads ' +
+                    GridDataService.MAX_PAGE_SIZE.format() +
+                    ' rows at a time.'
+            );
+            return GridDataService.MAX_PAGE_SIZE;
+        }
+        return n;
+    }
+
+    /**
+     * Frozen Columns, as far as MAX_FROZEN: more frozen than that leaves the
+     * columns after them out of reach on a narrower screen.
+     */
+    @TestVisible
+    private static Integer frozenColumnsOf(Decimal value, List<String> warnings) {
+        Integer n = value == null ? 0 : Math.max(0, value.intValue());
+        if (n > MAX_FROZEN) {
+            warnings.add(
+                'Frozen Columns: ' + n + ' is more than ' + MAX_FROZEN + ', so the grid freezes ' + MAX_FROZEN + '.'
+            );
+            return MAX_FROZEN;
+        }
+        return n;
+    }
+
     /** The same, with the configuration's Grid Filters. */
     public static Definition build(
         Grid_Configuration__mdt cfg,
@@ -863,9 +918,7 @@ public with sharing class GridConfig {
         def.label = cfg.MasterLabel;
         def.objectApiName = GridDescribe.localName(objectType);
         def.objectLabel = objectType.getDescribe(SObjectDescribeOptions.DEFERRED).getLabelPlural();
-        def.pageSize = cfg.Page_Size__c == null
-            ? GridDataService.DEFAULT_PAGE_SIZE
-            : Math.max(1, Math.min(GridDataService.MAX_PAGE_SIZE, cfg.Page_Size__c.intValue()));
+        def.pageSize = pageSizeOf(cfg.Page_Size__c, def.warnings);
         def.sortField = cfg.Default_Sort_Field__c;
         // An encrypted field cannot be sorted by: the grid opens in the order SOQL gives.
         // A field of a parent record (GridPaths) is checked at the end of its path.
@@ -898,7 +951,7 @@ public with sharing class GridConfig {
             def.warnings.add('Allow Import: the grid offers no import, because Allow New Records is off.');
         }
         def.logChanges = cfg.Log_Changes__c == true;
-        def.frozenColumns = cfg.Frozen_Columns__c == null ? 0 : Math.max(0, cfg.Frozen_Columns__c.intValue());
+        def.frozenColumns = frozenColumnsOf(cfg.Frozen_Columns__c, def.warnings);
         def.showRowNumbers = cfg.Show_Row_Numbers__c == true;
         def.height = cfg.Height_Px__c == null || cfg.Height_Px__c <= 0 ? null : cfg.Height_Px__c.intValue();
         // Checked here, so a Record Page Field that is not a lookup stops the grid

@@ -270,6 +270,38 @@ private class GridLogRetentionTest {
         }
     }
 
+    @IsTest
+    static void zeroOrLessSetInSetupKeepsTheLogForeverRatherThanEmptyingIt() {
+        System.runAs(GridTestUsers.adminUser()) {
+            entries(3, 2, 100);
+            GridLogRetention.useTestDays = true;
+            GridLogRetention.testDays = 0;
+            System.assertEquals(null, GridLogRetention.days(), '0 keeps entries, as blank does.');
+            GridLogRetention.testDays = -5;
+            System.assertEquals(null, GridLogRetention.days(), 'Below 0 too.');
+            Test.startTest();
+            System.schedule(GridLogRetention.jobName(), GridLogRetention.CRON, new GridLogSchedule());
+            Test.stopTest(); // runs the scheduled job
+            System.assertEquals(0, jobs().size(), 'Kept forever: the job removed itself.');
+            System.assertEquals(3, kept('update'), 'Nothing was removed.');
+        }
+    }
+
+    @IsTest
+    static void aPeriodSetInSetupThatTheTabDoesNotOfferIsListedSoTheBoxShowsIt() {
+        System.runAs(GridTestUsers.adminUser()) {
+            GridLogRetention.useTestDays = true;
+            GridLogRetention.testDays = 30;
+            Map<String, Object> s = GridLogRetention.status();
+            System.assertEquals('30 days', s.get('label'));
+            List<String> values = new List<String>();
+            for (Object o : (List<Object>) s.get('options')) {
+                values.add((String) ((Map<String, Object>) o).get('value'));
+            }
+            System.assertEquals(new List<String>{ '', '30', '90', '365', '730', '2555' }, values);
+        }
+    }
+
     /** The nightly job's context, as the scheduler hands it over. */
     private class Night implements System.SchedulableContext {
         public Id getTriggerId() {

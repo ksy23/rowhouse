@@ -6,7 +6,7 @@
     <precision>5</precision>
     <scale>0</scale>
     <required>false</required>
-    <description>How many days Grid Edit Log entries are kept. Every night, entries older than this are deleted and emptied from the Recycle Bin. If blank, entries are kept forever. The Grid Admin tab offers 90, 365, 730 and 2555 days (7 years).</description>
+    <description>How many days Grid Edit Log entries are kept. Every night, entries older than this are deleted and emptied from the Recycle Bin. If blank, or 0 or less, entries are kept forever. The Grid Admin tab offers 90, 365, 730 and 2555 days (7 years).</description>
     <inlineHelpText>Leave blank to keep the edit log forever. Set it on the Grid Admin tab, which also starts the nightly clean-up.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

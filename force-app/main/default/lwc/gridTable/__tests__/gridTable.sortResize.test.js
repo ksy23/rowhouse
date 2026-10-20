@@ -113,6 +113,38 @@ describe('keyboard column resize', () => {
         expect(el.shadowRoot.querySelector('th[data-field="Consignee__c"]').style.width).toBe('240px');
         el.remove();
     });
+
+    it('moves 10 pixels an arrow key, as a list view does, and no further than its limits', async () => {
+        const el = createElement('rowhouse-grid-table', { is: GridTable });
+        el.config = { columns, rows: seedRows.slice(0, 3) };
+        document.body.appendChild(el);
+        await flush();
+        const header = () => el.shadowRoot.querySelector('th[data-field="Consignee__c"]');
+        const range = header().querySelector('input[type="range"]');
+        range.value = '240';
+        range.dispatchEvent(new CustomEvent('input'));
+        await flush();
+        const press = async key => {
+            const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+            range.dispatchEvent(event);
+            await flush();
+            return event.defaultPrevented;
+        };
+        expect(await press('ArrowRight')).toBe(true);
+        expect(header().style.width).toBe('250px');
+        await press('ArrowUp');
+        expect(header().style.width).toBe('260px');
+        await press('ArrowLeft');
+        await press('ArrowDown');
+        expect(header().style.width).toBe('240px');
+        expect(range.value).toBe('240');
+        range.value = '995';
+        range.dispatchEvent(new CustomEvent('input'));
+        await flush();
+        await press('ArrowRight');
+        expect(header().style.width).toBe('1000px');
+        el.remove();
+    });
 });
 
 describe('column widths after a resize', () => {

@@ -42,16 +42,23 @@ public with sharing class GridLogRetention implements Schedulable {
     @TestVisible
     private static Integer testDays;
 
-    /** The days entries are kept, or null to keep them forever. */
+    /**
+     * The days entries are kept, or null to keep them forever. Setup takes any
+     * number, but 0 or less would delete every entry each night: it keeps them
+     * forever instead, as blank does (the audit log fails closed).
+     */
     public static Integer days() {
+        Integer n;
         if (useTestDays) {
-            return testDays;
+            n = testDays;
+        } else {
+            Rowhouse_Setting__mdt setting = Rowhouse_Setting__mdt.getInstance(SETTING);
+            n = setting == null ||
+                setting.Log_Retention_Days__c == null
+                ? null
+                : setting.Log_Retention_Days__c.intValue();
         }
-        Rowhouse_Setting__mdt setting = Rowhouse_Setting__mdt.getInstance(SETTING);
-        return setting == null ||
-            setting.Log_Retention_Days__c == null
-            ? null
-            : setting.Log_Retention_Days__c.intValue();
+        return n == null || n < 1 ? null : n;
     }
 
     /** Is this a period the Grid Admin tab offers? Blank (forever) is. */
@@ -139,7 +146,14 @@ public with sharing class GridLogRetention implements Schedulable {
         List<Map<String, Object>> options = new List<Map<String, Object>>{
             new Map<String, Object>{ 'value' => '', 'label' => label(null) }
         };
-        for (Integer d : CHOICES) {
+        // A period set in Setup that the tab does not offer is listed too, in
+        // its place, so the box shows what the clean-up uses.
+        List<Integer> periods = new List<Integer>(CHOICES);
+        if (!offered(days)) {
+            periods.add(days);
+            periods.sort();
+        }
+        for (Integer d : periods) {
             options.add(new Map<String, Object>{ 'value' => String.valueOf(d), 'label' => label(d) });
         }
         Map<String, Object> out = new Map<String, Object>{

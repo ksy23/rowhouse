@@ -14,6 +14,15 @@ Each release is a version of the Rowhouse Grid managed package (namespace
   the panel.
 - **Fixed:** when a request to keep a layout change failed, the next opening
   brought back that change, not the ones made after it.
+- **Resizing a column from the keyboard** moves it 10 pixels a press, as a
+  list view does (it moved 1).
+- **Fixed:** Frozen Columns above 5 set in Setup froze them all, leaving the
+  columns after them out of reach; the grid now freezes 5. A Page Size above
+  2,000 loads 2,000, and 0 or less the default, 200. The Grid Admin tab warns
+  about both.
+- **Fixed:** a Log Retention of 0 or less set in Setup would have deleted every
+  edit log entry; it now keeps them forever, as blank does. A period set in
+  Setup that the Settings page does not offer now shows in its box.
 - **Export, as Salesforce exports a report.** Export opens a dialog with the
   same two views. **Formatted Report** is an Excel workbook (.xlsx) of the
   grid as it looks, under the report's header (the grid's name; As of,

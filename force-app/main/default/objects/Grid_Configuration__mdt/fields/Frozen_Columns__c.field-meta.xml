@@ -6,7 +6,7 @@
     <precision>2</precision>
     <scale>0</scale>
     <required>false</required>
-    <description>How many columns, counted from the left, stay in place when the grid scrolls sideways. Blank or 0 freezes none.</description>
-    <inlineHelpText>How many columns, from the left, stay in place when the grid scrolls sideways. Leave blank for none.</inlineHelpText>
+    <description>How many columns, counted from the left, stay in place when the grid scrolls sideways: 0 to 5. Blank or 0 freezes none; more than 5 freezes 5.</description>
+    <inlineHelpText>How many columns, from the left, stay in place when the grid scrolls sideways, up to 5. Leave blank for none.</inlineHelpText>
     <fieldManageability>SubscriberControlled</fieldManageability>
 </CustomField>

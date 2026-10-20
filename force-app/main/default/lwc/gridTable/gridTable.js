@@ -326,6 +326,9 @@ const DEFAULT_ROW_HEIGHT = 33; // px; replaced by a measurement after first rend
 const DEFAULT_VIEWPORT = 480; // px; JSDOM and first render have no layout
 const MIN_WIDTH = 20;
 const MAX_WIDTH = 1000;
+// px a press of an arrow key on a column's width control, as on a list view (measured)
+const RESIZE_STEP = 10;
+const RESIZE_KEYS = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 };
 const DEFAULT_WIDTH = 150; // px: a column with no admin width, once widths are pinned
 // Utility columns have fixed widths, the ones a Salesforce list view uses
 // (measured in Lightning Experience): 2rem for the checkbox column, 3.25rem for
@@ -1417,7 +1420,7 @@ export default class GridTable extends NavigationMixin(LightningElement) {
     /** The data columns frozen: the user's choice (Freeze up to this column), else the admin's. */
     get frozenCount() {
         const n = this.userFrozen !== null ? this.userFrozen : Number(this._config.frozenColumns);
-        return Number.isInteger(n) && n > 0 && !this.isCards ? n : 0;
+        return Number.isInteger(n) && n > 0 && !this.isCards ? Math.min(n, MAX_FROZEN) : 0;
     }
 
     /** A column's place among the data columns as shown, from 1; 0 when it is not one. */
@@ -4841,6 +4844,23 @@ export default class GridTable extends NavigationMixin(LightningElement) {
         this.pinWidths();
         this.setWidth(field, Number(event.target.value));
         this.emitLayout(); // the parent waits for the last one before keeping it
+    }
+
+    /**
+     * An arrow key on the width control moves it RESIZE_STEP pixels, as a list
+     * view's column does, not the range input's one pixel. Page Up and Page
+     * Down, Home and End stay the input's own.
+     */
+    handleResizeKeydown(event) {
+        const sign = RESIZE_KEYS[event.key];
+        if (!sign) return;
+        event.preventDefault();
+        const input = event.target;
+        const field = input.dataset.field;
+        this.pinWidths();
+        const from = Number(this.widths[field]) || Number(input.value) || DEFAULT_WIDTH;
+        this.setWidth(field, from + sign * RESIZE_STEP); // the input's value follows from the template
+        this.emitLayout();
     }
 
     handleResizeStart(event) {
