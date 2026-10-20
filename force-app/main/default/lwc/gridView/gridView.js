@@ -610,7 +610,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         next: { locator: null, cursorToken: null },
         // The page's pagehide and visibilitychange listeners, while connected.
         onPageHide: null,
-        onVisibility: null
+        onVisibility: null,
+        // The beforeunload listener, only while there are unsaved changes.
+        onBeforeUnload: null
     };
     _memo = {};
     _readers = {};
@@ -765,11 +767,34 @@ export default class GridView extends NavigationMixin(LightningElement) {
         if (this._runtime.onVisibility) document.removeEventListener('visibilitychange', this._runtime.onVisibility);
         this._runtime.onPageHide = null;
         this._runtime.onVisibility = null;
+        this.askBeforeLeaving(false);
         if (this._layout.observer) this._layout.observer.disconnect();
         if (this._layout.onResize) window.removeEventListener('resize', this._layout.onResize);
         this._layout.observer = null;
         this._layout.onResize = null;
         this._layout.started = false;
+    }
+
+    /**
+     * While there are unsaved changes, the browser asks before the page is
+     * reloaded, closed or left ("Leave site?"), as Salesforce asks before a
+     * list view's unsaved edits are lost. Moving to another Lightning tab
+     * keeps the page, and the changes, so it asks nothing. The listener is
+     * there only while it is needed: a page with one is kept out of the
+     * browser's back-forward cache.
+     */
+    askBeforeLeaving(on) {
+        const r = this._runtime;
+        if (on && !r.onBeforeUnload) {
+            r.onBeforeUnload = event => {
+                event.preventDefault();
+                event.returnValue = true; // browsers older than preventDefault here (Chrome before 119)
+            };
+            window.addEventListener('beforeunload', r.onBeforeUnload);
+        } else if (!on && r.onBeforeUnload) {
+            window.removeEventListener('beforeunload', r.onBeforeUnload);
+            r.onBeforeUnload = null;
+        }
     }
 
     /**
@@ -780,6 +805,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
      */
     renderedCallback() {
         this.tellTableItsRoom();
+        // Every change to the unsaved changes renders the Save bar: ask, or stop asking, to match.
+        if (this._runtime.connected) this.askBeforeLeaving(hasDrafts(this.drafts));
         if (this._layout.started || this.isNested) return;
         const root = this.template.querySelector('[data-view-root]');
         if (!root) return;

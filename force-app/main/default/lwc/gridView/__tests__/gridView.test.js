@@ -640,6 +640,34 @@ describe('editing and saving', () => {
     const edit = (el, recordId, field, value, originalValue) =>
         table(el).dispatchEvent(new CustomEvent('cellchange', { detail: { recordId, field, value, originalValue } }));
 
+    it('asks before the page is left while there are unsaved changes, and only then', async () => {
+        const leave = () => {
+            const event = new CustomEvent('beforeunload', { cancelable: true });
+            window.dispatchEvent(event);
+            return event.defaultPrevented;
+        };
+        const added = jest.spyOn(window, 'addEventListener');
+        const el = mount();
+        await settle();
+        expect(leave()).toBe(false); // nothing unsaved: no question, and no listener
+        expect(added.mock.calls.filter(c => c[0] === 'beforeunload')).toHaveLength(0);
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
+        await settle();
+        expect(leave()).toBe(true); // the browser's "Leave site?"
+        edit(el, row(2).Id, 'Name', 'Bangor Brick', 'Penobscot Paper, load 2');
+        await settle();
+        expect(added.mock.calls.filter(c => c[0] === 'beforeunload')).toHaveLength(1); // one listener, however many changes
+        table(el).dispatchEvent(new CustomEvent('cancel'));
+        await settle();
+        expect(leave()).toBe(false); // discarded: nothing to ask about
+        edit(el, row(1).Id, 'Name', 'Kennebec Lumber, 12 bundles', 'Penobscot Paper, load 1');
+        await settle();
+        expect(leave()).toBe(true);
+        el.remove();
+        expect(leave()).toBe(false); // the grid gone: its listener too
+        added.mockRestore();
+    });
+
     it('records an edit as a draft in a new config object', async () => {
         const el = mount();
         await settle();
