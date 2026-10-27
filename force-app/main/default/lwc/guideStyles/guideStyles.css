@@ -4990,9 +4990,15 @@ table.rh-ref.rh-wrap1 td:first-child {
     stroke-width: 2;
 }
 
-.rh-m-eyebrow {
-    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+/* On a view, the grid's name, ›, then the view's, on one line */
+.rh-m-vgrid,
+.rh-m-vsep {
     color: var(--rh-m-weak);
+    font-weight: var(--slds-g-font-weight-4, 400);
+}
+
+.rh-m-vsep {
+    margin: 0 var(--slds-g-spacing-2, 0.5rem);
 }
 
 .rh-m-ibtn.rh-m-gearmenu {
@@ -5011,7 +5017,7 @@ table.rh-ref.rh-wrap1 td:first-child {
 
 .rh-m-vpick {
     position: absolute;
-    top: 62px;
+    top: 50px;
     left: 52px;
     z-index: 2;
     width: 230px;

@@ -21,15 +21,16 @@
                 </template>
                 <div class="slds-media__body">
                     <template lwc:if={hasViews}>
-                        <!-- A list view's header: the grid's title small above a saved view's name, the
-                             name a picker of the grid's views, and the pin beside it. -->
-                        <template lwc:if={viewEyebrow}>
-                            <p class="slds-text-body_small slds-text-color_weak slds-truncate rh-view-eyebrow">{viewEyebrow}</p>
-                        </template>
+                        <!-- A list view's header: the title is a picker of the grid's views, with the pin
+                             beside it. On a view: the grid's name, ›, the view's name, on one line, so the
+                             grid's name never moves when the view changes. -->
                         <div class="slds-grid slds-grid_vertical-align-center rh-view-head">
                             <div class="rh-view-picker-wrap" onfocusout={handlePickerFocusOut} onkeydown={handlePickerKeyDown}>
                                 <h2 class="slds-card__header-title">
-                                    <button class="slds-button rh-view-picker" title={pickerLabel} aria-label={pickerLabel} aria-haspopup="dialog" aria-expanded={pickerExpanded} onclick={handlePickerToggle}>
+                                    <button class="slds-button rh-view-picker" title="Select a view" aria-label={pickerLabel} aria-haspopup="dialog" aria-expanded={pickerExpanded} onclick={handlePickerToggle}>
+                                        <template lwc:if={view}>
+                                            <span class="slds-truncate rh-view-grid">{title}</span><span class="rh-view-sep" aria-hidden="true">›</span>
+                                        </template>
                                         <span class="slds-truncate rh-view-name">{viewTitle}</span>
                                         <lightning-icon icon-name="utility:down" size="x-small" class="slds-m-left_xx-small rh-view-caret" aria-hidden="true"></lightning-icon>
                                     </button>

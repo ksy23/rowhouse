@@ -2589,14 +2589,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
         return Boolean(this.definition) && !this._parent;
     }
 
-    /** The title, large: the view's name, or the grid's on the grid as the admin built it. */
+    /** The view shown: its name, or the grid's on the grid as the admin built it. */
     get viewTitle() {
         return this.view ? this.view.name : this.title;
-    }
-
-    /** Above it, small, while a saved view is shown: the grid's title. */
-    get viewEyebrow() {
-        return this.view ? this.title : '';
     }
 
     get pickerExpanded() {
@@ -2616,8 +2611,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
         return Boolean(this.view && this.view.mine);
     }
 
+    /**
+     * The picker's spoken name: what it shows, then what it does. On a view
+     * the title reads "Pipeline Review › Open opportunities", on one line, so
+     * the grid's name never moves when the view changes.
+     */
     get pickerLabel() {
-        return `Select a view: ${this.viewTitle}`;
+        return `${this.view ? `${this.title} › ${this.view.name}` : this.title}, select a view`;
     }
 
     /** The view this grid opens on for this user: the one pinned, or the admin's grid. */

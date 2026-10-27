@@ -154,7 +154,8 @@ describe('the title as a view picker', () => {
         const el = mount();
         await settle();
         expect($(el, '.rh-view-name').textContent).toBe('Pipeline Review');
-        expect($(el, '.rh-view-eyebrow')).toBeNull();
+        expect($(el, '.rh-view-grid')).toBeNull();
+        expect($(el, '.rh-view-picker').getAttribute('aria-label')).toBe('Pipeline Review, select a view');
         expect($(el, '.rh-view-pin').alternativeText).toBe('This view is pinned.');
         $(el, '.rh-view-picker').click();
         await settle();
@@ -174,14 +175,19 @@ describe('the title as a view picker', () => {
         await expect(el).toBeAccessible();
     });
 
-    it("shows a view with what it keeps, the grid's title small above it, and reads the rows again", async () => {
+    it("shows a view with what it keeps, after the grid's name on the same line, and reads the rows again", async () => {
         const el = mount();
         await settle();
         fetchRows.mockClear();
         await pick(el, 'Open opportunities');
         expect(readView).toHaveBeenCalledWith({ configName: 'Pipeline_Review', viewId: VIEW.id });
         expect($(el, '.rh-view-name').textContent).toBe('Open opportunities');
-        expect($(el, '.rh-view-eyebrow').textContent).toBe('Pipeline Review');
+        // On one line, the grid's name where it was, so nothing moves.
+        expect($(el, '.rh-view-grid').textContent).toBe('Pipeline Review');
+        expect($(el, '.rh-view-sep').textContent).toBe('›');
+        expect($(el, '.rh-view-picker').getAttribute('aria-label')).toBe(
+            'Pipeline Review › Open opportunities, select a view'
+        );
         const call = lastCall(fetchRows);
         expect(call.filters).toEqual([OPEN]);
         expect(call.sortField).toBe('Amount');

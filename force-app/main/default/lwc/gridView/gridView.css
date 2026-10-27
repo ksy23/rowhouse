@@ -422,6 +422,21 @@
     min-width: 0;
 }
 
+/* On a view, the grid's name before the view's, lighter, on the same line. */
+.rh-view-grid {
+    flex: 0 1 auto;
+    min-width: 3rem;
+    color: var(--slds-g-color-on-surface-1, #747474);
+    font-weight: var(--slds-g-font-weight-4, 400);
+}
+
+.rh-view-sep {
+    flex: 0 0 auto;
+    margin: 0 var(--slds-g-spacing-2, 0.5rem);
+    color: var(--slds-g-color-on-surface-1, #747474);
+    font-weight: var(--slds-g-font-weight-4, 400);
+}
+
 .rh-view-menu {
     min-width: 18rem;
     max-width: 26rem;
