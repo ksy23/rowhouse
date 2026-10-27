@@ -5,13 +5,16 @@
     gear on each grid, adds the Grid Admin and Grid Edit Logs tabs to the
     Rowhouse app (Rowhouse Grid User shows the app with only its Grid Guide),
     and includes Rowhouse Grid Diagnostics' troubleshooting
-    information. It cannot grant Customize Application, which saving a grid
-    configuration needs: a packaged permission set grants no system permissions
-    of that kind, so only the org's real admins can save.
+    information. It sees every saved view (View All and Modify All on Grid
+    View), so an admin can remove views on the Grid Admin tab; Rowhouse lets
+    only a view's owner change one. It cannot grant Customize Application,
+    which saving a grid configuration needs: a packaged permission set grants
+    no system permissions of that kind, so only the org's real admins can
+    save.
 -->
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Rowhouse Grid Admin</label>
-    <description>For admins who build grids: adds the Grid Admin and Grid Edit Logs tabs to the Rowhouse app and the gear to each grid, and shows troubleshooting information. Saving also needs Customize Application. Assign together with Rowhouse Grid User.</description>
+    <description>For admins who build grids: adds the Grid Admin and Grid Edit Logs tabs and the gear on each grid, shows troubleshooting information, and lets them delete any saved view. Saving also needs Customize Application. Assign with Rowhouse Grid User.</description>
     <applicationVisibilities>
         <application>Rowhouse</application>
         <visible>true</visible>
@@ -20,7 +23,21 @@
         <enabled>true</enabled>
         <name>Rowhouse_Setting__mdt</name>
     </customMetadataTypeAccesses>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Grid_View__c.View__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Grid_View__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
     <classAccesses>
         <apexClass>GridAdminController</apexClass>
         <enabled>true</enabled>

@@ -2308,7 +2308,7 @@ describe('list view details', () => {
             // The title takes the first line, the search the second.
             expect($(el, '.rh-header').classList).toContain('rh-header_narrow');
             const items = [...el.shadowRoot.querySelectorAll('.rh-actions-menu lightning-menu-item')].map(i => i.label);
-            expect(items).toEqual(['Refresh', 'Choose columns', 'Export', 'Help']);
+            expect(items).toEqual(['Refresh', 'Choose columns', 'Export', 'Filters', 'Help']);
             $(el, '.rh-actions-menu').dispatchEvent(new CustomEvent('select', { detail: { value: 'export' } }));
             await settle();
             expect($(el, 'c-grid-export-dialog')).not.toBeNull();

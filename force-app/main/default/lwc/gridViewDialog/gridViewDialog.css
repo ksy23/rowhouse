@@ -1,0 +1,36 @@
+.rh-view-share-option {
+    display: flex;
+    align-items: center;
+    margin-block: var(--slds-g-spacing-1, 0.25rem);
+}
+
+.rh-view-share-help {
+    margin-inline-start: var(--slds-g-spacing-1, 0.25rem);
+}
+
+.rh-view-group-type-wrap {
+    flex: 0 0 auto;
+    max-width: 50%;
+}
+
+.rh-view-group-search {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.rh-view-found {
+    border: 1px solid var(--slds-g-color-border-1, #c9c9c9);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    max-height: 12rem;
+    overflow-y: auto;
+}
+
+.rh-view-found-item {
+    width: 100%;
+    color: var(--slds-g-color-on-surface-3, #181818);
+    text-align: start;
+}
+
+.rh-view-picked:empty {
+    display: none;
+}

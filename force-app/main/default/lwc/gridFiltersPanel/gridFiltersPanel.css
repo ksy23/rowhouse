@@ -1,0 +1,53 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+/* Beside the table, as the Charts panel is: the grid's own row holds it. */
+.rh-filters {
+    position: static;
+    width: 100%;
+    height: 100%;
+    border-inline-start: 1px solid var(--slds-g-color-border-1, #c9c9c9);
+}
+
+.rh-filters-body {
+    overflow-y: auto;
+}
+
+.rh-filters-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.rh-filters-card_changed {
+    background-color: var(--slds-g-color-palette-yellow-90, rgb(249, 227, 182));
+}
+
+.rh-filters-edit {
+    display: block;
+    min-width: 0;
+    line-height: var(--slds-g-font-lineheight-base, 1.5);
+    white-space: normal;
+    color: inherit;
+}
+
+.rh-filters-card-text,
+.rh-filters-label,
+.rh-filters-condition {
+    display: block;
+}
+
+.rh-filters-label {
+    color: var(--slds-g-color-accent-2, #0b5cab);
+}
+
+.rh-filters-number {
+    flex: 0 0 auto;
+}
+
+.rh-filters-locked {
+    display: flex;
+    align-items: center;
+}

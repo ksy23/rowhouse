@@ -33,7 +33,7 @@
                             <span class="slds-assistive-text">, set by your Salesforce admin</span>
                         </template>
                         <template lwc:else>
-                            <button class="slds-button slds-button_icon slds-pill__remove" title={f.removeLabel} data-field={f.field} onclick={handleFilterChipRemove}>
+                            <button class="slds-button slds-button_icon slds-pill__remove" title={f.removeLabel} data-index={f.index} onclick={handleFilterChipRemove}>
                                 <lightning-icon icon-name="utility:close" size="xx-small"></lightning-icon>
                                 <span class="slds-assistive-text">{f.removeLabel}</span>
                             </button>

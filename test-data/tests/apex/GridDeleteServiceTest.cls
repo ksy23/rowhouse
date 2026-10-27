@@ -211,6 +211,7 @@ private class GridDeleteServiceTest {
                     null,
                     null,
                     null,
+                    null,
                     null
                 )
                 .get('ids');
@@ -221,7 +222,8 @@ private class GridDeleteServiceTest {
                     null,
                     null,
                     null,
-                    String.valueOf(first[0])
+                    String.valueOf(first[0]),
+                    null
                 )
                 .get('ids');
             Test.stopTest();
@@ -243,12 +245,12 @@ private class GridDeleteServiceTest {
             String foreign;
             Test.startTest();
             try {
-                GridController.matchingIds('Consignment_Rates', null, null, null, null, null, null);
+                GridController.matchingIds('Consignment_Rates', null, null, null, null, null, null, null);
             } catch (AuraHandledException e) {
                 notAllowed = e.getMessage();
             }
             try {
-                GridController.matchingIds('Consignments', null, null, null, null, null, UserInfo.getUserId());
+                GridController.matchingIds('Consignments', null, null, null, null, null, UserInfo.getUserId(), null);
             } catch (AuraHandledException e) {
                 foreign = e.getMessage();
             }

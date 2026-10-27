@@ -148,6 +148,7 @@ private class GridLongTextTest {
                 null,
                 null,
                 null,
+                null,
                 null
             );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) result.get('rows');

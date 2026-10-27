@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Grid View</label>
+    <pluralLabel>Grid Views</pluralLabel>
+    <nameField>
+        <label>View Name</label>
+        <type>Text</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>Private</sharingModel>
+    <externalSharingModel>Private</externalSharingModel>
+    <enableReports>false</enableReports>
+    <enableSearch>false</enableSearch>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <description>A view of a Rowhouse grid that a user saved and named, as a list view is: its columns and their order, its grouping, its filters and its chart. Owned by whoever saved it and private to them unless they share it with all users or with groups; only its owner can change it.</description>
+</CustomObject>

@@ -1606,6 +1606,18 @@
                                 </div>
                             </template>
                         </lightning-tab>
+
+                        <!-- ======================================================= saved views -->
+                        <template lwc:if={hasViewsTab}>
+                            <lightning-tab label={viewsTabLabel} value="views" onactive={handleTab}>
+                                <c-grid-admin-views
+                                    views={savedViews}
+                                    error={savedViewsError}
+                                    busy={savedViewsBusy}
+                                    onremove={handleViewRemove}
+                                ></c-grid-admin-views>
+                            </lightning-tab>
+                        </template>
                     </lightning-tabset>
                 </div>
                 <!-- The Grid Guide's part about the open tab, beside it. -->

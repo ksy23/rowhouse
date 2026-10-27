@@ -168,6 +168,9 @@ force-app/main/default/
     gridClipboard/    what copy writes and paste reads, per column type
     gridHistory/      undo and redo of unsaved edits
     gridPendingLayout/ a layout change held in the browser until it is kept
+    gridSavedViews/   saved views as plain functions: what a view keeps, the picker
+    gridViewDialog/   a saved view's New, Clone, Save As, Rename, Sharing and Delete
+    gridFiltersPanel/ the Filters panel: numbered filters and filter logic
     gridFields/       lookup names and links, picklist dependencies
     gridDisplayRules/  display rules: which cells a rule colors
     gridUpdateField/   the dialog that changes one field on the selected rows
@@ -188,6 +191,7 @@ force-app/main/default/
     gridAdmin/    the Grid Admin tab: every grid, and its editor
     gridAdminRowDialog/ a grid's Clone, Archive, Restore and Delete in Setup
     gridConfigEditor/ a grid's settings: columns, rules, actions, child tables
+    gridAdminViews/   the editor's Views tab: the views people saved of a grid
     gridSettings/     the dialog a grid's gear opens
     gridAdminDraft/   the settings editor's plain logic
     cell*/            the cell editors
@@ -195,10 +199,11 @@ force-app/main/default/
                       GridConfig, GridSaveService, GridDeleteService,
                       GridImportService, GridGroupService, GridLookup,
                       GridChildTables, GridActions, GridActionService,
-                      GridEditLog, GridController, GridAdmin,
-                      GridAdminController, ...
-  objects/            configuration metadata types, the save-results object
-                      and the audit log (Grid Edit Log)
+                      GridEditLog, GridViews, GridFilterLogic,
+                      GridController, GridAdmin, GridAdminController, ...
+  objects/            configuration metadata types, the save-results object,
+                      the audit log (Grid Edit Log), each user's layout and
+                      saved views (Grid View)
   layouts/            their record pages in Setup, every field shown
   permissionsets/     Rowhouse Grid User, Diagnostics and Admin
   customPermissions/  Rowhouse_Grid_Diagnostics, Rowhouse_Grid_Admin

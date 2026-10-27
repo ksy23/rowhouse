@@ -1,0 +1,137 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="heading"
+        aria-describedby="description"
+        class="slds-modal slds-fade-in-open rh-view-dialog"
+        onkeydown={handleKeyDown}
+    >
+        <div tabindex="0" data-guard="start" onfocus={handleGuardStart}></div>
+        <div class="slds-modal__container">
+            <button class="slds-button slds-button_icon slds-modal__close rh-view-close" title="Cancel and close" onclick={handleCancel}>
+                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                <span class="slds-assistive-text">Cancel and close</span>
+            </button>
+            <div class="slds-modal__header">
+                <h1 id="heading" class="slds-modal__title slds-hyphenate rh-view-title">{title}</h1>
+            </div>
+            <div class="slds-modal__content slds-p-around_medium rh-view-body" id="description">
+                <template lwc:if={isDelete}>
+                    <p class="slds-text-align_center rh-view-delete-text">If you delete this view, it will be removed for everyone who can see it. Are you sure you want to delete it?</p>
+                </template>
+                <template lwc:if={showName}>
+                    <div class={nameClass}>
+                        <label class="slds-form-element__label rh-view-name-label" for="view-name"><abbr class="slds-required" title="required">* </abbr>View Name</label>
+                        <div class="slds-form-element__control">
+                            <input
+                                class="slds-input rh-view-name"
+                                id="view-name"
+                                data-first
+                                type="text"
+                                maxlength={maxName}
+                                value={name}
+                                aria-describedby="view-name-problem"
+                                oninput={handleNameChange}
+                            />
+                        </div>
+                        <template lwc:if={nameProblem}>
+                            <div class="slds-form-element__help rh-view-name-problem" id="view-name-problem">{nameProblem}</div>
+                        </template>
+                    </div>
+                </template>
+                <template lwc:if={isRename}>
+                    <div class="slds-m-top_medium rh-view-who-text">
+                        <p class="slds-text-title_bold">Who sees this view? <lightning-helptext content="To change who sees this view, or to find out which groups can see it, choose Sharing Settings from View Controls."></lightning-helptext></p>
+                        <p class="slds-m-top_xx-small">{sharingText}</p>
+                    </div>
+                </template>
+                <template lwc:if={showSharing}>
+                    <fieldset class="slds-form-element slds-m-top_medium rh-view-who">
+                        <legend class="slds-form-element__legend slds-form-element__label">Who sees this view?</legend>
+                        <div class="slds-form-element__control">
+                            <template for:each={sharingOptions} for:item="o">
+                                <span key={o.value} class="slds-radio rh-view-share-option">
+                                    <template lwc:if={o.first}>
+                                        <input type="radio" id={o.id} name="who" value={o.value} checked={o.checked} data-first onchange={handleSharingChange} />
+                                    </template>
+                                    <template lwc:else>
+                                        <input type="radio" id={o.id} name="who" value={o.value} checked={o.checked} onchange={handleSharingChange} />
+                                    </template>
+                                    <label class="slds-radio__label" for={o.id}><span class="slds-radio_faux"></span><span class="slds-form-element__label">{o.label}</span></label>
+                                    <template lwc:if={o.help}>
+                                        <lightning-helptext class="rh-view-share-help" content={o.help}></lightning-helptext>
+                                    </template>
+                                </span>
+                            </template>
+                        </div>
+                    </fieldset>
+                    <template lwc:if={noShareText}>
+                        <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small rh-view-no-share">{noShareText}</p>
+                    </template>
+                    <template lwc:if={sharesWithGroups}>
+                        <div class="slds-form-element slds-m-top_small slds-m-left_large rh-view-groups">
+                            <label class="slds-form-element__label" for="view-group-search">Search</label>
+                            <div class="slds-form-element__control slds-grid">
+                                <div class="slds-select_container rh-view-group-type-wrap">
+                                    <select class="slds-select rh-view-group-type" aria-label="Kind of group" onchange={handleTypeChange}>
+                                        <template for:each={typeOptions} for:item="t">
+                                            <option key={t.value} value={t.value} selected={t.selected}>{t.label}</option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <input
+                                    class="slds-input slds-m-left_xx-small rh-view-group-search"
+                                    id="view-group-search"
+                                    type="search"
+                                    autocomplete="off"
+                                    placeholder={searchPlaceholder}
+                                    value={term}
+                                    oninput={handleTermChange}
+                                />
+                            </div>
+                            <template lwc:if={hasFound}>
+                                <ul class="slds-listbox slds-listbox_vertical slds-m-top_xx-small rh-view-found" role="list" aria-label="Groups found">
+                                    <template for:each={foundItems} for:item="g">
+                                        <li key={g.key} class="slds-listbox__item">
+                                            <button class="slds-button slds-media slds-listbox__option slds-listbox__option_entity rh-view-found-item" data-id={g.id} onclick={handlePick}>
+                                                <span class="slds-media__body"><span class="slds-listbox__option-text">{g.name}</span></span>
+                                            </button>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </template>
+                            <template lwc:if={searchError}>
+                                <div class="slds-form-element__help slds-text-color_error rh-view-search-error">{searchError}</div>
+                            </template>
+                            <div class="slds-pill_container slds-m-top_xx-small rh-view-picked" role="group" aria-label="Groups this view is shared with">
+                                <template for:each={pickedGroups} for:item="g">
+                                    <span key={g.key} class="slds-pill rh-view-pill">
+                                        <span class="slds-pill__label" title={g.typeLabel}>{g.name}</span>
+                                        <button class="slds-button slds-button_icon slds-pill__remove" title={g.removeLabel} data-id={g.id} onclick={handleUnpick}>
+                                            <lightning-icon icon-name="utility:close" size="xx-small"></lightning-icon>
+                                            <span class="slds-assistive-text">{g.removeLabel}</span>
+                                        </button>
+                                    </span>
+                                </template>
+                            </div>
+                            <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small rh-view-group-count" aria-live="polite">{groupCountText}</p>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:if={error}>
+                    <div class="slds-notify slds-notify_alert slds-alert_error slds-m-top_medium rh-view-error" role="alert">
+                        <h2>{error}</h2>
+                    </div>
+                </template>
+            </div>
+            <div class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral rh-view-cancel" onclick={handleCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand rh-view-save" disabled={saveDisabled} onclick={handleSave}>{saveLabel}</button>
+            </div>
+        </div>
+        <div tabindex="0" data-guard="end" onfocus={handleGuardEnd}></div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template>

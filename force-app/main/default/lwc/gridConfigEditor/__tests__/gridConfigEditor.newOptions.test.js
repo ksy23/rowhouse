@@ -231,7 +231,8 @@ describe('the Filters tab', () => {
             'Display rules (1)',
             'Filters (1)',
             'Actions (0)',
-            'Child tables (0)'
+            'Child tables (0)',
+            'Views (0)'
         ]);
     });
 

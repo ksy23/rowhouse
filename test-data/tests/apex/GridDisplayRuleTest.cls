@@ -244,6 +244,7 @@ private class GridDisplayRuleTest {
                     null,
                     null,
                     null,
+                    null,
                     null
                 )
                 .get('definition');

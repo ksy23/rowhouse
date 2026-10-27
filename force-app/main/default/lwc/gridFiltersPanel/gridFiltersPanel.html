@@ -1,0 +1,112 @@
+<template>
+    <section class="slds-panel slds-panel_docked slds-panel_docked-right slds-is-open rh-filters" role="region" aria-labelledby="filters-heading" onkeydown={handleKeyDown}>
+        <div class="slds-panel__header">
+            <h2 class="slds-panel__header-title slds-text-heading_small slds-truncate" id="filters-heading">Filters</h2>
+            <div class="slds-panel__header-actions">
+                <button class="slds-button slds-button_icon slds-button_icon-small slds-panel__close rh-filters-close" title="Close Filters" onclick={handleClose}>
+                    <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
+                    <span class="slds-assistive-text">Close Filters</span>
+                </button>
+            </div>
+        </div>
+        <div class="slds-panel__body rh-filters-body">
+            <template lwc:if={dirty}>
+                <div class="slds-grid slds-grid_align-spread slds-m-bottom_small rh-filters-actions">
+                    <button class="slds-button slds-button_neutral rh-filters-cancel" onclick={handleCancel}>Cancel</button>
+                    <button class="slds-button slds-button_brand rh-filters-apply" disabled={applyDisabled} onclick={handleApply}>Apply</button>
+                </div>
+            </template>
+            <template lwc:if={hasLocked}>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_xx-small">Set by your Salesforce admin</p>
+                <template for:each={lockedCards} for:item="c">
+                    <div key={c.key} class="slds-box slds-box_x-small slds-m-bottom_x-small slds-theme_shade rh-filters-locked">
+                        <lightning-icon icon-name="utility:lock" size="xx-small" class="slds-m-right_xx-small" aria-hidden="true"></lightning-icon><span>{c.text}</span>
+                    </div>
+                </template>
+            </template>
+            <template lwc:if={hasFilters}>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_xx-small rh-filters-matching">{matchingText}</p>
+            </template>
+            <ol class="rh-filters-list">
+                <template for:each={cards} for:item="c">
+                    <li key={c.key}>
+                        <template lwc:if={c.editing}>
+                            <c-grid-filter-panel inline column={c.column} filter={c.filter} onapply={handleEditApply} onremove={handleEditRemove} oncancel={handleEditCancel}></c-grid-filter-panel>
+                        </template>
+                        <template lwc:else>
+                            <div class={c.cls}>
+                                <div class="slds-grid slds-grid_vertical-align-start">
+                                    <span class="slds-badge slds-m-right_x-small rh-filters-number" aria-hidden="true">{c.number}</span>
+                                    <button class="slds-button slds-text-align_left slds-grow rh-filters-edit" data-index={c.index} data-edit={c.index} title={c.editLabel} onclick={handleEdit}>
+                                        <span class="slds-assistive-text">{c.editLabel}</span>
+                                        <span aria-hidden="true" class="rh-filters-card-text">
+                                            <span class="slds-text-body_small rh-filters-label">{c.label}</span>
+                                            <span class="rh-filters-condition">{c.condition}</span>
+                                        </span>
+                                    </button>
+                                    <button class="slds-button slds-button_icon slds-button_icon-small rh-filters-remove" data-index={c.index} title={c.removeLabel} onclick={handleRemove}>
+                                        <lightning-icon icon-name="utility:delete" size="x-small"></lightning-icon>
+                                        <span class="slds-assistive-text">{c.removeLabel}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </li>
+                </template>
+            </ol>
+            <template lwc:if={addingNew}>
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small rh-filters-new">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="filters-field">Field</label>
+                        <div class="slds-form-element__control">
+                            <div class="slds-select_container">
+                                <select class="slds-select rh-filters-field" id="filters-field" onchange={handleFieldChange}>
+                                    <option value="">Choose a column</option>
+                                    <template for:each={fieldOptions} for:item="o">
+                                        <option key={o.value} value={o.value} selected={o.selected}>{o.label}</option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <template lwc:if={newColumn}>
+                        <c-grid-filter-panel inline column={newColumn} onapply={handleEditApply} onremove={handleEditCancel} oncancel={handleEditCancel}></c-grid-filter-panel>
+                    </template>
+                    <template lwc:else>
+                        <button class="slds-button slds-m-top_x-small rh-filters-new-cancel" onclick={handleEditCancel}>Cancel</button>
+                    </template>
+                </div>
+            </template>
+            <div class="slds-grid slds-grid_align-spread slds-m-top_x-small">
+                <button class="slds-button rh-filters-add" disabled={addDisabled} onclick={handleAdd}>Add Filter</button>
+                <template lwc:if={hasFilters}>
+                    <button class="slds-button rh-filters-remove-all" onclick={handleRemoveAll}>Remove All</button>
+                </template>
+            </div>
+            <template lwc:if={atMostText}>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small rh-filters-at-most">{atMostText}</p>
+            </template>
+            <template lwc:if={showLogicLink}>
+                <button class="slds-button slds-m-top_small rh-filters-add-logic" onclick={handleAddLogic}>Add Filter Logic</button>
+            </template>
+            <template lwc:if={logicOpen}>
+                <div class="slds-m-top_small rh-filters-logic-wrap">
+                    <div class="slds-clearfix">
+                        <button class="slds-button slds-float_right rh-filters-remove-logic" onclick={handleRemoveLogic}>Remove</button>
+                    </div>
+                    <lightning-textarea
+                        class="rh-filters-logic"
+                        label="Filter Logic"
+                        field-level-help="Filter logic decides how your filters apply: join their numbers with AND, OR and NOT, with parentheses, such as 1 AND (2 OR 3)."
+                        max-length="255"
+                        value={draftLogic}
+                        onchange={handleLogicChange}
+                    ></lightning-textarea>
+                    <template lwc:if={logicProblem}>
+                        <div class="slds-form-element__help slds-text-color_error rh-filters-logic-problem" role="alert">{logicProblem}</div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </section>
+</template>

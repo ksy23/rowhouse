@@ -239,6 +239,11 @@ import countChildren from '@salesforce/apex/GridController.countChildren';
 import runAction from '@salesforce/apex/GridController.runAction';
 import saveLayout from '@salesforce/apex/GridController.saveLayout';
 import resetLayout from '@salesforce/apex/GridController.resetLayout';
+import listViews from '@salesforce/apex/GridController.listViews';
+import readView from '@salesforce/apex/GridController.readView';
+import saveView from '@salesforce/apex/GridController.saveView';
+import shareView from '@salesforce/apex/GridController.shareView';
+import deleteView from '@salesforce/apex/GridController.deleteView';
 import USER_ID from '@salesforce/user/Id';
 import { pendingKey, holdLayout, heldLayout, releaseLayout, confirmLayout, decide } from 'c/gridPendingLayout';
 import { displayKeyFor, dateIn } from 'c/gridDisplayRules';
@@ -266,7 +271,23 @@ import {
 } from 'c/gridEditState';
 import { toCsv, downloadCsv, downloadBytes, XLSX_TYPE } from 'c/gridCsv';
 import { buildSheet, buildDetails, detailRows, detailText, reportSubtitle } from 'c/gridExcel';
-import { describeFilter } from 'c/gridFilters';
+import { describeFilter, parseLogic } from 'c/gridFilters';
+import {
+    viewFrom,
+    parseView,
+    asLayout,
+    filtersOf,
+    changesBetween,
+    changedText,
+    viewStore,
+    withRecent,
+    withViewState,
+    onlyViews,
+    pickerItems,
+    copyName,
+    ADMIN_VIEW,
+    ONLY_ME
+} from 'c/gridSavedViews';
 import { toXlsx } from 'c/gridXlsxWriter';
 import { isMixedCurrency } from 'c/gridFormat';
 import { mark } from 'c/gridTiming';
@@ -340,6 +361,8 @@ export const PLACEHOLDER_ROWS = 6;
 export const LAYOUT_DELAY_MS = 2000;
 /** Sort keys a saved layout may hold: the table's own limit is lower. */
 const MAX_SAVED_SORT = 5;
+/** Characters a kept layout may have (GridLayouts.MAX_LENGTH): unsaved changes to views go first past it. */
+export const MAX_LAYOUT_LENGTH = 30000;
 /** px: one item of the compact toolbar's menu (lightning-menu-item, measured in Lightning Experience). */
 export const MENU_ITEM_HEIGHT = 34;
 /** px: the menu's gap below its button and its own padding, above and below its items. */
@@ -573,6 +596,30 @@ export default class GridView extends NavigationMixin(LightningElement) {
     /** The Choose columns dialog is open. */
     columnsOpen = false;
     /**
+     * The saved view shown: { id, name, ownerName, mine, sharing, groups },
+     * or null for the grid as the admin built it (GridViews; c/gridSavedViews).
+     */
+    view = null;
+    /** The view as saved, read against the columns (viewFrom), to tell a change from it. */
+    viewSaved = null;
+    /** How the user's filters join, "1 AND (2 OR 3)", or '' for all of them. */
+    filterLogic = '';
+    /** This user's own part of the views: { pin, recent, views }, kept with the layout. */
+    viewPrefs = { pin: null, recent: [], views: {} };
+    /** The grid's views for the picker, { views, canShare }, once read; null before. */
+    viewList = null;
+    viewListError = '';
+    pickerOpen = false;
+    pickerTerm = '';
+    /** A view's dialog (c/gridViewDialog): { mode, name, sharing, groups }, or null. */
+    viewDialog = null;
+    viewDialogBusy = false;
+    viewDialogError = '';
+    /** The Filters panel is open beside the table. */
+    filtersOpen = false;
+    /** A save of the shown view is under way. */
+    viewSaving = false;
+    /**
      * How this user adds records here (openGrid's newRow): { objectLabel,
      * inline, defaults, names, presets, recordTypeId }, or null for no New button.
      */
@@ -617,7 +664,14 @@ export default class GridView extends NavigationMixin(LightningElement) {
     _memo = {};
     _readers = {};
     /** Non-reactive (HR-20): the width observer, and whether Charts was shown at the last drawing. */
-    _layout = { observer: null, onResize: null, started: false, chartsShown: undefined };
+    _layout = { observer: null, onResize: null, started: false, chartsShown: undefined, focusPicker: null };
+    /**
+     * The grid as the admin built it, as this user left it, while a saved
+     * view is shown: { sort, grouping, columnChoice, frozen, groupView, chart,
+     * chartsOpen }. It is what their layout keeps, and what comes back when
+     * they go back to it. Null on the admin's grid.
+     */
+    _base = { state: null };
     _reported = { count: null };
     /** What the delete dialog is about: the Ids, fixed when it opens. */
     _pendingDelete = { ids: [], all: false };
@@ -735,10 +789,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
      * search: the user's filters and the page's record.
      */
     get filterParams() {
-        return {
+        const out = {
             filters: this.filters.length ? this.filters : null,
             recordId: this._parent ? null : this._recordId || null
         };
+        // How they join, "1 OR 2"; not sent when every filter must hold, as before.
+        if (this.filters.length && this.filterLogic) out.filterLogic = this.filterLogic;
+        return out;
     }
 
     connectedCallback() {
@@ -805,6 +862,15 @@ export default class GridView extends NavigationMixin(LightningElement) {
      */
     renderedCallback() {
         this.tellTableItsRoom();
+        // The view picker's search when it opens; its button when it closes (HR-13's way: after the render).
+        const focusTarget = this._layout.focusPicker;
+        if (focusTarget) {
+            const el = this.template.querySelector(focusTarget);
+            if (el) {
+                this._layout.focusPicker = null;
+                el.focus();
+            }
+        }
         // Every change to the unsaved changes renders the Save bar: ask, or stop asking, to match.
         if (this._runtime.connected) this.askBeforeLeaving(hasDrafts(this.drafts));
         if (this._layout.started || this.isNested) return;
@@ -875,6 +941,16 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.childCounts = {};
         this.childCountsFailed = false;
         this.filters = NO_FILTERS; // the user's filters were for the grid that was
+        this.filterLogic = '';
+        this.view = null;
+        this.viewSaved = null;
+        this.viewPrefs = { pin: null, recent: [], views: {} };
+        this.viewList = null;
+        this.viewListError = '';
+        this.pickerOpen = false;
+        this.viewDialog = null;
+        this.filtersOpen = false;
+        this._base.state = null;
         this.userLayout = null;
         this.layoutSaved = false;
         this.columnChoice = null;
@@ -922,7 +998,9 @@ export default class GridView extends NavigationMixin(LightningElement) {
             if (held && !use) releaseLayout(holdKey);
             const json = use ? held.json : layout.json;
             const saved = readLayout(json, d.columns);
-            this.layoutSaved = Boolean(json);
+            this.layoutSaved = this.hasOwnLayout(json, d);
+            // The views this user pinned, opened and changed (a child table has none).
+            this.viewPrefs = this._parent ? viewStore(null) : viewStore(parseView(json));
             this._saved.lastJson = layout.json || null;
             this._saved.serverJson = layout.json || null;
             this.sort = saved && saved.sort ? saved.sort : adminSort(d);
@@ -946,6 +1024,21 @@ export default class GridView extends NavigationMixin(LightningElement) {
             this.chartData = null;
             this.newRowContext = opened.newRow || null;
             this.definition = d;
+            if (!this._parent) {
+                // The view shown first is the most recent; kept with the next change, not for this alone.
+                const shown = opened.view ? opened.view.id : ADMIN_VIEW;
+                this.viewPrefs = { ...this.viewPrefs, recent: withRecent(this.viewPrefs.recent, shown) };
+            }
+            if (opened.view && !this._parent) {
+                // The view this user pinned: shown as it was saved, or as they changed it.
+                this.snapshotBase();
+                this.openView(opened.view);
+                const notes = opened.start && Array.isArray(opened.start.notes) ? opened.start.notes : [];
+                if (notes.length) this.notice = { variant: 'warning', message: notes.join(' ') };
+            } else if (opened.view === null && this.viewPrefs.pin && !this._parent) {
+                // The view pinned was deleted, or is no longer shared: the grid as the admin built it.
+                this.viewPrefs = { ...this.viewPrefs, pin: null };
+            }
             if (use) {
                 // Kept now, as it would have been had the page stayed.
                 this._saved.pending = true;
@@ -1012,11 +1105,25 @@ export default class GridView extends NavigationMixin(LightningElement) {
               : null;
         const groupBy = this.grouping.map(levelParam);
         const theirs = Array.isArray(start.groupBy) ? start.groupBy : [];
+        // A saved view's filters: the server's reading of them, and the grid's.
+        const plain = list =>
+            JSON.stringify(
+                (Array.isArray(list) ? list : []).map(f => ({
+                    field: f.field,
+                    operator: f.operator,
+                    value: f.value === undefined ? null : f.value,
+                    valueTo: f.valueTo === undefined ? null : f.valueTo
+                }))
+            );
+        const theirFilters = Array.isArray(start.filters) ? start.filters : [];
+        const theirLogic = parseLogic(start.logic, theirFilters.length).logic;
         return (
             (start.sortField || null) === sortField &&
             (start.sortDirection || null) === sortDirection &&
             theirs.length === groupBy.length &&
-            theirs.every((g, i) => g === groupBy[i])
+            theirs.every((g, i) => g === groupBy[i]) &&
+            plain(theirFilters) === plain(this.filters) &&
+            theirLogic === (this.filters.length ? this.filterLogic : '')
         );
     }
 
@@ -1250,6 +1357,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             this.searchTerm,
             this.acting,
             this.filters,
+            this.filterLogic,
             this.startSort,
             this.userLayout,
             this.columnChoice,
@@ -1333,6 +1441,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             emptyState: this.emptyState,
             // The user's filters, and the admin's, shown locked.
             filters: this.filters,
+            filterLogic: this.filters.length ? this.filterLogic : '',
             adminFilters: this.adminFilters,
             // The user's saved layout, applied once per key.
             userLayout: this.userLayout,
@@ -1561,6 +1670,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
                 label: this.chartsOpen ? 'Hide charts' : 'Charts',
                 disabled: false
             });
+        if (this.canOpenFilters)
+            items.push({
+                key: 'filters',
+                value: 'filters',
+                label: this.filtersOpen ? 'Hide filters' : 'Filters',
+                disabled: false
+            });
         if (this.hasDisplayKey)
             items.push({
                 key: 'displayKey',
@@ -1588,6 +1704,8 @@ export default class GridView extends NavigationMixin(LightningElement) {
         else if (value === 'reset') this.handleResetLayout();
         else if (value === 'columns') this.handleColumnsOpen();
         else if (value === 'help') this.handleHelp();
+        else if (value === 'filters') this.handleFiltersToggle();
+        else if (value && value.startsWith('view')) this.viewControl(value);
     }
 
     /**
@@ -1742,6 +1860,21 @@ export default class GridView extends NavigationMixin(LightningElement) {
         return this.filters.length > 0 || this.adminFilters.length > 0;
     }
 
+    /** "Filtered by Stage, Close Date": the columns the filters are on, the admin's first, as a list view says. */
+    get filteredText() {
+        const d = this.definition || {};
+        const byField = new Map((d.columns || []).map(c => [c.field, c]));
+        const labels = [];
+        const add = (field, known) => {
+            const label = (byField.get(field) || {}).label || known || field;
+            if (label && !labels.includes(label)) labels.push(label);
+        };
+        // The admin's may be on fields that are not columns: the server names them.
+        (Array.isArray(d.filters) ? d.filters : []).forEach(f => add(f.field, f.label));
+        this.filters.forEach(f => add(f.field));
+        return labels.length ? `Filtered by ${labels.join(', ')}` : 'Filtered';
+    }
+
     /** The admin's filters, as the table's locked chips show them. */
     get adminFilters() {
         const f = this.definition && this.definition.filters;
@@ -1843,14 +1976,30 @@ export default class GridView extends NavigationMixin(LightningElement) {
 
     // ============================================================ filters
 
-    /** A column filter applied or removed in the table: the rows, counts and subtotals come again. */
+    /**
+     * A column filter applied or removed in the table: the rows, counts and
+     * subtotals come again. A filter added or taken away there leaves the
+     * filter logic's numbers wrong, so the logic goes, and the user is told.
+     */
     handleFilterChange(event) {
-        const next = event.detail && Array.isArray(event.detail.filters) ? event.detail.filters : NO_FILTERS;
-        this.setFilters(next);
+        const d = event.detail || {};
+        const next = Array.isArray(d.filters) ? d.filters : NO_FILTERS;
+        let logic = this.filterLogic;
+        if (typeof d.logic === 'string') logic = d.logic;
+        else if (logic && next.length !== this.filters.length) {
+            logic = '';
+            this.notice = {
+                variant: 'warning',
+                message: 'Filter logic removed: its numbers no longer matched your filters. Add it again in Filters.'
+            };
+        }
+        this.setFilters(next, logic);
     }
 
-    setFilters(next) {
-        if (!next.length && !this.filters.length) return;
+    /** The user's filters and their logic: the rows, counts, subtotals and chart come again. */
+    setFilters(next, logic = this.filterLogic) {
+        const nextLogic = next.length ? logic || '' : '';
+        if (!next.length && !this.filters.length && nextLogic === this.filterLogic) return;
         // Plain objects, so what goes to the server is exactly what the panel built.
         this.filters = next.length
             ? next.map(f => ({
@@ -1860,9 +2009,47 @@ export default class GridView extends NavigationMixin(LightningElement) {
                   valueTo: f.valueTo === undefined ? null : f.valueTo
               }))
             : NO_FILTERS;
-        this.telemetry('filter', { filters: this.filters.length });
+        this.filterLogic = nextLogic;
+        this.telemetry('filter', { filters: this.filters.length, logic: Boolean(nextLogic) });
         this.reload();
         this.loadSummary();
+        // A saved view keeps its filters; the admin's grid starts without them each time.
+        if (this.view) this.rememberLayout();
+    }
+
+    // ---- the Filters panel
+
+    /** Filters, beside the table: on a grid on its own, as Charts are. */
+    get canOpenFilters() {
+        return Boolean(this.definition) && !this._parent;
+    }
+
+    handleFiltersToggle() {
+        if (!this.canOpenFilters) return;
+        this.filtersOpen = !this.filtersOpen;
+        this.announce(this.filtersOpen ? 'Filters shown beside the list.' : 'Filters hidden.');
+        if (!this.filtersOpen && this.showCharts) this.loadChart();
+        if (this.filtersOpen) {
+            Promise.resolve().then(() => {
+                const panel = this.template.querySelector('c-grid-filters-panel');
+                if (panel && typeof panel.focus === 'function') panel.focus();
+            });
+        }
+    }
+
+    handleFiltersClose() {
+        this.filtersOpen = false;
+        this.announce('Filters hidden.');
+        if (this.showCharts) this.loadChart(); // Charts come back where Filters were
+        this.focusButton(this.compactToolbar ? '.rh-actions-menu' : '.rh-filters-toggle');
+    }
+
+    /** Apply in the Filters panel: its filters and logic, checked there and again on the server. */
+    handleFiltersApply(event) {
+        const d = event.detail || {};
+        this.setFilters(Array.isArray(d.filters) ? d.filters : NO_FILTERS, typeof d.logic === 'string' ? d.logic : '');
+        const n = this.filters.length;
+        this.announce(n ? `Filtered by ${n} ${n === 1 ? 'filter' : 'filters'}.` : 'Filters removed.');
     }
 
     // ============================================================ each user's layout
@@ -1880,20 +2067,88 @@ export default class GridView extends NavigationMixin(LightningElement) {
         this.rememberLayout();
     }
 
-    /** The layout as it is kept: JSON, version 1. */
+    /**
+     * The layout as it is kept: JSON, version 1. Its sort, grouping, columns,
+     * frozen columns, groups and chart are the grid's as the admin built it,
+     * as this user left it (while a saved view is shown, as they left it
+     * before); widths, Wrap or Clip and open rows are theirs on every view;
+     * and the views part (pin, recent, views) is theirs of the saved views,
+     * with the shown view's own sort and unsaved change. Past
+     * MAX_LAYOUT_LENGTH, unsaved changes to the views least lately changed go.
+     */
     get layoutJson() {
         const t = this._saved.table;
-        const layout = { v: 1, sort: this.sort, grouping: this.grouping };
+        const b = this.view && this._base.state ? this._base.state : this.adminState;
+        const layout = { v: 1, sort: b.sort, grouping: b.grouping };
         if (t.widths && Object.keys(t.widths).length) layout.widths = t.widths;
         if (t.wrap && Object.keys(t.wrap).length) layout.wrap = t.wrap;
         if (t.expanded && t.expanded.length) layout.expanded = t.expanded;
-        if (this.columnChoice) layout.columns = this.columnChoice;
-        if (Number.isInteger(t.frozen)) layout.frozen = t.frozen;
+        if (b.columnChoice) layout.columns = b.columnChoice;
+        if (Number.isInteger(b.frozen)) layout.frozen = b.frozen;
         // The groups' order and percentages, when not the default.
-        const gv = t.groupView;
+        const gv = b.groupView;
         if (gv && ((gv.order && gv.order.by && gv.order.by !== 'name') || gv.percent === true)) layout.groups = gv;
-        if (this.chart) layout.chart = { ...this.chart, open: this.chartsOpen };
-        return JSON.stringify(layout);
+        if (b.chart) layout.chart = { ...b.chart, open: b.chartsOpen };
+        const prefs = this.viewPrefsNow;
+        if (prefs.pin) layout.pin = prefs.pin;
+        // The admin's grid alone among the recent is no news: kept only once a saved view has been opened.
+        if (prefs.recent.some(id => id !== ADMIN_VIEW)) layout.recent = prefs.recent;
+        const views = { ...prefs.views };
+        if (Object.keys(views).length) layout.views = views;
+        let json = JSON.stringify(layout);
+        // Too long: unsaved changes go, the oldest first; the sorts stay.
+        const ids = Object.keys(views);
+        for (let i = 0; json.length > MAX_LAYOUT_LENGTH && i < ids.length; i++) {
+            if (views[ids[i]].draft) {
+                views[ids[i]] = { sort: views[ids[i]].sort };
+                json = JSON.stringify(layout);
+            }
+        }
+        return json;
+    }
+
+    /** The grid as the admin built it, as it is shown now: what its layout keeps. */
+    get adminState() {
+        const t = this._saved.table;
+        return {
+            sort: this.sort,
+            grouping: this.grouping,
+            columnChoice: this.columnChoice,
+            frozen: t.frozen,
+            groupView: t.groupView,
+            chart: this.chart,
+            chartsOpen: this.chartsOpen
+        };
+    }
+
+    /**
+     * Is there anything of this user's own in this layout, beyond their saved
+     * views: a sort, grouping, width, column, chart? Reset layout is offered then.
+     */
+    hasOwnLayout(json, d) {
+        if (!json) return false;
+        const l = parseView(json);
+        // One that cannot be read is offered for reset, so it can be put right.
+        if (!l) return true;
+        const own = ['widths', 'wrap', 'expanded', 'columns', 'frozen', 'groups', 'chart'].some(k => {
+            const v = l[k];
+            return (
+                v !== undefined &&
+                v !== null &&
+                !(Array.isArray(v) && !v.length) &&
+                !(typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length)
+            );
+        });
+        if (own) return true;
+        const def = d || this.definition || {};
+        const sortOwn = Array.isArray(l.sort) && JSON.stringify(l.sort) !== JSON.stringify(adminSort(def));
+        const groupingOwn =
+            Array.isArray(l.grouping) &&
+            !sameGrouping(
+                normalizeGrouping(l.grouping, def.columns || []),
+                normalizeGrouping(def.grouping, def.columns || [])
+            );
+        return sortOwn || groupingOwn;
     }
 
     /** Keep the layout LAYOUT_DELAY_MS after the last change, for the grid it belongs to. */
@@ -1940,7 +2195,7 @@ export default class GridView extends NavigationMixin(LightningElement) {
             .then(kept => {
                 if (kept === true) {
                     if (name === this._configName) {
-                        this.layoutSaved = true;
+                        this.layoutSaved = this.hasOwnLayout(json);
                         this._saved.serverJson = json;
                     }
                     confirmLayout(holdKey, json); // a newer change held since stays, on top of this one
@@ -1968,9 +2223,13 @@ export default class GridView extends NavigationMixin(LightningElement) {
         return pendingKey(USER_ID, name, this.parentLink);
     }
 
-    /** Reset layout is offered once a layout is kept. */
+    /**
+     * Reset layout is offered once a layout of the grid as the admin built
+     * it is kept, while it is shown: a saved view has Reset Column Sorting and
+     * Reset Column Widths instead, in View Controls.
+     */
     get canResetLayout() {
-        return this.layoutSaved && Boolean(this.definition);
+        return this.layoutSaved && Boolean(this.definition) && !this.view;
     }
 
     /** The child table tab this grid is shown in, which keys its layout; null on its own. */
@@ -2026,6 +2285,10 @@ export default class GridView extends NavigationMixin(LightningElement) {
             frozen: null,
             sort
         };
+        // Their saved views (the pinned one, the recent ones) are not part of the layout reset: kept again.
+        const prefs = this.viewPrefs;
+        if (prefs.pin || prefs.recent.some(id => id !== ADMIN_VIEW) || Object.keys(prefs.views).length)
+            this.rememberLayout();
         // A new sort reads the rows again: the admin's sort field need not be a
         // column, and then the browser cannot sort by it.
         const reloading = sortChanged || (this.hasMore && groupingChanged) ? this.reload() : null;
@@ -2180,24 +2443,35 @@ export default class GridView extends NavigationMixin(LightningElement) {
         return Boolean(d) && !this._parent && groupByColumns(d.columns).length > 0;
     }
 
+    /** Charts, beside the table; Filters take their place while open, as on a list view. */
     get showCharts() {
-        return this.chartsOpen && this.canChart && Boolean(this.chart);
+        return this.chartsOpen && this.canChart && Boolean(this.chart) && !this.showFilters;
+    }
+
+    get showFilters() {
+        return this.filtersOpen && this.canOpenFilters;
     }
 
     get chartRowClass() {
-        return 'rh-chart-row' + (this.showCharts ? ' rh-chart-row_open' : '');
+        return 'rh-chart-row' + (this.showCharts || this.showFilters ? ' rh-chart-row_open' : '');
+    }
+
+    /** Whose the chart is, under its title: this user's, or the saved view's. */
+    get chartKeptWith() {
+        return this.view ? 'view' : 'you';
     }
 
     /** The Charts button, or Charts in the narrow menu: open or close the panel. */
     handleChartsToggle() {
         if (!this.canChart) return;
-        if (this.chartsOpen) {
+        if (this.showCharts) {
             this.closeCharts();
             return;
         }
         if (!this.chart) this.chart = defaultChart(this.definition.columns, this.grouping);
         if (!this.chart) return;
         this.chartsOpen = true;
+        this.filtersOpen = false; // one panel beside the table at a time, as on a list view
         this.announce('Charts shown beside the list.');
         this.rememberLayout();
         this.loadChart();
@@ -2306,6 +2580,579 @@ export default class GridView extends NavigationMixin(LightningElement) {
             if (token !== this._runtime.chartToken) return;
             this.chartData = { status: 'error', message: messageOf(e) };
         }
+    }
+
+    // ============================================================ saved views
+
+    /** A grid on its own has saved views; a child table keeps its own layout instead. */
+    get hasViews() {
+        return Boolean(this.definition) && !this._parent;
+    }
+
+    /** The title, large: the view's name, or the grid's on the grid as the admin built it. */
+    get viewTitle() {
+        return this.view ? this.view.name : this.title;
+    }
+
+    /** Above it, small, while a saved view is shown: the grid's title. */
+    get viewEyebrow() {
+        return this.view ? this.title : '';
+    }
+
+    get pickerExpanded() {
+        return this.pickerOpen ? 'true' : 'false';
+    }
+
+    get pinPressed() {
+        return this.isPinned ? 'true' : 'false';
+    }
+
+    /** A saved view is shown (not the grid as the admin built it). */
+    get hasView() {
+        return Boolean(this.view);
+    }
+
+    get viewMine() {
+        return Boolean(this.view && this.view.mine);
+    }
+
+    get pickerLabel() {
+        return `Select a view: ${this.viewTitle}`;
+    }
+
+    /** The view this grid opens on for this user: the one pinned, or the admin's grid. */
+    get isPinned() {
+        return (this.viewPrefs.pin || ADMIN_VIEW) === (this.view ? this.view.id : ADMIN_VIEW);
+    }
+
+    get pinIcon() {
+        return this.isPinned ? 'utility:pinned' : 'utility:pin';
+    }
+
+    get pinLabel() {
+        return this.isPinned ? 'This view is pinned.' : 'Pin this view.';
+    }
+
+    /** "Shared by Jenna Rossi" on the count line: a view someone else saved. */
+    get sharedByText() {
+        return this.view && !this.view.mine && this.view.ownerName ? `Shared by ${this.view.ownerName}` : '';
+    }
+
+    /** Pin this view: the grid opens on it for this user from now on. */
+    handlePin() {
+        if (this.isPinned) return;
+        this.viewPrefs = { ...this.viewPrefs, pin: this.view ? this.view.id : null };
+        this.rememberLayout();
+        this.announce(`Pinned. This grid opens on ${this.viewTitle} for you.`);
+    }
+
+    /** Keep the grid as the admin built it, as this user left it, before a saved view is shown. */
+    snapshotBase() {
+        if (!this.view) this._base.state = this.adminState;
+    }
+
+    /**
+     * What a view keeps, read against the grid's columns as a layout is: what
+     * no longer fits is left out. filtering is the server's reading of its
+     * filters ({ filters, logic }), when it has one.
+     */
+    readViewParts(kept, filtering = null) {
+        const d = this.definition || { columns: [] };
+        const read = readLayout(JSON.stringify(asLayout(kept)), d.columns) || {};
+        const f = filtering || filtersOf(kept, d.columns);
+        return {
+            columnChoice: read.columns || null,
+            frozen: Number.isInteger(read.frozen) ? read.frozen : null,
+            // A view with no grouping has none, not the admin's.
+            grouping: read.grouping || [],
+            groupView: read.groupView || null,
+            sort: read.sort || adminSort(d),
+            filters: f.filters || [],
+            logic: f.logic || '',
+            chart: read.chart || null,
+            chartsOpen: Boolean(read.chartsOpen)
+        };
+    }
+
+    /**
+     * Show a saved view (as GridController.readView answers): what it keeps,
+     * or this user's unsaved change to it, sorted as they last sorted it.
+     * The rows are not asked for here.
+     */
+    openView(answer) {
+        const d = this.definition;
+        const kept = parseView(answer.view) || {};
+        this.view = {
+            id: answer.id,
+            name: answer.name,
+            ownerName: answer.ownerName || null,
+            mine: answer.mine === true,
+            sharing: answer.sharing || ONLY_ME,
+            groups: Array.isArray(answer.groups) ? answer.groups : []
+        };
+        this.viewSaved = viewFrom(this.readViewParts(kept));
+        const own = this.viewPrefs.views[answer.id] || {};
+        const draft = parseView(own.draft);
+        const state = this.readViewParts(draft || kept);
+        const ownSort = Array.isArray(own.sort) ? readLayout(JSON.stringify({ sort: own.sort }), d.columns) : null;
+        this.applyState({ ...state, sort: ownSort && ownSort.sort ? ownSort.sort : state.sort });
+    }
+
+    /** Put a view's state (readViewParts), or the admin's grid's, on screen. */
+    applyState(state) {
+        this.sort = state.sort;
+        this.startSort = state.sort;
+        this.grouping = state.grouping;
+        this.columnChoice = state.columnChoice;
+        this.chart = state.chart;
+        this.chartsOpen = Boolean(state.chartsOpen) && Boolean(state.chart);
+        this.chartData = null;
+        this._runtime.chartToken++;
+        this.filters = state.filters && state.filters.length ? state.filters : NO_FILTERS;
+        this.filterLogic = this.filters.length ? state.logic || '' : '';
+        this._saved.table = { ...this._saved.table, frozen: state.frozen, groupView: state.groupView };
+        // The table takes its sort, frozen columns and groups from a new layout; widths stay the user's.
+        this.userLayout = { key: ++this._saved.key, ...this._saved.table, sort: state.sort };
+    }
+
+    /** The shown view as it is now, in the shape viewFrom takes. */
+    get viewState() {
+        const t = this._saved.table;
+        return {
+            columnChoice: this.columnChoice,
+            frozen: t.frozen,
+            grouping: this.grouping,
+            groupView: t.groupView,
+            sort: this.sort,
+            filters: this.filters,
+            logic: this.filterLogic,
+            chart: this.chart,
+            chartsOpen: this.chartsOpen
+        };
+    }
+
+    /** What differs from the view as saved: columns, grouping, filters, chart. */
+    get viewChanges() {
+        return this.view && this.viewSaved ? changesBetween(this.viewSaved, viewFrom(this.viewState)) : [];
+    }
+
+    get viewChanged() {
+        return this.viewChanges.length > 0;
+    }
+
+    get viewChangedText() {
+        return `You changed this view: ${changedText(this.viewChanges)}.`;
+    }
+
+    get viewSaveDisabled() {
+        return this.viewSaving;
+    }
+
+    /** This user's views part of the layout, with the shown view's own sort and unsaved change. */
+    get viewPrefsNow() {
+        const p = this.viewPrefs;
+        if (!this.view) return p;
+        const current = viewFrom(this.viewState);
+        const changed = this.viewSaved ? changesBetween(this.viewSaved, current).length > 0 : false;
+        return {
+            ...p,
+            views: withViewState(p.views, this.view.id, { sort: this.sort, draft: changed ? current : null })
+        };
+    }
+
+    /** Back to the grid as the admin built it, as this user left it. */
+    showAdminGrid() {
+        const d = this.definition;
+        const b = this._base.state || {
+            sort: adminSort(d),
+            grouping: normalizeGrouping(d.grouping, d.columns),
+            columnChoice: null,
+            frozen: null,
+            groupView: null,
+            chart: null,
+            chartsOpen: false
+        };
+        this.view = null;
+        this.viewSaved = null;
+        this._base.state = null;
+        // The admin's grid starts without the user's filters, as it always has.
+        this.applyState({ ...b, filters: [], logic: '' });
+    }
+
+    /**
+     * Show another view, or the admin's grid (ADMIN_VIEW). Not over unsaved
+     * changes to rows: the rows are read again. The view is read fresh, so
+     * a change its owner saved a moment ago shows.
+     */
+    async switchToView(id) {
+        const current = this.view ? this.view.id : ADMIN_VIEW;
+        if (id === current || !this.definition) return;
+        if (hasDrafts(this.drafts)) {
+            this.notice = {
+                variant: 'warning',
+                message: 'Save or cancel your changes first: another view reads the rows again.'
+            };
+            this.announce(this.notice.message);
+            return;
+        }
+        let chosen = null;
+        if (id !== ADMIN_VIEW) {
+            try {
+                chosen = await readView({ configName: this._configName, viewId: id });
+            } catch (e) {
+                this.notice = { variant: 'error', message: messageOf(e) };
+                this.announce(this.notice.message);
+                this.viewList = null;
+                return;
+            }
+        }
+        this.notice = null;
+        if (chosen) {
+            this.snapshotBase();
+            this.openView(chosen);
+        } else {
+            this.showAdminGrid();
+        }
+        this.viewPrefs = { ...this.viewPrefs, recent: withRecent(this.viewPrefs.recent, id) };
+        this.rememberLayout();
+        this.reload();
+        this.loadSummary();
+        this.announce(`Showing ${this.viewTitle}.`);
+    }
+
+    // ---- the picker
+
+    /** The grid's views, read once per opening of the grid, and again after a change. */
+    async ensureViewList() {
+        if (this.viewList) return this.viewList;
+        try {
+            const answer = (await listViews({ configName: this._configName })) || {};
+            this.viewList = {
+                views: Array.isArray(answer.views) ? answer.views : [],
+                canShare: answer.canShare === true
+            };
+            this.viewListError = '';
+            // Views gone from the list (deleted, no longer shared) go from this user's own part too.
+            const ids = this.viewList.views.map(v => v.id);
+            const p = this.viewPrefs;
+            const recent = p.recent.filter(id => id === ADMIN_VIEW || ids.includes(id));
+            const views = onlyViews(p.views, this.view ? ids.concat(this.view.id) : ids);
+            if (recent.length !== p.recent.length || Object.keys(views).length !== Object.keys(p.views).length) {
+                this.viewPrefs = { ...p, recent, views };
+                this.rememberLayout();
+            }
+        } catch (e) {
+            this.viewList = null;
+            this.viewListError = 'The views could not be read. ' + messageOf(e);
+        }
+        return this.viewList;
+    }
+
+    get pickerLists() {
+        const list = this.viewList || { views: [] };
+        return pickerItems({
+            views: list.views,
+            recent: this.viewPrefs.recent,
+            currentId: this.view ? this.view.id : ADMIN_VIEW,
+            pinId: this.viewPrefs.pin,
+            gridTitle: this.title,
+            term: this.pickerTerm
+        });
+    }
+
+    get pickerRecent() {
+        return this.pickerLists.recent;
+    }
+
+    get pickerOthers() {
+        return this.pickerLists.others;
+    }
+
+    get pickerLoading() {
+        return this.pickerOpen && !this.viewList && !this.viewListError;
+    }
+
+    get pickerEmpty() {
+        return Boolean(this.viewList) && !this.pickerRecent.length && !this.pickerOthers.length;
+    }
+
+    handlePickerToggle() {
+        if (this.pickerOpen) {
+            this.closePicker(true);
+            return;
+        }
+        this.pickerOpen = true;
+        this.pickerTerm = '';
+        this._layout.focusPicker = '.rh-view-search';
+        this.ensureViewList();
+    }
+
+    closePicker(returnFocus) {
+        this.pickerOpen = false;
+        if (returnFocus) this._layout.focusPicker = '.rh-view-picker';
+    }
+
+    handlePickerSearch(event) {
+        this.pickerTerm = String((event.target && event.target.value) || '');
+    }
+
+    handlePickerKeyDown(event) {
+        event.stopPropagation();
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            this.closePicker(true);
+        }
+    }
+
+    /** Focus leaving the picker for anywhere else closes it, as a menu does. */
+    handlePickerFocusOut(event) {
+        const next = event.relatedTarget;
+        if (next && event.currentTarget.contains(next)) return;
+        this.pickerOpen = false;
+    }
+
+    handlePickView(event) {
+        const id = event.currentTarget.dataset.id || ADMIN_VIEW;
+        this.closePicker(true);
+        this.switchToView(id);
+    }
+
+    // ---- View Controls
+
+    /** View Controls, as a list view's List View Controls, in its order. */
+    get viewControlItems() {
+        const mine = Boolean(this.view && this.view.mine);
+        return [
+            { value: 'viewNew', label: 'New', disabled: false },
+            { value: 'viewClone', label: 'Clone', disabled: false },
+            { value: 'viewRename', label: 'Rename', disabled: !mine },
+            { value: 'viewSharing', label: 'Sharing Settings', disabled: !mine },
+            { value: 'columns', label: 'Select Fields to Display', disabled: !this.canChooseColumns },
+            { value: 'viewDelete', label: 'Delete', disabled: !mine },
+            { value: 'resetSort', label: 'Reset Column Sorting', disabled: false },
+            { value: 'resetWidths', label: 'Reset Column Widths', disabled: false }
+        ].map(i => ({ ...i, key: i.value }));
+    }
+
+    handleViewControl(event) {
+        this.viewControl(event.detail && event.detail.value);
+    }
+
+    viewControl(value) {
+        if (value === 'viewNew') this.openViewDialog('new');
+        else if (value === 'viewClone') this.openViewDialog('clone');
+        else if (value === 'viewRename') this.openViewDialog('rename');
+        else if (value === 'viewSharing') this.openViewDialog('sharing');
+        else if (value === 'viewDelete') this.openViewDialog('delete');
+        else if (value === 'columns') this.handleColumnsOpen();
+        else if (value === 'resetSort') this.resetColumnSorting();
+        else if (value === 'resetWidths') this.resetColumnWidths();
+    }
+
+    /** The view's own sort again (the admin's on the admin's grid): this user's goes. */
+    resetColumnSorting() {
+        const d = this.definition;
+        if (!d) return;
+        const sort = this.view
+            ? (readLayout(JSON.stringify(asLayout(this.viewSaved)), d.columns) || {}).sort || adminSort(d)
+            : adminSort(d);
+        this.sort = sort;
+        this.startSort = sort;
+        this.userLayout = { key: ++this._saved.key, ...this._saved.table, sort };
+        this.reload();
+        this.rememberLayout();
+        this.announce('Column sorting reset.');
+    }
+
+    /** The columns' widths as the grid sizes them: this user's widths go, on every view. */
+    resetColumnWidths() {
+        this._saved.table = { ...this._saved.table, widths: null };
+        this.userLayout = { key: ++this._saved.key, ...this._saved.table, sort: this.sort };
+        this.rememberLayout();
+        this.announce('Column widths reset.');
+    }
+
+    // ---- the dialogs
+
+    get viewDialogMode() {
+        return this.viewDialog ? this.viewDialog.mode : null;
+    }
+
+    get viewCanShare() {
+        return Boolean(this.viewList && this.viewList.canShare);
+    }
+
+    async openViewDialog(mode) {
+        if (!this.definition) return;
+        if ((mode === 'rename' || mode === 'sharing' || mode === 'delete') && !(this.view && this.view.mine)) return;
+        if (mode === 'new' || mode === 'clone' || mode === 'saveAs' || mode === 'sharing') await this.ensureViewList();
+        const v = this.view;
+        let name = '';
+        if (mode === 'clone' || mode === 'saveAs') name = copyName(this.viewTitle);
+        else if (mode === 'rename') name = v.name;
+        const keepsSharing = mode === 'sharing' || mode === 'rename';
+        this.viewDialogError = '';
+        this.viewDialogBusy = false;
+        this.viewDialog = {
+            mode,
+            name,
+            sharing: keepsSharing ? v.sharing : ONLY_ME,
+            groups: keepsSharing ? v.groups : []
+        };
+    }
+
+    handleViewDialogCancel() {
+        this.viewDialog = null;
+        this.focusButton(this.compactToolbar ? '.rh-actions-menu' : '.rh-view-controls');
+    }
+
+    /** What a new view keeps: the grid as the admin built it, no filters, no chart. */
+    get adminStart() {
+        const d = this.definition;
+        return {
+            columnChoice: null,
+            frozen: null,
+            grouping: normalizeGrouping(d.grouping, d.columns),
+            groupView: null,
+            sort: adminSort(d),
+            filters: [],
+            logic: '',
+            chart: null,
+            chartsOpen: false
+        };
+    }
+
+    async handleViewDialogSave(event) {
+        const dialog = this.viewDialog;
+        if (!dialog || this.viewDialogBusy) return;
+        const d = event.detail || {};
+        this.viewDialogBusy = true;
+        this.viewDialogError = '';
+        try {
+            if (dialog.mode === 'rename') {
+                const saved = await saveView({
+                    configName: this._configName,
+                    viewId: this.view.id,
+                    name: d.name,
+                    view: null,
+                    shareMode: null,
+                    groupIds: null
+                });
+                this.view = { ...this.view, name: saved.name };
+                this.announce(`Renamed: ${saved.name}.`);
+            } else if (dialog.mode === 'sharing') {
+                const saved = await shareView({
+                    configName: this._configName,
+                    viewId: this.view.id,
+                    shareMode: d.shareMode,
+                    groupIds: d.groupIds || []
+                });
+                this.view = { ...this.view, sharing: saved.sharing, groups: saved.groups || [] };
+                this.announce('Sharing settings saved.');
+            } else {
+                // New, Clone, Save As: a view of the user's own, then shown.
+                const state = dialog.mode === 'new' ? this.adminStart : this.viewState;
+                const saved = await saveView({
+                    configName: this._configName,
+                    viewId: null,
+                    name: d.name,
+                    view: JSON.stringify(viewFrom(state)),
+                    shareMode: d.shareMode || ONLY_ME,
+                    groupIds: d.groupIds || []
+                });
+                // Save As took the changes to a view of its own: the view they came from is as saved.
+                if (dialog.mode === 'saveAs' && this.view) {
+                    this.viewPrefs = {
+                        ...this.viewPrefs,
+                        views: withViewState(this.viewPrefs.views, this.view.id, { sort: this.sort, draft: null })
+                    };
+                }
+                this.snapshotBase();
+                this.openView(saved);
+                this.viewPrefs = { ...this.viewPrefs, recent: withRecent(this.viewPrefs.recent, saved.id) };
+                this.reload();
+                this.loadSummary();
+                this.announce(`Saved. Showing ${saved.name}.`);
+                if (dialog.mode === 'new') this.filtersOpen = true;
+            }
+            this.viewList = null; // read again when the picker opens
+            this.viewDialog = null;
+            this.rememberLayout();
+        } catch (e) {
+            this.viewDialogError = messageOf(e);
+        } finally {
+            this.viewDialogBusy = false;
+        }
+    }
+
+    async handleViewDialogDelete() {
+        if (!this.view || this.viewDialogBusy) return;
+        const gone = this.view;
+        this.viewDialogBusy = true;
+        try {
+            await deleteView({ configName: this._configName, viewId: gone.id });
+        } catch (e) {
+            this.viewDialogError = messageOf(e);
+            this.viewDialogBusy = false;
+            return;
+        }
+        this.viewDialogBusy = false;
+        this.viewDialog = null;
+        const p = this.viewPrefs;
+        this.viewPrefs = {
+            pin: p.pin === gone.id ? null : p.pin,
+            recent: p.recent.filter(id => id !== gone.id),
+            views: withViewState(p.views, gone.id, null)
+        };
+        this.viewList = null;
+        this.showAdminGrid();
+        this.rememberLayout();
+        this.reload();
+        this.loadSummary();
+        this.announce(`${gone.name} deleted. Showing ${this.title}.`);
+        this.focusButton('.rh-view-picker');
+    }
+
+    // ---- You changed this view
+
+    /** Save: the view, as it is shown now, for everyone who sees it. Its owner only. */
+    async handleViewSave() {
+        if (!this.view || !this.view.mine || this.viewSaving) return;
+        this.viewSaving = true;
+        const current = viewFrom(this.viewState);
+        try {
+            await saveView({
+                configName: this._configName,
+                viewId: this.view.id,
+                name: null,
+                view: JSON.stringify(current),
+                shareMode: null,
+                groupIds: null
+            });
+            this.viewSaved = current;
+            this.rememberLayout();
+            this.announce(`${this.view.name} saved.`);
+        } catch (e) {
+            this.notice = { variant: 'error', message: 'The view could not be saved. ' + messageOf(e) };
+            this.announce(this.notice.message);
+        } finally {
+            this.viewSaving = false;
+        }
+    }
+
+    handleViewSaveAs() {
+        this.openViewDialog('saveAs');
+    }
+
+    /** Revert: the view as saved; this user's own sort stays. */
+    handleViewRevert() {
+        if (!this.view || !this.viewSaved) return;
+        const state = this.readViewParts(this.viewSaved);
+        this.applyState({ ...state, sort: this.sort });
+        this.rememberLayout();
+        this.reload();
+        this.loadSummary();
+        this.announce(`${this.view.name}: back as saved.`);
     }
 
     // ============================================================ child tables
@@ -4069,9 +4916,12 @@ export default class GridView extends NavigationMixin(LightningElement) {
         ];
         this.adminFilters.forEach(f => lines.push(f.text));
         const byField = new Map((d.columns || []).map(c => [c.field, c]));
-        (this.filters || []).forEach(f =>
-            lines.push(describeFilter(f, byField.get(f.field) || { field: f.field, label: f.field }))
-        );
+        const logic = this.filters.length ? this.filterLogic : '';
+        (this.filters || []).forEach((f, i) => {
+            const text = describeFilter(f, byField.get(f.field) || { field: f.field, label: f.field });
+            lines.push(logic ? `${i + 1}. ${text}` : text);
+        });
+        if (logic) lines.push(`Filter Logic: ${logic}`);
         if (this.searchTerm) lines.push(`Search: “${this.searchTerm}”`);
         return lines;
     }

@@ -22,10 +22,18 @@
                 <h1 id="heading" class="slds-modal__title slds-hyphenate">Choose columns</h1>
             </div>
             <div class="slds-modal__content slds-p-around_medium" id="description">
-                <p class="slds-m-bottom_small">
-                    Move the columns you want into Visible, in the order to show them. Only you see this choice; Reset
-                    layout puts back your admin's columns.
-                </p>
+                <template lwc:if={viewShown}>
+                    <p class="slds-m-bottom_small rh-columns-intro">
+                        Move the columns you want into Visible, in the order to show them. This changes the view you're
+                        on: Save or Save As, above the grid, keeps it.
+                    </p>
+                </template>
+                <template lwc:else>
+                    <p class="slds-m-bottom_small rh-columns-intro">
+                        Move the columns you want into Visible, in the order to show them. Only you see this choice;
+                        Reset layout puts back your admin's columns.
+                    </p>
+                </template>
                 <template lwc:if={keptText}>
                     <p class="slds-m-bottom_small slds-text-color_weak rh-columns-kept">{keptText}</p>
                 </template>

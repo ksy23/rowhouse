@@ -7,3 +7,11 @@
     text-align: left;
     font-weight: var(--slds-g-font-weight-4, 400);
 }
+
+/* In the Filters panel: a box in the panel's own flow. */
+.rh-filter-panel_inline {
+    position: static;
+    width: auto;
+    margin-block: var(--slds-g-spacing-2, 0.5rem);
+    background: var(--slds-g-color-surface-container-1, #fff);
+}

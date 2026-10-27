@@ -6,6 +6,9 @@
  * INPUTS
  *   column  the grid's column: { field, label, type, options, referenceTo, scale }
  *   filter  the column's filter now, { field, operator, value, valueTo }, or null
+ *   inline  in the Filters panel (c/gridFiltersPanel): a box in the panel's
+ *           flow rather than a drop-down, and Done for Apply, since the
+ *           panel's own Apply is what filters the grid
  *
  * EVENTS OUT (plain-object details, HR-28)
  *   apply   { filter }   a complete filter for this column (c/gridFilters toRequest)
@@ -23,6 +26,7 @@ import { operatorsFor, needsValue, inputKind, choicesFor, toRequest, problemOf, 
 
 export default class GridFilterPanel extends LightningElement {
     @api column;
+    @api inline = false;
     _filter = null;
     /** What the panel holds now: { operator, value, valueTo }. */
     draft = { operator: null, value: '', valueTo: '' };
@@ -75,6 +79,16 @@ export default class GridFilterPanel extends LightningElement {
         const operator = ops.length ? ops[0].value : 'equals';
         const choices = this.column && inputKind(this.column, operator) === 'select' ? choicesFor(this.column) : [];
         return { operator, value: choices.length ? choices[0].value : '', valueTo: '' };
+    }
+
+    get panelClass() {
+        return this.inline
+            ? 'slds-box slds-box_x-small slds-p-around_small rh-filter-panel rh-filter-panel_inline'
+            : 'slds-dropdown slds-dropdown_right slds-p-around_small rh-filter-panel';
+    }
+
+    get applyLabel() {
+        return this.inline ? 'Done' : 'Apply';
     }
 
     get heading() {

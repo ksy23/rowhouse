@@ -254,6 +254,18 @@ public with sharing class GridSecurity {
         );
     }
 
+    /**
+     * Does the running user hold Manage Public List Views? Sharing a saved
+     * view with all users or with groups needs it, as sharing a list view
+     * does. Read as canCustomizeApplication is.
+     */
+    public static Boolean canSharePublicly() {
+        return holdsUserPermission(
+            'SELECT PermissionsEditPublicFilters FROM UserPermissionAccess LIMIT 1',
+            'PermissionsEditPublicFilters'
+        );
+    }
+
     /** The running user's UserPermissionAccess row says true for this permission; false on any failure. */
     private static Boolean holdsUserPermission(String soql, String permission) {
         try {
@@ -404,6 +416,22 @@ public with sharing class GridSecurity {
         return ids == null || ids.isEmpty()
             ? new List<Database.EmptyRecycleBinResult>()
             : Database.emptyRecycleBin(ids);
+    }
+
+    /**
+     * Replace who a record of the user's own is shared with: its Manual
+     * share rows, removed and written again, in user mode, all or nothing.
+     * Salesforce lets only someone who may share the record (its owner) do
+     * either; anyone else's attempt throws and nothing changes. A saved view
+     * is shared this way.
+     */
+    public static void replaceShares(List<SObject> oldShares, List<SObject> newShares) {
+        if (!oldShares.isEmpty()) {
+            Database.delete(oldShares, true, AccessLevel.USER_MODE);
+        }
+        if (!newShares.isEmpty()) {
+            Database.insert(newShares, true, AccessLevel.USER_MODE);
+        }
     }
 
     public static void deleteOwnRecords(List<SObject> records) {

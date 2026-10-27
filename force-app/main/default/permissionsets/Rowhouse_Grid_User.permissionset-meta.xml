@@ -10,7 +10,7 @@
 -->
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Rowhouse Grid User</label>
-    <description>For everyone who uses Rowhouse grids: open grids, save, keep their own layout, write to Grid Edit Log, and the Rowhouse app with its Grid Guide. It gives no access to your records: users still need the objects and fields each grid shows.</description>
+    <description>For everyone who uses Rowhouse grids: open grids, save, keep their own layout and views, write to Grid Edit Log, and the Rowhouse app with its Grid Guide. It gives no access to your records: users still need the objects and fields each grid shows.</description>
     <applicationVisibilities>
         <application>Rowhouse</application>
         <visible>true</visible>
@@ -144,6 +144,11 @@
         <field>Grid_User_Layout__c.Layout__c</field>
         <readable>true</readable>
     </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Grid_View__c.View__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <objectPermissions>
         <allowCreate>true</allowCreate>
         <allowDelete>false</allowDelete>
@@ -169,6 +174,15 @@
         <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
         <object>Grid_User_Layout__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Grid_View__c</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
     <tabSettings>

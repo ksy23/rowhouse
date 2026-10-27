@@ -289,6 +289,22 @@ public with sharing class GridAdmin {
         return versionOf(GridDescribe.NAMESPACE);
     }
 
+    /**
+     * The views people saved of a grid, for its Views tab: every one, A to Z,
+     * with its owner, who sees it and when it last changed (GridViews), but
+     * not what it keeps. Rowhouse Grid Admin reads them all.
+     */
+    public static List<GridViews.View> views(String configName) {
+        requireAdmin();
+        return GridViews.everyViewOf(configName);
+    }
+
+    /** Delete a saved view of a grid, whoever owns it (Rowhouse Grid Admin can: Modify All on Grid View). */
+    public static void deleteView(String configName, String viewId) {
+        requireAdmin();
+        GridViews.removeAny(configName, viewId);
+    }
+
     /** A namespace's installed version, '1.2'; null for a blank namespace or one not installed. */
     @TestVisible
     private static String versionOf(String namespace) {

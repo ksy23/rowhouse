@@ -29,7 +29,7 @@ private class GridControllerTest {
     @IsTest
     static void configCarriesTheDefinitionAndTheDiagnosticsFlag() {
         System.runAs(GridTestUsers.fullUser()) {
-            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null);
+            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
             System.assertEquals('Consignment__c', def.objectApiName);
             System.assertEquals(false, result.get('diagnostics'), 'Diagnostics are off without the custom permission.');
@@ -41,6 +41,7 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             GridConfig.Definition def = (GridConfig.Definition) GridController.openGrid(
                     'Consignments',
+                    null,
                     null,
                     null,
                     null,
@@ -134,6 +135,7 @@ private class GridControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null
             );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) result.get('rows');
@@ -148,6 +150,7 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             Map<String, Object> result = GridController.fetchRows(
                 'Consignment_Charges',
+                null,
                 null,
                 null,
                 null,
@@ -272,6 +275,7 @@ private class GridControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null
             );
             Integer records = 0;
@@ -284,6 +288,7 @@ private class GridControllerTest {
                     'Consignments_By_Mode',
                     null,
                     new List<String>{ 'Pieces__c' },
+                    null,
                     null,
                     null,
                     null,
@@ -303,7 +308,7 @@ private class GridControllerTest {
     @IsTest
     static void openGridAnswersTheConfigurationTheLayoutAndTheFirstPage() {
         System.runAs(GridTestUsers.fullUser()) {
-            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null);
+            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
             System.assertEquals('Consignment__c', def.objectApiName);
             System.assert(
@@ -329,7 +334,7 @@ private class GridControllerTest {
             System.assertEquals(true, newRow.get('inline'), 'The New button adds a row in place here.');
             System.assertEquals(
                 null,
-                GridController.openGrid('Consignment_Rates', null, null, null, null).get('newRow'),
+                GridController.openGrid('Consignment_Rates', null, null, null, null, null).get('newRow'),
                 'No New button, no new row.'
             );
         }
@@ -352,7 +357,7 @@ private class GridControllerTest {
                 Status__c = 'Archived'
             );
             insert new List<Inspection__c>{ a, b };
-            Map<String, Object> result = GridController.openGrid('Inspections', null, null, null, null);
+            Map<String, Object> result = GridController.openGrid('Inspections', null, null, null, null, null);
             GridConfig.Definition def = (GridConfig.Definition) result.get('definition');
             System.assertEquals(true, def.byRecordType, 'An editable picklist on an object with record types.');
             List<Map<String, Object>> rows = (List<Map<String, Object>>) ((Map<String, Object>) result.get('page'))
@@ -364,6 +369,7 @@ private class GridControllerTest {
             System.assertEquals(restricted, reread[0].get('RecordTypeId'), 'A row read again after a save keeps it.');
             GridConfig.Definition plain = (GridConfig.Definition) GridController.openGrid(
                     'Consignments',
+                    null,
                     null,
                     null,
                     null,
@@ -417,6 +423,7 @@ private class GridControllerTest {
                     'Fort Kent',
                     null,
                     null,
+                    null,
                     null
                 )
                 .get('page');
@@ -430,7 +437,7 @@ private class GridControllerTest {
         System.runAs(GridTestUsers.fullUser()) {
             String layout = '{"v":1,"sort":[{"field":"Name","direction":"desc"}],"grouping":[{"field":"Service_Level__c","unit":null}]}';
             GridLayouts.save('Consignments', layout);
-            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null);
+            Map<String, Object> result = GridController.openGrid('Consignments', null, null, null, null, null);
             System.assertEquals(layout, result.get('layout'), 'The layout comes with it, for the browser to read.');
             Map<String, Object> start = (Map<String, Object>) result.get('start');
             System.assertEquals('Name', start.get('sortField'));
@@ -458,6 +465,7 @@ private class GridControllerTest {
             );
             Map<String, Object> start = (Map<String, Object>) GridController.openGrid(
                     'Consignments',
+                    null,
                     null,
                     null,
                     null,
@@ -491,6 +499,7 @@ private class GridControllerTest {
                 null,
                 'Consignments_Items',
                 parent.Id,
+                null,
                 null
             );
             System.assertEquals(inTab, result.get('layout'), 'The tab\'s own layout, not the grid\'s on its own.');
@@ -530,6 +539,7 @@ private class GridControllerTest {
                 null,
                 'Consignment_Items_Claims',
                 UserInfo.getUserId(),
+                null,
                 null
             );
             System.assertNotEquals(null, result.get('definition'));
@@ -541,7 +551,7 @@ private class GridControllerTest {
     @IsTest
     static void openGridRefusesAGridThatDoesNotExist() {
         try {
-            GridController.openGrid('No_Such_Grid', null, null, null, null);
+            GridController.openGrid('No_Such_Grid', null, null, null, null, null);
             System.assert(false, 'Expected an exception.');
         } catch (AuraHandledException e) {
             System.assert(e.getMessage().contains('No_Such_Grid'), e.getMessage());
@@ -552,7 +562,21 @@ private class GridControllerTest {
     static void errorsReachTheClientWithTheirMessage() {
         // Rowhouse's own refusal keeps its words.
         try {
-            GridController.fetchRows('No_Such_Grid', null, null, null, null, null, null, null, null, null, null, null);
+            GridController.fetchRows(
+                'No_Such_Grid',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
             System.assert(false, 'Expected an exception.');
         } catch (AuraHandledException e) {
             System.assert(e.getMessage().contains('No_Such_Grid'), e.getMessage());
@@ -593,6 +617,7 @@ private class GridControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null
             );
             List<Map<String, Object>> rows = (List<Map<String, Object>>) page.get('rows');
@@ -604,6 +629,7 @@ private class GridControllerTest {
                     null,
                     'CreatedDate',
                     'asc',
+                    null,
                     null,
                     null,
                     null,

@@ -1,0 +1,51 @@
+<template>
+    <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small rh-admin-views-intro">
+        The views people saved of this grid, private ones too. Only a view's owner can change it; you can delete any.
+        The grid as you build it here isn't listed: everyone can always go back to it.
+    </p>
+    <template lwc:if={error}>
+        <div class="slds-notify slds-notify_alert slds-alert_error rh-admin-views-error" role="alert">
+            <h2>{error}</h2>
+        </div>
+    </template>
+    <template lwc:if={loading}>
+        <p class="slds-text-color_weak rh-admin-views-loading">Loading views…</p>
+    </template>
+    <template lwc:if={isEmpty}>
+        <p class="slds-text-color_weak rh-admin-views-none">No one has saved a view of this grid yet.</p>
+    </template>
+    <template lwc:if={hasRows}>
+        <div class="rh-editor-table-wrap">
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer rh-admin-views">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th scope="col">View</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Who sees it</th>
+                        <th scope="col">Last changed</th>
+                        <th scope="col"><span class="slds-assistive-text">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={rows} for:item="r">
+                        <tr key={r.key}>
+                            <th scope="row" class="slds-cell-wrap rh-admin-view-name">{r.name}</th>
+                            <td class="slds-cell-wrap">{r.owner}</td>
+                            <td class="slds-cell-wrap rh-admin-view-who">{r.who}</td>
+                            <td><lightning-formatted-date-time value={r.lastModified} year="numeric" month="long" day="numeric"></lightning-formatted-date-time></td>
+                            <td class="slds-text-align_right">
+                                <button class="slds-button slds-button_icon slds-button_icon-border-filled rh-admin-view-delete" data-id={r.id} title={r.deleteLabel} disabled={busy} onclick={handleDelete}>
+                                    <lightning-icon icon-name="utility:delete" size="x-small"></lightning-icon>
+                                    <span class="slds-assistive-text">{r.deleteLabel}</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </template>
+    <template lwc:if={confirming}>
+        <c-grid-view-dialog mode="delete" name={confirming.name} oncancel={handleCancel} ondelete={handleConfirm}></c-grid-view-dialog>
+    </template>
+</template>

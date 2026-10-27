@@ -1120,7 +1120,7 @@ describe('Reset layout', () => {
         await settle();
         narrow();
         await settle();
-        expect(items(el)).toEqual(['Refresh', 'Choose columns', 'Export', 'Charts', 'Help']);
+        expect(items(el)).toEqual(['Refresh', 'Choose columns', 'Export', 'Charts', 'Filters', 'Help']);
         el.remove();
 
         observers = [];

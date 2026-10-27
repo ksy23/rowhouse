@@ -41,18 +41,19 @@
             <div class="rh-lim rh-gold"><span class="rh-t">Page Size setting (rows in the first page)</span><span class="rh-n">1 – 2,000</span><div class="rh-meter"><i style="--rh-w:20%"></i></div></div>
             <div class="rh-lim rh-rose"><span class="rh-t">Records per action call</span><span class="rh-n" data-count="50">50</span><div class="rh-meter"><i style="--rh-w:25%"></i></div></div>
             <div class="rh-lim rh-teal"><span class="rh-t">Width below which cards replace the table</span><span class="rh-n">480 px</span><div class="rh-meter"><i style="--rh-w:48%"></i></div></div>
-            <div class="rh-lim"><span class="rh-t">Columns one user can filter by at once</span><span class="rh-n" data-count="10">10</span><div class="rh-meter"><i style="--rh-w:10%"></i></div></div>
+            <div class="rh-lim"><span class="rh-t">Filters one user can add at once</span><span class="rh-n" data-count="10">10</span><div class="rh-meter"><i style="--rh-w:10%"></i></div></div>
             <div class="rh-lim rh-sky"><span class="rh-t">Formulas in one grid, columns and rules together</span><span class="rh-n" data-count="10">10</span><div class="rh-meter"><i style="--rh-w:10%"></i></div></div>
             <div class="rh-lim rh-plum"><span class="rh-t">Child total columns in one grid</span><span class="rh-n" data-count="5">5</span><div class="rh-meter"><i style="--rh-w:5%"></i></div></div>
             <div class="rh-lim rh-gold"><span class="rh-t">Rows opened at once with Show related records for every row</span><span class="rh-n" data-count="200">200</span><div class="rh-meter"><i style="--rh-w:20%"></i></div></div>
             <div class="rh-lim rh-sky"><span class="rh-t">Open rows kept in your layout</span><span class="rh-n" data-count="50">50</span><div class="rh-meter"><i style="--rh-w:25%"></i></div></div>
             <div class="rh-lim rh-plum"><span class="rh-t">Sort columns kept in your layout</span><span class="rh-n" data-count="5">5</span><div class="rh-meter"><i style="--rh-w:5%"></i></div></div>
+            <div class="rh-lim rh-gold"><span class="rh-t">Saved views one user can keep of one grid</span><span class="rh-n" data-count="100">100</span><div class="rh-meter"><i style="--rh-w:10%"></i></div></div>
             <div class="rh-lim rh-rose"><span class="rh-t">Records one Delete of every match takes</span><span class="rh-n" data-count="50000">50,000</span><div class="rh-meter"><i style="--rh-w:50%"></i></div></div>
             <div class="rh-lim rh-teal"><span class="rh-t">An Excel sheet in an import, unpacked · cells</span><span class="rh-n">100 MB · 10 million</span><div class="rh-meter"><i style="--rh-w:100%"></i></div></div>
           </div>
           <ul class="rh-tick" style="margin-top:20px">
             <li><b>Wrapped text</b> shows up to three lines. <b>Height (px)</b> is at least 160, on a grid and on a child table. A filled grid is at least 240 pixels tall.</li>
-            <li><b>A chart</b> names the nine largest groups and puts the rest in Other, or shows a date's last 24 periods and the ones before as Earlier; stacked bars name the six largest stacks and put the rest in Other; one chart per user per grid.</li>
+            <li><b>A chart</b> names the nine largest groups and puts the rest in Other, or shows a date's last 24 periods and the ones before as Earlier; stacked bars name the six largest stacks and put the rest in Other; one chart per saved view, and one per user on the grid as the admin built it.</li>
             <li><b>A grid file</b> (Export and Import Grid on the Grid Admin tab) holds up to 50 grids, child grids included, and 2 MB.</li>
             <li><b>Undo import</b> works until the import dialog closes. It deletes only records you created in the last day.</li>
             <li><b>More than 100,000 matching records</b>: the grid opens as usual and shows how many match (<i>10,000 of 110,000 items</i>); it scrolls through the first 100,000, and a search or filter reaches the rest. Counts, group counts and subtotals cover every match. Tested with 110,000 records.</li>
@@ -73,6 +74,8 @@
               <tr><td>A column's width</td><td>40 to 1,000 pixels</td></tr>
               <tr><td>A field of a related record</td><td>Up to five lookups away, each pointing to one kind of record</td></tr>
               <tr><td>A formula column's decimal places</td><td>0 to 9</td></tr>
+              <tr><td>A saved view's name</td><td>80 characters</td></tr>
+              <tr><td>Filter logic</td><td>255 characters</td></tr>
               <tr><td>Long text shown in a cell</td><td>The first 1,000 characters and "…"; the editor opens the whole text</td></tr>
             </tbody></table></div>
         </section>
@@ -129,7 +132,6 @@
           <div class="rh-sec-head"><span class="rh-sec-num">Honest list</span><h2>Not yet</h2>
           <p class="rh-sec-sub">Things people ask for that Rowhouse does not do.</p></div>
           <div class="rh-tiles rh-rv-stagger">
-            <div class="rh-tile rh-rose"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg></div><h4>Saved filters</h4><p>A user's own column filters last until they leave the page; only the admin's are kept, on the grid.</p></div>
             <div class="rh-tile rh-teal"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div><h4>Shield-encrypted fields</h4><p>Shown and edited, but not sorted, filtered, grouped, searched or totaled, since Salesforce cannot (<a href="/lightning/n/rowhouse__Grid_Guide?rowhouse__page=features&amp;rowhouse__section=encrypted" data-page="features" data-section="encrypted">Features › Security</a>). Not yet tested in an org with Shield turned on.</p></div>
             <div class="rh-tile rh-clay"><div class="rh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></div><h4>Experience Cloud</h4><p>Not supported in sites.</p></div>
           </div>
@@ -173,7 +175,9 @@
               <tr><td>Formula column</td><td>A column the grid works out from other fields, in the syntax of a formula field. Read-only.</td></tr>
               <tr><td>Field of a related record</td><td>A column for a field of the record a lookup points to, such as <code>Account.Industry</code> on a contact, headed <b>Account: Industry</b>. Changing it changes that record, on every row that shares it.</td></tr>
               <tr><td>Record Page Field</td><td>On a Grid Configuration, the lookup that links the grid's records to the record page it is placed on.</td></tr>
-              <tr><td>Grid User Layout</td><td>The private record that keeps one user's layout of one grid; Reset layout deletes it.</td></tr>
+              <tr><td>Grid User Layout</td><td>The private record that keeps one user's layout of one grid, and which of its saved views they pinned; Reset layout puts back the admin's layout and keeps their views.</td></tr>
+              <tr><td>Saved view (Grid View)</td><td>A named way of looking at a grid, as a list view is: its columns, grouping, filters and chart. Its owner's alone until they share it with all users or with roles and public groups; only its owner can change it.</td></tr>
+              <tr><td>Filter logic</td><td>How a user's filters join, by number: <code>1 AND (2 OR 3)</code>. Without it every filter must hold.</td></tr>
               <tr><td>Group, subtotal, Total row</td><td>Rows gathered by a column's value, with figures for each group; the Total row covers the whole list.</td></tr>
               <tr><td>Child table</td><td>A tab of related records under a row, itself a full grid.</td></tr>
               <tr><td>Action</td><td>A flow or quick action run from a row's menu, or a flow run on the selected rows.</td></tr>

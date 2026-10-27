@@ -336,6 +336,7 @@ private class GridFiltersTest {
                 null,
                 null,
                 filters,
+                null,
                 null
             );
             List<String> names = new List<String>();
@@ -453,6 +454,112 @@ private class GridFiltersTest {
                 counted += (Integer) g.get('n');
             }
             System.assertEquals(2, counted, 'A filtered grid counts only the filtered records.');
+        }
+    }
+
+    /** The names of the rows fetchRows returns for these filters and filter logic, sorted. */
+    private static List<String> namesFor(List<Map<String, Object>> filters, String logic) {
+        Map<String, Object> page = GridController.fetchRows(
+            'Consignments',
+            null,
+            'Name',
+            'asc',
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            filters,
+            null,
+            logic
+        );
+        List<String> names = new List<String>();
+        for (Map<String, Object> r : (List<Map<String, Object>>) page.get('rows')) {
+            names.add((String) r.get('Name'));
+        }
+        return names;
+    }
+
+    @IsTest
+    static void filterLogicJoinsTheUsersFiltersWithOrAndNot() {
+        System.runAs(GridTestUsers.fullUser()) {
+            List<Map<String, Object>> filters = new List<Map<String, Object>>{
+                new Map<String, Object>{ 'field' => 'Pieces__c', 'operator' => 'greater_than', 'value' => '20' },
+                new Map<String, Object>{ 'field' => 'Service_Level__c', 'operator' => 'equals', 'value' => 'Economy' }
+            };
+            System.assertEquals(new List<String>(), namesFor(filters, null), 'Without logic, both must hold.');
+            System.assertEquals(
+                new List<String>{ 'Apple crates, Springfield', 'Paper rolls, Bangor' },
+                namesFor(filters, '1 OR 2')
+            );
+            System.assertEquals(
+                new List<String>{ 'Apple crates, Springfield' },
+                namesFor(filters, '2 AND NOT 1'),
+                'NOT around a condition.'
+            );
+            System.assertEquals(
+                new List<String>{ 'Maple syrup, Burlington' },
+                namesFor(filters, 'NOT (1 OR 2)'),
+                'NOT around a group. As in SOQL, a blank field compared is neither true nor false, so NOT leaves Roof slate out too.'
+            );
+            // The same column twice, with OR between: Stage is A or Stage is B.
+            filters.add(
+                new Map<String, Object>{ 'field' => 'Service_Level__c', 'operator' => 'equals', 'value' => 'Standard' }
+            );
+            System.assertEquals(
+                new List<String>{ 'Apple crates, Springfield', 'Maple syrup, Burlington' },
+                namesFor(filters, '2 OR 3 OR (1 AND 2)')
+            );
+            try {
+                namesFor(filters, '1 OR 2');
+                System.assert(false, 'Every filter must be in the logic.');
+            } catch (AuraHandledException e) {
+                System.assert(e.getMessage().contains('not referenced'), e.getMessage());
+            }
+            GridGroupService.Result counted = GridGroupService.summarize(
+                'Consignments',
+                null,
+                new List<String>{ 'Service_Level__c' },
+                null,
+                null,
+                null,
+                null,
+                filters,
+                '2 OR 3 OR (1 AND 2)',
+                null
+            );
+            System.assertEquals(2, counted.groups.size(), 'The counts use the logic too: Economy and Standard.');
+        }
+    }
+
+    @IsTest
+    static void filterLogicNeverWidensTheAdminsFilters() {
+        System.runAs(GridTestUsers.fullUser()) {
+            GridConfig.Definition def = GridConfig.forUser('Consignments');
+            List<Map<String, Object>> filters = new List<Map<String, Object>>{
+                new Map<String, Object>{ 'field' => 'Pieces__c', 'operator' => 'greater_than', 'value' => '20' },
+                new Map<String, Object>{ 'field' => 'Pieces__c', 'operator' => 'is_blank' }
+            };
+            List<GridFilters.Condition> got = GridFilters.forRequest(def, filters, '1 OR 2', null, false);
+            System.assertEquals(
+                def.filters.size() + 1,
+                got.size(),
+                'The admin\'s filters each stand alone; the user\'s are one condition, joined by the logic.'
+            );
+            Map<String, Object> binds = new Map<String, Object>();
+            List<String> soql = GridFilters.clauses(TEST_RECORD, got, binds);
+            String joined = soql[soql.size() - 1];
+            System.assert(joined.contains(' OR '), joined);
+            System.assert(!joined.contains('Name'), 'Only the user\'s filters are inside the OR: ' + joined);
+        }
+    }
+
+    @IsTest
+    static void aConditionCarriesItsFieldsLabelForTheCountLine() {
+        System.runAs(GridTestUsers.fullUser()) {
+            System.assertEquals('Pieces', condition('Pieces__c', 'greater_than', '10', null).label);
+            System.assertEquals('Service Level', condition('Service_Level__c', 'is_blank', null, null).label);
         }
     }
 }

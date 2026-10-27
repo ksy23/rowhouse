@@ -247,6 +247,22 @@ public with sharing class GridGroupService {
         List<Map<String, Object>> filters,
         String recordId
     ) {
+        return summarize(configName, searchTerm, grouping, fromId, toId, parentLink, parentId, filters, null, recordId);
+    }
+
+    /** The same, the user's filters joined by their filter logic (GridFilters.forRequest). */
+    public static Result summarize(
+        String configName,
+        String searchTerm,
+        List<String> grouping,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String filterLogic,
+        String recordId
+    ) {
         GridConfig.Definition def = GridConfig.forUser(configName);
         List<Level> levels = levels(def, grouping);
         List<GridConfig.Column> totals = new List<GridConfig.Column>();
@@ -258,7 +274,7 @@ public with sharing class GridGroupService {
         if (levels.isEmpty() && totals.isEmpty()) {
             return new Result();
         }
-        return run(def, levels, totals, searchTerm, fromId, toId, parentLink, parentId, filters, recordId);
+        return run(def, levels, totals, searchTerm, fromId, toId, parentLink, parentId, filters, filterLogic, recordId);
     }
 
     /** What a chart measures: the records, or a number column summed or averaged. */
@@ -316,6 +332,39 @@ public with sharing class GridGroupService {
         List<Map<String, Object>> filters,
         String recordId
     ) {
+        return chart(
+            configName,
+            searchTerm,
+            groupBy,
+            stackBy,
+            measure,
+            measureField,
+            fromId,
+            toId,
+            parentLink,
+            parentId,
+            filters,
+            null,
+            recordId
+        );
+    }
+
+    /** The same, the user's filters joined by their filter logic (GridFilters.forRequest). */
+    public static Result chart(
+        String configName,
+        String searchTerm,
+        String groupBy,
+        String stackBy,
+        String measure,
+        String measureField,
+        String fromId,
+        String toId,
+        String parentLink,
+        String parentId,
+        List<Map<String, Object>> filters,
+        String filterLogic,
+        String recordId
+    ) {
         GridConfig.Definition def = GridConfig.forUser(configName);
         if (String.isBlank(groupBy)) {
             throw new GridException('Choose a column to group the chart by.');
@@ -333,7 +382,7 @@ public with sharing class GridGroupService {
         if (kind != 'count') {
             totals.add(measureColumn(def, kind, measureField));
         }
-        return run(def, levels, totals, searchTerm, fromId, toId, parentLink, parentId, filters, recordId);
+        return run(def, levels, totals, searchTerm, fromId, toId, parentLink, parentId, filters, filterLogic, recordId);
     }
 
     /**
@@ -375,6 +424,7 @@ public with sharing class GridGroupService {
         String parentLink,
         String parentId,
         List<Map<String, Object>> filters,
+        String filterLogic,
         String recordId
     ) {
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
@@ -395,7 +445,11 @@ public with sharing class GridGroupService {
             conditions.add(search);
         }
         conditions.addAll(
-            GridFilters.clauses(objectType, GridFilters.forRequest(def, filters, recordId, scope != null), binds)
+            GridFilters.clauses(
+                objectType,
+                GridFilters.forRequest(def, filters, filterLogic, recordId, scope != null),
+                binds
+            )
         );
         String source = ' FROM ' + GridDescribe.apiName(objectType);
 

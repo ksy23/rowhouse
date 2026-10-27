@@ -53,6 +53,26 @@ public with sharing class GridAdminController {
         }
     }
 
+    /** The views people saved of a grid, with who owns each, who sees it and when it last changed. */
+    @AuraEnabled
+    public static List<GridViews.View> gridViews(String configName) {
+        try {
+            return GridAdmin.views(configName);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /** Delete a saved view of a grid, whoever owns it. */
+    @AuraEnabled
+    public static void deleteGridView(String configName, String viewId) {
+        try {
+            GridAdmin.deleteView(configName, viewId);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
     /** The objects a grid can show. */
     @AuraEnabled(cacheable=true)
     public static List<Map<String, String>> listObjects() {

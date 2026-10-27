@@ -6,7 +6,8 @@
  * WHAT IT EDITS
  * One Grid Configuration and its records, in six tabs: the grid itself, its
  * columns, its display rules, its filters, its actions and its child
- * tables. The Grid tab also takes the Record Page Field;
+ * tables; and a seventh, Views, lists the views people saved of the grid
+ * (c/gridAdminViews), any of which an admin may delete. The Grid tab also takes the Record Page Field;
  * a column can be a formula column (a header, a formula and what it
  * returns); a rule can be Between, compare two fields, or be a formula, and
  * can show an icon or a data bar. Lists are in
@@ -53,6 +54,8 @@ import checkDraft from '@salesforce/apex/GridAdminController.checkDraft';
 import saveDraft from '@salesforce/apex/GridAdminController.saveDraft';
 import saveStatus from '@salesforce/apex/GridAdminController.saveStatus';
 import canSaveConfig from '@salesforce/apex/GridAdminController.canSave';
+import gridViews from '@salesforce/apex/GridAdminController.gridViews';
+import deleteGridView from '@salesforce/apex/GridAdminController.deleteGridView';
 import { openGuide } from 'c/guideRoute';
 import { namespaceOf } from 'c/gridFlowRoute';
 import {
@@ -189,6 +192,10 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
     saveErrors = [];
     confirmingClose = false;
     activeTab = 'grid';
+    /** The views people saved of this grid (GridAdminController.gridViews), or null while they load. */
+    savedViews = null;
+    savedViewsError = '';
+    savedViewsBusy = false;
     /** The Grid Guide's panel folded away (the page layout). */
     helpHidden = false;
     _layout = 'panel';
@@ -271,6 +278,7 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
                 this._memo.saved = draft;
                 this.loadChildFields();
                 this.loadPathObjects();
+                this.loadSavedViews();
             } else {
                 const [objects, canSave] = await Promise.all([listObjects(), canSaveConfig()]);
                 if (token !== this._runtime.token) return;
@@ -284,6 +292,46 @@ export default class GridConfigEditor extends NavigationMixin(LightningElement) 
             if (token === this._runtime.token) this.loadError = messageOf(e);
         } finally {
             if (token === this._runtime.token) this.loading = false;
+        }
+    }
+
+    // ============================================================ saved views
+
+    /** The views people saved of this grid, for the Views tab and its count. */
+    async loadSavedViews() {
+        const name = this._configName;
+        this.savedViews = null;
+        this.savedViewsError = '';
+        try {
+            const views = await gridViews({ configName: name });
+            if (name === this._configName) this.savedViews = Array.isArray(views) ? views : [];
+        } catch (e) {
+            if (name === this._configName) this.savedViewsError = 'The views could not be read. ' + messageOf(e);
+        }
+    }
+
+    /** A grid that exists has views; a new one has none yet. */
+    get hasViewsTab() {
+        return Boolean(this._configName);
+    }
+
+    get viewsTabLabel() {
+        return Array.isArray(this.savedViews) ? `Views (${this.savedViews.length})` : 'Views';
+    }
+
+    /** Delete, confirmed on the Views tab: the view goes, whoever owns it. */
+    async handleViewRemove(event) {
+        const { id, name } = event.detail || {};
+        if (!id || this.savedViewsBusy) return;
+        this.savedViewsBusy = true;
+        try {
+            await deleteGridView({ configName: this._configName, viewId: id });
+            this.dispatchEvent(new ShowToastEvent({ title: `${name} deleted`, variant: 'success' }));
+            await this.loadSavedViews();
+        } catch (e) {
+            this.savedViewsError = 'The view could not be deleted. ' + messageOf(e);
+        } finally {
+            this.savedViewsBusy = false;
         }
     }
 

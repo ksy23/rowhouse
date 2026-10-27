@@ -8,7 +8,8 @@
  * value already checked against the field and normalised by the display rules'
  * code (GridConfig.requireFits, GridConfig.conditionValue): a picklist by its
  * API value, a date as ISO or TODAY with an offset, a lookup as an Id or
- * $User. Every Condition must hold (AND).
+ * $User. Every Condition must hold (AND), except that a user's own filters
+ * may be joined by filter logic (GridFilterLogic), as one Condition.
  *   - the admin's come from the configuration. One that cannot work stops the
  *     grid with a message naming it: skipping it would show records the admin
  *     meant to keep out (fromRecords);
@@ -66,6 +67,9 @@ public with sharing class GridFilters {
         /** The field, local name (HR-4). */
         @AuraEnabled
         public String field;
+        /** The field's label, for "Filtered by Stage, Close Date" over the grid. */
+        @AuraEnabled
+        public String label;
         /** The grid's type for the field: text, picklist, date, reference and so on. */
         @AuraEnabled
         public String type;
@@ -82,6 +86,13 @@ public with sharing class GridFilters {
         public String text;
         /** A lookup filtered by its record's name (a user's filter only). */
         public Boolean byName = false;
+        /**
+         * The user's filters joined by their filter logic (GridFilterLogic):
+         * then this condition is all of them, `parts` in the filters' order,
+         * and has no field of its own.
+         */
+        public GridFilterLogic.Node logic;
+        public List<Condition> parts;
     }
 
     // ------------------------------------------------------------ the admin's
@@ -148,6 +159,7 @@ public with sharing class GridFilters {
         }
         Condition c = new Condition();
         c.field = fp.local;
+        c.label = GridConfig.defaultLabel(d);
         c.type = GridDescribe.cellType(f);
         c.operator = String.isBlank(operator) ? 'equals' : operator.trim().toLowerCase();
         GridConfig.requireFits(c.operator, c.type, d.getLabel());
@@ -176,7 +188,7 @@ public with sharing class GridFilters {
             return out;
         }
         if (raw.size() > MAX_USER_FILTERS) {
-            throw new GridException('Filter by at most ' + MAX_USER_FILTERS + ' columns.');
+            throw new GridException('Add at most ' + MAX_USER_FILTERS + ' filters.');
         }
         Schema.SObjectType objectType = GridDescribe.typeFor(def.objectApiName);
         Map<String, GridConfig.Column> byField = new Map<String, GridConfig.Column>();
@@ -310,8 +322,33 @@ public with sharing class GridFilters {
         String recordId,
         Boolean nested
     ) {
+        return forRequest(def, userFilters, null, recordId, nested);
+    }
+
+    /**
+     * The same, the user's filters joined by their filter logic ("1 AND (2 OR
+     * 3)"; blank: every one must hold). The logic joins the user's filters
+     * only; the admin's and the record page's still must all hold.
+     */
+    public static List<Condition> forRequest(
+        GridConfig.Definition def,
+        List<Map<String, Object>> userFilters,
+        String filterLogic,
+        String recordId,
+        Boolean nested
+    ) {
         List<Condition> out = new List<Condition>(def.filters);
-        out.addAll(userConditions(def, userFilters));
+        List<Condition> mine = userConditions(def, userFilters);
+        GridFilterLogic.Node logic = GridFilterLogic.parse(filterLogic, mine.size());
+        if (logic == null) {
+            out.addAll(mine);
+        } else {
+            Condition joined = new Condition();
+            joined.operator = 'logic';
+            joined.logic = logic;
+            joined.parts = mine;
+            out.add(joined);
+        }
         if (nested != true) {
             Condition page = recordCondition(def, recordId);
             if (page != null) {
@@ -343,6 +380,14 @@ public with sharing class GridFilters {
     }
 
     private static String clause(Schema.SObjectType objectType, Condition c, Map<String, Object> binds, String key) {
+        if (c.logic != null) {
+            // Each filter's own condition, its values bound under names of its own.
+            List<String> parts = new List<String>();
+            for (Integer i = 0; i < c.parts.size(); i++) {
+                parts.add(clause(objectType, c.parts[i], binds, key + 'p' + i));
+            }
+            return GridFilterLogic.soql(c.logic, parts);
+        }
         GridPaths.FieldPath fp = GridPaths.resolve(objectType, c.field);
         Schema.SObjectField f = fp.field;
         String api = fp.soql;

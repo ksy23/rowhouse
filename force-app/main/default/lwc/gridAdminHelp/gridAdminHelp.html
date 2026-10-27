@@ -216,5 +216,22 @@
                 </p>
             </div>
         </template>
+        <template lwc:elseif={isViews}>
+            <p>
+                A view is a named way of looking at a grid, as a list view is: its columns, grouping, filters and chart.
+                Users save their own and pick them from the grid's title.
+            </p>
+            <dl class="rh-help-list">
+                <dt>Who sees a view</dt>
+                <dd>
+                    Its owner alone, unless they share it with all users or with roles and public groups. Sharing needs
+                    Salesforce's Manage Public List Views permission.
+                </dd>
+                <dt>Changing a view</dt>
+                <dd>Only its owner can. Anyone who sees it can save a copy as their own.</dd>
+                <dt>Deleting</dt>
+                <dd>You can delete any view here. Its owner can delete it from the grid.</dd>
+            </dl>
+        </template>
     </section>
 </template>

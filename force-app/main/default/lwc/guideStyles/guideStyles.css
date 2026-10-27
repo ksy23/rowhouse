@@ -4964,3 +4964,119 @@ table.rh-ref.rh-wrap1 td:first-child {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Saved views in a grid's header: the title's caret and pin, and View Controls (a gear with a caret) */
+.rh-m-caret {
+    margin-left: var(--slds-g-spacing-1, 0.25rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--rh-m-weak);
+}
+
+.rh-m-pin {
+    display: inline-flex;
+    margin-left: var(--slds-g-spacing-2, 0.5rem);
+    vertical-align: middle;
+}
+
+.rh-m-pin svg {
+    width: var(--slds-g-sizing-4, 12px);
+    height: var(--slds-g-sizing-4, 12px);
+    fill: var(--rh-m-brand);
+}
+
+.rh-m-pin.rh-off svg {
+    fill: none;
+    stroke: var(--rh-m-brand);
+    stroke-width: 2;
+}
+
+.rh-m-eyebrow {
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+    color: var(--rh-m-weak);
+}
+
+.rh-m-ibtn.rh-m-gearmenu {
+    display: inline-flex;
+    gap: 0;
+    width: auto;
+    flex-basis: auto;
+    padding: 0 var(--slds-g-spacing-1, 0.25rem);
+    border-radius: var(--slds-g-radius-border-4, 1rem);
+}
+
+/* User guide › Saved views: the picker open under the title, and the changed bar */
+.rh-m-vcard {
+    position: relative;
+}
+
+.rh-m-vpick {
+    position: absolute;
+    top: 62px;
+    left: 52px;
+    z-index: 2;
+    width: 230px;
+    padding: var(--slds-g-spacing-1, 0.25rem) 0;
+    background: var(--rh-m-bg);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--rh-m-line);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-m-vpick-q {
+    margin: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-2, 0.5rem);
+    padding: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-2, 0.5rem);
+    border: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-palette-neutral-80, #c9c9c9);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    color: var(--slds-g-color-palette-neutral-60, #939393);
+}
+
+.rh-m-vpick-s {
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-1, 0.25rem);
+    color: var(--rh-m-weak);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.rh-m-vpick-i {
+    display: flex;
+    padding: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-3, 0.75rem);
+}
+
+.rh-m-vpick-i .rh-ck {
+    flex: 0 0 1.25rem;
+}
+
+.rh-m-vpick-i .rh-w {
+    margin-left: var(--slds-g-spacing-1, 0.25rem);
+    color: var(--rh-m-weak);
+}
+
+.rh-m-vchanged {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+    margin: 0 var(--slds-g-spacing-4, 1rem) var(--slds-g-spacing-2, 0.5rem);
+    padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
+    background: var(--rh-m-head);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+}
+
+.rh-m-vchanged-b {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rh-m-vchanged .rh-m-btn {
+    border-radius: var(--slds-g-radius-border-4, 1rem);
+}
+
+.rh-m-vchanged .rh-m-btn.rh-pr {
+    background: var(--rh-m-brand);
+    border-color: var(--rh-m-brand);
+    color: var(--slds-g-color-palette-neutral-100, #fff);
+}

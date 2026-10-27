@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>View__c</fullName>
+    <label>View</label>
+    <type>LongTextArea</type>
+    <length>32768</length>
+    <visibleLines>5</visibleLines>
+    <required>false</required>
+    <description>What the view keeps, as JSON: which columns show and in what order, the frozen columns, the grouping, the filters and their filter logic, the sort it opens with, and its chart.</description>
+    <inlineHelpText>What the grid shows when this view is opened.</inlineHelpText>
+</CustomField>

@@ -49,8 +49,11 @@
  *                  empty for no Actions column
  *     bulkEdit:    true: an edit to a selected row can go to every selected
  *                  row (the editor's "Update N selected items", Ctrl+Enter)
- *     filters:     [{ field, operator, value, valueTo }] the user's column
- *                  filters, one per column; the parent owns them
+ *     filters:     [{ field, operator, value, valueTo }] the user's
+ *                  filters; the parent owns them. A column's menu keeps one
+ *                  per column; the Filters panel may add more
+ *     filterLogic: how they join, "1 AND (2 OR 3)", or '' for all; chips
+ *                  are numbered when there is some
  *     adminFilters: [{ text }] the admin's filters, shown, never removable
  *     userLayout:  { key, widths, wrap, expanded, groupView } the user's saved layout,
  *                 applied once per key; a new key with nothing in
@@ -74,7 +77,8 @@
  *   rowaction       { action, recordId } an action chosen from a row's menu
  *   applyselected   { recordId, field, value, valueLabel } an edit to a
  *                   selected row, for every selected row
- *   filterchange    { filters } a column filter applied or removed
+ *   filterchange    { filters, logic? } a column filter applied or removed;
+ *                   logic only when the filter logic itself was removed
  *   layoutchange    { widths, wrap, expanded, groupView } a width the user set,
  *                   Wrap or Clip chosen, a row's related records opened or
  *                   closed, the groups' order or percentages
@@ -296,7 +300,7 @@ import {
 import { detailId, withDetails, rowTop, rowAt, panelHeightFor, panelMax } from 'c/gridChildTables';
 import { NEW_MARK } from 'c/gridEditState';
 import { minWidthFor, fitsToValues, fitWidth, linesNeeded, FIT_CAP, TEXT_FIT_CAP, MAX_LINES } from 'c/gridSizing';
-import { canFilter, describeFilter, withFilter, MAX_FILTERS } from 'c/gridFilters';
+import { canFilter, describeFilter, withFilter, withoutFilterAt, MAX_FILTERS } from 'c/gridFilters';
 import { shownColumns, canHide, hideColumn, moveColumn } from 'c/gridColumns';
 
 const HEADER = '__header';
@@ -5386,30 +5390,64 @@ export default class GridTable extends NavigationMixin(LightningElement) {
             title: `${f.text}. Set by your Salesforce admin.`,
             removeLabel: null
         }));
-        const user = this.filters.map(f => {
+        // With filter logic the user's filters are numbered, as the logic names them.
+        const logic = this.filterLogic;
+        const user = this.filters.map((f, i) => {
             const column = this.columnByField(f.field) || { field: f.field, label: f.field };
             const text = describeFilter(f, column);
             return {
-                key: 'user:' + f.field,
-                field: f.field,
-                label: text,
+                key: 'user:' + i,
+                index: i,
+                label: logic ? `${i + 1}. ${text}` : text,
                 locked: false,
                 cls: CHIP_CLS,
                 title: text,
                 removeLabel: `Remove filter: ${text}`
             };
         });
+        if (logic) {
+            user.push({
+                key: 'logic',
+                index: -1,
+                label: `Filter Logic: ${logic}`,
+                locked: false,
+                cls: CHIP_CLS + ' rh-filter-chip_logic',
+                title: `Filter Logic: ${logic}`,
+                removeLabel: 'Remove filter logic'
+            });
+        }
         const chips = admin.concat(user);
         return chips.length ? chips : null;
+    }
+
+    /** How the user's filters join, "1 AND (2 OR 3)", or '' for all of them. */
+    get filterLogic() {
+        return typeof this._config.filterLogic === 'string' ? this._config.filterLogic : '';
     }
 
     get hasUserFilters() {
         return this.filters.length > 0;
     }
 
+    /**
+     * A chip's remove button: that filter goes (the parent then clears the
+     * filter logic, whose numbers no longer match), or the filter logic goes.
+     */
     handleFilterChipRemove(event) {
         this._layout.restoreFocus = this._layout.restoreFocus || this.hasFocus;
-        this.setFilter(event.currentTarget.dataset.field, null);
+        const index = Number(event.currentTarget.dataset.index);
+        if (index < 0) {
+            this.announcement = 'Filter logic removed: every filter must match.';
+            this.dispatchEvent(new CustomEvent('filterchange', { detail: { filters: this.filters, logic: '' } }));
+            return;
+        }
+        const filter = this.filters[index];
+        if (!filter) return;
+        const column = this.columnByField(filter.field) || {};
+        this.announcement = `${column.label || filter.field}: filter removed`;
+        this.dispatchEvent(
+            new CustomEvent('filterchange', { detail: { filters: withoutFilterAt(this.filters, index) } })
+        );
     }
 
     handleClearFilters() {

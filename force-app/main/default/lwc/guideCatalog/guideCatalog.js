@@ -72,6 +72,7 @@ export const PAGES = [
             "filters",
             "recordpage",
             "layout",
+            "views",
             "numbers",
             "group",
             "charts",
@@ -106,6 +107,7 @@ export const PAGES = [
             "actions",
             "io",
             "columns",
+            "views",
             "phone",
             "a11y"
         ]

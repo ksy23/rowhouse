@@ -53,8 +53,9 @@ public with sharing class GridController {
      * parent's. A top-level grid passes neither.
      *
      * filters are the user's column filters, [{ field, operator, value,
-     * valueTo }]; recordId is the record whose page a top-level grid is
-     * on. GridFilters checks both; the admin's filters always apply.
+     * valueTo }], joined by filterLogic ("1 AND (2 OR 3)"; blank: all must
+     * hold); recordId is the record whose page a top-level grid is
+     * on. GridFilters checks them all; the admin's filters always apply.
      */
     @AuraEnabled
     public static Map<String, Object> fetchRows(
@@ -69,7 +70,8 @@ public with sharing class GridController {
         String parentLink,
         String parentId,
         List<Map<String, Object>> filters,
-        String recordId
+        String recordId,
+        String filterLogic
     ) {
         try {
             Long started = System.now().getTime();
@@ -86,6 +88,7 @@ public with sharing class GridController {
                 parentLink,
                 parentId,
                 filters,
+                filterLogic,
                 recordId,
                 started
             );
@@ -114,6 +117,14 @@ public with sharing class GridController {
      * null for no New button. Not cacheable: rows must be
      * fresh, so this is never answered from the browser's cache, and neither
      * is the configuration in it.
+     *
+     * A grid on its own opens on a saved view (GridViews): viewId, the one
+     * asked for (from the page's address), else the one this user pinned
+     * (the layout's pin), else none, as the admin built it. `view` is that
+     * view, with what it keeps; `start` then also has its filters and filter
+     * logic as they can be used now (GridViews.startOf), and the first page
+     * is narrowed by them. A view asked for that this user can't see is no
+     * view (`viewError` says so). A child table has no views.
      */
     @AuraEnabled
     public static Map<String, Object> openGrid(
@@ -121,7 +132,8 @@ public with sharing class GridController {
         String searchTerm,
         String parentLink,
         String parentId,
-        String recordId
+        String recordId,
+        String viewId
     ) {
         try {
             Long started = System.now().getTime();
@@ -135,7 +147,20 @@ public with sharing class GridController {
                 out.put('layoutError', messageOf(e));
             }
             out.put('layout', layout);
-            Map<String, Object> start = GridLayouts.startOf(def, layout);
+            GridViews.View view = null;
+            if (String.isBlank(parentLink)) {
+                view = GridViews.readIfVisible(
+                    configName,
+                    String.isNotBlank(viewId) ? viewId : GridLayouts.pinned(layout)
+                );
+                if (view == null && String.isNotBlank(viewId)) {
+                    out.put('viewError', 'The view you opened was deleted, or is no longer shared with you.');
+                }
+            }
+            out.put('view', view);
+            Map<String, Object> start = view == null
+                ? GridLayouts.startOf(def, layout)
+                : GridViews.startOf(def, view.view, GridLayouts.viewState(layout, view.id));
             out.put('start', start);
             try {
                 out.put(
@@ -151,7 +176,8 @@ public with sharing class GridController {
                         (List<String>) start.get('groupBy'),
                         parentLink,
                         parentId,
-                        null,
+                        (List<Map<String, Object>>) start.get('filters'),
+                        (String) start.get('logic'),
                         recordId,
                         started
                     )
@@ -184,6 +210,7 @@ public with sharing class GridController {
         String parentLink,
         String parentId,
         List<Map<String, Object>> filters,
+        String filterLogic,
         String recordId,
         Long started
     ) {
@@ -195,7 +222,7 @@ public with sharing class GridController {
         );
         GridChildTables.Scope scope = GridChildTables.scopeFor(def, parentLink, parentId);
         request.underParent(scope);
-        request.narrowedBy(GridFilters.forRequest(def, filters, recordId, scope != null));
+        request.narrowedBy(GridFilters.forRequest(def, filters, filterLogic, recordId, scope != null));
         request.reading(def.formulaPaths());
         request.withRecordType = def.byRecordType == true;
         request.currencyFields = GridCurrency.fieldsToRead(def.columns);
@@ -438,7 +465,7 @@ public with sharing class GridController {
      * For "delete every matching record": the next slice of Ids, in Id
      * order after afterId (null for the first), of the records the grid's
      * search, filters, parent and record page match, as fetchRows would read
-     * them. { ids }. Only for a grid that allows deleting.
+     * them (filterLogic as fetchRows'). { ids }. Only for a grid that allows deleting.
      */
     @AuraEnabled
     public static Map<String, Object> matchingIds(
@@ -448,14 +475,15 @@ public with sharing class GridController {
         String parentId,
         List<Map<String, Object>> filters,
         String recordId,
-        String afterId
+        String afterId,
+        String filterLogic
     ) {
         try {
             GridConfig.Definition def = GridConfig.forUser(configName);
             GridRequest request = new GridRequest(def.objectApiName, def.fieldNames(), null, null);
             GridChildTables.Scope scope = GridChildTables.scopeFor(def, parentLink, parentId);
             request.underParent(scope);
-            request.narrowedBy(GridFilters.forRequest(def, filters, recordId, scope != null));
+            request.narrowedBy(GridFilters.forRequest(def, filters, filterLogic, recordId, scope != null));
             request.withSearch(searchTerm);
             Id after = String.isBlank(afterId) ? null : Id.valueOf(afterId);
             return new Map<String, Object>{ 'ids' => GridDeleteService.matchingIds(def, request, after) };
@@ -528,7 +556,8 @@ public with sharing class GridController {
         String parentLink,
         String parentId,
         List<Map<String, Object>> filters,
-        String recordId
+        String recordId,
+        String filterLogic
     ) {
         try {
             return GridGroupService.summarize(
@@ -540,6 +569,7 @@ public with sharing class GridController {
                 parentLink,
                 parentId,
                 filters,
+                filterLogic,
                 recordId
             );
         } catch (Exception e) {
@@ -567,7 +597,8 @@ public with sharing class GridController {
         String parentLink,
         String parentId,
         List<Map<String, Object>> filters,
-        String recordId
+        String recordId,
+        String filterLogic
     ) {
         try {
             return GridGroupService.chart(
@@ -582,6 +613,7 @@ public with sharing class GridController {
                 parentLink,
                 parentId,
                 filters,
+                filterLogic,
                 recordId
             );
         } catch (Exception e) {
@@ -667,6 +699,94 @@ public with sharing class GridController {
     public static void resetLayout(String configName, String parentLink) {
         try {
             GridLayouts.reset(configName, parentLink);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    // ------------------------------------------------------------ saved views
+
+    /**
+     * The grid's saved views this user can open, A to Z, without what they
+     * keep: { views: [{ id, name, ownerName, mine, lastModified }], canShare }.
+     * canShare: this user may share a view with all users or groups.
+     */
+    @AuraEnabled
+    public static Map<String, Object> listViews(String configName) {
+        try {
+            return GridViews.listFor(configName);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /** One saved view, with what it keeps (and, for its owner, who sees it). */
+    @AuraEnabled
+    public static GridViews.View readView(String configName, String viewId) {
+        try {
+            return GridViews.read(configName, viewId);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /**
+     * Save a view: new when viewId is blank, else one of this user's own,
+     * renamed (name) or changed (view, JSON; null keeps it). shareMode (me,
+     * all, groups, with groupIds) sets who sees it too; null leaves that
+     * as it is. Everything is checked on the server (GridViews).
+     */
+    @AuraEnabled
+    public static GridViews.View saveView(
+        String configName,
+        String viewId,
+        String name,
+        String view,
+        String shareMode,
+        List<String> groupIds
+    ) {
+        try {
+            return GridViews.save(configName, viewId, name, view, shareMode, groupIds);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /** Who sees one of this user's own views: me, all, or groups (groupIds). */
+    @AuraEnabled
+    public static GridViews.View shareView(String configName, String viewId, String shareMode, List<String> groupIds) {
+        try {
+            return GridViews.share(configName, viewId, shareMode, groupIds);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /** Delete one of this user's own views. */
+    @AuraEnabled
+    public static void deleteView(String configName, String viewId) {
+        try {
+            GridViews.remove(configName, viewId);
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /** The kinds of group a view can be shared with in this org: [{ value, label }]. */
+    @AuraEnabled
+    public static List<Map<String, String>> viewGroupTypes() {
+        try {
+            return GridViews.groupTypes();
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
+    /** Groups of one kind whose names contain the term, to share a view with. */
+    @AuraEnabled
+    public static List<GridViews.ShareGroup> searchViewGroups(String type, String term) {
+        try {
+            return GridViews.searchGroups(type, term);
         } catch (Exception e) {
             throw auraError(e);
         }

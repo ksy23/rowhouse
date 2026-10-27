@@ -370,17 +370,17 @@ describe('"Filtered" in the header', () => {
         await settle();
         filterChange(el, [WON]);
         await settle();
-        expect($(el, '.rh-filtered').textContent).toBe('Filtered');
+        expect($(el, '.rh-filtered').textContent).toBe('Filtered by Service Level');
         filterChange(el, []);
         await settle();
         expect($(el, '.rh-filtered')).toBeNull();
     });
 
     it('is shown whenever the admin has filtered the grid', async () => {
-        withDefinition({ filters: [{ text: 'Service Level equals Standard' }] });
+        withDefinition({ filters: [{ field: 'Service_Level__c', text: 'Service Level equals Standard' }] });
         const el = mount();
         await settle();
-        expect($(el, '.rh-filtered').textContent).toBe('Filtered');
+        expect($(el, '.rh-filtered').textContent).toBe('Filtered by Service Level');
     });
 });
 

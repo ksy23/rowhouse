@@ -14,7 +14,10 @@ import {
     toRequest,
     problemOf,
     describeFilter,
-    withFilter
+    withFilter,
+    withFilterAt,
+    withoutFilterAt,
+    parseLogic
 } from 'c/gridFilters';
 
 const values = list => list.map(o => o.value);
@@ -234,5 +237,40 @@ describe('the list of filters', () => {
         expect(withFilter(full, 'Stop_1__c', { field: 'Stop_1__c', operator: 'is_not_blank' })[0].operator).toBe(
             'is_not_blank'
         );
+    });
+});
+
+describe('filter logic, as the server reads it (GridFilterLogic)', () => {
+    it('reads AND, OR, NOT and parentheses, and spells the logic one way', () => {
+        expect(parseLogic('1 and (2 or 3)', 3)).toEqual({ logic: '1 AND (2 OR 3)', error: '' });
+        expect(parseLogic('((1)) OR NOT (2 AND 3)', 3)).toEqual({ logic: '1 OR NOT (2 AND 3)', error: '' });
+        expect(parseLogic('  1and(2or3) ', 3).logic).toBe('1 AND (2 OR 3)');
+        expect(parseLogic('', 3)).toEqual({ logic: '', error: '' });
+        expect(parseLogic('1 OR 2', 0)).toEqual({ logic: '', error: '' });
+    });
+
+    it("refuses logic that cannot work, in Salesforce's words", () => {
+        const errors = {
+            '1 AND 2 OR 3': 'Your filter must use parentheses around successive AND and OR expressions.',
+            '1 AND (2 OR 3': 'Your filter is missing a parenthesis.',
+            '1 AND 2) OR 3': 'Your filter is missing a parenthesis.',
+            '1 AND 2': 'Some filter conditions are defined but not referenced in your filter logic.',
+            '1 AND 2 AND 4': 'The filter logic references an undefined filter: 4.',
+            '1 & 2 & 3': 'Check the spelling in your filter logic.',
+            '1 AND 2 AND 3 OR Name': 'Check the spelling in your filter logic.',
+            '1 2 3': 'Check the spelling in your filter logic.'
+        };
+        Object.keys(errors).forEach(logic => expect(parseLogic(logic, 3)).toEqual({ logic: '', error: errors[logic] }));
+        expect(parseLogic('1' + ' AND 1'.repeat(60), 1).error).toBe('Filter logic is 255 characters at most.');
+    });
+
+    it('replaces or removes a filter by its place, as the Filters panel and a chip do', () => {
+        const a = { field: 'StageName', operator: 'equals', value: 'Prospecting' };
+        const b = { field: 'StageName', operator: 'equals', value: 'Qualification' };
+        const c = { field: 'Amount', operator: 'is_blank' };
+        expect(withFilterAt([a, b], 1, c)).toEqual([a, c]);
+        expect(withFilterAt([a, b], 5, c)).toEqual([a, b]);
+        expect(withoutFilterAt([a, b, c], 1)).toEqual([a, c]);
+        expect(withoutFilterAt([a], 3)).toEqual([a]);
     });
 });

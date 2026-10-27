@@ -192,6 +192,7 @@ private class GridPathsTest {
                 null,
                 null,
                 null,
+                null,
                 null
             );
             String summary = JSON.serialize(groups);
@@ -217,6 +218,7 @@ private class GridPathsTest {
             null,
             null,
             filters,
+            null,
             null
         );
         return (List<Map<String, Object>>) page.get('rows');

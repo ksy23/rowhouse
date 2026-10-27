@@ -16,6 +16,8 @@
  * INPUTS (plain values, HR-28)
  *   columns   the grid's columns, [{ field, label, alwaysShown }], in the admin's order
  *   choice    this user's choice, { order, hidden }, or null for the admin's
+ *   viewShown a saved view is shown: the choice changes the view, kept for
+ *             everyone who sees it once saved, not only for this user
  * EVENTS OUT
  *   save      { visible: [field] } the columns to show, in order
  *   cancel
@@ -26,6 +28,7 @@ import { shownColumns } from 'c/gridColumns';
 export default class GridColumnsDialog extends LightningElement {
     @api columns = [];
     @api choice = null;
+    @api viewShown = false;
 
     /** The Visible list as the user has it now; null until they change it. */
     picked = null;

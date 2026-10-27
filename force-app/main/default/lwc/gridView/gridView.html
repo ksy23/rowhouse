@@ -20,21 +20,89 @@
                     </div>
                 </template>
                 <div class="slds-media__body">
-                    <h2 class={titleClass}>
-                        <template lwc:if={titlePending}>
-                            <!-- The grid's name is not known until it opens: a grey bar where it will be. -->
-                            <span class="rh-skeleton rh-skeleton_title" aria-hidden="true"></span>
-                            <span class="slds-assistive-text">Loading the grid</span>
+                    <template lwc:if={hasViews}>
+                        <!-- A list view's header: the grid's title small above a saved view's name, the
+                             name a picker of the grid's views, and the pin beside it. -->
+                        <template lwc:if={viewEyebrow}>
+                            <p class="slds-text-body_small slds-text-color_weak slds-truncate rh-view-eyebrow">{viewEyebrow}</p>
                         </template>
-                        <template lwc:else>
-                            <span class="slds-truncate" title={title}>{title}</span>
-                        </template>
-                    </h2>
+                        <div class="slds-grid slds-grid_vertical-align-center rh-view-head">
+                            <div class="rh-view-picker-wrap" onfocusout={handlePickerFocusOut} onkeydown={handlePickerKeyDown}>
+                                <h2 class="slds-card__header-title">
+                                    <button class="slds-button rh-view-picker" title={pickerLabel} aria-label={pickerLabel} aria-haspopup="dialog" aria-expanded={pickerExpanded} onclick={handlePickerToggle}>
+                                        <span class="slds-truncate rh-view-name">{viewTitle}</span>
+                                        <lightning-icon icon-name="utility:down" size="x-small" class="slds-m-left_xx-small rh-view-caret" aria-hidden="true"></lightning-icon>
+                                    </button>
+                                </h2>
+                                <template lwc:if={pickerOpen}>
+                                    <div class="slds-dropdown slds-dropdown_left slds-dropdown_length-with-icon-10 rh-view-menu" role="dialog" aria-label="Select a view">
+                                        <div class="slds-p-horizontal_small slds-p-vertical_x-small">
+                                            <input class="slds-input rh-view-search" type="search" placeholder="Search views..." aria-label="Search views" autocomplete="off" value={pickerTerm} oninput={handlePickerSearch} />
+                                        </div>
+                                        <template lwc:if={pickerLoading}>
+                                            <p class="slds-p-around_small slds-text-color_weak rh-view-loading">Loading views…</p>
+                                        </template>
+                                        <template lwc:if={viewListError}>
+                                            <p class="slds-p-around_small slds-text-color_error rh-view-list-error">{viewListError}</p>
+                                        </template>
+                                        <template lwc:if={pickerRecent.length}>
+                                            <h3 class="slds-text-title_caps slds-p-horizontal_small slds-p-top_x-small rh-view-section">Recent Views</h3>
+                                            <ul class="slds-dropdown__list rh-view-list" role="list">
+                                                <template for:each={pickerRecent} for:item="v">
+                                                    <li key={v.key} class="slds-dropdown__item">
+                                                        <button class="slds-button slds-dropdown__item rh-view-item" data-id={v.id} aria-current={v.current} onclick={handlePickView}>
+                                                            <span class="rh-view-check"><template lwc:if={v.current}><lightning-icon icon-name="utility:check" size="x-small" alternative-text="Shown:"></lightning-icon></template></span><span class="rh-view-check"></span><span class="slds-truncate" title={v.label}>{v.label}<template lwc:if={v.pinned}><span class="slds-text-color_weak"> (Pinned view)</span></template></span>
+                                                        </button>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                        <template lwc:if={pickerOthers.length}>
+                                            <h3 class="slds-text-title_caps slds-p-horizontal_small slds-p-top_x-small rh-view-section">All Other Views</h3>
+                                            <ul class="slds-dropdown__list rh-view-list" role="list">
+                                                <template for:each={pickerOthers} for:item="v">
+                                                    <li key={v.key} class="slds-dropdown__item">
+                                                        <button class="slds-button slds-dropdown__item rh-view-item" data-id={v.id} onclick={handlePickView}>
+                                                            <span class="rh-view-check"></span><span class="slds-truncate" title={v.label}>{v.label}<template lwc:if={v.pinned}><span class="slds-text-color_weak"> (Pinned view)</span></template></span>
+                                                        </button>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                        <template lwc:if={pickerEmpty}>
+                                            <p class="slds-p-around_small slds-text-color_weak rh-view-none">No views match.</p>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                            <lightning-button-icon
+                                class="slds-m-left_x-small rh-view-pin"
+                                icon-name={pinIcon}
+                                variant="bare"
+                                alternative-text={pinLabel}
+                                title={pinLabel}
+                                aria-pressed={pinPressed}
+                                onclick={handlePin}
+                            ></lightning-button-icon>
+                        </div>
+                    </template>
+                    <template lwc:else>
+                        <h2 class={titleClass}>
+                            <template lwc:if={titlePending}>
+                                <!-- The grid's name is not known until it opens: a grey bar where it will be. -->
+                                <span class="rh-skeleton rh-skeleton_title" aria-hidden="true"></span>
+                                <span class="slds-assistive-text">Loading the grid</span>
+                            </template>
+                            <template lwc:else>
+                                <span class="slds-truncate" title={title}>{title}</span>
+                            </template>
+                        </h2>
+                    </template>
                     <template lwc:if={showMeta}>
                         <p class="slds-text-body_small slds-text-color_weak rh-meta">
                             <span class="rh-count">{countLabel}</span>
                             <template lwc:if={isFiltered}>
-                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-filtered">Filtered</span>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-filtered">{filteredText}</span>
                             </template>
                             <template lwc:if={isTruncated}>
                                 <lightning-helptext class="slds-m-left_xx-small rh-truncated" content={truncatedMessage}></lightning-helptext>
@@ -44,6 +112,9 @@
                             </template>
                             <template lwc:if={loadedAt}>
                                 <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-updated">Updated <lightning-relative-date-time value={loadedAt}></lightning-relative-date-time></span>
+                            </template>
+                            <template lwc:if={sharedByText}>
+                                <span class="rh-meta-sep" aria-hidden="true">•</span><span class="rh-shared-by">{sharedByText}</span>
                             </template>
                         </p>
                     </template>
@@ -71,6 +142,22 @@
                     </template>
                     <span class="slds-assistive-text rh-search-hint-spoken" aria-live="polite">{searchHint}</span>
                 </div>
+                <template lwc:if={hasViews}>
+                    <!-- A list view's List View Controls, for the saved views: wide or narrow. -->
+                    <lightning-button-menu
+                        class="slds-m-left_x-small rh-view-controls"
+                        icon-name="utility:settings"
+                        alternative-text="View Controls"
+                        title="View Controls"
+                        tooltip="View Controls"
+                        menu-alignment="right"
+                        onselect={handleViewControl}
+                    >
+                        <template for:each={viewControlItems} for:item="m">
+                            <lightning-menu-item key={m.key} value={m.value} label={m.label} disabled={m.disabled}></lightning-menu-item>
+                        </template>
+                    </lightning-button-menu>
+                </template>
                 <template lwc:if={wideToolbar}>
                     <!-- Each icon button: Salesforce's tooltip at once, and the same words as the
                          browser's hover text after a moment, as a list view's toolbar has them. -->
@@ -102,7 +189,7 @@
                             alternative-text="Charts"
                             title="Charts"
                             tooltip="Charts"
-                            selected={chartsOpen}
+                            selected={showCharts}
                             onclick={handleChartsToggle}
                         ></lightning-button-icon-stateful>
                     </template>
@@ -130,6 +217,18 @@
                                 </span>
                             </template>
                         </span>
+                    </template>
+                    <template lwc:if={canOpenFilters}>
+                        <!-- A list view's Filters: a panel beside the table, as Charts is. -->
+                        <lightning-button-icon-stateful
+                            class="slds-m-left_x-small rh-filters-toggle"
+                            icon-name="utility:filterList"
+                            alternative-text="Filters"
+                            title="Filters"
+                            tooltip="Filters"
+                            selected={showFilters}
+                            onclick={handleFiltersToggle}
+                        ></lightning-button-icon-stateful>
                     </template>
                     <template lwc:if={canResetLayout}>
                         <!-- This user's layout is kept: put back the admin's. -->
@@ -281,6 +380,25 @@
             </template>
         </div>
 
+        <template lwc:if={viewChanged}>
+            <!-- A saved view changed and not saved: Save (its owner), Save As, or Revert. -->
+            <div class="slds-scoped-notification slds-scoped-notification_light slds-media slds-media_center slds-m-horizontal_medium slds-m-bottom_x-small rh-view-changed" role="status">
+                <div class="slds-media__figure">
+                    <lightning-icon icon-name="utility:edit" size="x-small" alternative-text="Changed"></lightning-icon>
+                </div>
+                <div class="slds-media__body">
+                    <span class="rh-view-changed-text">{viewChangedText}</span>
+                </div>
+                <div class="slds-media__figure slds-media__figure_reverse">
+                    <lightning-button class="slds-m-left_x-small rh-view-revert" label="Revert" variant="base" onclick={handleViewRevert}></lightning-button>
+                    <lightning-button class="slds-m-left_x-small rh-view-save-as" label="Save As" onclick={handleViewSaveAs}></lightning-button>
+                    <template lwc:if={viewMine}>
+                        <lightning-button class="slds-m-left_x-small rh-view-save" label="Save" variant="brand" disabled={viewSaveDisabled} onclick={handleViewSave}></lightning-button>
+                    </template>
+                </div>
+            </div>
+        </template>
+
         <template lwc:if={displayKeyOpen}>
             <div class="slds-p-horizontal_medium slds-p-bottom_x-small rh-display-key" id="display-key" role="region" aria-label="Display Key">
                 <ul class="slds-grid slds-wrap">
@@ -392,9 +510,21 @@
                     onnamesfound={handleNamesFound}
                 ></c-grid-table>
                 </div>
+                <template lwc:if={showFilters}>
+                    <c-grid-filters-panel
+                        class="rh-chart-panel rh-filters-panel"
+                        columns={definition.columns}
+                        filters={filters}
+                        logic={filterLogic}
+                        admin-filters={adminFilters}
+                        onapply={handleFiltersApply}
+                        onclose={handleFiltersClose}
+                    ></c-grid-filters-panel>
+                </template>
                 <template lwc:if={showCharts}>
                     <c-grid-chart-panel
                         class="rh-chart-panel"
+                        kept-with={chartKeptWith}
                         chart={chart}
                         data={chartData}
                         columns={definition.columns}
@@ -501,6 +631,7 @@
             <c-grid-columns-dialog
                 columns={massColumns}
                 choice={columnChoice}
+                view-shown={hasView}
                 onsave={handleColumnsSave}
                 oncancel={handleColumnsCancel}
             ></c-grid-columns-dialog>
@@ -518,6 +649,22 @@
                 onnamesfound={handleNamesFound}
                 onclose={handleImportClose}
             ></c-grid-import-dialog>
+        </template>
+
+        <template lwc:if={viewDialog}>
+            <c-grid-view-dialog
+                mode={viewDialogMode}
+                name={viewDialog.name}
+                sharing={viewDialog.sharing}
+                groups={viewDialog.groups}
+                can-share={viewCanShare}
+                grid-title={title}
+                busy={viewDialogBusy}
+                error={viewDialogError}
+                onsave={handleViewDialogSave}
+                ondelete={handleViewDialogDelete}
+                oncancel={handleViewDialogCancel}
+            ></c-grid-view-dialog>
         </template>
 
         <template lwc:if={settingsOpen}>

@@ -24,6 +24,8 @@
  *   columns      the grid's columns
  *   names        lookup names the grid already knows, { recordId: name }
  *   objectLabel  the grid's object, plural ("Opportunities")
+ *   keptWith     whose the chart is: 'you' (the user's own, on the grid as the
+ *                admin built it) or 'view' (a saved view's)
  * EVENTS OUT
  *   close, edit, display { type }
  */
@@ -76,6 +78,7 @@ function wrappable(label) {
 }
 
 export default class GridChartPanel extends LightningElement {
+    @api keptWith = 'you';
     @api chart;
     @api data;
     @api columns;
@@ -155,7 +158,8 @@ export default class GridChartPanel extends LightningElement {
 
     get subtitle() {
         const type = this.chart && TYPE_NAMES[this.chart.type];
-        return type ? `${type} · kept for you` : '';
+        if (!type) return '';
+        return `${type} · ${this.keptWith === 'view' ? 'kept with this view' : 'kept for you'}`;
     }
 
     /** The gear's Display as: every type, the one drawn checked. */

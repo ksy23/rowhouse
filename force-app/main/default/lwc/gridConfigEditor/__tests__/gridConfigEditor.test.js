@@ -215,7 +215,8 @@ describe('reading a grid', () => {
             'Display rules (1)',
             'Filters (0)',
             'Actions (0)',
-            'Child tables (1)'
+            'Child tables (1)',
+            'Views (0)'
         ]);
     });
 

@@ -169,6 +169,30 @@ public with sharing class GridLayouts {
         };
     }
 
+    /**
+     * The saved view this user pinned for the grid (the layout's pin), or
+     * null: the grid then opens as the admin built it.
+     */
+    public static String pinned(String layout) {
+        Map<String, Object> saved = parsed(layout);
+        Object pin = saved == null ? null : saved.get('pin');
+        return pin instanceof String && String.isNotBlank((String) pin) ? (String) pin : null;
+    }
+
+    /**
+     * What this user keeps of their own for one saved view (the layout's
+     * views, by the view's Id): the sort they last chose, and a change to the
+     * view not yet saved (draft). Null when there is nothing.
+     */
+    public static Map<String, Object> viewState(String layout, String viewId) {
+        Map<String, Object> saved = parsed(layout);
+        Object views = saved == null ? null : saved.get('views');
+        Object mine = views instanceof Map<String, Object> && viewId != null
+            ? ((Map<String, Object>) views).get(viewId)
+            : null;
+        return mine instanceof Map<String, Object> ? (Map<String, Object>) mine : null;
+    }
+
     /** gridGroups' normalizeGrouping, as fetchRows takes the levels. */
     private static List<String> groupingThatFits(List<Object> levels, Map<String, GridConfig.Column> byField) {
         List<String> out = new List<String>();
@@ -257,9 +281,10 @@ public with sharing class GridLayouts {
 
     /**
      * The grid's API name as the org spells it, so one grid has one Key
-     * whatever the case it is asked for in. Throws when there is no such grid.
+     * whatever the case it is asked for in (a saved view's Grid, too).
+     * Throws when there is no such grid.
      */
-    private static String configNamed(String configName) {
+    public static String configNamed(String configName) {
         if (String.isNotBlank(configName)) {
             Grid_Configuration__mdt cfg = Grid_Configuration__mdt.getInstance(configName.trim());
             if (cfg != null) {

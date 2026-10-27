@@ -120,6 +120,7 @@ private class GridChildTablesTest {
                 'Consignments_Items',
                 parentA.Id,
                 null,
+                null,
                 null
             );
             Map<String, Object> b = GridController.fetchRows(
@@ -134,6 +135,7 @@ private class GridChildTablesTest {
                 'Consignments_Items',
                 parentB.Id,
                 null,
+                null,
                 null
             );
             Map<String, Object> searched = GridController.fetchRows(
@@ -147,6 +149,7 @@ private class GridChildTablesTest {
                 null,
                 'Consignments_Items',
                 parentA.Id,
+                null,
                 null,
                 null
             );
@@ -179,6 +182,7 @@ private class GridChildTablesTest {
                 null,
                 'Consignments_Items',
                 parentA.Id,
+                null,
                 null,
                 null
             );
@@ -265,6 +269,7 @@ private class GridChildTablesTest {
                     null,
                     'Consignment_Items_Claims',
                     parentA.Id,
+                    null,
                     null,
                     null
                 );
@@ -438,6 +443,7 @@ private class GridChildTablesTest {
             Map<String, Object> page = GridController.fetchRows(
                 'Nest_Accounts',
                 'Casco Bay Marine',
+                null,
                 null,
                 null,
                 null,

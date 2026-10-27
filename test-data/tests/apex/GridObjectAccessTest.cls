@@ -103,11 +103,12 @@ private class GridObjectAccessTest {
                     return GridConfig.forUser('Inspections');
                 }
                 when 'openGrid' {
-                    return GridController.openGrid('Inspections', null, null, null, null);
+                    return GridController.openGrid('Inspections', null, null, null, null, null);
                 }
                 when 'fetchRows' {
                     return GridController.fetchRows(
                         'Inspections',
+                        null,
                         null,
                         null,
                         null,
@@ -137,6 +138,7 @@ private class GridObjectAccessTest {
                         'Inspections',
                         null,
                         new List<String>{ 'Status__c' },
+                        null,
                         null,
                         null,
                         null,
@@ -279,6 +281,7 @@ private class GridObjectAccessTest {
             Map<String, Object> page = GridController.fetchRows(
                 'Consignments',
                 PROBE,
+                null,
                 null,
                 null,
                 null,

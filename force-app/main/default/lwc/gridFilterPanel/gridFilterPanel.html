@@ -1,6 +1,6 @@
 <template>
     <section
-        class="slds-dropdown slds-dropdown_right slds-p-around_small rh-filter-panel"
+        class={panelClass}
         role="dialog"
         aria-label={heading}
         onkeydown={handleKeyDown}
@@ -83,7 +83,7 @@
             </div>
             <div>
                 <button class="slds-button slds-button_neutral rh-filter-cancel" onclick={handleCancel}>Cancel</button>
-                <button class="slds-button slds-button_brand rh-filter-apply" onclick={handleApply}>Apply</button>
+                <button class="slds-button slds-button_brand rh-filter-apply" onclick={handleApply}>{applyLabel}</button>
             </div>
         </div>
     </section>
