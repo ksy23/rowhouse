@@ -18,15 +18,15 @@ in Lightning Experience, in the browsers Salesforce supports.
 
 ## Install
 
-Rowhouse 1.3, **Winter 2027**, is a managed package (namespace `rowhouse`,
-package version ID `04tUK000000UDSrYAO`).
+Rowhouse 1.4, **Winter 2027**, is a managed package (namespace `rowhouse`,
+package version ID `04tUK000000UDW5YAO`).
 
 - **Production or Developer Edition org:**
-  [install Rowhouse](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
+  [install Rowhouse](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDW5YAO)
 - **Sandbox:**
-  [install Rowhouse in a sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
+  [install Rowhouse in a sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDW5YAO)
 - **Salesforce CLI:**
-  `sf package install --package 04tUK000000UDSrYAO --target-org <your org> --wait 20`
+  `sf package install --package 04tUK000000UDW5YAO --target-org <your org> --wait 20`
 
 Then assign the **Rowhouse Grid Admin** permission set to whoever builds grids
 and **Rowhouse Grid User** to everyone who uses them, and open the **Rowhouse**
@@ -65,7 +65,12 @@ grid ([Placing a grid](#placing-a-grid), below).
 
 **Seeing the data**
 - Multi-column sort, quick search, and filters: the admin's, which users
-  cannot remove, and each user's own from a column's menu.
+  cannot remove, and each user's own from a column's menu or the Filters
+  panel, joined by AND or by filter logic with OR.
+- Saved views, as list views have them: named views of a grid with their own
+  columns, grouping, filters and chart, picked from the grid's title, pinned,
+  and shared with all users, roles or public groups through Salesforce's
+  sharing.
 - Grouping up to three levels (dates by day, week, month, quarter, year or
   fiscal period), with counts and subtotals over every matching record, and a
   Total row.

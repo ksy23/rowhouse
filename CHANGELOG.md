@@ -3,17 +3,51 @@
 Each release is a version of the Rowhouse Grid managed package (namespace
 `rowhouse`). Install or upgrade from its links; an upgrade keeps your grids.
 
+## 1.4 — Winter 2027 (27 October 2026)
+
+The version to install. It upgrades 1.0, 1.1, 1.2 or 1.3 in place and keeps
+your grids and layouts.
+
+- **Package version:** 1.4.0.2, ID `04tUK000000UDW5YAO`
+- **Install:**
+  [production or Developer Edition](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDW5YAO)
+  ·
+  [sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDW5YAO)
+  · `sf package install --package 04tUK000000UDW5YAO --target-org <your org> --wait 20`
+
+- **Saved views, as list views have them.** The grid's title is a view
+  picker: Recent Views, All Other Views and a search. **View Controls** (a
+  gear with ▾ beside the search) has New, Clone, Rename, Sharing Settings,
+  Select Fields to Display, Delete, Reset Column Sorting and Reset Column
+  Widths. A view keeps its columns and their order, frozen columns, grouping,
+  filters and filter logic, the sort it opens with, and its chart. Change one
+  and a bar says what changed, with **Save**, **Save As** and **Revert**. Pin
+  the view the grid opens on for you. Widths, Wrap or Clip and open rows stay
+  your own on every view.
+- **Sharing a view** with all users, roles or public groups goes through
+  Salesforce's own sharing and needs the **Manage Public List Views**
+  permission, as sharing a list view does. A view shared with you says who
+  shared it; you can use it and save a copy, not change it. Views are for a
+  grid on its own, not a tab of related records.
+- **The Filters panel and OR.** The funnel opens a panel with your admin's
+  filters, locked, and yours, numbered. A column can have more than one
+  filter, and **Add Filter Logic** joins them with AND, OR, NOT and
+  parentheses, such as `1 AND (2 OR 3)`. Your admin's filters still apply to
+  every record.
+- **The Grid Admin tab's Views tab** lists every saved view of a grid, private
+  ones too, with its owner, who sees it and when it last changed, and lets an
+  admin delete one.
+- **Permission sets:** Rowhouse Grid User now lets people save views of their
+  own; Rowhouse Grid Admin also gives View All and Modify All on Grid View, the
+  new object that holds them. Nothing to set up after upgrading.
+- **Reset layout** shows only on the grid as your admin built it; your views
+  and your pin stay.
+- **Grid Guide:** the pipeline review tutorial saves, shares and pins a view,
+  and Troubleshooting covers sharing and views.
+
 ## 1.3 — Winter 2027 (26 October 2026)
 
-The version to install. It upgrades 1.0, 1.1 or 1.2 in place and keeps your
-grids.
-
-- **Package version:** 1.3.0.1, ID `04tUK000000UDSrYAO`
-- **Install:**
-  [production or Developer Edition](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
-  ·
-  [sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
-  · `sf package install --package 04tUK000000UDSrYAO --target-org <your org> --wait 20`
+Package version 1.3.0.1. Replaced by 1.4: install 1.4 instead.
 
 - **Check for a newer version.** Under the Grid Admin tab's name, the version
   of Rowhouse installed in the org and a link that opens rowhouse.app's What's
