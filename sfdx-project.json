@@ -4,7 +4,7 @@
             "path": "force-app",
             "package": "Rowhouse Grid",
             "versionName": "Winter 2027",
-            "versionNumber": "1.4.0.NEXT",
+            "versionNumber": "1.5.0.NEXT",
             "ancestorVersion": "HIGHEST",
             "versionDescription": "Rowhouse Grid by Kugamon: a free, open-source data grid for Salesforce. The grid Salesforce should have shipped. For questions regarding this package, please contact support@kugamon.com.",
             "default": true,

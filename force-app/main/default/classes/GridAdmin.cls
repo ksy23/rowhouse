@@ -282,7 +282,11 @@ public with sharing class GridAdmin {
      * Rowhouse never asks anything outside the org; the admin's click on the
      * link is what leaves it. Null where Rowhouse is not installed as the
      * package (an org that deploys the source has no version of its own).
-     * Publisher has no version name, so none is given.
+     * Publisher has no version name, so none is given. An org that also
+     * publishes the namespace (linked to it as a Dev Hub) has been seen to
+     * give the package's own code 0.0 there; that is no version, so none is
+     * shown. System.requestVersion() is no way round it: outside a managed
+     * package's context it throws an exception no catch can stop.
      */
     public static String installedVersion() {
         requireAdmin();
