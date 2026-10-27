@@ -18,15 +18,15 @@ in Lightning Experience, in the browsers Salesforce supports.
 
 ## Install
 
-Rowhouse 1.2, **Winter 2027**, is a managed package (namespace `rowhouse`,
-package version ID `04tUK000000TbllYAC`).
+Rowhouse 1.3, **Winter 2027**, is a managed package (namespace `rowhouse`,
+package version ID `04tUK000000UDSrYAO`).
 
 - **Production or Developer Edition org:**
-  [install Rowhouse](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TbllYAC)
+  [install Rowhouse](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
 - **Sandbox:**
-  [install Rowhouse in a sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TbllYAC)
+  [install Rowhouse in a sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
 - **Salesforce CLI:**
-  `sf package install --package 04tUK000000TbllYAC --target-org <your org> --wait 20`
+  `sf package install --package 04tUK000000UDSrYAO --target-org <your org> --wait 20`
 
 Then assign the **Rowhouse Grid Admin** permission set to whoever builds grids
 and **Rowhouse Grid User** to everyone who uses them, and open the **Rowhouse**
@@ -35,9 +35,9 @@ grid ([Placing a grid](#placing-a-grid), below).
 
 - **Upgrading:** each new version is installed the same way, from its link in
   [CHANGELOG.md](CHANGELOG.md). It upgrades Rowhouse in place and keeps your
-  grids. In versions after 1.2, **Check for a newer version**, under the Grid
-  Admin tab's name, opens rowhouse.app's What's new with your version, which
-  says whether a newer one is out.
+  grids. **Check for a newer version**, under the Grid Admin tab's name, opens
+  rowhouse.app's What's new with your version, which says whether a newer one
+  is out.
 - **If saving a grid is refused** with "Salesforce did not let Rowhouse save
   it", turn on **Deploy Metadata from Non-Certified Package Versions via
   Apex** (in Setup, type Apex Settings in the Quick Find box). Saving a grid,

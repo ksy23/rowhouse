@@ -3,7 +3,17 @@
 Each release is a version of the Rowhouse Grid managed package (namespace
 `rowhouse`). Install or upgrade from its links; an upgrade keeps your grids.
 
-## Unreleased
+## 1.3 — Winter 2027 (26 October 2026)
+
+The version to install. It upgrades 1.0, 1.1 or 1.2 in place and keeps your
+grids.
+
+- **Package version:** 1.3.0.1, ID `04tUK000000UDSrYAO`
+- **Install:**
+  [production or Developer Edition](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
+  ·
+  [sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000UDSrYAO)
+  · `sf package install --package 04tUK000000UDSrYAO --target-org <your org> --wait 20`
 
 - **Check for a newer version.** Under the Grid Admin tab's name, the version
   of Rowhouse installed in the org and a link that opens rowhouse.app's What's
@@ -16,14 +26,7 @@ Each release is a version of the Rowhouse Grid managed package (namespace
 
 ## 1.2 — Winter 2027 (19 October 2026)
 
-The version to install. It upgrades 1.0 or 1.1 in place and keeps your grids.
-
-- **Package version:** 1.2.0.2, ID `04tUK000000TbllYAC`
-- **Install:**
-  [production or Developer Edition](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TbllYAC)
-  ·
-  [sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tUK000000TbllYAC)
-  · `sf package install --package 04tUK000000TbllYAC --target-org <your org> --wait 20`
+Package version 1.2.0.2. Replaced by 1.3: install 1.3 instead.
 
 - **Charts, as a list view's.** The gear beside the chart's title is a menu:
   **Display as** draws the chart another way at once, then **Edit chart**.
@@ -72,11 +75,11 @@ The version to install. It upgrades 1.0 or 1.1 in place and keeps your grids.
 ## 1.1 — Winter 2027 (15 October 2026)
 
 Package version 1.1.0.1, the first under the GNU Affero General Public License
-v3.0 (AGPL-3.0); see NOTICE. Replaced by 1.2: install 1.2 instead.
+v3.0 (AGPL-3.0); see NOTICE. Replaced by 1.3: install 1.3 instead.
 
 ## 1.0 — Winter 2027 (15 October 2026)
 
-The first release, package version 1.0.0.2. Replaced by 1.2: install 1.2
+The first release, package version 1.0.0.2. Replaced by 1.3: install 1.3
 instead.
 
 What it includes is in the README's [What it does](README.md#what-it-does):
