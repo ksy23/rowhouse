@@ -1,8 +1,8 @@
-<!--meta {"title": "Tutorial: the weekly pipeline review", "desc": "Build a Rowhouse grid of opportunities grouped by stage, with a sum of amounts, overdue dates in red and big deals in green, then use it to update a pipeline.", "section": "tutorials", "audience": "all"} -->
+<!--meta {"title": "Tutorial: the weekly pipeline review", "desc": "Build a Rowhouse grid of opportunities grouped by stage, with a sum of amounts, overdue dates in red and big deals in green, then use it to update a pipeline and save a view of the late-stage deals for the sales managers.", "section": "tutorials", "audience": "all"} -->
 <header class="phead hero alive" id="main">
   <div class="phead-in">
     <div class="crumbs"><a href="welcome.html">Grid Guide</a> / <a href="tutorials.html">Tutorials</a> / Pipeline review</div>
-    <span class="aud both">Sales operations · about 25 minutes</span>
+    <span class="aud both">Sales operations · about 30 minutes</span>
     <h1 style="margin-top:14px">The weekly pipeline review</h1>
     <p class="dek">Every Monday, Abigail walks the sales managers through the open pipeline. Until now she has exported opportunities to a spreadsheet, fixed them there, and asked each rep to retype the changes. This grid lets her fix them where they live.</p>
   </div>
@@ -20,6 +20,7 @@
     <a href="#review">5. Read the pipeline</a>
     <a href="#fix">6. Fix deals</a>
     <a href="#save">7. Save and check</a>
+    <a href="#view">8. A view for the managers</a>
     <a href="#learned">What you learned</a>
   </aside>
 
@@ -55,7 +56,7 @@
     </div></div></div>
     <figcaption>The finished grid: grouped by stage in the picklist's order, a sum of amounts per stage and in total, overdue close dates in red, big deals in green, deals in negotiation tinted purple, with a purple bar at the left edge. Collapsed stages still count in the Total.</figcaption>
   </figure>
-  <div class="call"><span class="k">You need</span><p>The Rowhouse Grid User permission set, permission to customize the application, and some opportunities. Our example org has 31; the record names below are ours, so pick your own where a step names one.</p></div>
+  <div class="call"><span class="k">You need</span><p>The Rowhouse Grid User permission set, permission to customize the application, and some opportunities. To share the view in step 8 with everyone, Salesforce's Manage Public List Views permission (system administrators have it). Our example org has 31; the record names below are ours, so pick your own where a step names one.</p></div>
   <div class="call"><span class="k">Skip the build</span><p>To go straight to using the grid, click the button below, then <b>Build</b> in the dialog: it builds <b>Pipeline Review</b> as steps 1 to 3 leave it, in a few seconds, while a spinner says which grid it is on. Then go on to <a href="#page">step 4</a>, which puts it on a page. The build steps are still the way to learn how a grid is made.</p><c-guide-build-grid tutorial="tutorial-pipeline"></c-guide-build-grid></div>
 </section>
 
@@ -161,12 +162,33 @@
   </ol>
 </section>
 
+<section id="view">
+  <div class="sec-head"><span class="sec-num">Use it · Abigail</span><h2>8. A view for the managers</h2>
+  <p class="sec-sub">The managers only want the deals that could close soon: those in the two late stages. Abigail saves that as a view of the grid, shares it with everyone, and pins it, so the grid opens on it for her.</p></div>
+  <ol class="tut">
+    <li><b>Start a view.</b> Click <span class="ui">View Controls</span>, the gear with ▾ after the search box, and choose <span class="ui">New</span>. Enter the View Name <span class="v">Late-stage deals</span><button class="copy" data-copy="Late-stage deals">Copy</button>, choose <span class="ui">All users can see this view</span>, and click <span class="ui">Save</span>.
+      <div class="check">The title reads "Pipeline Review › Late-stage deals", and the Filters panel opens beside the list.</div>
+      Without Manage Public List Views, only <span class="ui">Only I can see this view</span> is offered: choose it, and the view is yours alone.</li>
+    <li><b>Add the two late stages.</b> In the Filters panel, click <span class="ui">Add Filter</span>, choose <span class="ui">Stage</span> in <span class="ui">Field</span>, leave the Condition at <span class="ui">Equals</span>, choose <span class="ui">Proposal/Price Quote</span> as the Value, and click <span class="ui">Done</span>. Do the same again for <span class="ui">Negotiation/Review</span>.
+      <div class="check">Two numbered filters in the panel: 1, Stage equals Proposal/Price Quote, and 2, Stage equals Negotiation/Review.</div></li>
+    <li><b>Join them with OR.</b> A deal is in one stage or the other, never both, so the filters must be joined with OR. Click <span class="ui">Add Filter Logic</span>, replace <span class="v plain">1 AND 2</span> with <span class="v">1 OR 2</span>, and click <span class="ui">Apply</span>.
+      <div class="check">Only the Proposal/Price Quote and Negotiation/Review groups are left. Under the title, after "Filtered by": "1. Stage equals Proposal/Price Quote", "2. Stage equals Negotiation/Review" and "Filter Logic: 1 OR 2". A bar above the grid says "You changed this view: the filters."</div></li>
+    <li><b>Save the view.</b> Click <span class="ui">Save</span> on that bar.
+      <div class="check">The bar goes. Everyone now finds Late-stage deals in the list under the grid's title. It is read-only to them: they can use it, or save a copy with Save As.</div></li>
+    <li><b>Pin it.</b> Click the pin beside the title.
+      <div class="check">The pin stands upright, and pointing at it says "This view is pinned." From now on, Pipeline Review opens on Late-stage deals for you, with its two filters.</div></li>
+    <li><b>Go back to the whole pipeline.</b> Click the grid's title, then <span class="ui">Pipeline Review</span> in the list.
+      <div class="check">Every stage is back, with no filters of yours, as the grid was before this step. Late-stage deals stays pinned: the list under the title shows it as "Late-stage deals (Pinned view)".</div></li>
+  </ol>
+</section>
+
 <section id="learned">
   <div class="sec-head"><span class="sec-num">Wrap-up</span><h2>What you learned</h2></div>
   <div class="tiles rv-stagger">
     <div class="tile"><div class="ic">{{ic:layers}}</div><h4>Group Level and Subtotal</h4><p>Open a grid grouped, with figures on every group and a Total row.</p></div>
     <div class="tile gold"><div class="ic">{{ic:palette}}</div><h4>Display rules</h4><p>Cell colors, red text and a purple row, each explained in the Display Key.</p></div>
     <div class="tile sky"><div class="ic">{{ic:copy}}</div><h4>Spreadsheet editing</h4><p>Typing, picklists, the calendar, fill down, undo and redo, all saved together.</p></div>
+    <div class="tile teal"><div class="ic">{{ic:layers}}</div><h4>Saved views</h4><p>A named view with its own filters, joined with OR, shared with everyone and pinned.</p></div>
   </div>
   <div class="next">
     <a href="tutorial-accounts.html"><small>Previous tutorial</small><b>← Key accounts</b></a>

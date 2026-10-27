@@ -216,7 +216,7 @@ export const PAGES = [
     {
         "id": "tutorial-pipeline",
         "title": "Tutorial: the weekly pipeline review",
-        "desc": "Build a Rowhouse grid of opportunities grouped by stage, with a sum of amounts, overdue dates in red and big deals in green, then use it to update a pipeline.",
+        "desc": "Build a Rowhouse grid of opportunities grouped by stage, with a sum of amounts, overdue dates in red and big deals in green, then use it to update a pipeline and save a view of the late-stage deals for the sales managers.",
         "section": "tutorials",
         "audience": "all",
         "anchors": [
@@ -228,6 +228,7 @@ export const PAGES = [
             "review",
             "fix",
             "save",
+            "view",
             "learned"
         ]
     },
