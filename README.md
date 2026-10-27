@@ -35,7 +35,9 @@ grid ([Placing a grid](#placing-a-grid), below).
 
 - **Upgrading:** each new version is installed the same way, from its link in
   [CHANGELOG.md](CHANGELOG.md). It upgrades Rowhouse in place and keeps your
-  grids.
+  grids. In versions after 1.2, **Check for a newer version**, under the Grid
+  Admin tab's name, opens rowhouse.app's What's new with your version, which
+  says whether a newer one is out.
 - **If saving a grid is refused** with "Salesforce did not let Rowhouse save
   it", turn on **Deploy Metadata from Non-Certified Package Versions via
   Apex** (in Setup, type Apex Settings in the Quick Find box). Saving a grid,

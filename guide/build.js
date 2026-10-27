@@ -9,10 +9,14 @@
  *                            (scripts/checks/run-all.js runs this)
  *
  * WHAT A PAGE MAY CONTAIN
- * Plain HTML and SVG, as the template compiler accepts it, with two macros:
+ * Plain HTML and SVG, as the template compiler accepts it, with three macros:
  *   {{ic:name}}           one of the line icons below
  *   {{fields:Object__mdt}} the field table of a configuration record, read
  *                          from its metadata here, so it matches Setup
+ *   {{version}}           the version this guide ships in, as the Grid Admin
+ *                          tab shows it (1.3), from the package's versionNumber
+ *                          in sfdx-project.json; the --check fails when that
+ *                          changes and the pages were not built again
  * and a first line <!--meta {"title", "desc", "section", "audience"} -->,
  * where audience is "admin" (Rowhouse Grid Admin) or "all".
  *
@@ -41,6 +45,12 @@ const LWC = path.join(ROOT, 'force-app', 'main', 'default', 'lwc');
 const META = path.join(ROOT, 'force-app', 'main', 'default');
 const API = JSON.parse(fs.readFileSync(path.join(ROOT, 'sfdx-project.json'), 'utf8')).sourceApiVersion;
 const NAMESPACE = JSON.parse(fs.readFileSync(path.join(ROOT, 'sfdx-project.json'), 'utf8')).namespace || '';
+/** The version the guide ships in, major.minor: 1.3.0.NEXT is 1.3. */
+const VERSION =
+    (JSON.parse(fs.readFileSync(path.join(ROOT, 'sfdx-project.json'), 'utf8')).packageDirectories || [])
+        .map(d => d.versionNumber)
+        .filter(Boolean)
+        .map(v => v.split('.').slice(0, 2).join('.'))[0] || '';
 const NS = NAMESPACE || 'c';
 const TAB = (NAMESPACE ? NAMESPACE + '__' : '') + 'Grid_Guide';
 
@@ -418,7 +428,8 @@ function build() {
         const { meta, body } = readPage(id);
         let html = body
             .replace(/\{\{ic:([a-z]+)\}\}/g, (_, n) => icon(n))
-            .replace(/\{\{fields:([A-Za-z_]+)\}\}/g, (_, o) => fieldsTable(o));
+            .replace(/\{\{fields:([A-Za-z_]+)\}\}/g, (_, o) => fieldsTable(o))
+            .replace(/\{\{version\}\}/g, VERSION);
         const anchors = [...html.matchAll(/<section[^>]*\sid="([\w-]+)"/g)].map(a => a[1]);
         const { html: out, used } = transform(id, html, problems);
         const name = componentOf(id);

@@ -47,6 +47,11 @@ private class GridAdminControllerTest {
 
             System.assertEquals('pending', GridAdminController.saveStatus('0Afhk0000000003').get('status'));
             System.assert(GridAdminController.logRetention() != null, 'The log retention status is returned.');
+            String version = GridAdminController.installedVersion();
+            System.assert(
+                version == null || Pattern.matches('\\d+\\.\\d+', version),
+                'A version is 1.2 or none: ' + version
+            );
             System.assert(!GridAdminController.setupRecords('Consignment_Items').isEmpty(), 'Setup lists its records.');
         }
     }

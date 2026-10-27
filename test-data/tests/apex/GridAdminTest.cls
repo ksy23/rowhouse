@@ -121,6 +121,36 @@ private class GridAdminTest {
     }
 
     @IsTest
+    static void theInstalledVersionIsReadForAdminsWithoutACallout() {
+        System.assertEquals('1.2', GridAdmin.versionText(1, 2));
+        System.assertEquals('1.10', GridAdmin.versionText(1, 10), 'Minor versions are numbers, not decimals.');
+        System.assertEquals(null, GridAdmin.versionText(1, null));
+        System.assertEquals(null, GridAdmin.versionText(null, 2));
+        System.runAs(GridTestUsers.adminViewer()) {
+            System.assertEquals(null, GridAdmin.versionOf(''), 'Deployed from source: no namespace, no version.');
+            System.assertEquals(
+                null,
+                GridAdmin.versionOf('nosuchpackage'),
+                'A namespace not installed has no version.'
+            );
+            String version = GridAdmin.installedVersion();
+            System.assert(
+                version == null || Pattern.matches('\\d+\\.\\d+', version),
+                'A version is 1.2 or none: ' + version
+            );
+            System.assertEquals(0, Limits.getCallouts(), 'Never a callout (HR-9).');
+        }
+        System.runAs(GridTestUsers.fullUser()) {
+            try {
+                GridAdmin.installedVersion();
+                System.assert(false, 'Refused without Rowhouse Grid Admin.');
+            } catch (GridException e) {
+                System.assert(e.getMessage().contains('Rowhouse Grid Admin'), e.getMessage());
+            }
+        }
+    }
+
+    @IsTest
     static void anAdminWithoutCustomizeApplicationMayReadButNotSave() {
         System.runAs(GridTestUsers.adminViewer()) {
             Map<String, Object> read = GridAdmin.readConfig('Consignments');

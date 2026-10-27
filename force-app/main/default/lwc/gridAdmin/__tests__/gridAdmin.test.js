@@ -12,11 +12,13 @@ import listConfigs from '@salesforce/apex/GridAdminController.listConfigs';
 import canSave from '@salesforce/apex/GridAdminController.canSave';
 import logRetention from '@salesforce/apex/GridAdminController.logRetention';
 import exportGrids from '@salesforce/apex/GridAdminController.exportGrids';
+import installedVersion from '@salesforce/apex/GridAdminController.installedVersion';
 import { downloadText } from 'c/gridCsv';
 
 jest.mock('@salesforce/apex/GridAdminController.listConfigs', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.canSave', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/GridAdminController.exportGrids', () => ({ default: jest.fn() }), { virtual: true });
+jest.mock('@salesforce/apex/GridAdminController.installedVersion', () => ({ default: jest.fn() }), { virtual: true });
 // The import dialog is the real one (it has its own tests); here it is only opened and answered for.
 jest.mock(
     '@salesforce/apex/GridAdminController.planImport',
@@ -124,6 +126,7 @@ async function mount() {
 beforeEach(() => {
     listConfigs.mockResolvedValue(CONFIGS);
     canSave.mockResolvedValue(true);
+    installedVersion.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -137,6 +140,52 @@ it('shows the Rowhouse logo from its static resource', async () => {
     expect(logo.tagName).toBe('IMG');
     expect(logo.getAttribute('src')).toContain('RowhouseLogo');
     expect(logo.getAttribute('alt')).toBe('Rowhouse');
+});
+
+describe('the installed version and the check for a newer one', () => {
+    const link = el => $(el, '.rh-admin-version-link');
+
+    it("names the installed version and sends it to What's new, in a new tab", async () => {
+        installedVersion.mockResolvedValue('1.2');
+        const el = await mount();
+        expect($(el, '.rh-admin-version-name').textContent).toBe('Rowhouse 1.2');
+        expect(link(el).getAttribute('href')).toBe('https://rowhouse.app/whats-new/?installed=1.2');
+        expect(link(el).getAttribute('target')).toBe('_blank');
+        expect(link(el).getAttribute('rel')).toContain('noopener');
+        expect(link(el).textContent).toBe('Check for a newer version (opens in a new tab)');
+        expect(installedVersion).toHaveBeenCalledTimes(1);
+    });
+
+    it('offers the check without a version where Rowhouse is not installed as the package', async () => {
+        const el = await mount();
+        expect($(el, '.rh-admin-version-name')).toBeNull();
+        expect(link(el).getAttribute('href')).toBe('https://rowhouse.app/whats-new/');
+    });
+
+    it('takes nothing but a version number into the address', async () => {
+        installedVersion.mockResolvedValue('1.2&x=<b>');
+        const el = await mount();
+        expect($(el, '.rh-admin-version-name')).toBeNull();
+        expect(link(el).getAttribute('href')).toBe('https://rowhouse.app/whats-new/');
+    });
+
+    it('still offers the check when the version cannot be read', async () => {
+        installedVersion.mockRejectedValue({ body: { message: 'This needs the Rowhouse Grid Admin permission set.' } });
+        const el = await mount();
+        expect($(el, '.rh-admin-version-name')).toBeNull();
+        expect(link(el).getAttribute('href')).toBe('https://rowhouse.app/whats-new/');
+    });
+
+    it('reads the version once, not again when the list is brought up to date', async () => {
+        installedVersion.mockResolvedValue('1.2');
+        const el = await mount();
+        $$(el, '.rh-admin-open')[0].click();
+        await settle();
+        $(el, 'c-grid-config-editor').dispatchEvent(new CustomEvent('close'));
+        await settle();
+        expect(listConfigs).toHaveBeenCalledTimes(2);
+        expect(installedVersion).toHaveBeenCalledTimes(1);
+    });
 });
 
 it('lists every grid with its object and column count', async () => {

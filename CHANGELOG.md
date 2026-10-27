@@ -3,6 +3,14 @@
 Each release is a version of the Rowhouse Grid managed package (namespace
 `rowhouse`). Install or upgrade from its links; an upgrade keeps your grids.
 
+## Unreleased
+
+- **Check for a newer version.** Under the Grid Admin tab's name, the version
+  of Rowhouse installed in the org and a link that opens rowhouse.app's What's
+  new with that version, which says whether a newer one is out. Rowhouse makes
+  no call outside the org: the version is read from the org, and only the
+  admin's click leaves it.
+
 ## 1.2 — Winter 2027 (19 October 2026)
 
 The version to install. It upgrades 1.0 or 1.1 in place and keeps your grids.

@@ -39,6 +39,20 @@ public with sharing class GridAdminController {
         }
     }
 
+    /**
+     * The installed version of Rowhouse, '1.2', for the tab's "Check for a
+     * newer version" line; null where it is not installed as the package.
+     * Not cacheable: after an upgrade the line names the new version at once.
+     */
+    @AuraEnabled
+    public static String installedVersion() {
+        try {
+            return GridAdmin.installedVersion();
+        } catch (Exception e) {
+            throw auraError(e);
+        }
+    }
+
     /** The objects a grid can show. */
     @AuraEnabled(cacheable=true)
     public static List<Map<String, String>> listObjects() {

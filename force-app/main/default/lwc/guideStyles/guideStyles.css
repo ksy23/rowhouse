@@ -3842,6 +3842,23 @@ table.rh-ref td.rh-d {
     border-radius: var(--slds-g-radius-border-4, 1rem);
 }
 
+/* The Grid Admin tab's version line: a plain link, and the new-window icon after it. */
+.rh-adm-ver .rh-m-link {
+    font-weight: var(--slds-g-font-weight-4, 400);
+}
+
+.rh-adm-ver svg {
+    width: var(--slds-g-sizing-4, 12px);
+    height: var(--slds-g-sizing-4, 12px);
+    margin-left: var(--slds-g-spacing-1, 0.25rem);
+    vertical-align: -1px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .rh-adm-help svg {
     width: var(--slds-g-sizing-4, 12px);
     height: var(--slds-g-sizing-4, 12px);

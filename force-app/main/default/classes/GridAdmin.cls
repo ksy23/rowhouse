@@ -274,6 +274,43 @@ public with sharing class GridAdmin {
         return GridSecurity.hasCustomPermission(PERMISSION) && GridSecurity.canCustomizeApplication();
     }
 
+    /**
+     * The version of Rowhouse installed in this org, as Setup's Installed
+     * Packages names it without its patch number: '1.2'. For the Grid Admin
+     * tab's line that links to rowhouse.app's What's new. Read from
+     * Publisher, an ordinary query any user may run, not a callout (HR-9):
+     * Rowhouse never asks anything outside the org; the admin's click on the
+     * link is what leaves it. Null where Rowhouse is not installed as the
+     * package (an org that deploys the source has no version of its own).
+     * Publisher has no version name, so none is given.
+     */
+    public static String installedVersion() {
+        requireAdmin();
+        return versionOf(GridDescribe.NAMESPACE);
+    }
+
+    /** A namespace's installed version, '1.2'; null for a blank namespace or one not installed. */
+    @TestVisible
+    private static String versionOf(String namespace) {
+        if (String.isBlank(namespace)) {
+            return null;
+        }
+        List<SObject> rows = GridSecurity.query(
+            'SELECT MajorVersion, MinorVersion FROM Publisher WHERE NamespacePrefix = :namespace LIMIT 1',
+            new Map<String, Object>{ 'namespace' => namespace }
+        );
+        return rows.isEmpty() ? null : versionText(rows[0].get('MajorVersion'), rows[0].get('MinorVersion'));
+    }
+
+    /** '1.2' from 1 and 2; null unless both are there. */
+    @TestVisible
+    private static String versionText(Object major, Object minor) {
+        if (major == null || minor == null) {
+            return null;
+        }
+        return String.valueOf(major) + '.' + String.valueOf(minor);
+    }
+
     // ---------------------------------------------------------------- read
 
     /**

@@ -26,6 +26,25 @@
     border-left: var(--slds-g-sizing-border-1, 1px) solid var(--slds-g-color-border-1, rgb(201, 201, 201));
 }
 
+/* The installed version and the check for a newer one. The template drops the
+   spaces between its parts (they sit on lines of their own), so the gap spaces them. */
+.rh-admin-version {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--slds-g-spacing-2, 0.5rem);
+    margin-top: var(--slds-g-spacing-1, 0.25rem);
+}
+
+.rh-admin-version-link {
+    display: inline-flex;
+    align-items: center;
+}
+
+.rh-admin-version-icon {
+    margin-left: var(--slds-g-spacing-1, 0.25rem);
+}
+
 /* Its pages: links, drawn as SLDS draws tabs, as the Grid Guide's are. */
 .rh-admin-nav {
     margin-top: var(--slds-g-spacing-3, 0.75rem);

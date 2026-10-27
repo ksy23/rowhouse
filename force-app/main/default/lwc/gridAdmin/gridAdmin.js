@@ -5,7 +5,12 @@
  *
  * LAYOUT
  * The Grid Guide's header and look: the logo, the tab's name, and two pages
- * as the guide's tabs draw them.
+ * as the guide's tabs draw them. Under the tab's name, the installed version
+ * ("Rowhouse 1.2") and "Check for a newer version", a link to rowhouse.app's
+ * What's new with that version in its address, in a new browser tab. Rowhouse
+ * never asks anything outside the org (HR-9): the version comes from the
+ * org itself, and only the admin's click on the link leaves it, where the
+ * page compares the version with the newest release.
  *   Grids     the Welcome page's heading and stat cards (grids, objects,
  *             grids that log every change, grids with child tables, how long
  *             the edit log keeps its entries), then the list, searched by
@@ -38,6 +43,7 @@ import listConfigs from '@salesforce/apex/GridAdminController.listConfigs';
 import canSaveConfig from '@salesforce/apex/GridAdminController.canSave';
 import logRetention from '@salesforce/apex/GridAdminController.logRetention';
 import exportGrids from '@salesforce/apex/GridAdminController.exportGrids';
+import readInstalledVersion from '@salesforce/apex/GridAdminController.installedVersion';
 import LOGO from '@salesforce/resourceUrl/RowhouseLogo';
 import LOCALE from '@salesforce/i18n/locale';
 import { openGuide, guideRef, guideUrl } from 'c/guideRoute';
@@ -50,6 +56,11 @@ const VIEWS = [
     { id: 'grids', label: 'Grids' },
     { id: 'settings', label: 'Settings' }
 ];
+/** rowhouse.app's list of releases, which compares an installed version (?installed=1.2) with the newest. */
+export const WHATS_NEW_URL = 'https://rowhouse.app/whats-new/';
+/** A version as the server gives it: 1.2, 1.10. */
+const VERSION = /^\d+\.\d+$/;
+
 /** What the list shows: the grids in use, the archived ones, or one object's API name. */
 const AVAILABLE = '';
 export const ARCHIVED = '__archived__';
@@ -116,6 +127,8 @@ export default class GridAdmin extends NavigationMixin(LightningElement) {
     importOpen = false;
     /** An export is being read from the server. */
     exporting = false;
+    /** The installed version, '1.2'; null until read, and where Rowhouse is not installed as the package. */
+    installedVersion = null;
 
     // Non-reactive (HR-20).
     _runtime = { token: 0, pendingView: null };
@@ -137,6 +150,24 @@ export default class GridAdmin extends NavigationMixin(LightningElement) {
 
     connectedCallback() {
         this.load(true);
+        this.loadVersion();
+    }
+
+    /** The installed version, read once. Without it the line still offers the check, without a version. */
+    async loadVersion() {
+        try {
+            const version = await readInstalledVersion();
+            this.installedVersion = typeof version === 'string' && VERSION.test(version) ? version : null;
+        } catch {
+            this.installedVersion = null;
+        }
+    }
+
+    /** rowhouse.app's What's new, told which version this org has. */
+    get versionUrl() {
+        return this.installedVersion
+            ? `${WHATS_NEW_URL}?installed=${encodeURIComponent(this.installedVersion)}`
+            : WHATS_NEW_URL;
     }
 
     disconnectedCallback() {

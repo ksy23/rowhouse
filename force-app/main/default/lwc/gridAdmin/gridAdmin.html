@@ -7,6 +7,15 @@
                 <div class="slds-col slds-m-left_medium rh-admin-title">
                     <h1 class="slds-text-heading_medium">Grid Admin</h1>
                     <p class="slds-text-body_small slds-text-color_weak">Build and change the grids your users see, without going into Setup.</p>
+                    <!-- The installed version, and the check for a newer one: rowhouse.app's
+                         What's new, told this version, in a new browser tab. -->
+                    <p class="slds-text-body_small slds-text-color_weak rh-admin-version">
+                        <template lwc:if={installedVersion}>
+                            <span class="rh-admin-version-name">Rowhouse {installedVersion}</span>
+                            <span class="rh-admin-version-dot" aria-hidden="true">·</span>
+                        </template>
+                        <a class="rh-admin-version-link" href={versionUrl} target="_blank" rel="noopener noreferrer">Check for a newer version<lightning-icon class="rh-admin-version-icon" icon-name="utility:new_window" size="xx-small"></lightning-icon><span class="slds-assistive-text"> (opens in a new tab)</span></a>
+                    </p>
                 </div>
                 <!-- The documentation: Get started, in the Grid Guide, in a new browser
                      tab, so a grid half built here stays as it is. -->
