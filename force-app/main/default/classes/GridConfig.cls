@@ -1890,16 +1890,23 @@ public with sharing class GridConfig {
             d.getName() != 'SystemModstamp';
     }
 
-    /** A metadata relationship field holds the parent's Id; match on Id or name. */
+    /**
+     * A metadata relationship field holds the parent's Id (a draft, its name);
+     * match on either. Names compare as Salesforce compares API names, ignoring
+     * case. Ids do not: two records' 15-character Ids can differ only in case,
+     * and Apex's == on Strings ignores case, so the Id's first 15 characters
+     * (an 18-character Id adds only a checksum) are compared exactly, with
+     * equals().
+     */
     public static Boolean belongsTo(Object parent, Grid_Configuration__mdt cfg) {
-        if (parent == null) {
+        if (parent == null || cfg == null) {
             return false;
         }
         String ref = String.valueOf(parent);
-        return ref == cfg.DeveloperName ||
-            ref == cfg.QualifiedApiName ||
-            (cfg.Id != null &&
-            ref.left(15) == String.valueOf(cfg.Id).left(15));
+        if (ref == cfg.DeveloperName || ref == cfg.QualifiedApiName) {
+            return true;
+        }
+        return cfg.Id != null && ref.length() >= 15 && ref.left(15).equals(String.valueOf(cfg.Id).left(15));
     }
 
     private class BySortOrder implements Comparator<Grid_Column__mdt> {

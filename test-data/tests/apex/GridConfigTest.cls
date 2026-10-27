@@ -5,6 +5,44 @@
  */
 @IsTest
 private class GridConfigTest {
+    /**
+     * A grid's filters, actions, display rules, columns and child tables are
+     * found by GridConfig.belongsTo. Two grids whose 15-character Ids differ
+     * only in case are different grids: one must never take the other's.
+     */
+    @IsTest
+    static void aGridOwnsOnlyWhatNamesItsIdExactly() {
+        String prefix = Grid_Configuration__mdt.SObjectType.getDescribe().getKeyPrefix();
+        String upper15 = prefix + 'Hk000000000A';
+        String lower15 = prefix + 'Hk000000000a';
+        Grid_Configuration__mdt cfg = (Grid_Configuration__mdt) JSON.deserialize(
+            JSON.serialize(
+                new Map<String, Object>{
+                    'Id' => upper15,
+                    'DeveloperName' => 'Consignments',
+                    'QualifiedApiName' => 'Consignments'
+                }
+            ),
+            Grid_Configuration__mdt.class
+        );
+        String upper18 = String.valueOf(Id.valueOf(upper15));
+        String lower18 = String.valueOf(Id.valueOf(lower15));
+        System.assertNotEquals(upper18.toLowerCase(), lower18.toLowerCase(), 'The checksums tell the two apart.');
+
+        System.assert(GridConfig.belongsTo(upper15, cfg), 'Its 15-character Id.');
+        System.assert(GridConfig.belongsTo(upper18, cfg), 'Its 18-character Id.');
+        System.assert(GridConfig.belongsTo(Id.valueOf(upper15), cfg), 'Its Id as an Id.');
+        System.assert(!GridConfig.belongsTo(lower15, cfg), 'Another grid, whose 15-character Id differs only in case.');
+        System.assert(!GridConfig.belongsTo(lower18, cfg), 'The same other grid, by its 18-character Id.');
+        System.assert(!GridConfig.belongsTo(Id.valueOf(lower15), cfg), 'The same other grid, as an Id.');
+
+        System.assert(GridConfig.belongsTo('Consignments', cfg), 'Its name, as a draft holds it.');
+        System.assert(GridConfig.belongsTo('consignments', cfg), 'Names ignore case, as Salesforce API names do.');
+        System.assert(!GridConfig.belongsTo('Consignments_By_Mode', cfg), 'Another grid, by name.');
+        System.assert(!GridConfig.belongsTo(null, cfg), 'No parent.');
+        System.assert(!GridConfig.belongsTo(upper15, null), 'No grid.');
+    }
+
     @IsTest
     static void loadsColumnsInSortOrderWithDescribeDetail() {
         GridConfig.Definition def = GridConfig.load('Consignments');

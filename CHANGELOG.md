@@ -10,6 +10,9 @@ Each release is a version of the Rowhouse Grid managed package (namespace
   new with that version, which says whether a newer one is out. Rowhouse makes
   no call outside the org: the version is read from the org, and only the
   admin's click leaves it.
+- **Fixed:** a grid could take another grid's filters, actions, display rules,
+  columns or child tables when the two grids' Salesforce Ids differed only in
+  upper and lower case. Ids are now compared exactly. (Reported in issue #12.)
 
 ## 1.2 — Winter 2027 (19 October 2026)
 
