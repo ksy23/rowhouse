@@ -1,0 +1,50 @@
+# Rowhouse — sign-off check.
+#
+# CONTRIBUTING.md asks that every commit be signed off under the Developer
+# Certificate of Origin (git commit -s). This checks each commit in a pull
+# request for a "Signed-off-by:" line with the commit author's email, and fails,
+# naming each commit without one, when any is missing. Merge commits and
+# commits made by GitHub's own bots are skipped. It reads the commits only: no
+# code from the pull request runs.
+name: sign-off
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dco:
+    name: Every commit signed off (DCO)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check each commit
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          missing=0
+          for sha in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            author=$(git log -1 --format='%ae' "$sha")
+            case "$author" in
+              *'[bot]@users.noreply.github.com') continue ;;
+            esac
+            if git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$sha" \
+                | grep -qiF "<$author>"; then
+              echo "signed off: $(git log -1 --format='%h %s' "$sha")"
+            else
+              echo "::error::Commit ${sha:0:7} has no Signed-off-by line with its author's email."
+              missing=$((missing + 1))
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "$missing commit(s) not signed off. Sign them off and push again:"
+            echo "  git rebase --signoff $BASE"
+            echo "  git push --force-with-lease"
+            exit 1
+          fi

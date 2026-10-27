@@ -12,7 +12,9 @@ twenty-nine hard rules the project is built on.
 - **Sign off every commit** with the Developer Certificate of Origin
   (`git commit -s`). The sign-off says you wrote the change or have the right
   to submit it under the project's licence, the GNU Affero General Public License v3.0.
-  There is no CLA.
+  There is no CLA. A check on every pull request fails if a commit has no
+  sign-off with its author's email; `git rebase --signoff main` adds the
+  missing ones.
 - **Read the hard rules below.** A pull request that breaks one is not merged,
   whatever the feature. If a rule is wrong, argue it in an issue: rules change
   here, deliberately, never around it in code.

@@ -6,10 +6,20 @@ freight claims, inspections and freight bills. No value in this folder is a
 stand-in (no "test", "sample" or "example" in the data).
 
 ```
-./scripts/seed.sh                 # scratch org + metadata + 56 seed records + limited user
+./scripts/seed.sh                 # scratch org + Rowhouse + test metadata + 56 seed records + limited user
 ./scripts/seed.sh --benchmark     # the above, plus the 50,000 benchmark rows
+./scripts/seed.sh --days 1        # a scratch org that lasts 1 day (the default is 7)
 ./scripts/seed.sh --target my-org # use an existing org instead of creating one
 ```
+
+It needs the Salesforce CLI, Python 3 and a default Dev Hub
+(`sf org login web --set-default-dev-hub`). The scratch org has no namespace,
+so any Dev Hub will do. It deploys Rowhouse (`force-app`), this whole folder
+(the test objects, flows, grids and Apex tests) and `dev` (the Rowhouse Dev
+tab, which opens any grid at `/lightning/n/Rowhouse_Dev?c__grid=Consignments`),
+and gives the org's admin Rowhouse Grid User, Rowhouse Grid Admin,
+`Freight_Full_Access` and `Rowhouse_Dev_Tabs`. This is for working on Rowhouse
+itself: people who use Rowhouse install the managed package.
 
 ## What's here
 
@@ -68,8 +78,9 @@ production in real grids:
 
 ## Two things to check before trusting a run
 
-**Log in as the limited user, not as yourself.** `seed.sh` creates a Standard
-User with `Freight_Limited_Access`, under which `Carrier_Code__c` and
+**Log in as the limited user, not as yourself**
+(`sf org open --target-org rowhouse-limited`). `seed.sh` creates a Standard
+User with `Freight_Limited_Access` and Rowhouse Grid User, under which `Carrier_Code__c` and
 `Weight__c` are readable but not editable, and **fifteen fields are
 invisible entirely**. A System Administrator sees everything, so every access
 test passes vacuously. This is the most common way an FLS suite ends up

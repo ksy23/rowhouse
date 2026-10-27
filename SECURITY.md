@@ -66,3 +66,33 @@ is 1.3, Winter 2027.
   missing object, field or sharing check fails a test.
 - **Dependencies** are watched by Dependabot. None of them ships in the
   package: they are the build and test tools.
+
+## Scan results
+
+[![verify](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kugamon/rowhouse/actions/workflows/ci.yml)
+[![Graph Engine](https://github.com/kugamon/rowhouse/actions/workflows/code-analyzer-graph.yml/badge.svg?event=release)](https://github.com/kugamon/rowhouse/actions/workflows/code-analyzer-graph.yml)
+
+The badges show the latest runs: **verify** on every push (it includes the
+rule scan), **Graph Engine** on the latest release.
+
+| Scan | What it checks | When | Findings in 1.3 |
+| --- | --- | --- | --- |
+| Salesforce Code Analyzer: AppExchange and security rules | The rules the AppExchange security review runs, over the whole package | Every push | None |
+| Salesforce Code Analyzer: Graph Engine | Every path from each server method Rowhouse's components call, for a missing object or field check and for sharing | Each release | None |
+
+Each run's full report is kept with the run on GitHub Actions, under
+Artifacts.
+
+What is set aside, and why (all of it in
+[`code-analyzer.yml`](code-analyzer.yml)):
+
+- **One suppression.** `ProtectSensitiveData` flags the field
+  `Grid_User_Layout__c.Key__c` because its name looks like a secret's. It
+  holds the owner's user Id and the grid's API name, which make each user's
+  layout of each grid one record. The suppression covers that one field and at
+  most one finding.
+- **One rule replaced.** PMD's `EmptyCatchBlock` treats a `catch` that holds
+  only a comment as empty. Rowhouse's empty catches are deliberate
+  fallbacks, each explained in a comment, so the same rule runs in its place
+  with comments allowed: a catch that is empty and unexplained still fails.
+- **No inline suppressions** in the Apex code.
