@@ -126,6 +126,8 @@ private class GridAdminTest {
         System.assertEquals('1.10', GridAdmin.versionText(1, 10), 'Minor versions are numbers, not decimals.');
         System.assertEquals(null, GridAdmin.versionText(1, null));
         System.assertEquals(null, GridAdmin.versionText(null, 2));
+        System.assertEquals(null, GridAdmin.versionText(0, 0), 'Publisher lists a namespace an org publishes at 0.0.');
+        System.assertEquals('0.9', GridAdmin.versionText(0, 9), 'A minor version of a major 0 is still a version.');
         System.runAs(GridTestUsers.adminViewer()) {
             System.assertEquals(null, GridAdmin.versionOf(''), 'Deployed from source: no namespace, no version.');
             System.assertEquals(
@@ -135,8 +137,8 @@ private class GridAdminTest {
             );
             String version = GridAdmin.installedVersion();
             System.assert(
-                version == null || Pattern.matches('\\d+\\.\\d+', version),
-                'A version is 1.2 or none: ' + version
+                version == null || (Pattern.matches('\\d+\\.\\d+', version) && version != '0.0'),
+                'A version is 1.2 or none, never 0.0: ' + version
             );
             System.assertEquals(0, Limits.getCallouts(), 'Never a callout (HR-9).');
         }

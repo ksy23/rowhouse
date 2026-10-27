@@ -58,8 +58,8 @@ const VIEWS = [
 ];
 /** rowhouse.app's list of releases, which compares an installed version (?installed=1.2) with the newest. */
 export const WHATS_NEW_URL = 'https://rowhouse.app/whats-new/';
-/** A version as the server gives it: 1.2, 1.10. */
-const VERSION = /^\d+\.\d+$/;
+/** A version as the server gives it: 1.2, 1.10. Never 0.0, which no released version is. */
+const VERSION = /^(?!0\.0$)\d+\.\d+$/;
 
 /** What the list shows: the grids in use, the archived ones, or one object's API name. */
 const AVAILABLE = '';

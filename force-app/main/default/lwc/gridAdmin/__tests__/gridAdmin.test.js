@@ -162,6 +162,13 @@ describe('the installed version and the check for a newer one', () => {
         expect(link(el).getAttribute('href')).toBe('https://rowhouse.app/whats-new/');
     });
 
+    it('shows no version for 0.0, which an org that publishes the package can read', async () => {
+        installedVersion.mockResolvedValue('0.0');
+        const el = await mount();
+        expect($(el, '.rh-admin-version-name')).toBeNull();
+        expect(link(el).getAttribute('href')).toBe('https://rowhouse.app/whats-new/');
+    });
+
     it('takes nothing but a version number into the address', async () => {
         installedVersion.mockResolvedValue('1.2&x=<b>');
         const el = await mount();

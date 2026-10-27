@@ -305,23 +305,32 @@ public with sharing class GridAdmin {
         GridViews.removeAny(configName, viewId);
     }
 
-    /** A namespace's installed version, '1.2'; null for a blank namespace or one not installed. */
+    /**
+     * A namespace's installed version, '1.2'; null for a blank namespace, one
+     * not installed, or one Publisher lists only at 0.0. The highest row is
+     * taken: an org that also publishes the package (its namespace linked to
+     * the org as a Dev Hub) can list the namespace at 0.0, which is no version.
+     */
     @TestVisible
     private static String versionOf(String namespace) {
         if (String.isBlank(namespace)) {
             return null;
         }
         List<SObject> rows = GridSecurity.query(
-            'SELECT MajorVersion, MinorVersion FROM Publisher WHERE NamespacePrefix = :namespace LIMIT 1',
+            'SELECT MajorVersion, MinorVersion FROM Publisher WHERE NamespacePrefix = :namespace' +
+            ' AND IsSalesforce = false ORDER BY MajorVersion DESC, MinorVersion DESC LIMIT 1',
             new Map<String, Object>{ 'namespace' => namespace }
         );
         return rows.isEmpty() ? null : versionText(rows[0].get('MajorVersion'), rows[0].get('MinorVersion'));
     }
 
-    /** '1.2' from 1 and 2; null unless both are there. */
+    /** '1.2' from 1 and 2; null unless both are there, and for 0.0, which no released version is. */
     @TestVisible
     private static String versionText(Object major, Object minor) {
         if (major == null || minor == null) {
+            return null;
+        }
+        if (Integer.valueOf(major) == 0 && Integer.valueOf(minor) == 0) {
             return null;
         }
         return String.valueOf(major) + '.' + String.valueOf(minor);
